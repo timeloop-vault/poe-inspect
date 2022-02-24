@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.0.0-rc.1",
+    "@timeloop-vault/poe-item": "github:timeloop-vault/poe-item",
     "preact": "^10.5.15"
   },
   "devDependencies": {
