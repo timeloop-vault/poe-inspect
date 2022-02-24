@@ -3,10 +3,14 @@ import { isRegistered, register } from "@tauri-apps/api/globalShortcut";
 import { Component, h } from "preact";
 import { invoke } from "@tauri-apps/api/tauri";
 import { clipboard } from "@tauri-apps/api";
+import { PoeItem } from "@timeloop-vault/poe-item/dist/poe-item-types";
+import { item } from "@timeloop-vault/poe-item/dist/poe-item";
+import PoeItemComp from "./components/poe-item/poe-item-comp";
 
 type Props = {};
 type State = {
   count: number;
+  poeItem: PoeItem | null;
 };
 
 class App extends Component<Props, State> {
@@ -14,17 +18,33 @@ class App extends Component<Props, State> {
     super(props);
     this.state = {
       count: 0,
+      poeItem: null,
     };
     this.handleCtrlD = this.handleCtrlD.bind(this);
+    this.clipboardReadText = this.clipboardReadText.bind(this);
+  }
+
+  clipboardReadText(): void {
+    clipboard.readText().then((text) => {
+      console.log("text copied", text);
+      if (text != null && text.length > 0) {
+        const poeItem = item(text, true);
+        this.setState({
+          poeItem,
+        });
+      } else {
+        setTimeout(() => {
+          this.clipboardReadText();
+        }, 1000);
+      }
+    });
   }
 
   handleCtrlD(): void {
     console.log("Ctrl+D pressed");
     clipboard.writeText("");
     invoke("send_adv_copy").then(() => {
-      clipboard.readText().then((text) => {
-        console.log("text copied", text);
-      });
+      this.clipboardReadText();
     });
     const { count } = this.state;
     this.setState({
@@ -45,20 +65,11 @@ class App extends Component<Props, State> {
   }
 
   render(): h.JSX.Element {
-    const { count } = this.state;
+    const { poeItem } = this.state;
     return (
       <>
-        <p>Hello Vite + Preact! {count}</p>
-        <p>
-          <a
-            class="link"
-            href="https://preactjs.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn Preact
-          </a>
-        </p>
+        <p>PoE Inspect</p>
+        <p>{poeItem && <PoeItemComp poeItem={poeItem} />}</p>
       </>
     );
   }
