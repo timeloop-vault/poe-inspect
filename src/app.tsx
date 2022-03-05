@@ -53,10 +53,10 @@ class App extends Component<Props, State> {
   }
 
   componentDidMount(): void {
-    isRegistered("Ctrl+D")
+    isRegistered("Ctrl+S")
       .then((registered) => {
         if (!registered) {
-          register("Ctrl+D", this.handleCtrlD);
+          register("Ctrl+S", this.handleCtrlD);
         }
       })
       .catch((err) => {
