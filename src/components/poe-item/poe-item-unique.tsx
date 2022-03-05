@@ -9,6 +9,7 @@ type Props = {
 function PoeItemUnique({ mods }: Props): h.JSX.Element {
   return (
     <div>
+      <p>Unique Mods</p>
       <p>
         {mods.map((mod, index) => {
           return <PoeItemMod key={index} mod={mod} />;
