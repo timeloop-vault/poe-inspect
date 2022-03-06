@@ -1,5 +1,6 @@
 import { PoeItem } from "@timeloop-vault/poe-item/dist/poe-item-types";
 import { h } from "preact";
+import PoeItemEnchant from "./poe-item-enchant";
 import PoeItemImplicit from "./poe-item-implicit";
 import PoeItemPrefix from "./poe-item-prefix";
 import PoeItemSuffix from "./poe-item-suffix";
@@ -13,8 +14,12 @@ function PoeItemComp({ poeItem }: Props): h.JSX.Element {
   return (
     <div>
       <p>General</p>
-      <p>ItemClass: {poeItem.itemClass}</p>
+      <p>Class: {poeItem.itemClass}</p>
+      <p>Base: {poeItem.itemBase}</p>
       <p>Rarity: {poeItem.rarity}</p>
+      {poeItem.enchants.length > 0 && (
+        <PoeItemEnchant mods={poeItem.enchants} />
+      )}
       {poeItem.implicits.length > 0 && (
         <PoeItemImplicit mods={poeItem.implicits} />
       )}
