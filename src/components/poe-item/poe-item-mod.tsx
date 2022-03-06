@@ -34,6 +34,9 @@ function PoeItemMod({ mod }: Props): h.JSX.Element {
   if (mod.groups != undefined) {
     text = `${text} (${mod.groups.join(", ")})`;
   }
+  if (mod.tier != undefined) {
+    text = `${text} (Tier: ${mod.tier})`;
+  }
   return (
     <div>
       <p>{text}</p>
