@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import itemReducer from "../slices/item-slice";
+import devToolsEnhancer from "remote-redux-devtools";
 
 export const store = configureStore({
   reducer: {
     item: itemReducer,
   },
+  enhancers: [devToolsEnhancer({ realtime: true, port: 8000, secure: false })],
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
