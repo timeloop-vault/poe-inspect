@@ -16,7 +16,7 @@ const initialState: ItemState = {
 export type ItemMatch = {
   class: string;
   base: string | null;
-  rarity: Rarities;
+  rarity: Rarities | null;
   implicit: ItemMatchMod[] | null;
   prefix: ItemMatchMod[] | null;
   suffix: ItemMatchMod[] | null;
@@ -24,7 +24,7 @@ export type ItemMatch = {
   unique: ItemMatchMod[] | null;
 };
 
-type ItemMatchMod = {
+export type ItemMatchMod = {
   minTier: number | null;
   maxTier: number | null;
   valueRanges: Range[];
@@ -39,6 +39,7 @@ export const itemSlice = createSlice({
   initialState,
   reducers: {
     addItemMatch: (state, action: PayloadAction<ItemMatch>) => {
+      console.log("addItemMatch", action.payload);
       state.itemMatches = [...state.itemMatches, action.payload];
     },
   },
@@ -47,6 +48,6 @@ export const itemSlice = createSlice({
 export const { addItemMatch } = itemSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
-export const itemMAtches = (state: RootState) => state.item.itemMatches;
+export const itemMatches = (state: RootState) => state.item.itemMatches;
 
 export default itemSlice.reducer;

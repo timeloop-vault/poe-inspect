@@ -1,13 +1,31 @@
-/* eslint-disable no-redeclare */
 import { isRegistered, register } from "@tauri-apps/api/globalShortcut";
 import { Component, h } from "preact";
 import { invoke } from "@tauri-apps/api/tauri";
 import { clipboard } from "@tauri-apps/api";
-import { PoeItem } from "@timeloop-vault/poe-item/dist/poe-item-types";
+import { Mod, PoeItem } from "@timeloop-vault/poe-item/dist/poe-item-types";
 import { item } from "@timeloop-vault/poe-item/dist/poe-item";
 import PoeItemComp from "./components/poe-item/poe-item-comp";
+import {
+  addItemMatch,
+  ItemMatch,
+  ItemMatchMod,
+} from "./redux/slices/item-slice";
+import { RootState } from "./redux/store/store";
+import { connect, ConnectedProps } from "react-redux";
 
-type Props = {};
+const mapState = (state: RootState) => ({
+  itemMatches: state.item.itemMatches,
+});
+
+const mapDispatch = {
+  addItemMatch,
+};
+
+const connector = connect(mapState, mapDispatch);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+type Props = PropsFromRedux & {};
 type State = {
   count: number;
   poeItem: PoeItem | null;
@@ -22,6 +40,7 @@ class App extends Component<Props, State> {
     };
     this.handleCtrlD = this.handleCtrlD.bind(this);
     this.clipboardReadText = this.clipboardReadText.bind(this);
+    this.onSave = this.onSave.bind(this);
   }
 
   clipboardReadText(): void {
@@ -64,15 +83,47 @@ class App extends Component<Props, State> {
       });
   }
 
+  convertMod(mod: Mod): ItemMatchMod {
+    return {
+      minTier: mod.tier || null,
+      maxTier: mod.tier || null,
+      crafted: mod.crafted || false,
+      fractured: mod.fractured || false,
+      tierRangesIndexText: mod.tierRangesIndexText || "",
+      valueRanges: mod.tierRanges,
+    };
+  }
+
+  onSave(): void {
+    const { poeItem } = this.state;
+    const { addItemMatch } = this.props;
+    if (poeItem) {
+      const itemMatch: ItemMatch = {
+        class: poeItem.itemClass || "",
+        base: poeItem.itemBase || null,
+        rarity: poeItem.rarity || null,
+        implicit: poeItem.implicits.map((mod) => this.convertMod(mod)),
+        prefix: poeItem.prefixes.map((mod) => this.convertMod(mod)),
+        suffix: poeItem.suffixes.map((mod) => this.convertMod(mod)),
+        unique: poeItem.uniques.map((mod) => this.convertMod(mod)),
+        enchant: poeItem.enchants.map((mod) => this.convertMod(mod)),
+      };
+      console.log(itemMatch);
+      addItemMatch(itemMatch);
+    }
+    console.log("save");
+  }
+
   render(): h.JSX.Element {
     const { poeItem } = this.state;
     return (
       <>
         <p>PoE Inspect</p>
+        <button onClick={this.onSave}>Save</button>
         <p>{poeItem && <PoeItemComp poeItem={poeItem} />}</p>
       </>
     );
   }
 }
 
-export default App;
+export default connector(App);
