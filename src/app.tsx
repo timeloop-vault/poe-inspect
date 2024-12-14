@@ -1,10 +1,12 @@
-import { isRegistered, register } from "@tauri-apps/api/globalShortcut";
+import { register, isRegistered, ShortcutEvent } from '@tauri-apps/plugin-global-shortcut';
 import { Component, h } from "preact";
-import { invoke } from "@tauri-apps/api/tauri";
-import { clipboard } from "@tauri-apps/api";
+import { invoke } from '@tauri-apps/api/core';
+import { readText, writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { Mod, PoeItem } from "@timeloop-vault/poe-item/dist/poe-item-types";
 import { item } from "@timeloop-vault/poe-item/dist/poe-item";
 import PoeItemComp from "./components/poe-item/poe-item-comp";
+import { info, error } from '@tauri-apps/plugin-log';
+
 import {
   addItemMatch,
   ItemMatch,
@@ -44,8 +46,8 @@ class App extends Component<Props, State> {
   }
 
   clipboardReadText(): void {
-    clipboard.readText().then((text) => {
-      console.log("text copied", text);
+    readText().then((text) => {
+      info(`text copied: ${text}`);
       if (text != null && text.length > 0) {
         const poeItem = item(text, true);
         this.setState({
@@ -59,16 +61,18 @@ class App extends Component<Props, State> {
     });
   }
 
-  handleCtrlD(): void {
-    console.log("Ctrl+D pressed");
-    clipboard.writeText("");
-    invoke("send_adv_copy").then(() => {
-      this.clipboardReadText();
-    });
-    const { count } = this.state;
-    this.setState({
-      count: count + 1,
-    });
+  handleCtrlD(event: ShortcutEvent): void {
+    if (event.state === "Released") {
+      info("Ctrl+D pressed");
+      writeText("");
+      invoke("send_adv_copy").then(() => {
+        this.clipboardReadText();
+      });
+      const { count } = this.state;
+      this.setState({
+        count: count + 1,
+      });
+    }
   }
 
   componentDidMount(): void {
@@ -79,7 +83,7 @@ class App extends Component<Props, State> {
         }
       })
       .catch((err) => {
-        console.error(err);
+        error("Unable to setup Global Shortcuts", err);
       });
   }
 
@@ -108,10 +112,10 @@ class App extends Component<Props, State> {
         unique: poeItem.uniques.map((mod) => this.convertMod(mod)),
         enchant: poeItem.enchants.map((mod) => this.convertMod(mod)),
       };
-      console.log(itemMatch);
+      info(JSON.stringify(itemMatch));
       addItemMatch(itemMatch);
     }
-    console.log("save");
+    info("save");
   }
 
   render(): h.JSX.Element {

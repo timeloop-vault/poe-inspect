@@ -1,26 +1,6 @@
-#![cfg_attr(
-  all(not(debug_assertions), target_os = "windows"),
-  windows_subsystem = "windows"
-)]
-
-use enigo::*;
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-  tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![send_adv_copy])
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
-}
-
-#[tauri::command(async)]
-fn send_adv_copy() {
-  let c: char = 'c';
-  let mut enigo = Enigo::new();
-  enigo.key_down(Key::Control);
-  enigo.key_down(Key::Alt);
-  enigo.key_down(Key::Layout(c));
-  enigo.key_up(Key::Layout(c));
-  enigo.key_up(Key::Alt);
-  enigo.key_up(Key::Control);
-  println!("I was invoked from JS!");
+    tauri_app_lib::run()
 }
