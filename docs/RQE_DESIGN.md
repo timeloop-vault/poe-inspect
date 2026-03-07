@@ -189,27 +189,55 @@ The Rete algorithm (used in production rule systems like Drools, CLIPS, OPS5) is
 
 ## Prototype Plan
 
-### Phase 0 — Predicate Model (inside poe-eval)
-- Define `Condition`, `Value`, `ListOp` types in poe-eval
-- Implement `evaluate(conditions: &[Condition], item: &Item) -> bool`
-- Test with the Erlang RQE's test data (port the JSON test cases)
-- This serves both poe-inspect (local) and RQE (remote)
+All work lives in `crates/poe-rqe/` initially. The predicate model will be extracted into
+poe-eval later when that crate matures — premature splitting now would create churn.
 
-### Phase 1 — In-Process RQE (poe-rqe crate)
-- Query store: add/remove/list reverse queries
-- Multi-level index: build index on insert, update on remove
-- `match_item(item) -> Vec<QueryId>` using indexed lookup + evaluation
-- Benchmark: how many queries can we match per second?
+### Step 1 — Predicate Types in Rust
+Port the Erlang data model to Rust types:
+- `Condition`, `Value`, `CompareOp`, `ListOp` enums/structs
+- Serde support for JSON (de)serialization — Erlang test data is already JSON
+- The JSON wire format mirrors the Erlang RQE's format:
+  - RQ: array of condition objects with `key`, `value`, `type`, `typeOptions`
+  - Entry: flat `{ "key": value }` map (string/integer/boolean values)
+- No dependencies beyond serde
 
-### Phase 2 — Server Binary
-- Axum or similar HTTP server wrapping poe-rqe
-- REST API: register query, submit item, get matches
-- In-memory storage (HashMap/DashMap), persistence to SQLite or PostgreSQL
-- Deploy to Cloud Run with min-instances
+### Step 2 — Evaluation Function
+Port `rqe_lib:eval_rq/2` to Rust:
+- `fn evaluate(conditions: &[Condition], entry: &Entry) -> bool`
+- `Entry` wraps a `HashMap<String, EntryValue>` (mirrors Erlang's flat map)
+- `Matchable` trait: `fn get(&self, key: &str) -> Option<&EntryValue>` for future flexibility
+- Recursive evaluation with short-circuit (same as Erlang):
+  - Boolean: exact equality
+  - String: exact match or wildcard `"_"`
+  - Integer: comparison operators (GT, LT, GTE, LTE, EQ)
+  - List: AND (all match), NOT (none match), COUNT (exactly N match)
+- Missing keys → condition fails (matches Erlang `?DEFAULTVALUE` behavior)
 
-### Phase 3 — Integration & Notifications
-- poe-inspect client: "who wants this item?" button
+### Step 3 — Port Erlang Test Cases
+Test data at `_reference/rqe/test/data/`:
+- 9 RQ definitions (rq/*.json) covering: string match, wildcard, range (AND list),
+  NOT list, COUNT list, nested AND+NOT+COUNT, boolean, sockets/links
+- 8 entry definitions (entry/*.json) covering: jewels (magic/rare/unique/with mods),
+  rings, weapons, boots with sockets
+- Port as `#[test]` functions validating exact match/no-match behavior
+- Key test case from Erlang suite: `wanted_mod_and_not_count` matches `crimson_w_mods_2`
+  but NOT `crimson_w_mods_1`
+
+### Step 4 — Query Store + Indexing (new — not in Erlang)
+- `QueryStore`: add/remove queries by ID, stores in memory
+- Multi-level index built on insert, updated on remove
+- `fn match_item(&self, entry: &Entry) -> Vec<QueryId>` using indexed candidate selection + full evaluation
+- Benchmark: brute-force vs indexed, measure improvement
+
+### Step 5 — Server Binary (`rqe-server/`)
+- Axum HTTP server wrapping poe-rqe
+- REST: `POST /queries`, `DELETE /queries/:id`, `POST /match`
+- In-memory store, persist to SQLite initially (swap for Cloud SQL later)
+- Deploy target: Cloud Run with `--min-instances` and `--cpu-always-allocated`
+
+### Step 6 — Integration & Notifications
+- poe-inspect client: "who wants this item?" query to RQE API
 - WebSocket/SSE for real-time match notifications
 - Web UI for managing want-lists without poe-inspect
 
-Each phase is independently useful and testable.
+Each step is independently useful and testable.
