@@ -1,0 +1,6 @@
+[submodule "crates/poe-bundle"]
+	path = crates/poe-bundle
+	url = git@github.com:ex-nihil/poe-bundle.git
+[submodule "crates/poe-query"]
+	path = crates/poe-query
+	url = git@github.com:ex-nihil/poe-query.git
