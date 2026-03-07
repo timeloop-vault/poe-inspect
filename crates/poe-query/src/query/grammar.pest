@@ -1,0 +1,92 @@
+// ignore identity for now
+WHITESPACE = _{ " " | "\n" }
+identity = { "."{1} }
+dollar = _{ "$" }
+minus = { "-" }
+
+bool_constant = { TRUE | FALSE }
+    TRUE = { "true" }
+    FALSE = { "false" }
+
+identifier = { !"." ~ (ASCII_ALPHANUMERIC | "_")+ }
+digits = @{ ASCII_DIGIT+ }
+
+slice_from = { minus? ~ digits+ }
+slice_to = { minus? ~ digits+ }
+
+index = { &ANY ~ "[" ~ number+ ~ "]" }
+slice = { &ANY ~ "[" ~ slice_from? ~ ":" ~ slice_to? ~ "]" }
+iterator = { &ANY ~ "[]" }
+
+string = { (!"\"" ~ ANY)+ }
+number = _{ unsigned_number | signed_number }
+unsigned_number = { "(unsigned)"? ~ digits+ }
+signed_number = { (("(signed)" ~ minus) | ("(signed)" | minus)) ~ digits+ }
+quoted_string = _{ ("\"" ~ string ~ "\"") | ("'" ~ string ~ "'") }
+datatypes = _{ quoted_string | number }
+
+// assignment
+variable = ${ dollar ~ identifier }
+assign_variable = { "as" ~ variable }
+
+// arithmetic
+operation = { add | subtract | multiply | divide | power }
+    add      = { "+" }
+    subtract = { "-" }
+    multiply = { "*" }
+    divide   = { "/" }
+    power    = { "^" }
+
+// functions
+select = { "select(" ~ (bool_constant | bool_expression | query+) ~ ")" }
+zip_to_obj = { "zip_to_obj" } // not part of JQ
+length = { "length" }
+keys = { "keys" }
+contains = { "contains(" ~ datatypes ~ ")" }
+transpose = { "transpose" }
+reduce_init_value = { (datatypes | array_construction | object_construct) ~ ";" }
+reduce = { "reduce" ~ (!assign_variable ~ query)+ ~ assign_variable ~ "(" ~ reduce_init_value ~ expr* ~ ")" }
+map = { "map(" ~ expr+ ~ ")"}
+
+bool_expression = _{ query+ ~ compare ~ query+ }
+    compare = { equal | not_equal | less_than_eq | greater_than_eq | less_than | greater_than }
+        equal = { "==" }
+        not_equal = { "!=" }
+        less_than = { "<" }
+        greater_than = { ">" }
+        less_than_eq = { "<=" }
+        greater_than_eq = { ">=" }
+
+field = { identifier }
+kv_by_field = { identifier }
+
+construct = _{ array_construction | object_construct }
+array_construction = { "[" ~ query* ~ "]" }
+
+// OBJECT CONSTRUCTION
+object_construct = { "{" ~ ((key_value | kv_by_field) ~ comma?)* ~ "}" }
+key_value = { key ~ (!("," ~ &key) ~ query)+ }
+key = {  (quoted_string | identifier | "(" ~ (datatypes | filter)+ ~ ")")+ ~ ":" }
+
+optional = { "?" }
+
+functions = _ { select | map | reduce | transpose | length | keys | contains | zip_to_obj }
+filter = _{ functions | assign_variable | variable | iterator | field | index | slice | identity }
+query = _{ (operator ~ query_construct_first) | (!operator ~ query_construct_last) }
+
+query_construct_first = _{ construct | datatypes | filter }
+query_construct_last = _{ datatypes | filter | construct }
+
+pipe = { "|" }
+comma = { "," }
+
+operator = _{ pipe | comma }
+
+expr = _{ calculation | multiple_terms | term }
+
+calculation = { term ~ (operation ~ expr)+ }
+multiple_terms = { term ~ (operator ~ expr)+ }
+
+term = _{ ((identity | construct | "(" ~ expr ~ ")") | datatypes | filter | functions) ~ (filter | functions)* } // precedence
+
+program = _{ SOI ~ expr* ~ EOI }

@@ -1,0 +1,17 @@
+[package]
+name = "poe_bundle"
+version = "0.1.5"
+authors = ["Daniel Dimovski <daniel@dicode.se>"]
+edition = "2021"
+description = "Library for extracting Oodle bundles used by the game Path of Exile"
+links = "libooz"
+license = "LGPL-3.0-only"
+
+[dependencies]
+ggpk = "1.2.2"
+byteorder = "1.4.3"
+log = "0.4.11"
+libc = "0.2.0"
+
+[build-dependencies]
+cmake = "0.1.49"

@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [ x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu ]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        target: ${{ matrix.target }}
+
+    - name: Build target
+      uses: actions-rs/cargo@v1
+      with:
+        use-cross: true
+        command: build
+        args: --release --target ${{ matrix.target }}
+
+    - name: Package
+      shell: bash
+      run: |
+        cd target/${{ matrix.target }}/release
+        tar czvf ../../../poe_query-${{ matrix.target }}.tar.gz $(ls poe_query poe_query.exe 2>/dev/null) ../../../dat-schema
+        cd -
+
+    - name: Publish
+      uses: softprops/action-gh-release@v1
+      with:
+        files: 'poe_query*'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
