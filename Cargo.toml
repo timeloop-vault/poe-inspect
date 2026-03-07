@@ -6,6 +6,7 @@ members = [
     "crates/poe-data",
     "crates/poe-eval",
     "crates/poe-rqe",
+    "rqe-server",
 ]
 exclude = [
     "crates/poe-bundle",
@@ -35,3 +36,5 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 tracing = "0.1"
+tokio = { version = "1", features = ["full"] }
+axum = "0.8"

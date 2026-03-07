@@ -69,5 +69,5 @@ Run with: `cargo bench -p poe-rqe`
 
 ## Plan
 
-See `docs/RQE_DESIGN.md` for full plan. Next: Step 4 indexed matching (optimization),
-then Step 5 server binary.
+See `docs/RQE_DESIGN.md` for full plan. Next: indexed matching (optimization),
+then integration and notifications.
