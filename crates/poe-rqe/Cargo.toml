@@ -11,5 +11,9 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 
+[[bench]]
+name = "match_throughput"
+harness = false
+
 [lints]
 workspace = true
