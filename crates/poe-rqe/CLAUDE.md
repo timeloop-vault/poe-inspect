@@ -8,7 +8,7 @@ register what they're looking for and get notified when matching items appear.
 
 ## Status
 
-Step 1-3: Predicate types, evaluation function, and Erlang test case ports.
+Steps 1-4 (brute-force): Predicate types, evaluation, Erlang test ports, and brute-force QueryStore with benchmark.
 
 ## Architecture
 
@@ -18,9 +18,9 @@ for both local item evaluation (poe-inspect overlay) and remote matching (RQE se
 
 ```
 predicate.rs  — Condition, Value, CompareOp, ListOp types + serde
-eval.rs       — evaluate() function, Matchable trait, Entry type
-store.rs      — (future) QueryStore with add/remove/match
-index.rs      — (future) Multi-level discrimination index
+eval.rs       — evaluate() function, Entry type
+store.rs      — QueryStore: add/remove/match_item (brute-force baseline)
+index.rs      — (future) Multi-level discrimination index (optimization)
 ```
 
 ## Design Decisions
@@ -50,7 +50,24 @@ Erlang test fixtures at `_reference/rqe/test/data/`:
 - Key validated case: `wanted_mod_and_not_count` + `crimson_w_mods_2` → match,
   `wanted_mod_and_not_count` + `crimson_w_mods_1` → no match
 
+## Benchmark Baseline (brute-force)
+
+Measured on release builds. This is the baseline before indexing optimization.
+
+| Queries | Evals/sec |
+|---------|-----------|
+| 100 | ~66M |
+| 1,000 | ~55M |
+| 10,000 | ~30M |
+| 50,000 | ~6M |
+| 100,000 | ~5M |
+
+Drop at 50k+ is CPU cache pressure. Indexing would keep candidate sets small enough
+to stay in the fast range regardless of total query count.
+
+Run with: `cargo bench -p poe-rqe`
+
 ## Plan
 
-See `docs/RQE_DESIGN.md` for full plan. Current focus: Steps 1-3 (types, eval, tests).
-Steps 4+ (indexing, server, integration) come after the core is proven.
+See `docs/RQE_DESIGN.md` for full plan. Next: Step 4 indexed matching (optimization),
+then Step 5 server binary.
