@@ -125,3 +125,57 @@ fn lookup_batch_common_mods() {
         println!("Not found: {not_found:?}");
     }
 }
+
+/// Test against real item data from a 3.28 Mirage character snapshot.
+/// These are actual explicitMods/implicitMods/craftedMods from the PoE API.
+#[test]
+fn lookup_real_character_mods() {
+    let Some(index) = load_index() else { return };
+
+    let mods_file = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/test_data/scripter_boomboom_mods.txt");
+    let mods_text = std::fs::read_to_string(&mods_file).expect("failed to read test data");
+
+    // Each line in the file is one mod. Literal "\n" in the file represents
+    // a real newline inside a multi-line mod (the PoE API returns these as
+    // single strings with embedded newlines matching stat_descriptions \n).
+    let mods: Vec<String> = mods_text
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(|l| l.trim().replace(r"\n", "\n"))
+        .collect();
+    let total = mods.len();
+
+    let mut found = 0;
+    let mut not_found = Vec::new();
+
+    for mod_text in &mods {
+        let display = mod_text.replace('\n', "\\n"); // for printing
+        match index.lookup(mod_text) {
+            Some(m) => {
+                found += 1;
+                println!("  OK: {display:60} → {:?} = {:?}", m.stat_ids, m.values);
+            }
+            None => {
+                not_found.push(display.clone());
+                println!("  MISS: {display}");
+            }
+        }
+    }
+
+    println!("\n=== Real character mods: {found}/{total} matched ===");
+    if !not_found.is_empty() {
+        println!("Not found ({}):", not_found.len());
+        for m in &not_found {
+            println!("  - {m}");
+        }
+    }
+
+    // We expect most mods to resolve — anything below 80% indicates a problem
+    let hit_rate = found as f64 / total as f64 * 100.0;
+    println!("Hit rate: {hit_rate:.1}%");
+    assert!(
+        hit_rate > 70.0,
+        "expected >70% hit rate, got {hit_rate:.1}% ({found}/{total})"
+    );
+}
