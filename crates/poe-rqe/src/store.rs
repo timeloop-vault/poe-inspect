@@ -7,7 +7,7 @@ use crate::predicate::Condition;
 pub type QueryId = u64;
 
 /// A stored reverse query with its conditions and metadata.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StoredQuery {
     pub id: QueryId,
     pub conditions: Vec<Condition>,
@@ -42,6 +42,23 @@ impl QueryStore {
             },
         );
         id
+    }
+
+    /// Add a reverse query with a specific ID. Used when restoring from persistence.
+    pub fn add_with_id(&mut self, id: QueryId, conditions: Vec<Condition>, labels: Vec<String>) {
+        self.queries.insert(
+            id,
+            StoredQuery {
+                id,
+                conditions,
+                labels,
+            },
+        );
+    }
+
+    /// Set the next auto-increment ID. Used when restoring from persistence.
+    pub fn set_next_id(&mut self, id: QueryId) {
+        self.next_id = id;
     }
 
     /// Remove a reverse query by ID. Returns `true` if it existed.

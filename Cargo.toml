@@ -38,3 +38,4 @@ thiserror = "2"
 tracing = "0.1"
 tokio = { version = "1", features = ["full"] }
 axum = "0.8"
+rusqlite = { version = "0.34", features = ["bundled"] }
