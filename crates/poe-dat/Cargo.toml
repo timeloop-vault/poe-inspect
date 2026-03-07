@@ -12,5 +12,6 @@ workspace = true
 [dependencies]
 pest = "2"
 pest_derive = "2"
+regex = "1"
 thiserror.workspace = true
 tracing.workspace = true
