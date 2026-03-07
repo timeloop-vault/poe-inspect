@@ -44,6 +44,7 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 - **Iterative build order**: poe-dat → poe-data → poe-item → poe-eval → app. Prove each layer before building the next.
 - **`Arc<GameData>` pattern**: Single shared game data instance, loaded once, passed by reference.
 - **Template-keyed lookups**: Stat translations indexed by template string (what appears in item text), not by stat ID.
+- **PEST grammar for stat descriptions**: The `stat_descriptions.txt` format is complex (ranges, transforms, multi-stat, all languages inline). Must use formal grammar, not ad-hoc parsing. See `docs/research/stat-description-file-format.md`.
 
 ## Dependency Graph
 
