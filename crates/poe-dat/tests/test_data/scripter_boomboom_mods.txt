@@ -1,0 +1,52 @@
++10 to Intelligence
++10% to Cold and Lightning Resistances
++10% to Fire Resistance
++10% to Fire and Cold Resistances
++102 to Armour
++103 to maximum Life
++109 to maximum Life
++11 to Strength
++14% to Fire Resistance
++16% to Cold Resistance
++17 to Dexterity
++17 to Strength and Dexterity
++18% to Fire Damage over Time Multiplier
++18% to Lightning Resistance
++21 to maximum Life
++22% to Fire Resistance
++24% to Cold Resistance
++25% to Lightning Resistance
++27% to Cold Resistance
++30 to maximum Life
++33 to maximum Life
++35 to maximum Mana
++40 to maximum Life
++41 to maximum Mana
++46 to maximum Life
++67 to Accuracy Rating
++7% to Fire Resistance
++93 to maximum Life
++98 to maximum Life
+10% increased Movement Speed
+11% increased Cast Speed
+12% increased Armour
+13% increased Armour
+15% increased Stun and Block Recovery
+16% increased Mana Regeneration Rate
+18% chance to gain a Flask Charge when you deal a Critical Strike
+23% chance to Freeze
+26% increased Stun and Block Recovery
+30% increased Elemental Damage
+33% reduced Recovery rate
+44% increased Amount Recovered
+6% increased Attack Speed
+6% increased Stun and Block Recovery
+9% increased Flask Mana Recovery rate
+Adds 1 to 5 Lightning Damage
+Adds 1 to 5 Lightning Damage to Attacks
+Adds 3 to 7 Fire Damage to Attacks
+Cannot roll Caster Modifiers
+Grants Immunity to Bleeding for 7 seconds if used while Bleeding\nGrants Immunity to Corrupted Blood for 7 seconds if used while affected by Corrupted Blood
+Grants Immunity to Poison for 8 seconds if used while Poisoned
+Reflects 8 Physical Damage to Melee Attackers
+Regenerate 4.9 Life per second
