@@ -53,6 +53,22 @@ src/
 - **Reverse index is the end goal** — `"+92 to maximum Life"` → `(base_maximum_life, 92)`
 - **Test against real data** — parse the actual 30MB file, not synthetic data
 
+### Reverse Index: Scope and Boundaries
+
+The reverse index maps **display text → stat IDs + raw values**. That's all it does.
+
+**It does NOT** identify which mod (name, tier) produced the stat. That requires cross-referencing
+stat IDs + values against `mods.json` — which is `poe-data`'s job.
+
+**Hybrid mods** (e.g., "Beetle's" Tier 6 → `13% increased Armour` + `7% increased Stun and Block
+Recovery`): each stat line resolves independently via separate single-stat descriptions. The reverse
+index doesn't know they came from the same mod. Grouping them is the caller's responsibility
+(`poe-item` uses `{ }` headers from Ctrl+Alt+C format).
+
+**Multi-line stat descriptions** (`\n` in format strings): some stats produce two visual lines from
+one format string. The caller must join these lines with `\n` before calling `lookup()`. Example:
+`"Grants Immunity to Bleeding for 7 seconds...\nGrants Immunity to Corrupted Blood for 7 seconds..."`
+
 ### Format Reference
 See `docs/research/stat-description-file-format.md` for complete format specification.
 

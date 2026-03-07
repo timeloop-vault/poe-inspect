@@ -53,6 +53,44 @@ Example:
 Adds [53–77] to [110–130] Physical Damage
 ```
 
+## Stat Line → Mod Identification Pipeline
+
+The reverse index (`poe-dat::stat_desc::ReverseIndex`) maps display text → stat ID + value.
+But identifying which **mod** (name, tier, hybrid grouping) a stat line belongs to requires
+additional steps that differ between formats:
+
+### Ctrl+Alt+C (advanced format)
+The `{ }` header already tells us the mod name, type, and tier. Stat lines grouped under
+one header belong to the same mod — even hybrid mods like "Beetle's" (Tier 6) that produce
+two separate stat lines (`13% increased Armour` + `7% increased Stun and Block Recovery`).
+
+**This crate's job:** parse the `{ }` header and group stat lines under it, then use the
+reverse index on each stat line to get stat IDs + values for downstream evaluation.
+
+### Ctrl+C (simple format)
+No `{ }` headers exist. Each stat line appears independently. Hybrid mod lines appear
+consecutively but with no grouping indicator.
+
+**This crate's job:** use the reverse index to resolve each line to stat ID + value, then
+use `poe-data` mod database to disambiguate:
+1. Look up which mods in `mods.json` contain each stat ID with a matching value range
+2. Adjacent stat lines that share a mod candidate → likely the same hybrid mod
+3. This is inherently ambiguous — some stat IDs appear in both single-stat and hybrid mods
+
+### Multi-line stat descriptions (`\n` in format strings)
+Some stat descriptions produce two visual lines from a single stat ID. Example:
+```
+Grants Immunity to Bleeding for 7 seconds if used while Bleeding
+Grants Immunity to Corrupted Blood for 7 seconds if used while affected by Corrupted Blood
+```
+This is ONE stat with a `\n` in its format string. The reverse index expects the joined
+string (with real `\n`). In Ctrl+Alt+C format, both lines fall under the same `{ }` header,
+so this crate should join them with `\n` before calling `ReverseIndex::lookup()`.
+
+In Ctrl+C format, these appear as two consecutive lines with no indicator they're joined.
+Heuristic: if a line fails reverse lookup, try joining it with the next line (separated by
+`\n`) and retry.
+
 ## Dependencies
 
 - `poe-data` — for `GameData` lookups during parsing
