@@ -1,0 +1,15 @@
+[package]
+name = "poe-item"
+version = "0.1.0"
+description = "Parse PoE Ctrl+Alt+C item text into structured types"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+poe-data = { path = "../poe-data" }
+thiserror.workspace = true
+tracing.workspace = true

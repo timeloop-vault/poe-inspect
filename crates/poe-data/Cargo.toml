@@ -1,0 +1,17 @@
+[package]
+name = "poe-data"
+version = "0.1.0"
+description = "Game data types and lookup tables built from parsed GGPK data"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+poe-dat = { path = "../poe-dat" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true

@@ -1,0 +1,17 @@
+[package]
+name = "poe-eval"
+version = "0.1.0"
+description = "Evaluate parsed items against user-defined filter rules"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+poe-item = { path = "../poe-item" }
+poe-data = { path = "../poe-data" }
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true

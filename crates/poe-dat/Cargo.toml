@@ -1,0 +1,14 @@
+[package]
+name = "poe-dat"
+version = "0.1.0"
+description = "Read and parse PoE .dat/.dat64 files and stat description files from GGPK bundles"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+thiserror.workspace = true
+tracing.workspace = true

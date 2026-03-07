@@ -1,0 +1,31 @@
+# Build artifacts
+/target/
+node_modules/
+dist/
+dist-ssr/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Environment
+.env
+.env.local
+
+# Tauri
+src-tauri/gen/
+
+# Reference repos (local only, not part of the project)
+_reference/
+
+# Data cache (downloaded at runtime)
+data/cache/
