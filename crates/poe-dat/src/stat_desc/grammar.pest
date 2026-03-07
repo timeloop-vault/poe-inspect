@@ -1,0 +1,90 @@
+// Stat Description File Grammar
+// Parses metadata/statdescriptions/*.txt files from PoE GGPK
+
+file = { SOI ~ (directive ~ NEWLINE*)* ~ EOI }
+
+directive = _{ include_dir | no_description | no_identifiers | description }
+
+// include "Metadata/StatDescriptions/other_file.txt"
+include_dir = { "include" ~ quoted_string }
+
+// no_description stat_id
+no_description = { "no_description" ~ stat_id }
+
+// no_identifiers
+no_identifiers = { "no_identifiers" }
+
+// description block
+// NEWLINE+ tolerates stray blank lines in real data
+description = {
+    "description" ~ NEWLINE+
+    ~ stat_header ~ NEWLINE+
+    ~ lang_block
+    ~ (lang_switch ~ NEWLINE+ ~ lang_block)*
+}
+
+// <count> <stat_id_1> [stat_id_2 ...]
+stat_header = { "\t" ~ stat_count ~ (stat_id)+ }
+stat_count = @{ ASCII_DIGIT+ }
+
+// lang "LanguageName"
+lang_switch = { "\t" ~ "lang" ~ quoted_string }
+
+// A language block: variant_count + variant lines
+// Allow 1-2 tabs before variant_count (2 rare data inconsistencies in real files)
+lang_block = {
+    "\t" ~ "\t"? ~ variant_count ~ NEWLINE
+    ~ (variant_line ~ NEWLINE)*
+}
+
+variant_count = @{ ASCII_DIGIT+ }
+
+// A single variant line:
+//   <range> [<range> ...] "format string" [transform ...] [reminderstring <id>] [canonical_line]
+// Split "\t" ~ "\t" so implicit WHITESPACE can absorb stray spaces in indentation
+variant_line = {
+    "\t" ~ "\t" ~ range+ ~ quoted_string ~ suffix*
+}
+
+// Range: #, N, N|M, #|N, N|#, !N (not N)
+// Extra "|" segments tolerated (e.g., "1|1|#" typo in Portuguese data)
+range = @{
+    "#" ~ ("|" ~ (integer | "#"))*
+    | "!" ~ integer
+    | integer ~ ("|" ~ ("#" | integer))*
+}
+
+integer = @{ "-"? ~ ASCII_DIGIT+ }
+
+// Everything after the format string on a variant line
+// Order matters: try keywords first, then catch-all transform
+suffix = _{ canonical_line | canonical_stat | reminderstring | transform }
+
+canonical_line = { "canonical_line" }
+
+canonical_stat = { "canonical_stat" ~ stat_index }
+
+reminderstring = { "reminderstring" ~ identifier }
+
+// Value transforms: name followed by a stat index
+// Transform names are permissive — new ones appear each league
+transform = { transform_name ~ stat_index }
+
+stat_index = @{ ASCII_DIGIT+ }
+
+// Permissive: any word-like token (may contain %, digits, underscores)
+// Known keywords (canonical_line, canonical_stat, reminderstring) are tried first
+transform_name = @{ (ASCII_ALPHANUMERIC | "_" | "%")+ }
+
+// Stat IDs: alphanumeric with underscores, may contain + - %
+stat_id = @{ (ASCII_ALPHANUMERIC | "_" | "+" | "-" | "%")+ }
+
+// Identifier for reminderstring references
+identifier = @{ (ASCII_ALPHANUMERIC | "_")+ }
+
+// Quoted string: "..." with possible newlines (\n) inside
+quoted_string = ${ "\"" ~ inner_string ~ "\"" }
+inner_string = @{ (!"\"" ~ ANY)* }
+
+// Whitespace handling — only spaces between tokens on the same line
+WHITESPACE = _{ " " }
