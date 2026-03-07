@@ -1,59 +1,62 @@
 # poe-dat
 
-Lowest-level crate in the workspace. Reads raw PoE game data files — no game-domain logic.
+Read and parse game data files from the PoE GGPK bundle.
+
+## Status
+
+**Active development** — Building stat description parser.
 
 ## Scope
 
-- Parse `.dat` / `.dat64` binary table files using community `dat-schema` definitions
-- Parse stat description files (`Metadata/StatDescriptions/*.txt`) — UTF-16LE text, line-oriented, tab-indented
-- Expose raw typed rows, not game-domain types (that's poe-data's job)
-- No network access, no caching — this crate only reads bytes in, structs out
+- Parse stat description files (the key translation layer between stat IDs and display text)
+- Extract specific tables from GGPK via poe-bundle/poe-query's DatReader
+- Expose typed access to the ~15 tables needed for item evaluation
+- Can be used as a library (by poe-data) or CLI (for debugging)
 
 ## Does NOT own
 
 - Game-domain types (mods, base items, etc.) — that's `poe-data`
-- Bundle extraction / GGPK reading — that's `poe-bundle` (submodule)
+- Bundle extraction / GGPK reading — that's `poe-bundle`
 - Any interpretation of what the data *means*
 
-## Key Design Decisions
+## Current Work: Stat Description Parser
 
-- **Own the parsing**: We parse .dat files ourselves using dat-schema, rather than depending on RePoE JSON. This avoids 1000+ lines of reshaping code that v1 needed to invert lookup directions, filter rollable mods, and re-index base items.
-- **dat-schema as source of truth**: Column names, types, and offsets come from `poe-tool-dev/dat-schema` (GraphQL SDL format). poe-query's bundled copy under `crates/poe-query/dat-schema/` can be used as reference.
-- **Stat description parser**: The `Metadata/StatDescriptions/*.txt` files are a stable format (10+ years). Three constructs: `no_description` blocks, `description` blocks with condition→template lines, and `include` directives. Index handlers transform values (negate, divide_by_one_hundred, etc.). Prior art: a ~260 line JS parser exists from an earlier project.
+### What
+Parse `metadata/statdescriptions/stat_descriptions.txt` (30MB, 429k lines, UTF-16LE) into structured data and a reverse lookup index.
 
-## .dat Binary Format (Quick Reference)
-
+### Architecture
 ```
-[4 bytes: row_count (u32le)]
-[row_count × row_size bytes: fixed-width rows]
-[magic: 0xBBBBBBBBBBBBBBBB (8 bytes)]
-[variable-length data pool: strings (UTF-16LE, null-terminated), lists]
-```
-
-- Strings in rows are `[offset: u32]` pointing into the variable pool
-- Lists are `[count: u32, offset: u32]` — offset points to `count` consecutive values in the pool
-- Foreign keys are row indices (u32) into other tables, `0xFEFEFEFE` = null
-
-## Stat Description Format (Quick Reference)
-
-```
-description <stat_id_1> <stat_id_2> ...
-    <n_stats>
-        <condition_1> <condition_2> ... "<display_text>" [reminder_text]
-        ...
+src/
+  stat_desc/
+    mod.rs          — public API
+    grammar.pest    — PEST grammar for the file format
+    parser.rs       — walks PEST parse tree, builds types
+    types.rs        — StatDescription, Variant, Range, Transform, LangBlock
+    reverse.rs      — reverse index: display text → stat ID + values
+  lib.rs
 ```
 
-- Conditions: `#` (any), `1` (exact), `!0` (not zero), `2|5` (range 2–5)
-- Placeholders: `%0%` (raw value), `%0$+d` (with sign), `%%` (literal %)
-- Handlers: `negate 1`, `per_minute_to_per_second 2`, `divide_by_one_hundred 1`
+### Grammar Elements
+1. `description` blocks: stat count + stat IDs, variant lines per language
+2. Range syntax: `#` (any), `N` (exact), `N|M` (range), `#|N`, `N|#`
+3. Format strings: `{0}`, `{0:+d}`, `{1}` placeholders
+4. 28 value transforms: `negate N`, `milliseconds_to_seconds N`, `divide_by_* N`, etc.
+5. `no_description <stat_id>` — stats with no visible text
+6. `include "path"` — file hierarchy (smaller files include larger)
+7. `lang "Name"` blocks — all 10 localizations inline
+8. `canonical_line`, `reminderstring <id>` — metadata on variant lines
 
-## Build Order
+### Key Design Decisions
+- **PEST grammar** — format is too complex for ad-hoc if/then parsing; edge cases accumulate each league
+- **Isolated module** — stat_desc/ has own grammar, types, clean API boundary
+- **All languages stored** — not English-only; localization support from day one
+- **Reverse index is the end goal** — `"+92 to maximum Life"` → `(base_maximum_life, 92)`
+- **Test against real data** — parse the actual 30MB file, not synthetic data
 
-This is the first crate to build. No intra-workspace dependencies.
+### Format Reference
+See `docs/research/stat-description-file-format.md` for complete format specification.
 
-## Plan
-
-1. Schema parser: read dat-schema `.graphql` files → column definitions
-2. .dat reader: given schema + bytes → Vec<Row> with typed column access
-3. Stat description parser: `.txt` file → lookup structure (stat_ids + values → display string)
-4. Tests against real extracted data files
+## Future Work (after stat descriptions)
+- Table extraction for BaseItemTypes, Mods, Stats, Tags, etc.
+- Uses poe-query's DatReader for dat table access
+- CLI for debugging/exploration

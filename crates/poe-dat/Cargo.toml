@@ -10,5 +10,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+pest = "2"
+pest_derive = "2"
 thiserror.workspace = true
 tracing.workspace = true
