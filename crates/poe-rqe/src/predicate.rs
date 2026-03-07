@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 
 /// A single condition in a reverse query.
 ///
@@ -44,6 +44,80 @@ pub enum ListOp {
     Or,
     Not,
     Count(u32),
+}
+
+// --- Serde serialization to Erlang-compatible JSON ---
+
+impl Serialize for Condition {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(4))?;
+        map.serialize_entry("key", &self.key)?;
+        match &self.value {
+            Value::Boolean(b) => {
+                map.serialize_entry("value", b)?;
+                map.serialize_entry("type", "boolean")?;
+                map.serialize_entry("typeOptions", &None::<()>)?;
+            }
+            Value::String(StringMatch::Wildcard) => {
+                map.serialize_entry("value", "_")?;
+                map.serialize_entry("type", "string")?;
+                map.serialize_entry("typeOptions", &None::<()>)?;
+            }
+            Value::String(StringMatch::Exact(s)) => {
+                map.serialize_entry("value", s)?;
+                map.serialize_entry("type", "string")?;
+                map.serialize_entry("typeOptions", &None::<()>)?;
+            }
+            Value::Integer { value, op } => {
+                map.serialize_entry("value", value)?;
+                map.serialize_entry("type", "integer")?;
+                let op_str = match op {
+                    CompareOp::Eq => None,
+                    CompareOp::Gt => Some(">"),
+                    CompareOp::Lt => Some("<"),
+                    CompareOp::Gte => Some(">="),
+                    CompareOp::Lte => Some("<="),
+                };
+                match op_str {
+                    Some(o) => map.serialize_entry("typeOptions", &TypeOptionsOut::Op(o))?,
+                    None => map.serialize_entry("typeOptions", &None::<()>)?,
+                }
+            }
+            Value::List { op, conditions } => {
+                map.serialize_entry("value", conditions)?;
+                map.serialize_entry("type", "list")?;
+                let type_options = match op {
+                    ListOp::And => TypeOptionsOut::Op("and"),
+                    ListOp::Or => TypeOptionsOut::Op("or"),
+                    ListOp::Not => TypeOptionsOut::Op("not"),
+                    ListOp::Count(n) => TypeOptionsOut::Count("count", *n),
+                };
+                map.serialize_entry("typeOptions", &type_options)?;
+            }
+        }
+        map.end()
+    }
+}
+
+enum TypeOptionsOut<'a> {
+    Op(&'a str),
+    Count(&'a str, u32),
+}
+
+impl Serialize for TypeOptionsOut<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(None)?;
+        match self {
+            Self::Op(op) => {
+                map.serialize_entry("operator", op)?;
+            }
+            Self::Count(op, count) => {
+                map.serialize_entry("operator", op)?;
+                map.serialize_entry("count", count)?;
+            }
+        }
+        map.end()
+    }
 }
 
 // --- Serde deserialization from Erlang-compatible JSON ---
@@ -192,6 +266,33 @@ mod tests {
                 assert_eq!(conditions.len(), 1);
             }
             other => panic!("expected List, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn round_trip_all_rq_files() {
+        let rq_files = [
+            "wanted_crimson_rare.json",
+            "wanted_crimson_mod.json",
+            "wanted_crimson_mod_not.json",
+            "wanted_crimson_mod_count.json",
+            "wanted_crimson_mod_count_2.json",
+            "wanted_crimson_mod_and_not.json",
+            "wanted_mod_and_not_count.json",
+            "wanted_boots_unique.json",
+            "wanted_boots_unique_new_format.json",
+        ];
+        for file in &rq_files {
+            let path = format!(
+                "{}/_reference/rqe/test/data/rq/{file}",
+                concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
+            );
+            let json = std::fs::read_to_string(&path).unwrap();
+            let conditions: Vec<Condition> = serde_json::from_str(&json).unwrap();
+            // Serialize back to JSON and deserialize again
+            let serialized = serde_json::to_string(&conditions).unwrap();
+            let round_tripped: Vec<Condition> = serde_json::from_str(&serialized).unwrap();
+            assert_eq!(conditions, round_tripped, "round-trip failed for {file}");
         }
     }
 

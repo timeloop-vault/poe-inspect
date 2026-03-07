@@ -11,7 +11,14 @@ use poe_rqe::predicate::Condition;
 use poe_rqe::store::{QueryId, QueryStore};
 use serde::{Deserialize, Serialize};
 
-type SharedStore = Arc<Mutex<QueryStore>>;
+mod db;
+
+struct AppState {
+    store: Mutex<QueryStore>,
+    db: Mutex<db::Db>,
+}
+
+type SharedState = Arc<AppState>;
 
 #[tokio::main]
 async fn main() {
@@ -22,7 +29,15 @@ async fn main() {
         )
         .init();
 
-    let store: SharedStore = Arc::new(Mutex::new(QueryStore::new()));
+    let db_path = std::env::var("RQE_DB_PATH").ok();
+    let db = db::Db::open(db_path.as_deref());
+    let store = db.load_all();
+    tracing::info!(queries = store.len(), "loaded queries from database");
+
+    let state: SharedState = Arc::new(AppState {
+        store: Mutex::new(store),
+        db: Mutex::new(db),
+    });
 
     let app = Router::new()
         .route("/status", get(status))
@@ -30,7 +45,7 @@ async fn main() {
         .route("/queries/{id}", get(get_query))
         .route("/queries/{id}", delete(delete_query))
         .route("/match", post(match_item))
-        .with_state(store);
+        .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     tracing::info!("rqe-server listening on {addr}");
@@ -59,13 +74,6 @@ struct AddQueryResponse {
 }
 
 #[derive(Serialize)]
-struct QueryResponse {
-    id: QueryId,
-    labels: Vec<String>,
-    condition_count: usize,
-}
-
-#[derive(Serialize)]
 struct MatchResponse {
     matches: Vec<QueryId>,
     query_count: usize,
@@ -73,44 +81,48 @@ struct MatchResponse {
 
 // --- Handlers ---
 
-async fn status(State(store): State<SharedStore>) -> Json<StatusResponse> {
-    let store = store.lock().unwrap();
+async fn status(State(state): State<SharedState>) -> Json<StatusResponse> {
+    let store = state.store.lock().unwrap();
     Json(StatusResponse {
         query_count: store.len(),
     })
 }
 
 async fn add_query(
-    State(store): State<SharedStore>,
+    State(state): State<SharedState>,
     Json(req): Json<AddQueryRequest>,
 ) -> (StatusCode, Json<AddQueryResponse>) {
-    let mut store = store.lock().unwrap();
-    let id = store.add(req.conditions, req.labels);
+    let mut store = state.store.lock().unwrap();
+    let id = store.add(req.conditions.clone(), req.labels.clone());
+    drop(store);
+
+    let db = state.db.lock().unwrap();
+    db.insert(id, &req.conditions, &req.labels);
+
     tracing::info!(id, "query added");
     (StatusCode::CREATED, Json(AddQueryResponse { id }))
 }
 
 async fn get_query(
-    State(store): State<SharedStore>,
+    State(state): State<SharedState>,
     Path(id): Path<QueryId>,
 ) -> impl IntoResponse {
-    let store = store.lock().unwrap();
+    let store = state.store.lock().unwrap();
     match store.get(id) {
-        Some(q) => Ok(Json(QueryResponse {
-            id: q.id,
-            labels: q.labels.clone(),
-            condition_count: q.conditions.len(),
-        })),
+        Some(q) => Ok(Json(q.clone())),
         None => Err(StatusCode::NOT_FOUND),
     }
 }
 
 async fn delete_query(
-    State(store): State<SharedStore>,
+    State(state): State<SharedState>,
     Path(id): Path<QueryId>,
 ) -> StatusCode {
-    let mut store = store.lock().unwrap();
+    let mut store = state.store.lock().unwrap();
     if store.remove(id) {
+        drop(store);
+        let db = state.db.lock().unwrap();
+        db.delete(id);
         tracing::info!(id, "query removed");
         StatusCode::NO_CONTENT
     } else {
@@ -119,10 +131,10 @@ async fn delete_query(
 }
 
 async fn match_item(
-    State(store): State<SharedStore>,
+    State(state): State<SharedState>,
     Json(entry): Json<Entry>,
 ) -> Json<MatchResponse> {
-    let store = store.lock().unwrap();
+    let store = state.store.lock().unwrap();
     let matches = store.match_item(&entry);
     let query_count = store.len();
     tracing::info!(

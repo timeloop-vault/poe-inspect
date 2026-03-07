@@ -29,3 +29,6 @@ _reference/
 
 # Data cache (downloaded at runtime)
 data/cache/
+
+# RQE database
+rqe.db
