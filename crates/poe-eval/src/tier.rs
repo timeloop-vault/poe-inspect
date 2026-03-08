@@ -4,7 +4,7 @@
 //! for visual feedback in the overlay. Uses `poe-data`'s domain knowledge
 //! for tier classification — this module is pure evaluation logic.
 
-use poe_data::domain::{classify_tier, TierQuality};
+use poe_data::domain::{classify_rank, classify_tier, TierQuality};
 use poe_item::types::{ModSlot, ModSource, ModTierKind, ResolvedItem, ResolvedMod};
 
 /// Tier analysis for a single mod.
@@ -50,7 +50,11 @@ fn analyze_mod(m: &ResolvedMod) -> ModTierInfo {
         None => None,
     };
 
-    let quality = tier.map_or(TierQuality::Unknown, classify_tier);
+    let quality = match &m.header.tier {
+        Some(ModTierKind::Tier(n)) => classify_tier(*n),
+        Some(ModTierKind::Rank(n)) => classify_rank(*n),
+        None => TierQuality::Unknown,
+    };
 
     ModTierInfo {
         name: m.header.name.clone(),

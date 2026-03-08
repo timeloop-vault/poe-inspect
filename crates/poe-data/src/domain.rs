@@ -45,6 +45,7 @@ pub enum TierQuality {
 
 /// Classify a mod tier number into a quality level.
 ///
+/// For regular mods: lower tier = better (T1 = best, T7+ = low).
 /// This is hardcoded `PoE` domain knowledge. See module docs for rationale.
 #[must_use]
 pub fn classify_tier(tier: u32) -> TierQuality {
@@ -54,6 +55,33 @@ pub fn classify_tier(tier: u32) -> TierQuality {
         3 | 4 => TierQuality::Good,
         5 | 6 => TierQuality::Mid,
         _ => TierQuality::Low,
+    }
+}
+
+// ── Crafted mod rank classification ─────────────────────────────────────────
+//
+// WHY HARDCODED: Bench crafts use "Rank" instead of "Tier" and the ordering
+// is REVERSED: Rank 1 = lowest/weakest bench craft, higher ranks = better
+// values and higher ilvl requirements. There's no GGPK table that tells us
+// the max rank per craft family, so we can't compute a quality level from
+// the rank alone — we'd need `CraftingBenchOptions.datc64` for that.
+//
+// For now, we use a simple heuristic: bench crafts are typically 3-4 ranks,
+// so we classify accordingly. This will be replaced by proper lookup once
+// we extract `CraftingBenchOptions` (see docs/crafting-tiers.md).
+
+/// Classify a crafted mod rank into a quality level.
+///
+/// For bench crafts: higher rank = better (opposite of tiers).
+/// Rank 1 = weakest bench craft, Rank 3+ = best available.
+#[must_use]
+pub fn classify_rank(rank: u32) -> TierQuality {
+    match rank {
+        4.. => TierQuality::Best,
+        3 => TierQuality::Great,
+        2 => TierQuality::Good,
+        1 => TierQuality::Mid,
+        0 => TierQuality::Unknown,
     }
 }
 
