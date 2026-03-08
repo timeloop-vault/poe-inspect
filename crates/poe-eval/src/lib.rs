@@ -14,4 +14,5 @@ pub use evaluate::{evaluate, score};
 pub use predicate::Predicate;
 pub use profile::{Profile, ScoreResult};
 pub use rule::Rule;
-pub use tier::{analyze_tiers, ItemTierSummary, TierQuality};
+pub use poe_data::domain::TierQuality;
+pub use tier::{analyze_tiers, ItemTierSummary};

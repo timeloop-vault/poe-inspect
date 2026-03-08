@@ -16,7 +16,7 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
 | poe-item | **Done** | PEST grammar + resolver, 75 tests, 41 fixtures |
-| poe-eval | Empty | Tier coloring, profile scoring, crafting potential |
+| poe-eval | **Foundation** | Predicates, rules, evaluate, scoring profiles, tier analysis (26 tests) |
 | app | Future | Tauri v2 overlay (needs 7-point prototype validation) |
 
 **Side track:** poe-rqe (reverse query engine / demand marketplace) — working, independent of main pipeline.
@@ -63,6 +63,7 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 - **`Arc<GameData>` pattern**: Single shared game data instance, loaded once, passed by reference.
 - **Template-keyed lookups**: Stat translations indexed by template string (what appears in item text), not by stat ID.
 - **PEST grammar for stat descriptions**: The `stat_descriptions.txt` format is complex (ranges, transforms, multi-stat, all languages inline). Must use formal grammar, not ad-hoc parsing. See `docs/research/stat-description-file-format.md`.
+- **poe-data owns ALL PoE domain knowledge**: All game-specific constants, mechanic rules, mapping tables, and classification logic live in `crates/poe-data/` — either extracted from GGPK (`game_data.rs`) or hardcoded with documentation (`domain.rs`). Higher-layer crates (`poe-item`, `poe-eval`, `app`) have zero PoE knowledge. The `domain-knowledge-reviewer` agent enforces this.
 
 ## Dependency Graph
 
