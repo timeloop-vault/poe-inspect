@@ -1,3 +1,6 @@
+# cmake required for Oodle C++ lib (ooz/)
+# Windows cmake path (VS BuildTools 2022):
+#   /c/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin
 /target
 /.vscode/
 .DS_Store

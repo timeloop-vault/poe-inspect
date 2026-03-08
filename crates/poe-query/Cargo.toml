@@ -8,6 +8,10 @@ edition = "2021"
 name = "poe_query"
 path = "src/main.rs"
 
+[[bin]]
+name = "extract_dat"
+path = "src/extract_dat.rs"
+
 [lib]
 name = "poe_query_lib"
 path = "src/lib.rs"
