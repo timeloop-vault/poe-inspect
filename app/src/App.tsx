@@ -119,9 +119,8 @@ export function App() {
 		};
 		document.addEventListener("keydown", handleKeydown);
 
-		// DEV: Show immediately so we can see it's alive.
-		// TODO: In production, keep hidden until first Ctrl+I hotkey press.
-		getCurrentWebviewWindow().show();
+		// Overlay stays hidden until inspect hotkey or debug tray button.
+		// Use tray → "Show Overlay (Debug)" for testing.
 
 		return () => {
 			unlistenCapture.then((fn) => fn());

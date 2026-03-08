@@ -1,8 +1,10 @@
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
+use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
+use tauri_plugin_store::StoreExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// Send Ctrl+Alt+C to the foreground window (PoE) via enigo,
@@ -123,7 +125,9 @@ fn dismiss_overlay(window: tauri::WebviewWindow) {
 /// Show the overlay window with mock data for testing (tray debug button).
 fn show_debug_overlay(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(200, 200)));
+        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
+            200, 200,
+        )));
         let _ = window.set_ignore_cursor_events(false);
         let _ = window.show();
         let _ = window.set_focus();
@@ -225,8 +229,26 @@ fn resume_hotkeys(app: tauri::AppHandle) {
     register_hotkeys(&app, &config);
 }
 
+/// Get the current autostart state.
+#[tauri::command]
+fn get_autostart(app: tauri::AppHandle) -> bool {
+    app.autolaunch().is_enabled().unwrap_or(false)
+}
+
+/// Enable or disable launch on boot.
+#[tauri::command]
+fn set_autostart(app: tauri::AppHandle, enabled: bool) {
+    let launcher = app.autolaunch();
+    if enabled {
+        let _ = launcher.enable();
+    } else {
+        let _ = launcher.disable();
+    }
+}
+
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_denylist(&["overlay"])
@@ -240,10 +262,18 @@ pub fn run() {
             update_hotkeys,
             pause_hotkeys,
             resume_hotkeys,
+            get_autostart,
+            set_autostart,
         ])
         .setup(|app| {
             // --- System tray ---
-            let show_overlay = MenuItem::with_id(app, "show_overlay", "Show Overlay (Debug)", true, None::<&str>)?;
+            let show_overlay = MenuItem::with_id(
+                app,
+                "show_overlay",
+                "Show Overlay (Debug)",
+                true,
+                None::<&str>,
+            )?;
             let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_overlay, &settings, &quit])?;
@@ -269,18 +299,28 @@ pub fn run() {
             #[cfg(desktop)]
             {
                 let handle = app.handle().clone();
-                handle.plugin(
-                    tauri_plugin_global_shortcut::Builder::new().build(),
-                )?;
+                handle.plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
                 // Register with default config; frontend will call update_hotkeys
                 // with stored settings once it loads
-                let config = app
-                    .state::<HotkeyState>()
-                    .0
-                    .lock()
-                    .unwrap()
-                    .clone();
+                let config = app.state::<HotkeyState>().0.lock().unwrap().clone();
                 register_hotkeys(app.handle(), &config);
+            }
+
+            // --- Start minimized check ---
+            // Read the store to decide whether to show the settings window on startup.
+            // Default: start minimized (just tray icon). If false, show settings.
+            let start_minimized = app
+                .store("settings.json")
+                .ok()
+                .and_then(|store| {
+                    store
+                        .get("general")
+                        .and_then(|v| v.get("startMinimized").and_then(|v| v.as_bool()))
+                })
+                .unwrap_or(true);
+
+            if !start_minimized {
+                show_settings(app.handle());
             }
 
             Ok(())
@@ -290,9 +330,7 @@ pub fn run() {
             // and save window state so position/size persists across restarts
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    let _ = window
-                        .app_handle()
-                        .save_window_state(StateFlags::all());
+                    let _ = window.app_handle().save_window_state(StateFlags::all());
                     api.prevent_close();
                     let _ = window.hide();
                 }
