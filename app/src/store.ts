@@ -9,9 +9,12 @@ import { load } from "@tauri-apps/plugin-store";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
+export type OverlayPosition = "cursor" | "inventoryLeft";
+
 export interface GeneralSettings {
 	overlayScale: number;
 	uiScale: number;
+	overlayPosition: OverlayPosition;
 	poeVersion: "poe1" | "poe2";
 	startMinimized: boolean;
 	launchOnBoot: boolean;
@@ -51,6 +54,7 @@ export interface Profile {
 export const defaultGeneral: GeneralSettings = {
 	overlayScale: 100,
 	uiScale: 100,
+	overlayPosition: "cursor",
 	poeVersion: "poe1",
 	startMinimized: true,
 	launchOnBoot: false,

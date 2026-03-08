@@ -102,6 +102,40 @@ export function GeneralSettings() {
 			</div>
 
 			<div class="setting-group">
+				<h3>Overlay Position</h3>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Where to show the overlay
+						<div class="setting-description">
+							"At cursor" follows your mouse. "Left of inventory" places it
+							next to the PoE inventory panel (like Awakened Trade).
+						</div>
+					</div>
+					<div class="setting-radio-group">
+						<label class="setting-radio">
+							<input
+								type="radio"
+								name="overlay-position"
+								checked={settings.overlayPosition === "cursor"}
+								onChange={() => update({ overlayPosition: "cursor" })}
+							/>
+							At cursor
+						</label>
+						<label class="setting-radio">
+							<input
+								type="radio"
+								name="overlay-position"
+								checked={settings.overlayPosition === "inventoryLeft"}
+								onChange={() => update({ overlayPosition: "inventoryLeft" })}
+							/>
+							Left of inventory
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="setting-group">
 				<h3>Game Version</h3>
 
 				<div class="setting-row">
