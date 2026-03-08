@@ -14,8 +14,9 @@ dist-ssr/
 .DS_Store
 Thumbs.db
 
-# Claude Code
-.claude/
+# Claude Code — ignore everything except agents (shared with team)
+.claude/*
+!.claude/agents/
 
 # Environment
 .env
