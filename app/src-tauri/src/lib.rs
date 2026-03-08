@@ -119,37 +119,52 @@ fn dismiss_overlay(window: tauri::WebviewWindow) {
     let _ = window.emit("overlay-dismissed", ());
 }
 
+/// Show the settings window (create if needed, or just show+focus).
+fn show_settings(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("settings") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(tauri::generate_handler![dismiss_overlay])
         .setup(|app| {
             // --- System tray ---
+            let settings =
+                MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&quit])?;
+            let menu = Menu::with_items(app, &[&settings, &quit])?;
 
             TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("PoE Inspect")
                 .menu(&menu)
-                .on_menu_event(|app, event| {
-                    if event.id.as_ref() == "quit" {
-                        app.exit(0);
-                    }
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "settings" => show_settings(app),
+                    "quit" => app.exit(0),
+                    _ => {}
                 })
                 .build(app)?;
 
-            // --- Global hotkey: Ctrl+I ---
+            // --- Global hotkeys: Ctrl+I (inspect), Ctrl+Shift+I (settings) ---
             #[cfg(desktop)]
             {
                 let handle = app.handle().clone();
                 handle.plugin(
                     tauri_plugin_global_shortcut::Builder::new()
-                        .with_shortcuts(["ctrl+i"])?
+                        .with_shortcuts(["ctrl+i", "ctrl+shift+i"])?
                         .with_handler(move |app, shortcut, event| {
-                            if event.state == ShortcutState::Pressed
-                                && shortcut.matches(Modifiers::CONTROL, Code::KeyI)
+                            if event.state != ShortcutState::Pressed {
+                                return;
+                            }
+                            if shortcut
+                                .matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyI)
                             {
+                                show_settings(app);
+                            } else if shortcut.matches(Modifiers::CONTROL, Code::KeyI) {
                                 handle_inspect(app);
                             }
                         })
