@@ -1,0 +1,31 @@
+Item Class: Mana Flasks
+Rarity: Unique
+Doedre's Elixir
+Greater Mana Flask
+--------
+Recovers 120 Mana over 4 Seconds
+Consumes 35 (augmented) of 36 Charges on use
+Currently has 0 Charges
+--------
+Requirements:
+Level: 12
+--------
+Item Level: 46
+--------
+{ Unique Modifier }
+291(250-300)% increased Charges per use
+{ Unique Modifier — Defences, Energy Shield }
+Removes 80% of your maximum Energy Shield on use
+{ Unique Modifier — Damage, Chaos }
+You take 50% of your maximum Life as Chaos Damage on use
+{ Unique Modifier }
+Gain 2(1-3) Frenzy Charges on use
+{ Unique Modifier }
+Gain 1(1-3) Power Charge on use
+{ Unique Modifier }
+Gain 1(1-3) Endurance Charge on use
+--------
+Doedre Darktongue knew the Way of the Thaumaturge.
+In order to receive, one must give... without hesitation.
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

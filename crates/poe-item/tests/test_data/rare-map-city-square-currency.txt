@@ -1,0 +1,49 @@
+Item Class: Maps
+Rarity: Rare
+Impregnable Nadir
+City Square Map
+--------
+Map Tier: 16
+Item Quantity: +134% (augmented)
+Item Rarity: +166% (augmented)
+Monster Pack Size: +44% (augmented)
+More Currency: +70% (augmented)
+--------
+Item Level: 83
+--------
+Monster Level: 83
+--------
+Delirium Reward Type: Currency (enchant)
+Players in Area are 20% Delirious (enchant)
+--------
+{ Implicit Modifier }
+Area is Influenced by the Originator's Memories — Unscalable Value (implicit)
+--------
+{ Prefix Modifier "Savage" (Tier: 1) }
+30(30-40)% increased Monster Damage
+{ Prefix Modifier "Hexwarded" — Caster, Curse }
+60% less effect of Curses on Monsters
+{ Prefix Modifier "Buffered" }
+Monsters gain 46(40-49)% of Maximum Life as Extra Maximum Energy Shield
+{ Prefix Modifier "Conflagrating" — Elemental, Fire, Ailment }
+All Monster Damage from Hits always Ignites — Unscalable Value
+(Ignite deals Fire Damage over time, based on the base Fire Damage of the Skill, for 4 seconds)
+{ Suffix Modifier "of Deadliness" (Tier: 1) }
+Monsters have 666(650-700)% increased Critical Strike Chance
++73(70-75)% to Monster Critical Strike Multiplier
+{ Suffix Modifier "of the Juggernaut" (Tier: 1) }
+Monsters cannot be Stunned — Unscalable Value
+Monsters' Action Speed cannot be modified to below Base Value
+Monsters' Movement Speed cannot be modified to below Base Value
+{ Suffix Modifier "of Carnage" }
+Monsters Maim on Hit with Attacks
+(Maimed enemies have 30% reduced Movement Speed)
+{ Suffix Modifier "of Venom" (Tier: 1) }
+Monsters Poison on Hit — Unscalable Value
+(Poison deals Chaos Damage over time, based on the base Physical and Chaos Damage of the Skill. Multiple instances of Poison stack)
+All Damage from Monsters' Hits can Poison
+Monsters have 100% increased Poison Duration
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.
+--------
+Corrupted

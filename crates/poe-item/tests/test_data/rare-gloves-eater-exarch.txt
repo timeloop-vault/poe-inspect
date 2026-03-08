@@ -1,0 +1,41 @@
+Item Class: Gloves
+Rarity: Rare
+Behemoth Knuckle
+Dragonscale Gauntlets
+--------
+Quality: +20% (augmented)
+Armour: 293 (augmented)
+Evasion Rating: 293 (augmented)
+--------
+Requirements:
+Level: 70
+Str: 155
+Dex: 155
+Int: 98
+--------
+Sockets: G-R-G-B
+--------
+Item Level: 85
+--------
+{ Eater of Worlds Implicit Modifier (Lesser) }
++5% chance to Suppress Spell Damage (implicit)
+(50% of Damage from Suppressed Hits and Ailments they inflict is prevented) (implicit)
+{ Searing Exarch Implicit Modifier (Greater) — Damage, Elemental, Cold, Attack }
+Adds 8(6-8) to 13(12-15) Cold Damage to Attacks (implicit)
+--------
+{ Prefix Modifier "Mammoth's" (Tier: 1) — Defences, Armour, Evasion }
+42(39-42)% increased Armour and Evasion
+17(16-17)% increased Stun and Block Recovery
+{ Prefix Modifier "Robust" (Tier: 4) — Life }
++51(50-59) to maximum Life
+{ Master Crafted Prefix Modifier "Upgraded" (Rank: 3) — Defences, Armour, Evasion }
+74(56-74)% increased Armour and Evasion (crafted)
+{ Suffix Modifier "of the Seal" (Tier: 7) — Elemental, Cold, Resistance }
++17(12-17)% to Cold Resistance
+{ Suffix Modifier "of Revoking" (Tier: 3) }
++10(9-10)% chance to Suppress Spell Damage
+(50% of Damage from Suppressed Hits and Ailments they inflict is prevented)
+{ Suffix Modifier "of the Bear" (Tier: 7) — Attribute }
++22(18-22) to Strength
+Searing Exarch Item
+Eater of Worlds Item

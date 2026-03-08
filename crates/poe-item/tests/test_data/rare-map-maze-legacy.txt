@@ -1,0 +1,26 @@
+Item Class: Maps
+Rarity: Rare
+Dark Vault
+Maze Map
+--------
+Map Tier: 16
+Atlas Region: Valdo's Rest
+Item Quantity: +72% (augmented)
+Item Rarity: +37% (augmented)
+Monster Pack Size: +24% (augmented)
+Quality: +8% (augmented)
+--------
+Item Level: 84
+--------
+{ Prefix Modifier "Antagonist's" (Tier: 1) }
+22(20-30)% more Rare Monsters
+Rare Monsters each have a Nemesis Mod — Unscalable Value
+{ Prefix Modifier "Overlord's" (Tier: 1) — Attack, Caster, Speed }
+Unique Boss deals 25% increased Damage
+Unique Boss has 30% increased Attack and Cast Speed
+{ Suffix Modifier "of Smothering" (Tier: 1) — Life, Defences }
+Players have 60% less Recovery Rate of Life and Energy Shield
+{ Suffix Modifier "of Exposure" (Tier: 1) — Elemental, Resistance }
+-9(-12--9)% maximum Player Resistances
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

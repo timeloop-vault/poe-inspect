@@ -1,0 +1,15 @@
+Item Class: Utility Flasks
+Rarity: Normal
+Quicksilver Flask
+--------
+Lasts 6 Seconds
+Consumes 30 of 60 Charges on use
+Currently has 60 Charges
+40% increased Movement Speed
+--------
+Requirements:
+Level: 4
+--------
+Item Level: 15
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

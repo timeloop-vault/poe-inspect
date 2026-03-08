@@ -1,0 +1,20 @@
+Item Class: Jewels
+Rarity: Magic
+Potent Large Cluster Jewel of the Newt
+--------
+Item Level: 47
+--------
+Adds 11 Passive Skills (enchant)
+(Added Passive Skills are never considered to be in Radius by other Jewels) (enchant)
+(All Added Passive Skills are Small unless otherwise specified) (enchant)
+2 Added Passive Skills are Jewel Sockets (enchant)
+Added Small Passive Skills grant: 12% increased Fire Damage (enchant)
+(Passive Skills that are not Notable, Masteries, Keystones, or Jewel Sockets are Small) (enchant)
+--------
+{ Prefix Modifier "Potent" (Tier: 2) }
+Added Small Passive Skills have 25% increased Effect
+{ Suffix Modifier "of the Newt" (Tier: 3) — Life }
+Added Small Passive Skills also grant: Regenerate 0.1% of Life per Second
+(Passive Skills that are not Notable, Masteries, Keystones, or Jewel Sockets are Small)
+--------
+Place into an allocated Large Jewel Socket on the Passive Skill Tree. Added passives do not interact with jewel radiuses. Right click to remove from the Socket.

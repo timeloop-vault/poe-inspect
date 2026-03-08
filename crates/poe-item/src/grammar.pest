@@ -1,0 +1,215 @@
+// PoE Ctrl+Alt+C Item Text Grammar
+//
+// Two-pass architecture:
+//   Pass 1 (this grammar): Structural parse — sections, separators, line types, mod headers.
+//   Pass 2 (resolver.rs):  Data-dependent disambiguation using GameData.
+//
+// The grammar is intentionally permissive for "generic" content. Ambiguous things
+// (flask properties vs mods, magic item base extraction, stat values) are left to
+// the tree walker and resolver.
+//
+// IMPORTANT: The Rust parser must ensure input ends with '\n' before calling PEST.
+
+// ─── Top-level ───────────────────────────────────────────────────────────────
+
+item = {
+    SOI ~
+    header_section ~
+    (separator ~ section)* ~
+    NEWLINE* ~
+    EOI
+}
+
+separator = _{ "--------" ~ NEWLINE }
+
+// ─── Header section ─────────────────────────────────────────────────────────
+// Always first section (before the first separator).
+//
+// Normal/Magic/Gem/Currency: 1 name line (base type or full affixed name)
+// Rare/Unique:               2 name lines (name, then base type)
+
+header_section = {
+    item_class_line ~
+    rarity_line ~
+    header_name_line ~
+    header_name_line?
+}
+
+item_class_line  = { "Item Class: " ~ item_class_value ~ NEWLINE }
+item_class_value = @{ (!NEWLINE ~ ANY)+ }
+
+rarity_line  = { "Rarity: " ~ rarity_value ~ NEWLINE }
+rarity_value = @{ (!NEWLINE ~ ANY)+ }
+
+header_name_line = { !"--------" ~ rest_of_line ~ NEWLINE }
+
+// ─── Sections ───────────────────────────────────────────────────────────────
+// After the header, every section is delimited by `--------` separators.
+// Ordered alternation: try specific types first, fall back to generic.
+
+section = {
+    requirements_section
+  | sockets_section
+  | item_level_section
+  | monster_level_section
+  | talisman_tier_section
+  | experience_section
+  | mod_section
+  | influence_section
+  | status_section
+  | generic_section
+}
+
+// ─── Requirements ───────────────────────────────────────────────────────────
+
+requirements_section = {
+    "Requirements:" ~ NEWLINE ~
+    requirement_line+
+}
+
+requirement_line = { requirement_key ~ ": " ~ rest_of_line ~ NEWLINE }
+requirement_key  = { "Level" | "Str" | "Dex" | "Int" | "Class" }
+
+// ─── Sockets ────────────────────────────────────────────────────────────────
+
+sockets_section = { "Sockets: " ~ rest_of_line ~ NEWLINE }
+
+// ─── Item Level ─────────────────────────────────────────────────────────────
+
+item_level_section = { "Item Level: " ~ integer ~ NEWLINE }
+
+// ─── Monster Level (maps) ───────────────────────────────────────────────────
+
+monster_level_section = { "Monster Level: " ~ integer ~ NEWLINE }
+
+// ─── Talisman Tier ──────────────────────────────────────────────────────────
+
+talisman_tier_section = { "Talisman Tier: " ~ integer ~ NEWLINE }
+
+// ─── Experience (gems) ──────────────────────────────────────────────────────
+
+experience_section = { "Experience: " ~ rest_of_line ~ NEWLINE }
+
+// ─── Modifier section ───────────────────────────────────────────────────────
+// One or more mod groups, optionally followed by trailing influence markers
+// (which can appear after the last mod without a separator).
+//
+// Each mod group: a `{ }` header line followed by one or more body lines.
+
+mod_section = { mod_group+ ~ trailing_marker* }
+
+mod_group = { mod_header ~ NEWLINE ~ mod_body_line+ }
+
+trailing_marker = { influence_keyword ~ NEWLINE }
+
+// ─── Modifier header ────────────────────────────────────────────────────────
+// { [Master Crafted] <Slot> Modifier [(InfluenceTier)] ["Name"] [(Tier: N)] [— Tags] }
+//
+// Examples:
+//   { Implicit Modifier }
+//   { Prefix Modifier "Icy" (Tier: 8) — Damage, Elemental, Cold, Attack }
+//   { Unique Modifier — Life }
+//   { Searing Exarch Implicit Modifier (Greater) }
+//   { Eater of Worlds Implicit Modifier (Greater) — Life }
+//   { Master Crafted Prefix Modifier "Vagan's" — Attack }
+//   { Master Crafted Suffix Modifier "of Craft" (Rank: 2) — Elemental, Lightning, Resistance }
+
+mod_header = {
+    "{ " ~
+    mod_source? ~
+    mod_slot ~
+    " Modifier" ~
+    mod_influence_tier? ~
+    mod_name? ~
+    mod_tier? ~
+    mod_tags? ~
+    " }"
+}
+
+mod_source = { "Master Crafted " }
+
+mod_slot = {
+    "Searing Exarch Implicit"
+  | "Eater of Worlds Implicit"
+  | "Implicit"
+  | "Prefix"
+  | "Suffix"
+  | "Unique"
+}
+
+// Influence implicit tier: (Greater), (Grand), (Exceptional), etc.
+mod_influence_tier       = { " (" ~ mod_influence_tier_value ~ ")" }
+mod_influence_tier_value = {
+    "Lesser" | "Minor" | "Greater" | "Grand"
+  | "Exceptional" | "Exquisite" | "Perfect"
+}
+
+mod_name       = { " \"" ~ mod_name_inner ~ "\"" }
+mod_name_inner = @{ (!"\"" ~ ANY)+ }
+
+mod_tier = {
+    " (Tier: " ~ integer ~ ")"
+  | " (Rank: " ~ integer ~ ")"
+}
+
+// Tag list after em-dash separator
+mod_tags = { " \u{2014} " ~ tag_list }
+tag_list = { tag ~ (", " ~ tag)* }
+tag      = @{ (!(", " | " }") ~ ANY)+ }
+
+// ─── Modifier body lines ────────────────────────────────────────────────────
+// Lines under a mod header: stat lines, reminder text, etc.
+// Negative lookaheads prevent consuming the next mod header or trailing markers.
+
+mod_body_line = {
+    !("{ ") ~
+    !("--------") ~
+    !(influence_keyword ~ NEWLINE) ~
+    rest_of_line ~ NEWLINE
+}
+
+// ─── Influence markers ──────────────────────────────────────────────────────
+// Standalone section for influence/synthesis/fracture markers.
+
+influence_section = { (influence_keyword ~ NEWLINE)+ }
+
+influence_keyword = {
+    "Shaper Item"
+  | "Elder Item"
+  | "Crusader Item"
+  | "Hunter Item"
+  | "Redeemer Item"
+  | "Warlord Item"
+  | "Searing Exarch Item"
+  | "Eater of Worlds Item"
+  | "Synthesised Item"
+  | "Fractured Item"
+  | "Relic Unique"
+}
+
+// ─── Status markers ─────────────────────────────────────────────────────────
+
+status_section = { status_keyword ~ NEWLINE }
+
+status_keyword = { "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transfigured" }
+
+// ─── Generic section (catch-all) ────────────────────────────────────────────
+// Matches any section not caught by a specific rule above:
+//   - Weapon sub-header + properties ("One Handed Sword\nQuality: +20%...")
+//   - Defence properties ("Evasion Rating: 250 (augmented)")
+//   - Map properties ("Map Tier: 16\nItem Quantity: +115%...")
+//   - Enchant lines ("Allocates Entropy (enchant)")
+//   - Flavor text, usage instructions, special property text
+//   - Gem tags + gem properties
+//
+// The tree walker classifies these further using content analysis.
+
+generic_section = { generic_line ~ (generic_line | blank_line)* }
+
+generic_line = { !"--------" ~ rest_of_line ~ NEWLINE }
+blank_line   = { NEWLINE }
+
+// ─── Primitives ─────────────────────────────────────────────────────────────
+
+rest_of_line = @{ (!NEWLINE ~ ANY)+ }
+integer      = @{ ASCII_DIGIT+ }

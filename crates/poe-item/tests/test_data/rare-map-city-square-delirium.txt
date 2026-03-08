@@ -1,0 +1,40 @@
+Item Class: Maps
+Rarity: Rare
+Godless District
+City Square Map
+--------
+Map Tier: 16
+Item Quantity: +89% (augmented)
+Item Rarity: +54% (augmented)
+Monster Pack Size: +35% (augmented)
+--------
+Item Level: 84
+--------
+Monster Level: 83
+--------
+Delirium Reward Type: Armour (enchant)
+Players in Area are 20% Delirious (enchant)
+--------
+{ Prefix Modifier "Titan's" (Tier: 1) — Life }
+Unique Boss has 35% increased Life
+Unique Boss has 70% increased Area of Effect
+{ Prefix Modifier "Mirrored" (Tier: 1) — Damage, Elemental }
+Monsters reflect 18% of Elemental Damage
+{ Prefix Modifier "Conflagrating" (Tier: 1) — Elemental, Fire, Ailment }
+All Monster Damage from Hits always Ignites — Unscalable Value
+(Ignite deals Fire Damage over time, based on the base Fire Damage of the Skill, for 4 seconds)
+{ Prefix Modifier "Antagonist's" (Tier: 1) }
+25(20-30)% increased number of Rare Monsters
+{ Suffix Modifier "of Enervation" (Tier: 1) }
+Monsters steal Power, Frenzy and Endurance charges on Hit
+{ Suffix Modifier "of Desecration" (Tier: 1) — Damage, Chaos }
+Area has patches of desecrated ground
+{ Suffix Modifier "of Bloodlines" (Tier: 1) }
+29(20-30)% increased Magic Monsters
+{ Suffix Modifier "of Temporal Chains" (Tier: 1) — Caster, Curse }
+Players are Cursed with Temporal Chains
+(Temporal Chains is a Hex which reduces Action Speed by 15%, or 9% on Rare or Unique targets, and makes other effects on the target expire 40% slower. It has 50% less effect on Players and lasts 5 seconds)
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.
+--------
+Corrupted

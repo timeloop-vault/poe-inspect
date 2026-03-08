@@ -1,0 +1,36 @@
+Item Class: Bows
+Rarity: Unique
+Quill Rain
+Short Bow
+--------
+Bow
+Physical Damage: 12-32 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 3.00 (augmented)
+--------
+Requirements:
+Level: 5
+Dex: 26
+--------
+Sockets: B-G
+--------
+Item Level: 26
+--------
+{ Unique Modifier — Damage }
+30% less Damage
+{ Unique Modifier — Attack, Speed }
+100% increased Attack Speed
+{ Unique Modifier — Speed }
+87(50-100)% increased Projectile Speed
+{ Unique Modifier — Attribute }
++17(10-20) to Dexterity
+{ Unique Modifier — Attack }
++36(25-50) to Accuracy Rating
+{ Unique Modifier — Damage, Physical, Attack }
+100% increased Physical Damage
+{ Unique Modifier — Mana, Attack }
+Grants 2 Mana per Enemy Hit
+--------
+"The rain of a thousand quills that whittle
+present into past, life into death."
+- Rigwald of the Ezomytes

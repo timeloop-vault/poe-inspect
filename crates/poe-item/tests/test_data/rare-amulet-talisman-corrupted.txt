@@ -1,0 +1,37 @@
+Item Class: Amulets
+Rarity: Rare
+Rage Noose
+Rotfeather Talisman
+--------
+Requirements:
+Level: 57
+--------
+Item Level: 84
+--------
+Talisman Tier: 3
+--------
+Allocates Entropy (enchant)
+--------
+{ Implicit Modifier — Damage }
+35(25-35)% increased Damage (implicit)
+--------
+{ Prefix Modifier "Glinting" (Tier: 9) — Damage, Physical, Attack }
+Adds 1 to 2 Physical Damage to Attacks
+{ Prefix Modifier "Girded" (Tier: 2) — Defences }
+18(17-19)% increased Armour
+{ Prefix Modifier "Dauntless" (Tier: 3) — Defences }
+14(14-16)% increased maximum Energy Shield
+{ Suffix Modifier "of Triumph" (Tier: 1) — Life }
++11(11-14) Life gained on Kill
+{ Suffix Modifier "of the Ice" (Tier: 2) — Elemental, Cold, Resistance }
++45(42-45)% to Cold Resistance
+{ Suffix Modifier "of the Gorilla" (Tier: 5) — Attribute }
++28(28-32) to Strength
+--------
+Death met with the First Ones
+and demanded they hunt with mercy.
+For while pain might delight the mind,
+it does not fill the belly.
+- The Wolven King
+--------
+Corrupted

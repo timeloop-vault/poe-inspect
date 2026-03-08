@@ -1,0 +1,43 @@
+Item Class: Maps
+Rarity: Rare
+Barricaded Apex
+Residence Map
+--------
+Map Tier: 17
+Reward: Foil Lifesprig
+Item Quantity: +110% (augmented)
+Monster Pack Size: +28% (augmented)
+Quality: +20% (augmented)
+--------
+Chance for dropped Maps to convert to:
+Shaper Map: 9% (augmented)
+Elder Map: 12% (augmented)
+Conqueror Map: 21% (augmented)
+Unique Map: 5% (augmented)
+Scarab: 20% (augmented)
+--------
+Item Level: 100
+--------
+Monster Level: 84
+--------
+{ Unique Modifier }
+Players who Die in area are sent to the Void
+(Characters sent to Void Leagues are no longer playable, and cannot be restored for any reason)
+{ Unique Modifier }
+All Magic and Normal Monsters in Area are in a Union of Souls
+{ Unique Modifier }
+Area contains The Feared
+{ Unique Modifier }
+Monsters Kill things with 20% or lower Life on Hit
+{ Unique Modifier }
+Monsters can only be Damaged while within 2 metres of a Player
+Players' modifiers to Light Radius also apply to this range
+{ Unique Modifier }
+Players deal 10% less Damage per Equipped Item
+Players' Minions deal 10% less Damage per Item Equipped by their Master
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once. Defeat 90% of all monsters in this Map, including all Rare and Unique enemies to obtain the Reward. The area created is not affected by your Atlas Passive Tree, and cannot be augmented via the Map Device.
+--------
+Unmodifiable
+--------
+Foil (Celestial Amethyst)

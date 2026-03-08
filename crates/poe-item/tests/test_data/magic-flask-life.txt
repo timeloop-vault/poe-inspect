@@ -1,0 +1,21 @@
+Item Class: Life Flasks
+Rarity: Magic
+Kieserite Divine Life Flask of Allaying
+--------
+Recovers 3312 (augmented) Life over 3,50 Seconds
+Consumes 18 (augmented) of 45 Charges on use
+Currently has 45 Charges
+--------
+Requirements:
+Level: 60
+--------
+Item Level: 60
+--------
+{ Prefix Modifier "Kieserite" (Tier: 3) }
+23(20-25)% increased Charges per use
+38(33-38)% increased Amount Recovered
+{ Suffix Modifier "of Allaying" (Tier: 2) }
+Grants Immunity to Bleeding for 12(12-14) seconds if used while Bleeding
+Grants Immunity to Corrupted Blood for 12(12-14) seconds if used while affected by Corrupted Blood
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

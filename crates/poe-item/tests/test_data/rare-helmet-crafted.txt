@@ -1,0 +1,25 @@
+Item Class: Helmets
+Rarity: Rare
+Foe Visage
+Tribal Circlet
+--------
+Energy Shield: 31
+--------
+Requirements:
+Level: 67
+Str: 62
+Dex: 46
+Int: 90
+--------
+Sockets: B-B-B-B
+--------
+Item Level: 42
+--------
+{ Prefix Modifier "Rotund" (Tier: 4) — Life }
++98(85-99) to maximum Life
+{ Prefix Modifier "Spiny" (Tier: 1) — Damage, Physical }
+Reflects 8(5-10) Physical Damage to Melee Attackers
+{ Suffix Modifier "of the Pupil" (Tier: 10) — Attribute }
++10(8-12) to Intelligence
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 2) — Elemental, Cold, Resistance }
++21(21-28)% to Cold Resistance

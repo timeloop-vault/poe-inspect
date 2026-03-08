@@ -1,0 +1,23 @@
+Item Class: Rings
+Rarity: Rare
+Grim Circle
+Synthesised Two-Stone Ring
+--------
+Requirements:
+Level: 57
+--------
+Item Level: 83
+--------
+{ Implicit Modifier — Aura }
+Discipline has 19(15-20)% increased Aura Effect (implicit)
+--------
+{ Prefix Modifier "Acrobat's" (Tier: 5) — Defences }
++37(36-60) to Evasion Rating
+{ Suffix Modifier "of the Lightning" (Tier: 2) — Elemental, Lightning, Resistance }
++44(42-45)% to Lightning Resistance
+{ Suffix Modifier "of the Drake" (Tier: 6) — Elemental, Fire, Resistance }
++20(18-23)% to Fire Resistance
+{ Suffix Modifier "of the Inuit" (Tier: 8) — Elemental, Cold, Resistance }
++10(6-11)% to Cold Resistance
+--------
+Synthesised Item

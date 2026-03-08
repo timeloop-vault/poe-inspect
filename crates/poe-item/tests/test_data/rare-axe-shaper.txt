@@ -1,0 +1,36 @@
+Item Class: Two Hand Axes
+Rarity: Rare
+Cataclysm Splitter
+Karui Chopper
+--------
+Two Handed Axe
+Physical Damage: 121-189
+Elemental Damage: 3-6 (augmented), 7-108 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.05
+Weapon Range: 13
+--------
+Requirements:
+Level: 60
+Str: 151
+Dex: 43
+--------
+Sockets: R-G B
+--------
+Item Level: 86
+--------
+{ Prefix Modifier "Crackling" (Tier: 7) — Damage, Elemental, Lightning, Attack }
+Adds 7(3-9) to 108(102-117) Lightning Damage
+{ Prefix Modifier "Empowering" (Tier: 4) — Damage, Elemental, Attack }
+59(53-61)% increased Elemental Damage with Attack Skills
+{ Prefix Modifier "Frosted" (Tier: 10) — Damage, Elemental, Cold, Attack }
+Adds 3(2-3) to 6(6-7) Cold Damage
+{ Suffix Modifier "of Shaping" (Tier: 2) }
+7(7-8)% chance to gain Onslaught for 4 seconds on Kill
+(Onslaught grants 20% increased Attack, Cast, and Movement Speed)
+{ Suffix Modifier "of Triumph" (Tier: 1) — Life }
++13(11-14) Life gained on Kill
+{ Suffix Modifier "of the Lion" (Tier: 6) — Attribute }
++25(23-27) to Strength
+--------
+Shaper Item

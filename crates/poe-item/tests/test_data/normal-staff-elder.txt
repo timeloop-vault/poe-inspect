@@ -1,0 +1,24 @@
+Item Class: Staves
+Rarity: Normal
+Imperial Staff
+--------
+Staff
+Physical Damage: 57-171
+Critical Strike Chance: 7.00%
+Attacks per Second: 1.15
+Weapon Range: 13
+--------
+Requirements:
+Level: 66
+Str: 113
+Int: 113
+--------
+Sockets: R-B G B R
+--------
+Item Level: 84
+--------
+{ Implicit Modifier }
++18% Chance to Block Attack Damage while wielding a Staff
+(Warstaves are considered Staves) (implicit)
+--------
+Elder Item

@@ -1,0 +1,33 @@
+Item Class: Skill Gems
+Rarity: Gem
+Consecrated Path of Endurance
+--------
+Fire, Melee, Attack, AoE, Movement, Duration, Slam
+Level: 3
+Cost: 10 Mana
+Cooldown Time: 2.00 sec
+Attack Speed: 80% of base
+Attack Damage: 178% of base
+Effectiveness of Added Damage: 178%
+--------
+Requirements:
+Level: 34
+Str: 50
+Int: 35
+--------
+Slams the ground at a targeted location. If an enemy is near where you target, you'll teleport to it from a short distance away, slam, and create an area of consecrated ground. The cooldown can be bypassed by expending an Endurance Charge. Can't be supported by Multistrike, and requires a Sword, Axe, Mace, Sceptre, Staff or Unarmed.
+--------
+Base duration is 4.00 seconds
+50% of Physical Damage Converted to Fire Damage
+Deals up to 20% more Damage with Hits to closer targets
+10% more Area of Effect per Endurance Charge
+10% more Attack Damage per Endurance Charge
+
+Additional Effects From Quality:
+Deals up to +0(0-15)% more Damage with Hits to closer targets
+--------
+Experience: 341 537/401 344
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.
+--------
+Transfigured

@@ -1115,3 +1115,44 @@ Note the v1 parser's `PREFIX_MODIFIER_PATTERN` requires `(Tier: N)` -- it will M
 | `-- Unscalable Value` | Value cannot be scaled | `Hits can't be Evaded -- Unscalable Value` |
 
 Note: the em-dash `--` in `-- Unscalable Value` is Unicode U+2014, not ASCII hyphens.
+
+---
+
+## F. Implementation Decision (2026-03-08)
+
+**Chosen approach: PEST grammar + Rust resolver (Two-Pass)**
+
+After reviewing three prior implementations (poe_item_deconstructor JS, poe-item-rust, poe-inspect v1),
+we decided that ad-hoc section classification with if/else/state-machines is the root cause of parser
+maintenance nightmares. Each implementation hit the same wall: section classification becomes a branching
+mess that breaks every league.
+
+### Decision rationale
+
+1. **PEST worked for stat_descriptions.txt** — similar complexity (ranges, transforms, multi-stat, all
+   languages), and the grammar is maintainable. Same approach for item text.
+2. **Grammar is the spec** — when GGG changes the format, update the grammar rules. The grammar is
+   self-documenting and reviewable independently of the code that walks the parse tree.
+3. **Two passes cleanly separate concerns** — Pass 1 (PEST) handles structural format, Pass 2 (Resolver)
+   handles data-dependent disambiguation. They change for different reasons.
+4. **Testable at each layer** — grammar tests need no game data, resolver tests use game data fixtures.
+
+### What PEST handles (Pass 1)
+
+- Section structure (separator-delimited blocks)
+- Section classification via ordered alternation (PEG tries each section type rule)
+- Line formats: key-value, modifier headers, stat lines with ranges, reminder text
+- Header parsing: Item Class, Rarity, name/base type lines
+- Modifier `{ }` header parsing: type, name, tier/rank, tags
+- Value range extraction: `+68(65-68)`, `19(18-20)%`, `1(10--10)%`
+
+### What Resolver handles (Pass 2)
+
+- Magic item base type extraction (needs BaseItemType lookup)
+- Stat line → stat ID + values (needs ReverseIndex)
+- Flask base property vs modifier disambiguation (needs game data)
+- Tier verification (needs mod database)
+
+### Implementation plan
+
+See `crates/poe-item/CLAUDE.md` for detailed plan and file structure.

@@ -1,0 +1,32 @@
+Item Class: Boots
+Rarity: Rare
+Domination Spark
+Satin Slippers
+--------
+Energy Shield: 91 (augmented)
+--------
+Requirements:
+Level: 70
+Str: 70
+Dex: 21
+Int: 111
+--------
+Sockets: B-B-G-R
+--------
+Item Level: 61
+--------
+8% increased Movement Speed if you haven't been Hit Recently
+(Recently refers to the past 4 seconds) (enchant)
+--------
+{ Prefix Modifier "Cheetah's" (Tier: 2) — Speed }
+30% increased Movement Speed
+{ Prefix Modifier "Radiating" (Tier: 3) — Defences }
++26(24-30) to maximum Energy Shield
+{ Prefix Modifier "Dauntless" (Tier: 3) — Defences }
+79(68-79)% increased Energy Shield
+{ Suffix Modifier "of the Polar Bear" (Tier: 3) — Elemental, Cold, Resistance }
++37(36-41)% to Cold Resistance
+{ Suffix Modifier "of the Philosopher" (Tier: 5) — Attribute }
++29(28-32) to Intelligence
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 2) — Elemental, Lightning, Resistance }
++22(21-28)% to Lightning Resistance (crafted)

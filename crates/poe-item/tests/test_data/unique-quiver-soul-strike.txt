@@ -1,0 +1,33 @@
+Item Class: Quivers
+Rarity: Unique
+Soul Strike
+Spike-Point Arrow Quiver
+--------
+Requirements:
+Level: 64
+--------
+Item Level: 75
+--------
+{ Implicit Modifier — Critical }
+20(20-30)% increased Global Critical Strike Chance (implicit)
+--------
+{ Unique Modifier — Defences }
+150(80)% faster start of Energy Shield Recharge
+{ Unique Modifier — Defences }
++100(100-120) to maximum Energy Shield
+{ Unique Modifier — Attribute }
++30 to Dexterity
+{ Unique Modifier — Damage, Chaos, Attack }
+Adds 17(13-18) to 26(26-32) Chaos Damage to Attacks
+{ Unique Modifier — Attack, Speed }
+9(8-12)% increased Attack Speed
+{ Unique Modifier — Defences }
+40% reduced Energy Shield Recharge Rate
+--------
+In this chaotic world
+The rewards of the Soul
+Outlast the rewards of the Flesh.
+--------
+Corrupted
+--------
+Relic Unique

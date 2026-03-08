@@ -1,0 +1,24 @@
+Item Class: Belts
+Rarity: Rare
+Doom Snare
+Leather Belt
+--------
+Requirements:
+Level: 24
+--------
+Item Level: 50
+--------
+{ Implicit Modifier — Life }
++32(25-40) to maximum Life
+--------
+{ Prefix Modifier "Studded" (Tier: 7) — Defences, Armour }
++28(11-35) to Armour
+{ Prefix Modifier "Stalwart" (Tier: 7) — Life }
++49(40-54) to maximum Life
+{ Suffix Modifier "of the Penguin" (Tier: 6) — Elemental, Cold, Resistance }
++20(18-23)% to Cold Resistance
+{ Suffix Modifier "of the Pugilist" (Tier: 5) }
+6(5-7)% reduced Enemy Stun Threshold
+(The Stun Threshold determines how much Damage can Stun something)
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 1) — Elemental, Cold, Lightning, Resistance }
++10(10-12)% to Cold and Lightning Resistances

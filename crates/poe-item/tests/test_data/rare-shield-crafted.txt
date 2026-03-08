@@ -1,0 +1,33 @@
+Item Class: Shields
+Rarity: Rare
+Gale Bastion
+Mahogany Tower Shield
+--------
+Chance to Block: 25%
+Armour: 389 (augmented)
+--------
+Requirements:
+Level: 43
+Str: 105
+Int: 30
+--------
+Sockets: R-R-R
+--------
+Item Level: 48
+--------
+{ Implicit Modifier — Life }
++21(20-30) to maximum Life
+--------
+{ Prefix Modifier "Virile" (Tier: 4) — Life }
++109(100-114) to maximum Life
+{ Prefix Modifier "Carapaced" (Tier: 5) — Defences, Armour }
++102(102-120) to Armour
+{ Prefix Modifier "Beetle's" (Tier: 6) — Defences, Armour }
+12(6-13)% increased Armour
+6(6-7)% increased Stun and Block Recovery
+{ Suffix Modifier "of the Salamander" (Tier: 7) — Elemental, Fire, Resistance }
++14(12-17)% to Fire Resistance
+{ Suffix Modifier "of the Thunderhead" (Tier: 5) — Elemental, Lightning, Resistance }
++25(24-29)% to Lightning Resistance
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 1) — Elemental, Cold, Lightning, Resistance }
++10(10-12)% to Cold and Lightning Resistances

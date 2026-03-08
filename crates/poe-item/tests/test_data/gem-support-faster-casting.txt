@@ -1,0 +1,22 @@
+Item Class: Support Gems
+Rarity: Gem
+Faster Casting Support
+--------
+Support, Spell
+Level: 9
+Cost & Reservation Multiplier: 110%
+--------
+Requirements:
+Level: 44
+Int: 72
+--------
+Supports non-instant spell skills.
+--------
+Supported Skills have 28% increased Cast Speed
+
+Additional Effects From Quality:
+Supported Skills have 0(0-10)% increased Cast Speed
+--------
+Experience: 218 354/1 570 760
+--------
+This is a Support Gem. It does not grant a bonus to your character, but to skills in sockets connected to it. Place into an item socket connected to a socket containing the Skill Gem you wish to augment. Right click to remove from a socket.

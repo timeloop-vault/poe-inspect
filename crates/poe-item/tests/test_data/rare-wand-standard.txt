@@ -1,0 +1,32 @@
+Item Class: Wands
+Rarity: Rare
+Bramble Bite
+Driftwood Wand
+--------
+Wand
+Physical Damage: 5-9
+Critical Strike Chance: 7.00%
+Attacks per Second: 1.40
+--------
+Requirements:
+Level: 16
+Dex: 27
+Int: 30
+--------
+Sockets: G B
+--------
+Item Level: 7
+--------
+{ Implicit Modifier — Damage, Caster }
+9(8-12)% increased Spell Damage
+--------
+{ Prefix Modifier "Apprentice's" (Tier: 8) — Damage, Caster }
+11(10-19)% increased Spell Damage
+{ Prefix Modifier "Lithomancer's" (Tier: 1) — Physical, Caster, Gem }
++1 to Level of all Physical Spell Skill Gems
+{ Prefix Modifier "Humming" (Tier: 9) — Damage, Elemental, Lightning, Caster }
+Adds 1 to 4(4-5) Lightning Damage to Spells
+{ Suffix Modifier "of Steadiness" (Tier: 6) — Attack }
++87(80-130) to Accuracy Rating
+{ Suffix Modifier "of Impact" (Tier: 5) }
+15(11-15)% increased Stun Duration on Enemies

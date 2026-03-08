@@ -1,0 +1,30 @@
+Item Class: Maps
+Rarity: Unique
+Acton's Nightmare
+Overgrown Shrine Map
+--------
+Map Tier: 16
+Item Quantity: +88% (augmented)
+Item Rarity: +239% (augmented)
+--------
+Item Level: 85
+--------
+Monster Level: 83
+--------
+{ Unique Modifier }
+Area is inhabited by Skeletons — Unscalable Value
+{ Unique Modifier }
+Area is a large Maze
+{ Unique Modifier }
+Restless Dead
+{ Unique Modifier }
+Area contains a Large Chest
+{ Unique Modifier — Damage, Elemental, Fire }
+Area has patches of Burning Ground
+--------
+Curious, she shook it then,
+And tiny screams emerged.
+Curiouser, she shook again,
+And an eerie silence purred.
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.
