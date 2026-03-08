@@ -7,6 +7,7 @@ use poe_data::GameData;
 use poe_item::types::{ModSlot, ModTierKind, ResolvedItem};
 
 use crate::predicate::{Cmp, ModSlotKind, Predicate, RarityValue};
+use crate::profile::{MatchedRule, Profile, ScoreResult, UnmatchedRule};
 use crate::rule::Rule;
 
 impl ModSlotKind {
@@ -116,6 +117,48 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             let count = u32::try_from(item.influences.len()).unwrap_or(u32::MAX);
             op.eval(&count, value)
         }
+    }
+}
+
+/// Score an item against a profile. Returns detailed results including
+/// which rules matched and the total score.
+pub fn score(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreResult {
+    // Check filter first
+    if let Some(filter) = &profile.filter {
+        if !evaluate(item, filter, gd) {
+            return ScoreResult {
+                applicable: false,
+                score: 0.0,
+                matched: vec![],
+                unmatched: vec![],
+            };
+        }
+    }
+
+    let mut total = 0.0;
+    let mut matched = Vec::new();
+    let mut unmatched = Vec::new();
+
+    for sr in &profile.scoring {
+        if evaluate(item, &sr.rule, gd) {
+            total += sr.weight;
+            matched.push(MatchedRule {
+                label: sr.label.clone(),
+                weight: sr.weight,
+            });
+        } else {
+            unmatched.push(UnmatchedRule {
+                label: sr.label.clone(),
+                weight: sr.weight,
+            });
+        }
+    }
+
+    ScoreResult {
+        applicable: true,
+        score: total,
+        matched,
+        unmatched,
     }
 }
 

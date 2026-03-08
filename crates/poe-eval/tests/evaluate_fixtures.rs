@@ -1,8 +1,9 @@
 use poe_dat::tables::BaseItemTypeRow;
 use poe_data::GameData;
 use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatusValue};
+use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
-use poe_eval::evaluate;
+use poe_eval::{evaluate, score};
 use poe_item::types::ResolvedItem;
 
 fn fixture(name: &str) -> String {
@@ -348,4 +349,133 @@ fn open_mods_without_game_data() {
         value: 1,
     });
     assert!(!evaluate(&item, &rule, &gd));
+}
+
+// ─── Scoring profiles ───────────────────────────────────────────────────────
+
+fn belt_profile() -> Profile {
+    Profile {
+        name: "Life Belt".to_string(),
+        description: "Scores belts for life-based builds".to_string(),
+        filter: Some(Rule::all(vec![
+            Rule::pred(Predicate::Rarity {
+                op: Cmp::Eq,
+                value: RarityValue::Rare,
+            }),
+            Rule::pred(Predicate::BaseTypeContains {
+                value: "Belt".to_string(),
+            }),
+        ])),
+        scoring: vec![
+            ScoringRule {
+                label: "Has life".to_string(),
+                weight: 10.0,
+                rule: Rule::pred(Predicate::HasStatText {
+                    text: "maximum Life".to_string(),
+                }),
+            },
+            ScoringRule {
+                label: "Has resistances".to_string(),
+                weight: 5.0,
+                rule: Rule::pred(Predicate::HasStatText {
+                    text: "Resistance".to_string(),
+                }),
+            },
+            ScoringRule {
+                label: "Has armour".to_string(),
+                weight: 3.0,
+                rule: Rule::pred(Predicate::HasStatText {
+                    text: "Armour".to_string(),
+                }),
+            },
+            ScoringRule {
+                label: "Not corrupted".to_string(),
+                weight: 2.0,
+                rule: Rule::negate(Rule::pred(Predicate::HasStatus {
+                    status: StatusValue::Corrupted,
+                })),
+            },
+        ],
+    }
+}
+
+#[test]
+fn score_matching_profile() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let result = score(&item, &belt_profile(), &gd);
+
+    assert!(result.applicable);
+    assert!(result.score > 0.0);
+    // Belt has life, resistances, armour, and is not corrupted
+    assert!(result.matched.len() >= 3);
+}
+
+#[test]
+fn score_filter_rejects() {
+    let gd = test_game_data(&[]);
+    let item = resolve("unique-ring-ventors-gamble.txt", &gd);
+
+    let result = score(&item, &belt_profile(), &gd);
+
+    // Ring should not match belt profile filter
+    assert!(!result.applicable);
+    assert_eq!(result.score, 0.0);
+    assert!(result.matched.is_empty());
+}
+
+#[test]
+fn score_detailed_breakdown() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let result = score(&item, &belt_profile(), &gd);
+
+    // Check that we get labels back
+    assert!(result.applicable);
+    let labels: Vec<&str> = result.matched.iter().map(|m| m.label.as_str()).collect();
+    assert!(labels.contains(&"Has life"));
+    assert!(labels.contains(&"Not corrupted"));
+
+    // Score should be sum of matched weights
+    let expected_score: f64 = result.matched.iter().map(|m| m.weight).sum();
+    assert!((result.score - expected_score).abs() < f64::EPSILON);
+}
+
+#[test]
+fn profile_no_filter() {
+    let gd = test_game_data(&[]);
+    let item = resolve("unique-ring-ventors-gamble.txt", &gd);
+
+    // Profile with no filter — applies to everything
+    let profile = Profile {
+        name: "Has Life".to_string(),
+        description: String::new(),
+        filter: None,
+        scoring: vec![ScoringRule {
+            label: "life".to_string(),
+            weight: 10.0,
+            rule: Rule::pred(Predicate::HasStatText {
+                text: "maximum Life".to_string(),
+            }),
+        }],
+    };
+
+    let result = score(&item, &profile, &gd);
+    assert!(result.applicable);
+    assert_eq!(result.score, 10.0);
+}
+
+#[test]
+fn profile_serializes_to_json() {
+    let profile = belt_profile();
+    let json = serde_json::to_string_pretty(&profile).unwrap();
+    assert!(json.contains("Life Belt"));
+    assert!(json.contains("maximum Life"));
+
+    // Round-trip
+    let deserialized: Profile = serde_json::from_str(&json).unwrap();
+    assert_eq!(deserialized.name, "Life Belt");
+    assert_eq!(deserialized.scoring.len(), 4);
 }

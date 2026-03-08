@@ -4,7 +4,7 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ## Status
 
-**Foundation done** — Predicate/Rule/Evaluate engine with 18 fixture tests.
+**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles. 23 fixture tests.
 
 ## Scope
 
@@ -35,7 +35,8 @@ src/
   lib.rs         — public API
   predicate.rs   — atomic conditions (Rarity, ItemClass, ModCount, StatValue, etc.)
   rule.rs        — combinators (All, Any, Not) over predicates
-  evaluate.rs    — evaluate(item, rule, game_data) -> bool
+  profile.rs     — scoring profiles (weighted rule sets)
+  evaluate.rs    — evaluate(item, rule, game_data) -> bool, score(item, profile, game_data)
 tests/
   evaluate_fixtures.rs — tests against real item fixtures
 ```
@@ -88,8 +89,8 @@ tests/
 
 1. ~~Define `Predicate` and `Rule` types (serializable)~~ ✓
 2. ~~Evaluate engine: `evaluate(item, rule, game_data) -> bool`~~ ✓
-3. ~~Test with real parsed items~~ ✓ (18 tests)
-4. Scoring profiles: weighted stat scoring against named profiles
-5. Tier coloring evaluator (map mod tier to color)
-6. Open affix detection + basic craft suggestion
-7. Profile import/export (JSON)
+3. ~~Test with real parsed items~~ ✓
+4. ~~Scoring profiles: `score(item, profile, game_data) -> ScoreResult`~~ ✓
+5. ~~Profile JSON serialization round-trip~~ ✓
+6. Tier coloring evaluator (map mod tier to color)
+7. Open affix detection + basic craft suggestion

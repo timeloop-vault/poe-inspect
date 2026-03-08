@@ -6,8 +6,10 @@
 
 pub mod evaluate;
 pub mod predicate;
+pub mod profile;
 pub mod rule;
 
-pub use evaluate::evaluate;
+pub use evaluate::{evaluate, score};
 pub use predicate::Predicate;
+pub use profile::{Profile, ScoreResult};
 pub use rule::Rule;
