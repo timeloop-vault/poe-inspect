@@ -142,16 +142,10 @@ export function ProfileSettings() {
 		await writeTextFile(path, JSON.stringify(exportData, null, 2));
 	}, []);
 
-	const renameProfile = useCallback(
-		(id: string, name: string) => {
-			persist(profilesRef.current.map((p) => (p.id === id ? { ...p, name } : p)));
-		},
-		[persist],
-	);
-
-	const updateProfile = useCallback(
+	const saveProfile = useCallback(
 		(id: string, patch: Partial<StoredProfile>) => {
 			persist(profilesRef.current.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+			syncActiveProfile();
 		},
 		[persist],
 	);
@@ -165,8 +159,7 @@ export function ProfileSettings() {
 				<ProfileEditor
 					profile={profile}
 					onBack={() => setEditing(null)}
-					onRename={(name) => renameProfile(editing, name)}
-					onUpdate={(patch) => updateProfile(editing, patch)}
+					onSave={(patch) => saveProfile(editing, patch)}
 				/>
 			);
 		}
@@ -244,16 +237,30 @@ export function ProfileSettings() {
 function ProfileEditor({
 	profile,
 	onBack,
-	onRename,
-	onUpdate,
+	onSave,
 }: {
 	profile: StoredProfile;
 	onBack: () => void;
-	onRename: (name: string) => void;
-	onUpdate: (patch: Partial<StoredProfile>) => void;
+	onSave: (patch: Partial<StoredProfile>) => void;
 }) {
 	const [tab, setTab] = useState<"scoring" | "display">("scoring");
-	const [name, setName] = useState(profile.name);
+	// Local draft — changes buffer here until Save
+	const [draft, setDraft] = useState<Partial<StoredProfile>>({});
+	const hasChanges = Object.keys(draft).length > 0;
+
+	const currentName = (draft.name as string | undefined) ?? profile.name;
+	const currentEval =
+		"evalProfile" in draft ? (draft.evalProfile as EvalProfile | null) : profile.evalProfile;
+	const currentDisplay = (draft.display as DisplayPrefs | undefined) ?? profile.display;
+
+	const save = () => {
+		if (hasChanges) onSave(draft);
+		onBack();
+	};
+
+	const discard = () => {
+		onBack();
+	};
 
 	return (
 		<>
@@ -261,16 +268,16 @@ function ProfileEditor({
 				style={{
 					display: "flex",
 					alignItems: "center",
-					gap: "12px",
+					gap: "8px",
 					marginBottom: "16px",
 				}}
 			>
-				<button type="button" class="btn btn-small" onClick={onBack}>
-					&larr; Back
+				<button type="button" class="btn btn-small" onClick={discard}>
+					&larr; Cancel
 				</button>
 				<input
 					type="text"
-					value={name}
+					value={currentName}
 					class="hotkey-display"
 					style={{
 						flex: 1,
@@ -279,12 +286,16 @@ function ProfileEditor({
 						fontSize: "16px",
 						color: "var(--poe-header)",
 					}}
-					onInput={(e) => {
-						const val = (e.target as HTMLInputElement).value;
-						setName(val);
-						onRename(val);
-					}}
+					onInput={(e) => setDraft({ ...draft, name: (e.target as HTMLInputElement).value })}
 				/>
+				<button
+					type="button"
+					class={`btn btn-small ${hasChanges ? "btn-primary" : ""}`}
+					onClick={save}
+					disabled={!hasChanges}
+				>
+					Save
+				</button>
 			</div>
 
 			<div style={{ display: "flex", gap: "4px", marginBottom: "20px" }}>
@@ -306,12 +317,21 @@ function ProfileEditor({
 
 			{tab === "scoring" && (
 				<ScoringRulesTab
-					evalProfile={profile.evalProfile}
-					onUpdate={(evalProfile) => onUpdate({ evalProfile })}
+					evalProfile={currentEval}
+					onUpdate={(evalProfile) => setDraft({ ...draft, evalProfile })}
 				/>
 			)}
 			{tab === "display" && (
-				<DisplayTab display={profile.display} onUpdate={(display) => onUpdate({ display })} />
+				<DisplayTab
+					display={currentDisplay}
+					onUpdate={(display) => setDraft({ ...draft, display })}
+				/>
+			)}
+
+			{hasChanges && (
+				<div class="setting-description" style={{ marginTop: "12px", color: "var(--poe-accent)" }}>
+					Unsaved changes — click Save to apply
+				</div>
 			)}
 		</>
 	);
@@ -328,7 +348,6 @@ function ScoringRulesTab({
 	const [builtinProfile, setBuiltinProfile] = useState<EvalProfile | null>(null);
 	const [schema, setSchema] = useState<PredicateSchema[]>([]);
 
-	// Load built-in default profile and predicate schema
 	useEffect(() => {
 		invoke<string | null>("get_default_profile").then((json) => {
 			if (json) {
@@ -342,136 +361,154 @@ function ScoringRulesTab({
 		getSchema().then(setSchema);
 	}, []);
 
-	const isDefault = evalProfile === null;
-
-	// Helper to update the eval profile's scoring rules
-	const updateScoring = (scoring: ScoringRule[]) => {
-		if (!evalProfile) return;
-		onUpdate({ ...evalProfile, scoring });
-	};
-
-	const addRule = () => {
-		if (!evalProfile || schema.length === 0) return;
-		const firstSchema = schema[0];
-		if (!firstSchema) return;
-		const newRule: ScoringRule = {
-			label: firstSchema.label,
-			weight: 10,
-			rule: defaultRule(firstSchema),
-		};
-		updateScoring([...evalProfile.scoring, newRule]);
-	};
-
-	const removeRule = (index: number) => {
-		if (!evalProfile) return;
-		updateScoring(evalProfile.scoring.filter((_, i) => i !== index));
-	};
-
-	const updateRule = (index: number, patch: Partial<ScoringRule>) => {
-		if (!evalProfile) return;
-		updateScoring(evalProfile.scoring.map((r, i) => (i === index ? { ...r, ...patch } : r)));
-	};
-
-	// ── Default profile view (read-only) ──
-
-	if (isDefault) {
+	if (evalProfile === null) {
 		return (
-			<>
-				<div class="setting-group">
-					<div class="setting-description" style={{ marginBottom: "12px" }}>
-						Using built-in <strong>Generic</strong> profile. Scores universally desirable stats
-						(life, resistances, movement speed).
-					</div>
-					{builtinProfile && (
-						<button
-							type="button"
-							class="btn"
-							onClick={() =>
-								onUpdate({
-									...builtinProfile,
-									name: "Custom",
-									description: "Customized from Generic",
-								})
-							}
-						>
-							Customize...
-						</button>
-					)}
-				</div>
-
-				{builtinProfile && (
-					<div class="setting-group">
-						<h3>{builtinProfile.scoring.length} Scoring Rules</h3>
-						{builtinProfile.scoring.map((rule, i) => (
-							<div key={`${rule.label}-${i}`} class="setting-row" style={{ padding: "4px 0" }}>
-								<div class="setting-label" style={{ fontSize: "12px" }}>
-									{rule.label}
-								</div>
-								<span
-									style={{
-										fontSize: "12px",
-										color: "var(--tier-2-3)",
-										fontWeight: "bold",
-										minWidth: "36px",
-										textAlign: "right",
-									}}
-								>
-									+{rule.weight}
-								</span>
-							</div>
-						))}
-					</div>
-				)}
-			</>
+			<DefaultProfileView
+				builtinProfile={builtinProfile}
+				onCustomize={() => {
+					if (builtinProfile) {
+						onUpdate({
+							...builtinProfile,
+							name: "Custom",
+							description: "Customized from Generic",
+						});
+					}
+				}}
+			/>
 		);
 	}
 
-	// ── Custom profile view (editable) ──
+	const updateScoring = (scoring: ScoringRule[]) => {
+		onUpdate({ ...evalProfile, scoring });
+	};
 
+	return (
+		<CustomProfileView
+			scoring={evalProfile.scoring}
+			schema={schema}
+			onUpdateScoring={updateScoring}
+			onReset={() => onUpdate(null)}
+		/>
+	);
+}
+
+/** Read-only view of the built-in Generic profile */
+function DefaultProfileView({
+	builtinProfile,
+	onCustomize,
+}: {
+	builtinProfile: EvalProfile | null;
+	onCustomize: () => void;
+}) {
 	return (
 		<>
 			<div class="setting-group">
-				<div
-					style={{
-						display: "flex",
-						justifyContent: "space-between",
-						alignItems: "center",
-						marginBottom: "12px",
-					}}
-				>
-					<h3 style={{ margin: 0 }}>
-						{evalProfile.scoring.length} Scoring Rule{evalProfile.scoring.length !== 1 ? "s" : ""}
-					</h3>
-					<div style={{ display: "flex", gap: "6px" }}>
-						<button type="button" class="btn btn-small btn-primary" onClick={addRule}>
-							+ Add Rule
-						</button>
-						<button
-							type="button"
-							class="btn btn-small"
-							onClick={() => onUpdate(null)}
-							title="Reset to built-in Generic profile"
-						>
-							Reset
-						</button>
-					</div>
+				<div class="setting-description" style={{ marginBottom: "12px" }}>
+					Using built-in <strong>Generic</strong> profile. Scores universally desirable stats (life,
+					resistances, movement speed).
 				</div>
-
-				{evalProfile.scoring.map((rule, i) => (
-					<ScoringRuleEditor
-						key={`${rule.label}-${i}`}
-						rule={rule}
-						schema={schema}
-						onChange={(patch) => updateRule(i, patch)}
-						onDelete={() => removeRule(i)}
-					/>
-				))}
-
-				{evalProfile.scoring.length === 0 && (
-					<div class="setting-description">No scoring rules. Click "+ Add Rule" to create one.</div>
+				{builtinProfile && (
+					<button type="button" class="btn" onClick={onCustomize}>
+						Customize...
+					</button>
 				)}
 			</div>
+
+			{builtinProfile && (
+				<div class="setting-group">
+					<h3>{builtinProfile.scoring.length} Scoring Rules</h3>
+					{builtinProfile.scoring.map((rule) => (
+						<div key={rule.label} class="setting-row" style={{ padding: "4px 0" }}>
+							<div class="setting-label" style={{ fontSize: "12px" }}>
+								{rule.label}
+							</div>
+							<span
+								style={{
+									fontSize: "12px",
+									color: "var(--tier-2-3)",
+									fontWeight: "bold",
+									minWidth: "36px",
+									textAlign: "right",
+								}}
+							>
+								+{rule.weight}
+							</span>
+						</div>
+					))}
+				</div>
+			)}
 		</>
+	);
+}
+
+/** Editable scoring rules list */
+function CustomProfileView({
+	scoring,
+	schema,
+	onUpdateScoring,
+	onReset,
+}: {
+	scoring: ScoringRule[];
+	schema: PredicateSchema[];
+	onUpdateScoring: (scoring: ScoringRule[]) => void;
+	onReset: () => void;
+}) {
+	const addRule = () => {
+		const firstSchema = schema[0];
+		if (!firstSchema) return;
+		onUpdateScoring([
+			...scoring,
+			{ label: firstSchema.label, weight: 10, rule: defaultRule(firstSchema) },
+		]);
+	};
+
+	return (
+		<div class="setting-group">
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					marginBottom: "12px",
+				}}
+			>
+				<h3 style={{ margin: 0 }}>
+					{scoring.length} Scoring Rule{scoring.length !== 1 ? "s" : ""}
+				</h3>
+				<div style={{ display: "flex", gap: "6px" }}>
+					<button type="button" class="btn btn-small btn-primary" onClick={addRule}>
+						+ Add Rule
+					</button>
+					<button
+						type="button"
+						class="btn btn-small"
+						onClick={onReset}
+						title="Reset to built-in Generic profile"
+					>
+						Reset
+					</button>
+				</div>
+			</div>
+
+			{scoring.map((rule, i) => (
+				<ScoringRuleEditor
+					// biome-ignore lint/suspicious/noArrayIndexKey: rules have no stable ID; only append/delete supported
+					key={i}
+					rule={rule}
+					schema={schema}
+					onChange={(updated) => {
+						const next = [...scoring];
+						next[i] = updated;
+						onUpdateScoring(next);
+					}}
+					onDelete={() => onUpdateScoring(scoring.filter((_, j) => j !== i))}
+				/>
+			))}
+
+			{scoring.length === 0 && (
+				<div class="setting-description">No scoring rules. Click "+ Add Rule" to create one.</div>
+			)}
+		</div>
 	);
 }
 
@@ -484,7 +521,7 @@ function ScoringRuleEditor({
 }: {
 	rule: ScoringRule;
 	schema: PredicateSchema[];
-	onChange: (patch: Partial<ScoringRule>) => void;
+	onChange: (updated: ScoringRule) => void;
 	onDelete: () => void;
 }) {
 	const [expanded, setExpanded] = useState(false);
@@ -493,7 +530,7 @@ function ScoringRuleEditor({
 	const predType = rule.rule.rule_type === "Pred" ? (rule.rule as { type: string }).type : null;
 	const predSchema = predType ? schema.find((s) => s.typeName === predType) : null;
 
-	// Group schema by category for the type selector
+	// Group schema by category for the type selector (computed once per render)
 	const categories: Record<string, PredicateSchema[]> = {};
 	for (const s of schema) {
 		const list = categories[s.category] ?? [];
@@ -504,8 +541,10 @@ function ScoringRuleEditor({
 	const handleTypeChange = (typeName: string) => {
 		const newSchema = schema.find((s) => s.typeName === typeName);
 		if (!newSchema) return;
+		// Replace the entire rule — don't merge with old fields
 		onChange({
 			label: rule.label === predSchema?.label ? newSchema.label : rule.label,
+			weight: rule.weight,
 			rule: defaultRule(newSchema),
 		});
 	};
@@ -517,7 +556,7 @@ function ScoringRuleEditor({
 					<input
 						type="text"
 						value={rule.label}
-						onInput={(e) => onChange({ label: (e.target as HTMLInputElement).value })}
+						onInput={(e) => onChange({ ...rule, label: (e.target as HTMLInputElement).value })}
 						placeholder="Rule label..."
 					/>
 				</div>
@@ -526,7 +565,12 @@ function ScoringRuleEditor({
 					<input
 						type="number"
 						value={rule.weight}
-						onInput={(e) => onChange({ weight: Number((e.target as HTMLInputElement).value) })}
+						onInput={(e) =>
+							onChange({
+								...rule,
+								weight: Number((e.target as HTMLInputElement).value),
+							})
+						}
 					/>
 				</div>
 				<button
@@ -574,7 +618,7 @@ function ScoringRuleEditor({
 							<PredicateEditor
 								rule={rule.rule}
 								schema={predSchema}
-								onChange={(newRule) => onChange({ rule: newRule })}
+								onChange={(newRule) => onChange({ ...rule, rule: newRule })}
 							/>
 						</>
 					)}
