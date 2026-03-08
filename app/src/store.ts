@@ -154,3 +154,10 @@ export async function saveProfiles(profiles: Profile[]): Promise<void> {
 	const store = await getProfilesStore();
 	await store.set("profiles", profiles);
 }
+
+/** Load tier colors from the active profile (or defaults if none active). */
+export async function loadActiveTierColors(): Promise<TierColors> {
+	const profiles = await loadProfiles();
+	const active = profiles.find((p) => p.active);
+	return active?.tierColors ?? { ...defaultTierColors };
+}
