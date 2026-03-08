@@ -1,3 +1,8 @@
+mod bridge;
+
+use std::sync::Arc;
+
+use poe_data::GameData;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
@@ -6,6 +11,9 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
+
+/// Shared game data, loaded once at startup.
+struct GameDataState(Arc<GameData>);
 
 /// Read the overlay position setting from the store ("cursor" or "panel").
 fn read_overlay_position(app: &tauri::AppHandle) -> String {
@@ -92,7 +100,7 @@ fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
 }
 
 /// Send Ctrl+Alt+C to the foreground window (PoE) via enigo,
-/// wait briefly, then read clipboard and emit to frontend.
+/// wait briefly, then read clipboard, parse, evaluate, and emit to frontend.
 fn handle_inspect(app: &tauri::AppHandle) {
     let app = app.clone();
     std::thread::spawn(move || {
@@ -127,8 +135,20 @@ fn handle_inspect(app: &tauri::AppHandle) {
             let _ = window.set_focus();
         }
 
-        // Emit item text to frontend
-        let _ = app.emit("item-captured", &clipboard_text);
+        // Try to parse and evaluate the item
+        let gd = &app.state::<GameDataState>().0;
+        match poe_item::parse(&clipboard_text) {
+            Ok(raw) => {
+                let resolved = poe_item::resolve(&raw, gd);
+                let evaluated = bridge::build_evaluated_item(&resolved, gd);
+                let _ = app.emit("item-evaluated", &evaluated);
+            }
+            Err(e) => {
+                eprintln!("Item parse failed: {e}");
+                // Fall back to raw text so the overlay still shows something
+                let _ = app.emit("item-captured", &clipboard_text);
+            }
+        }
     });
 }
 
@@ -390,6 +410,61 @@ fn set_autostart(app: tauri::AppHandle, enabled: bool) {
     }
 }
 
+/// Parse and evaluate item text from clipboard.
+/// Returns a structured `EvaluatedItem` for the overlay, or an error string.
+#[tauri::command]
+fn evaluate_item(
+    item_text: String,
+    state: tauri::State<'_, GameDataState>,
+) -> Result<bridge::EvaluatedItem, String> {
+    let gd = &state.0;
+
+    // Pass 1: structural parse
+    let raw = poe_item::parse(&item_text).map_err(|e| format!("Parse error: {e}"))?;
+
+    // Pass 2: resolve against game data
+    let resolved = poe_item::resolve(&raw, gd);
+
+    // Build frontend-compatible response
+    Ok(bridge::build_evaluated_item(&resolved, gd))
+}
+
+/// Load game data from extracted datc64 files.
+///
+/// Looks for data in these locations (first match wins):
+/// 1. `POE_DATA_DIR` environment variable
+/// 2. `data/` directory next to the executable
+/// 3. `%TEMP%/poe-dat/` (dev fallback — same dir used by poe-data tests)
+///
+/// Returns empty GameData if no data directory is found (overlay still works,
+/// just without stat resolution or open affix detection).
+fn load_game_data() -> GameData {
+    let candidates = [
+        std::env::var("POE_DATA_DIR").ok().map(std::path::PathBuf::from),
+        std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.join("data"))),
+        Some(std::env::temp_dir().join("poe-dat")),
+    ];
+
+    for candidate in candidates.iter().flatten() {
+        if candidate.join("stats.datc64").exists() {
+            match poe_data::load(candidate) {
+                Ok(gd) => {
+                    eprintln!("Loaded game data from {}", candidate.display());
+                    return gd;
+                }
+                Err(e) => {
+                    eprintln!("Failed to load game data from {}: {e}", candidate.display());
+                }
+            }
+        }
+    }
+
+    eprintln!("No game data found — running without stat resolution");
+    GameData::new(vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![])
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
@@ -403,6 +478,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
+        .manage(GameDataState(Arc::new(load_game_data())))
         .invoke_handler(tauri::generate_handler![
             reposition_overlay,
             dismiss_overlay,
@@ -411,6 +487,7 @@ pub fn run() {
             resume_hotkeys,
             get_autostart,
             set_autostart,
+            evaluate_item,
         ])
         .setup(|app| {
             // --- System tray ---

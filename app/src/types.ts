@@ -24,14 +24,24 @@ export interface Requirement {
 	value: string;
 }
 
+/** Quality classification from poe-data (via poe-eval tier analysis) */
+export type TierQuality = "best" | "great" | "good" | "mid" | "low";
+
+/** Whether a mod number is a "tier" (regular) or "rank" (bench craft) */
+export type TierKind = "tier" | "rank";
+
 /** A modifier on an item with tier and roll info */
 export interface Modifier {
 	/** Display name from the mod header, e.g., "Merciless" */
 	modName?: string;
 	/** prefix, suffix, implicit, etc. */
 	type: ModType;
-	/** Tier number (1 = best). Undefined for implicits/uniques. */
+	/** Raw tier/rank number. Undefined for implicits/uniques. */
 	tier?: number;
+	/** Whether this is "tier" (lower=better) or "rank" (higher=better). */
+	tierKind?: TierKind;
+	/** Quality level from poe-data classification. Use this for coloring. */
+	quality?: TierQuality;
 	/** Mod group tags, e.g., ["Damage", "Physical", "Attack"] */
 	tags: string[];
 	/** The stat text lines (what the player sees) */
@@ -69,8 +79,12 @@ export interface ParsedItem {
 	corrupted?: boolean;
 	/** Unique item flavor text */
 	flavorText?: string;
-	/** Number of open prefix slots (max 3 for rares) */
+	/** Number of open prefix slots */
 	openPrefixes: number;
-	/** Number of open suffix slots (max 3 for rares) */
+	/** Number of open suffix slots */
 	openSuffixes: number;
+	/** Maximum prefix slots for this item's rarity (from poe-data) */
+	maxPrefixes: number;
+	/** Maximum suffix slots for this item's rarity (from poe-data) */
+	maxSuffixes: number;
 }

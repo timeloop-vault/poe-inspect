@@ -23,6 +23,11 @@ tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 
+# Workspace crates
+poe-item = { path = "../../crates/poe-item" }
+poe-eval = { path = "../../crates/poe-eval" }
+poe-data = { path = "../../crates/poe-data" }
+
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
 tauri-plugin-window-state = "2"

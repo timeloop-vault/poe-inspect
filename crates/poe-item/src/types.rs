@@ -128,6 +128,24 @@ pub enum InfluenceKind {
     RelicUnique,
 }
 
+impl std::fmt::Display for InfluenceKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Shaper => write!(f, "Shaper"),
+            Self::Elder => write!(f, "Elder"),
+            Self::Crusader => write!(f, "Crusader"),
+            Self::Hunter => write!(f, "Hunter"),
+            Self::Redeemer => write!(f, "Redeemer"),
+            Self::Warlord => write!(f, "Warlord"),
+            Self::SearingExarch => write!(f, "Searing Exarch"),
+            Self::EaterOfWorlds => write!(f, "Eater of Worlds"),
+            Self::Synthesised => write!(f, "Synthesised"),
+            Self::Fractured => write!(f, "Fractured"),
+            Self::RelicUnique => write!(f, "Relic"),
+        }
+    }
+}
+
 impl InfluenceKind {
     #[must_use]
     pub fn parse(s: &str) -> Option<Self> {

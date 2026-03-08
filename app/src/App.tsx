@@ -6,6 +6,7 @@ import { PhysicalSize } from "@tauri-apps/api/dpi";
 import { ItemOverlay, type DisplaySettings } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
 import { loadGeneral, loadHotkeys } from "./store";
+import type { ParsedItem } from "./types";
 
 /** Resize the Tauri window to fit the rendered content.
  *  CSS `zoom` reduces available CSS pixels (parent_width / zoom), so we
@@ -56,6 +57,7 @@ function useAutoResize(deps: unknown[], zoom = 1) {
 
 export function App() {
 	const [itemText, setItemText] = useState<string | null>(null);
+	const [evaluatedItem, setEvaluatedItem] = useState<ParsedItem | null>(null);
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(true);
 	const [overlayScale, setOverlayScale] = useState(100);
@@ -68,6 +70,7 @@ export function App() {
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
+		setEvaluatedItem(null);
 		await invoke("dismiss_overlay");
 	}, []);
 
@@ -91,14 +94,23 @@ export function App() {
 		};
 		reloadSettings();
 
+		const unlistenEvaluated = listen<ParsedItem>("item-evaluated", (event) => {
+			reloadSettings();
+			setEvaluatedItem(event.payload);
+			setItemText(null);
+			setShowMock(false);
+		});
+
 		const unlistenCapture = listen<string>("item-captured", (event) => {
 			reloadSettings();
 			setItemText(event.payload);
+			setEvaluatedItem(null);
 			setShowMock(false);
 		});
 
 		const unlistenDismiss = listen("overlay-dismissed", () => {
 			setItemText(null);
+			setEvaluatedItem(null);
 		});
 
 		const unlistenDebug = listen("show-debug-overlay", () => {
@@ -127,6 +139,7 @@ export function App() {
 		// Use tray → "Show Overlay (Debug)" for testing.
 
 		return () => {
+			unlistenEvaluated.then((fn) => fn());
 			unlistenCapture.then((fn) => fn());
 			unlistenDismiss.then((fn) => fn());
 			unlistenDebug.then((fn) => fn());
@@ -136,10 +149,22 @@ export function App() {
 
 	// Auto-resize window to fit content
 	const zoom = overlayScale / 100;
-	const containerRef = useAutoResize([itemText, mockIndex, showMock, overlayScale], zoom);
+	const containerRef = useAutoResize([itemText, evaluatedItem, mockIndex, showMock, overlayScale], zoom);
 	const scaleStyle = zoom !== 1 ? { zoom } : undefined;
 
-	// When we have raw clipboard text (real Ctrl+I capture), show it
+	// When we have a parsed+evaluated item, show it with the styled overlay
+	if (evaluatedItem && !showMock) {
+		return (
+			<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
+				<button type="button" class="dismiss-btn" onClick={dismiss}>
+					&times;
+				</button>
+				<ItemOverlay item={evaluatedItem} display={displaySettings} />
+			</div>
+		);
+	}
+
+	// Fallback: raw clipboard text (parse failed)
 	if (itemText && !showMock) {
 		return (
 			<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
