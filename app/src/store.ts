@@ -22,6 +22,7 @@ export interface GeneralSettings {
 	showTierBadges: boolean;
 	showTypeBadges: boolean;
 	showOpenAffixes: boolean;
+	dismissOnFocusLoss: boolean;
 }
 
 export interface HotkeySettings {
@@ -62,6 +63,7 @@ export const defaultGeneral: GeneralSettings = {
 	showTierBadges: true,
 	showTypeBadges: true,
 	showOpenAffixes: true,
+	dismissOnFocusLoss: true,
 };
 
 export const defaultHotkeys: HotkeySettings = {
