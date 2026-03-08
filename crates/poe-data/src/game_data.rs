@@ -10,7 +10,8 @@ use std::path::Path;
 use poe_dat::dat_reader::DatFile;
 use poe_dat::stat_desc::ReverseIndex;
 use poe_dat::tables::{
-    self, BaseItemTypeRow, ItemClassRow, ModFamilyRow, ModRow, ModTypeRow, StatRow, TagRow,
+    self, BaseItemTypeRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow, ModRow, ModTypeRow,
+    RarityRow, StatRow, TagRow,
 };
 
 // ── GameData ────────────────────────────────────────────────────────────────
@@ -23,10 +24,12 @@ pub struct GameData {
     pub stats: Vec<StatRow>,
     pub tags: Vec<TagRow>,
     pub item_classes: Vec<ItemClassRow>,
+    pub item_class_categories: Vec<ItemClassCategoryRow>,
     pub base_item_types: Vec<BaseItemTypeRow>,
     pub mod_families: Vec<ModFamilyRow>,
     pub mod_types: Vec<ModTypeRow>,
     pub mods: Vec<ModRow>,
+    pub rarities: Vec<RarityRow>,
 
     // Indexes: id string → row index in the corresponding Vec
     stat_by_id: HashMap<String, usize>,
@@ -34,6 +37,8 @@ pub struct GameData {
     mod_by_id: HashMap<String, usize>,
     item_class_by_id: HashMap<String, usize>,
     base_item_by_name: HashMap<String, usize>,
+    rarity_by_id: HashMap<String, usize>,
+    item_class_category_by_id: HashMap<String, usize>,
 
     // Stat description reverse index (display text → stat IDs + values).
     // Optional because loading it requires the raw stat_descriptions.txt.
@@ -45,34 +50,43 @@ impl GameData {
     ///
     /// Builds all id-based indexes automatically. `reverse_index` is set to `None`;
     /// call `set_reverse_index()` separately if needed.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         stats: Vec<StatRow>,
         tags: Vec<TagRow>,
         item_classes: Vec<ItemClassRow>,
+        item_class_categories: Vec<ItemClassCategoryRow>,
         base_item_types: Vec<BaseItemTypeRow>,
         mod_families: Vec<ModFamilyRow>,
         mod_types: Vec<ModTypeRow>,
         mods: Vec<ModRow>,
+        rarities: Vec<RarityRow>,
     ) -> Self {
         let stat_by_id = index_by(&stats, |s| s.id.clone());
         let tag_by_id = index_by(&tags, |t| t.id.clone());
         let mod_by_id = index_by(&mods, |m| m.id.clone());
         let item_class_by_id = index_by(&item_classes, |c| c.id.clone());
         let base_item_by_name = index_by(&base_item_types, |b| b.name.clone());
+        let rarity_by_id = index_by(&rarities, |r| r.id.clone());
+        let item_class_category_by_id = index_by(&item_class_categories, |c| c.id.clone());
 
         Self {
             stats,
             tags,
             item_classes,
+            item_class_categories,
             base_item_types,
             mod_families,
             mod_types,
             mods,
+            rarities,
             stat_by_id,
             tag_by_id,
             mod_by_id,
             item_class_by_id,
             base_item_by_name,
+            rarity_by_id,
+            item_class_category_by_id,
             reverse_index: None,
         }
     }
@@ -130,6 +144,29 @@ impl GameData {
     pub fn item_class_by_index(&self, fk: u64) -> Option<&ItemClassRow> {
         self.item_classes.get(fk as usize)
     }
+
+    pub fn rarity(&self, id: &str) -> Option<&RarityRow> {
+        self.rarity_by_id.get(id).map(|&i| &self.rarities[i])
+    }
+
+    pub fn item_class_category(&self, id: &str) -> Option<&ItemClassCategoryRow> {
+        self.item_class_category_by_id.get(id).map(|&i| &self.item_class_categories[i])
+    }
+
+    /// Resolve an item class category FK (row index) to the category row.
+    pub fn item_class_category_by_index(&self, fk: u64) -> Option<&ItemClassCategoryRow> {
+        self.item_class_categories.get(fk as usize)
+    }
+
+    /// Get the max prefix count for a given rarity ID (e.g., "Rare" → 3).
+    pub fn max_prefixes(&self, rarity_id: &str) -> Option<i32> {
+        self.rarity(rarity_id).map(|r| r.max_prefix)
+    }
+
+    /// Get the max suffix count for a given rarity ID (e.g., "Rare" → 3).
+    pub fn max_suffixes(&self, rarity_id: &str) -> Option<i32> {
+        self.rarity(rarity_id).map(|r| r.max_suffix)
+    }
 }
 
 // ── Loading ─────────────────────────────────────────────────────────────────
@@ -142,42 +179,35 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
     let stats = load_table(dat_dir, "stats", tables::extract_stats)?;
     let tags = load_table(dat_dir, "tags", tables::extract_tags)?;
     let item_classes = load_table(dat_dir, "itemclasses", tables::extract_item_classes)?;
+    let item_class_categories = load_table(dat_dir, "itemclasscategories", tables::extract_item_class_categories)?;
     let base_item_types = load_table(dat_dir, "baseitemtypes", tables::extract_base_item_types)?;
     let mod_families = load_table(dat_dir, "modfamily", tables::extract_mod_families)?;
     let mod_types = load_table(dat_dir, "modtype", tables::extract_mod_types)?;
     let mods = load_table(dat_dir, "mods", tables::extract_mods)?;
-
-    // Build indexes
-    let stat_by_id = index_by(&stats, |s| s.id.clone());
-    let tag_by_id = index_by(&tags, |t| t.id.clone());
-    let mod_by_id = index_by(&mods, |m| m.id.clone());
-    let item_class_by_id = index_by(&item_classes, |c| c.id.clone());
-    let base_item_by_name = index_by(&base_item_types, |b| b.name.clone());
+    let rarities = load_table(dat_dir, "rarity", tables::extract_rarity)?;
 
     tracing::info!(
         stats = stats.len(),
         tags = tags.len(),
         item_classes = item_classes.len(),
+        item_class_categories = item_class_categories.len(),
         base_items = base_item_types.len(),
         mods = mods.len(),
+        rarities = rarities.len(),
         "GameData loaded"
     );
 
-    Ok(GameData {
+    Ok(GameData::new(
         stats,
         tags,
         item_classes,
+        item_class_categories,
         base_item_types,
         mod_families,
         mod_types,
         mods,
-        stat_by_id,
-        tag_by_id,
-        mod_by_id,
-        item_class_by_id,
-        base_item_by_name,
-        reverse_index: None,
-    })
+        rarities,
+    ))
 }
 
 /// Read a single datc64 file and extract typed rows.

@@ -13,10 +13,12 @@ const TABLES: &[&str] = &[
     "stats",
     "tags",
     "itemclasses",
+    "itemclasscategories",
     "baseitemtypes",
     "modfamily",
     "modtype",
     "mods",
+    "rarity",
 ];
 
 #[derive(clap::Parser)]

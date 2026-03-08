@@ -10,7 +10,7 @@ Read and parse game data files from the PoE GGPK bundle.
 
 - Parse stat description files (the key translation layer between stat IDs and display text)
 - Read raw datc64 binary files directly (minimal reader, no dependency on poe-query at runtime)
-- Extract 7 typed tables: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods
+- Extract 9 typed tables: Stats, Tags, ItemClasses, ItemClassCategories, BaseItemTypes, ModFamily, ModType, Mods, Rarity
 - Can be used as a library (by poe-data) or CLI (for debugging)
 
 ## Does NOT own
@@ -105,6 +105,8 @@ src/
 | ItemClasses | 99 | 153 | id, name, category (FK), can_have_veiled_mods |
 | BaseItemTypes | 5,334 | — | id, item_class (FK), width, height, name, drop_level, implicit_mods, tags |
 | Mods | 39,291 | 654 | id, mod_type, level, 6×stat_keys, domain, name, generation_type, families, 6×stat_ranges, spawn_weights, tags, is_essence_only, max_level |
+| Rarity | ~4 | — | id, min_mods, max_mods, max_prefix, max_suffix, text |
+| ItemClassCategories | ~10 | — | id, text |
 
 ### Extracting Raw Files
 Use `extract_dat` binary (in poe-query crate):
