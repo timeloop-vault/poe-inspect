@@ -24,6 +24,19 @@
         "visible": false,
         "focus": false,
         "shadow": false
+      },
+      {
+        "label": "settings",
+        "title": "PoE Inspect — Settings",
+        "url": "index.html",
+        "width": 720,
+        "height": 520,
+        "minWidth": 600,
+        "minHeight": 400,
+        "decorations": true,
+        "resizable": true,
+        "visible": false,
+        "center": true
       }
     ],
     "security": {

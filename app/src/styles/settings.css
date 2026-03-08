@@ -1,0 +1,321 @@
+/* Settings window — left sidebar + content area */
+
+.settings-layout {
+	display: flex;
+	height: 100vh;
+	background: var(--poe-bg);
+	color: var(--poe-text);
+	font-family: "Fontin SmallCaps", "Fontin", "Segoe UI", sans-serif;
+	font-size: 14px;
+}
+
+/* --- Sidebar navigation --- */
+
+.settings-nav {
+	width: 180px;
+	flex-shrink: 0;
+	background: rgba(0, 0, 0, 0.3);
+	border-right: 1px solid var(--poe-border);
+	display: flex;
+	flex-direction: column;
+	padding: 16px 0;
+}
+
+.settings-nav-header {
+	padding: 0 16px 16px;
+	font-family: "FrizQuadrata", "Fontin SmallCaps", sans-serif;
+	font-size: 15px;
+	color: var(--poe-accent);
+	border-bottom: 1px solid var(--poe-border);
+	margin-bottom: 8px;
+}
+
+.settings-nav button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 10px 16px;
+	background: none;
+	border: none;
+	color: var(--poe-text-dim);
+	font-family: inherit;
+	font-size: 14px;
+	cursor: pointer;
+	text-align: left;
+	transition: background 0.1s, color 0.1s;
+}
+
+.settings-nav button:hover {
+	background: rgba(255, 255, 255, 0.04);
+	color: var(--poe-text);
+}
+
+.settings-nav button.active {
+	background: rgba(175, 96, 37, 0.15);
+	color: var(--poe-header);
+	border-left: 3px solid var(--poe-accent);
+	padding-left: 13px;
+}
+
+/* --- Content area --- */
+
+.settings-content {
+	flex: 1;
+	overflow-y: auto;
+	padding: 24px 32px;
+}
+
+.settings-content h2 {
+	font-family: "FrizQuadrata", "Fontin SmallCaps", sans-serif;
+	font-size: 18px;
+	color: var(--poe-header);
+	margin-bottom: 20px;
+	font-weight: normal;
+}
+
+/* --- Setting groups --- */
+
+.setting-group {
+	margin-bottom: 24px;
+}
+
+.setting-group h3 {
+	font-size: 13px;
+	color: var(--poe-accent);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 12px;
+	font-weight: normal;
+}
+
+/* --- Individual setting rows --- */
+
+.setting-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 0;
+	min-height: 36px;
+}
+
+.setting-row + .setting-row {
+	border-top: 1px solid rgba(70, 59, 43, 0.4);
+}
+
+.setting-label {
+	color: var(--poe-text);
+	flex: 1;
+}
+
+.setting-description {
+	font-size: 11px;
+	color: var(--poe-text-dim);
+	margin-top: 2px;
+}
+
+/* --- Controls --- */
+
+.setting-slider {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.setting-slider input[type="range"] {
+	width: 140px;
+	accent-color: var(--poe-accent);
+}
+
+.setting-slider .slider-value {
+	font-size: 13px;
+	color: var(--poe-header);
+	min-width: 40px;
+	text-align: right;
+}
+
+.setting-toggle {
+	position: relative;
+	width: 36px;
+	height: 20px;
+}
+
+.setting-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.toggle-track {
+	position: absolute;
+	inset: 0;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid var(--poe-border);
+	border-radius: 10px;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.toggle-track::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 14px;
+	height: 14px;
+	background: var(--poe-text-dim);
+	border-radius: 50%;
+	transition: transform 0.15s, background 0.15s;
+}
+
+.setting-toggle input:checked + .toggle-track {
+	background: rgba(175, 96, 37, 0.3);
+	border-color: var(--poe-accent);
+}
+
+.setting-toggle input:checked + .toggle-track::after {
+	transform: translateX(16px);
+	background: var(--poe-accent);
+}
+
+.setting-radio-group {
+	display: flex;
+	gap: 16px;
+}
+
+.setting-radio {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	color: var(--poe-text);
+	font-size: 13px;
+}
+
+.setting-radio input[type="radio"] {
+	accent-color: var(--poe-accent);
+}
+
+/* --- Hotkey input --- */
+
+.hotkey-input {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.hotkey-display {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	padding: 4px 12px;
+	color: var(--poe-header);
+	font-family: "Consolas", monospace;
+	font-size: 12px;
+	min-width: 140px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.hotkey-display:hover {
+	border-color: var(--poe-accent);
+}
+
+.hotkey-display.capturing {
+	border-color: var(--poe-accent);
+	background: rgba(175, 96, 37, 0.15);
+	color: var(--poe-accent);
+}
+
+.hotkey-reset {
+	background: none;
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	color: var(--poe-text-dim);
+	padding: 4px 8px;
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.hotkey-reset:hover {
+	color: var(--poe-text);
+	border-color: var(--poe-text-dim);
+}
+
+/* --- Profile list --- */
+
+.profile-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.profile-actions {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.profile-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+}
+
+.profile-item.active {
+	border-color: var(--poe-accent);
+	background: rgba(175, 96, 37, 0.08);
+}
+
+.profile-star {
+	color: var(--poe-accent);
+	font-size: 14px;
+	width: 16px;
+}
+
+.profile-name {
+	flex: 1;
+	color: var(--poe-header);
+}
+
+.profile-item-actions {
+	display: flex;
+	gap: 4px;
+}
+
+/* --- Shared button styles --- */
+
+.btn {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	color: var(--poe-text);
+	padding: 6px 14px;
+	font-family: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	transition: background 0.1s, border-color 0.1s;
+}
+
+.btn:hover {
+	background: rgba(255, 255, 255, 0.1);
+	border-color: var(--poe-text-dim);
+}
+
+.btn-primary {
+	border-color: var(--poe-accent);
+	color: var(--poe-accent);
+}
+
+.btn-primary:hover {
+	background: rgba(175, 96, 37, 0.15);
+}
+
+.btn-small {
+	padding: 4px 8px;
+	font-size: 11px;
+}

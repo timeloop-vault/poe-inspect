@@ -94,21 +94,160 @@ The overlay should look like a PoE item tooltip — familiar to players, zero le
 
 ### Phase 3: Settings & Profile UI
 
-Separate from the overlay — a proper windowed UI for configuration.
+Separate window from the overlay — a proper windowed UI for configuration.
 
-**Settings:**
-- **Overlay scale/size** — user-configurable zoom factor for the overlay panel (critical for different monitor sizes/DPIs)
-- Hotkey configuration
-- Tier color scheme customization
-- Display preferences (what to show/hide)
-- PoE version selection (PoE1/PoE2)
+#### How to Open
 
-**Profile management:**
-- Create/edit/delete evaluation profiles
-- Per-mod weight sliders (e.g., "+Life: High", "+Fire Res: Medium")
-- Searchable mod list with autocomplete
-- Import/export profiles as JSON
-- Per-character profile binding
+- **Right-click system tray → "Settings"** (primary)
+- **Hotkey:** `Ctrl+Shift+I` (complement to `Ctrl+I` inspect)
+- Tray menu: `Settings` | `---` | `Quit`
+
+#### Window Layout
+
+Left sidebar navigation + content area. Sidebar is always visible, shows which section you're in. Scales better than tabs as sections grow.
+
+```
++-------+------------------------------------------+
+| NAV   |  CONTENT                                 |
+|       |                                          |
+| ● Gen |  Overlay Scale                           |
+|   Hot |  [====|=========] 100%                   |
+|   Pro |                                          |
+|       |  PoE Version                             |
+|       |  (●) PoE 1   ( ) PoE 2                  |
+|       |                                          |
+|       |  Startup                                 |
+|       |  [x] Start minimized to tray             |
+|       |  [x] Launch on system startup            |
+|       |                                          |
+|       |  Display                                 |
+|       |  [x] Show roll quality bars              |
+|       |  [x] Show tier badges                    |
+|       |  [x] Show prefix/suffix labels           |
+|       |  [x] Show open affix count               |
++-------+------------------------------------------+
+```
+
+#### Sections
+
+**General**
+- Overlay scale/zoom (slider, critical for different monitor sizes/DPIs)
+- PoE version toggle (PoE1 / PoE2 — affects data pipeline)
+- Startup behavior (start minimized, launch on boot)
+- Display toggles (which overlay elements to show/hide)
+
+**Hotkeys**
+- Inspect item: `Ctrl+I` (configurable)
+- Dismiss overlay: `Escape` (configurable)
+- Open settings: `Ctrl+Shift+I` (configurable)
+- Each row: action name + key capture input
+
+```
++-------+------------------------------------------+
+| NAV   |  CONTENT                                 |
+|       |                                          |
+|   Gen |  Hotkeys                                 |
+| ● Hot |                                          |
+|   Pro |  Inspect Item      [ Ctrl+I         ] ⟲  |
+|       |  Dismiss Overlay   [ Escape         ] ⟲  |
+|       |  Open Settings     [ Ctrl+Shift+I   ] ⟲  |
+|       |                                          |
++-------+------------------------------------------+
+```
+
+**Profiles**
+- List of saved profiles with active indicator
+- Create / duplicate / delete / import / export buttons
+- Clicking a profile opens the **Profile Editor** (inline or sub-view)
+
+```
++-------+------------------------------------------+
+| NAV   |  CONTENT                                 |
+|       |                                          |
+|   Gen |  Profiles                                |
+|   Hot |                                          |
+| ● Pro |  [+ New]  [Import]                       |
+|       |                                          |
+|       |  ★ RF Juggernaut        [Edit] [⋯]      |
+|       |    Mapper (generic)     [Edit] [⋯]      |
+|       |    Crafter (prefixes)   [Edit] [⋯]      |
+|       |                                          |
+|       |  ★ = active profile                      |
+|       |  [⋯] = duplicate, export, delete         |
++-------+------------------------------------------+
+```
+
+#### Profile Editor
+
+Opens when clicking [Edit] on a profile. Two sub-tabs within the editor:
+
+**Mod Weights** — what matters for this build
+- Searchable/filterable mod list
+- Each mod gets a weight: Ignore / Low / Medium / High / Critical
+- Weight affects the overlay score and could influence tier color intensity
+- Group by category (Life, Resistances, Damage, Speed, etc.)
+
+```
++--------------------------------------------------+
+|  ← Back to Profiles    "RF Juggernaut"           |
+|                                                  |
+|  [Mod Weights]  [Display]                        |
+|                                                  |
+|  Search: [fire res____________]                  |
+|                                                  |
+|  Life & Defence                                  |
+|    +# to maximum Life          [■■■■□] High      |
+|    +#% to Armour               [■■■□□] Medium    |
+|    +# to maximum Energy Shield [■□□□□] Low       |
+|                                                  |
+|  Resistances                                     |
+|    +#% to Fire Resistance      [■■■■■] Critical  |
+|    +#% to Cold Resistance      [■■■□□] Medium    |
+|    +#% to Lightning Resistance [■■□□□] Low       |
+|                                                  |
+|  Speed                                           |
+|    #% increased Movement Speed [■■■■□] High      |
++--------------------------------------------------+
+```
+
+**Display** — how this profile renders the overlay
+- Tier color scheme (which colors for T1/T2-3/T4-5/low)
+- Color pickers for each tier level
+- Preview of how a mod line looks with current colors
+- Option to highlight mods that match profile weights
+
+```
++--------------------------------------------------+
+|  ← Back to Profiles    "RF Juggernaut"           |
+|                                                  |
+|  [Mod Weights]  [Display]                        |
+|                                                  |
+|  Tier Colors                                     |
+|    T1 (best)    [■] #38d838  ← color picker      |
+|    T2-T3        [■] #5c98cf                      |
+|    T4-T5        [■] #c8c0b0                      |
+|    T6+  (low)   [■] #8c7060                      |
+|                                                  |
+|  Preview                                         |
+|  ┌──────────────────────────────────────┐        |
+|  │ T1 P  +88 to maximum Life    ██ 95% │        |
+|  │ T3 S  +31% Cold Resistance   █░ 50% │        |
+|  │ T5 P  +12% Spell Damage      ▪░ 20% │        |
+|  └──────────────────────────────────────┘        |
+|                                                  |
+|  [x] Highlight mods matching profile weights     |
+|  [x] Dim mods with weight = Ignore               |
++--------------------------------------------------+
+```
+
+#### Technical Notes
+
+- Settings window is a **separate Tauri window** (label: `settings`), not the overlay
+- Standard window: decorations, resizable, not always-on-top, not transparent
+- Settings persist to a JSON file (via `tauri-plugin-store` or manual serde)
+- Profile data: JSON files in app data dir, one per profile
+- Mod list for the weight editor: hardcoded initially, later from `poe-data`
+- Settings changes apply immediately (no save button — live preview)
 
 **This phase can use mock data too** — the profile editor doesn't need real game data to build. It just needs a list of mod names (which we can hardcode from known data).
 
@@ -129,7 +268,7 @@ Note: Unique items have their own art. Item art URLs can also be obtained from t
 
 **Overlay window:** Created hidden on app start. On hotkey → position near cursor → populate with data → show. Dismiss on Escape, click-away, or timer.
 
-**Settings window:** Separate Tauri window (not the overlay). Standard windowed UI. Opened from system tray icon.
+**Settings window:** Separate Tauri window (label: `settings`, not the overlay). Standard decorated window, resizable. Opened from tray right-click → "Settings" or `Ctrl+Shift+I`. Left sidebar nav with General / Hotkeys / Profiles sections.
 
 **IPC flow (Phase 1):**
 ```
