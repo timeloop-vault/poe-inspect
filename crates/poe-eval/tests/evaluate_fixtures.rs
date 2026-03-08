@@ -1,0 +1,351 @@
+use poe_dat::tables::BaseItemTypeRow;
+use poe_data::GameData;
+use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatusValue};
+use poe_eval::rule::Rule;
+use poe_eval::evaluate;
+use poe_item::types::ResolvedItem;
+
+fn fixture(name: &str) -> String {
+    let path = format!("{}/../../fixtures/items/{name}", env!("CARGO_MANIFEST_DIR"));
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"))
+}
+
+fn test_game_data(base_names: &[&str]) -> GameData {
+    let base_item_types: Vec<BaseItemTypeRow> = base_names
+        .iter()
+        .map(|name| BaseItemTypeRow {
+            id: String::new(),
+            item_class: None,
+            width: 1,
+            height: 1,
+            name: (*name).to_string(),
+            drop_level: 1,
+            implicit_mods: vec![],
+            tags: vec![],
+        })
+        .collect();
+
+    GameData::new(vec![], vec![], vec![], vec![], base_item_types, vec![], vec![], vec![], vec![])
+}
+
+fn resolve(name: &str, gd: &GameData) -> ResolvedItem {
+    let raw = poe_item::parse(&fixture(name)).unwrap();
+    poe_item::resolve(&raw, gd)
+}
+
+// ─── Rarity predicates ──────────────────────────────────────────────────────
+
+#[test]
+fn rarity_eq() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::Rarity {
+        op: Cmp::Eq,
+        value: RarityValue::Rare,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::Rarity {
+        op: Cmp::Eq,
+        value: RarityValue::Magic,
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn rarity_ge() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::Rarity {
+        op: Cmp::Ge,
+        value: RarityValue::Magic,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::Rarity {
+        op: Cmp::Ge,
+        value: RarityValue::Unique,
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+// ─── Header predicates ──────────────────────────────────────────────────────
+
+#[test]
+fn item_class_match() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::ItemClass {
+        op: Cmp::Eq,
+        value: "Belts".to_string(),
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::ItemClass {
+        op: Cmp::Eq,
+        value: "Rings".to_string(),
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn base_type_match() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::BaseType {
+        op: Cmp::Eq,
+        value: "Leather Belt".to_string(),
+    });
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn base_type_contains() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::BaseTypeContains {
+        value: "Belt".to_string(),
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::BaseTypeContains {
+        value: "Ring".to_string(),
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+// ─── Item level ──────────────────────────────────────────────────────────────
+
+#[test]
+fn item_level_comparison() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::ItemLevel {
+        op: Cmp::Ge,
+        value: 50,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::ItemLevel {
+        op: Cmp::Gt,
+        value: 50,
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+// ─── Mod predicates ─────────────────────────────────────────────────────────
+
+#[test]
+fn mod_count_prefix() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::ModCount {
+        slot: ModSlotKind::Prefix,
+        op: Cmp::Ge,
+        value: 1,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn has_mod_named() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::HasModNamed {
+        name: "Studded".to_string(),
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::HasModNamed {
+        name: "Nonexistent".to_string(),
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn has_stat_text() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::pred(Predicate::HasStatText {
+        text: "maximum Life".to_string(),
+    });
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+// ─── Stat values ────────────────────────────────────────────────────────────
+
+#[test]
+fn stat_value_check() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    // "+32 to maximum Life" — current value is 32
+    let rule = Rule::pred(Predicate::StatValue {
+        text: "maximum Life".to_string(),
+        value_index: 0,
+        op: Cmp::Ge,
+        value: 30,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::StatValue {
+        text: "maximum Life".to_string(),
+        value_index: 0,
+        op: Cmp::Ge,
+        value: 40,
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn roll_percent_check() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    // "+32(25-40) to maximum Life" — 32 is 46% of the 25..40 range
+    let rule = Rule::pred(Predicate::RollPercent {
+        text: "maximum Life".to_string(),
+        value_index: 0,
+        op: Cmp::Ge,
+        value: 40,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+
+    let rule = Rule::pred(Predicate::RollPercent {
+        text: "maximum Life".to_string(),
+        value_index: 0,
+        op: Cmp::Ge,
+        value: 90,
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
+
+// ─── Influence / status ─────────────────────────────────────────────────────
+
+#[test]
+fn has_influence() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-boots-eater-exarch.txt", &gd);
+
+    let rule = Rule::pred(Predicate::HasInfluence {
+        influence: InfluenceValue::SearingExarch,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn has_corrupted_status() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-map-city-square-delirium.txt", &gd);
+
+    let rule = Rule::pred(Predicate::HasStatus {
+        status: StatusValue::Corrupted,
+    });
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+// ─── Rule combinators ───────────────────────────────────────────────────────
+
+#[test]
+fn all_combinator() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::all(vec![
+        Rule::pred(Predicate::Rarity {
+            op: Cmp::Eq,
+            value: RarityValue::Rare,
+        }),
+        Rule::pred(Predicate::ItemClass {
+            op: Cmp::Eq,
+            value: "Belts".to_string(),
+        }),
+        Rule::pred(Predicate::ItemLevel {
+            op: Cmp::Ge,
+            value: 50,
+        }),
+    ]);
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn any_combinator() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::any(vec![
+        Rule::pred(Predicate::ItemClass {
+            op: Cmp::Eq,
+            value: "Rings".to_string(),
+        }),
+        Rule::pred(Predicate::ItemClass {
+            op: Cmp::Eq,
+            value: "Belts".to_string(),
+        }),
+    ]);
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn not_combinator() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let rule = Rule::negate(Rule::pred(Predicate::HasStatus {
+        status: StatusValue::Corrupted,
+    }));
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+#[test]
+fn complex_rule() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    // "Is a rare belt with ilvl >= 50 AND has life AND is not corrupted"
+    let rule = Rule::all(vec![
+        Rule::pred(Predicate::Rarity {
+            op: Cmp::Eq,
+            value: RarityValue::Rare,
+        }),
+        Rule::pred(Predicate::BaseTypeContains {
+            value: "Belt".to_string(),
+        }),
+        Rule::pred(Predicate::ItemLevel {
+            op: Cmp::Ge,
+            value: 50,
+        }),
+        Rule::pred(Predicate::HasStatText {
+            text: "maximum Life".to_string(),
+        }),
+        Rule::negate(Rule::pred(Predicate::HasStatus {
+            status: StatusValue::Corrupted,
+        })),
+    ]);
+    assert!(evaluate(&item, &rule, &gd));
+}
+
+// ─── Open mods (requires rarity data) ──────────────────────────────────────
+
+#[test]
+fn open_mods_without_game_data() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    // Without rarity data, open mods should be 0 (can't determine max)
+    let rule = Rule::pred(Predicate::OpenMods {
+        slot: ModSlotKind::Prefix,
+        op: Cmp::Ge,
+        value: 1,
+    });
+    assert!(!evaluate(&item, &rule, &gd));
+}
