@@ -20,6 +20,7 @@ Real-time item evaluation overlay for Path of Exile.
 | app | Future | Tauri v2 overlay (needs 7-point prototype validation) |
 
 **Side track:** poe-rqe (reverse query engine / demand marketplace) — working, independent of main pipeline.
+**Future:** poe-craft (probabilistic crafting strategy engine) — see `docs/crafting-tiers.md`.
 
 ## Tech Stack (Planned)
 
