@@ -4,13 +4,13 @@ Read and parse game data files from the PoE GGPK bundle.
 
 ## Status
 
-**Active development** — Building stat description parser.
+**Core complete** — Stat description parser + reverse index + table extraction all done.
 
 ## Scope
 
 - Parse stat description files (the key translation layer between stat IDs and display text)
-- Extract specific tables from GGPK via poe-bundle/poe-query's DatReader
-- Expose typed access to the ~15 tables needed for item evaluation
+- Read raw datc64 binary files directly (minimal reader, no dependency on poe-query at runtime)
+- Extract 7 typed tables: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods
 - Can be used as a library (by poe-data) or CLI (for debugging)
 
 ## Does NOT own

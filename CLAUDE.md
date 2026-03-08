@@ -13,7 +13,7 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-bundle | **Done** | GGPK extraction, Oodle FFI, patched for 3.28 |
 | poe-query | **Done** | Generic dat reader + schema, PQL queries |
 | poe-dat (stat_desc) | **Done** | PEST parser + reverse index (15.5k patterns, 100% hit rate) |
-| poe-dat (tables) | Not started | Extract ~15 dat tables (BaseItemTypes, Mods, Stats, etc.) |
+| poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
 | poe-data | Empty | Domain types, `GameData` struct, pre-indexed lookup tables |
 | poe-item | Empty | Ctrl+Alt+C parser (section split → classify → typed parse) |
 | poe-eval | Empty | Tier coloring, profile scoring, crafting potential |
