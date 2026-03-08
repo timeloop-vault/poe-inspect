@@ -99,7 +99,9 @@ src/
   types.rs            — RawItem, ResolvedItem, section types
   resolver.rs         — data-dependent disambiguation using GameData
 tests/
-  test_data/          — real Ctrl+Alt+C item fixtures
+  parse_fixtures.rs   — Pass 1 tests
+  resolve_fixtures.rs — Pass 2 tests
+../../fixtures/items/ — shared Ctrl+Alt+C item fixtures (workspace root)
 ```
 
 ## The 16 Known Ambiguities
@@ -148,12 +150,12 @@ Test fixtures from these projects: `_reference/poe-item-rust/test/data/`,
 ## Plan
 
 1. ~~Write this CLAUDE.md with architecture decision~~ ✓
-2. ~~Copy test fixtures from reference projects into `tests/test_data/`~~ ✓
+2. ~~Copy test fixtures from reference projects into `fixtures/items/`~~ ✓
 3. ~~Write PEST grammar (`src/grammar.pest`)~~ ✓
 4. ~~Write tree walker (`parser.rs`) — PEST parse tree → RawItem types~~ ✓
 5. ~~Write output types (`types.rs`) — RawItem, section enums~~ ✓
 6. ~~Test structural parsing against all fixtures (no game data needed)~~ ✓ (28 tests, 26 fixtures)
-7. ~~Expand fixture coverage~~ ✓ (41 fixtures) — see `tests/test_data/COVERAGE.md` for gaps
+7. ~~Expand fixture coverage~~ ✓ (41 fixtures) — see `fixtures/items/COVERAGE.md` for gaps
 8. ~~Write resolver (`resolver.rs`) — GameData-dependent disambiguation~~ ✓
 9. ~~Test full pipeline: text → RawItem → ResolvedItem~~ ✓ (21 resolver tests)
 
@@ -163,9 +165,9 @@ Test fixtures from these projects: `_reference/poe-item-rust/test/data/`,
 by item type, league mechanics, and GGG patches. When something fails:
 
 1. Get a real Ctrl+Alt+C text of the failing item
-2. Add it as a fixture in `tests/test_data/`
+2. Add it as a fixture in `fixtures/items/`
 3. Add tests that assert the expected parse result
 4. Fix the grammar/resolver/types until the test passes
 
-See `tests/test_data/COVERAGE.md` for the full coverage matrix and gap analysis.
+See `fixtures/items/COVERAGE.md` for the full coverage matrix and gap analysis.
 Critical missing fixtures: **Magic items** (B.1), **Flasks** (B.7), **Jewels**, **Divination cards**.

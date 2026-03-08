@@ -3,7 +3,7 @@ use poe_dat::tables::BaseItemTypeRow;
 use poe_item::types::{ModSlot, ModSource, Rarity, ValueRange};
 
 fn fixture(name: &str) -> String {
-    let path = format!("{}/tests/test_data/{name}", env!("CARGO_MANIFEST_DIR"));
+    let path = format!("{}/../../fixtures/items/{name}", env!("CARGO_MANIFEST_DIR"));
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"))
 }
 
