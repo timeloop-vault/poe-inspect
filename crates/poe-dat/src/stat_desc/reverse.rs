@@ -215,6 +215,17 @@ impl ReverseIndex {
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
+
+    /// Return all template keys as human-readable strings.
+    ///
+    /// Replaces internal `\x00` markers with `#` to produce strings like
+    /// `"+# to maximum Life"`. Useful for autocomplete/suggestion lists.
+    pub fn template_keys(&self) -> Vec<String> {
+        self.template_map
+            .keys()
+            .map(|k| k.replace('\x00', "#"))
+            .collect()
+    }
 }
 
 /// Build a template key from format string segments.

@@ -9,6 +9,7 @@ pub mod evaluate;
 pub mod predicate;
 pub mod profile;
 pub mod rule;
+pub mod schema;
 pub mod tier;
 
 pub use affix::{analyze_affixes, AffixSummary, Modifiability};
@@ -16,5 +17,6 @@ pub use evaluate::{evaluate, score};
 pub use predicate::Predicate;
 pub use profile::{Profile, ScoreResult};
 pub use rule::Rule;
+pub use schema::{predicate_schema, PredicateSchema};
 pub use poe_data::domain::TierQuality;
 pub use tier::{analyze_tiers, ItemTierSummary};

@@ -498,6 +498,51 @@ fn evaluate_item(
     Ok(bridge::build_evaluated_item(&resolved, gd, None))
 }
 
+/// Return the predicate schema so the frontend can build profile editors dynamically.
+#[tauri::command]
+fn get_predicate_schema() -> Vec<poe_eval::PredicateSchema> {
+    poe_eval::predicate_schema()
+}
+
+/// Return suggestion values for a given data source.
+/// Used by the profile editor for autocomplete on text fields.
+#[tauri::command]
+fn get_suggestions(source: String, state: tauri::State<'_, GameDataState>) -> Vec<String> {
+    let gd = &state.0;
+    match source.as_str() {
+        "item_classes" => {
+            let mut names: Vec<String> = gd.item_classes.iter().map(|c| c.name.clone()).collect();
+            names.sort();
+            names
+        }
+        "base_types" => {
+            let mut names: Vec<String> =
+                gd.base_item_types.iter().map(|b| b.name.clone()).collect();
+            names.sort();
+            names
+        }
+        "mod_names" => {
+            let mut names: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+            for m in &gd.mods {
+                if !m.name.is_empty() {
+                    names.insert(m.name.clone());
+                }
+            }
+            names.into_iter().collect()
+        }
+        "stat_texts" => gd
+            .reverse_index
+            .as_ref()
+            .map(|ri| {
+                let mut keys = ri.template_keys();
+                keys.sort();
+                keys
+            })
+            .unwrap_or_default(),
+        _ => vec![],
+    }
+}
+
 /// Load game data from extracted datc64 files.
 ///
 /// Looks for data in these locations (first match wins):
@@ -587,6 +632,8 @@ pub fn run() {
             get_autostart,
             set_autostart,
             evaluate_item,
+            get_predicate_schema,
+            get_suggestions,
         ])
         .setup(|app| {
             // --- System tray ---

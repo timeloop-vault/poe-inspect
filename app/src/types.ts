@@ -105,3 +105,36 @@ export interface RuleMatch {
 	label: string;
 	weight: number;
 }
+
+// ── Predicate Schema (from poe-eval, drives dynamic profile editor) ──
+
+/** Describes one predicate type for the profile editor UI. */
+export interface PredicateSchema {
+	typeName: string;
+	label: string;
+	description: string;
+	category: string;
+	fields: PredicateField[];
+}
+
+/** A single input field within a predicate. */
+export interface PredicateField {
+	name: string;
+	label: string;
+	kind: FieldKind;
+}
+
+/** Widget type for a predicate field. Discriminated union on `type`. */
+export type FieldKind =
+	| { type: "comparison"; allowedOps: string[] }
+	| { type: "number"; min: number | null; max: number | null }
+	| { type: "enum"; options: EnumOption[] }
+	| { type: "orderedEnum"; options: EnumOption[] }
+	| { type: "text"; suggestionsFrom: string | null }
+	| { type: "slot" };
+
+/** A selectable option in an enum field. */
+export interface EnumOption {
+	value: string;
+	label: string;
+}
