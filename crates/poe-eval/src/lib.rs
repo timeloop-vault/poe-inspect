@@ -4,12 +4,14 @@
 //! data comes from `poe-data`'s `GameData`. Evaluation is pure logic:
 //! predicates, rules, and matching.
 
+pub mod affix;
 pub mod evaluate;
 pub mod predicate;
 pub mod profile;
 pub mod rule;
 pub mod tier;
 
+pub use affix::{analyze_affixes, AffixSummary, Modifiability};
 pub use evaluate::{evaluate, score};
 pub use predicate::Predicate;
 pub use profile::{Profile, ScoreResult};

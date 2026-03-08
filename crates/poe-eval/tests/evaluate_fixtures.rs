@@ -1,8 +1,9 @@
-use poe_dat::tables::BaseItemTypeRow;
+use poe_dat::tables::{BaseItemTypeRow, RarityRow};
 use poe_data::GameData;
+use poe_eval::affix;
 use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatusValue};
 use poe_eval::tier;
-use poe_eval::TierQuality;
+use poe_eval::{Modifiability, TierQuality};
 use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
 use poe_eval::{evaluate, score};
@@ -29,6 +30,31 @@ fn test_game_data(base_names: &[&str]) -> GameData {
         .collect();
 
     GameData::new(vec![], vec![], vec![], vec![], base_item_types, vec![], vec![], vec![], vec![])
+}
+
+fn test_game_data_with_rarities(base_names: &[&str]) -> GameData {
+    let base_item_types: Vec<BaseItemTypeRow> = base_names
+        .iter()
+        .map(|name| BaseItemTypeRow {
+            id: String::new(),
+            item_class: None,
+            width: 1,
+            height: 1,
+            name: (*name).to_string(),
+            drop_level: 1,
+            implicit_mods: vec![],
+            tags: vec![],
+        })
+        .collect();
+
+    let rarities = vec![
+        RarityRow { id: "Normal".into(), min_mods: 0, max_mods: 0, max_prefix: 0, max_suffix: 0, text: "Normal".into() },
+        RarityRow { id: "Magic".into(), min_mods: 1, max_mods: 2, max_prefix: 1, max_suffix: 1, text: "Magic".into() },
+        RarityRow { id: "Rare".into(), min_mods: 4, max_mods: 6, max_prefix: 3, max_suffix: 3, text: "Rare".into() },
+        RarityRow { id: "Unique".into(), min_mods: 0, max_mods: 0, max_prefix: 0, max_suffix: 0, text: "Unique".into() },
+    ];
+
+    GameData::new(vec![], vec![], vec![], vec![], base_item_types, vec![], vec![], vec![], rarities)
 }
 
 fn resolve(name: &str, gd: &GameData) -> ResolvedItem {
@@ -523,4 +549,76 @@ fn profile_serializes_to_json() {
     let deserialized: Profile = serde_json::from_str(&json).unwrap();
     assert_eq!(deserialized.name, "Life Belt");
     assert_eq!(deserialized.scoring.len(), 4);
+}
+
+// ─── Affix analysis ────────────────────────────────────────────────────────
+
+#[test]
+fn affix_rare_belt_with_rarity_data() {
+    // Belt has 2 prefixes, 3 suffixes (one crafted). Rare max = 3/3.
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    assert_eq!(summary.modifiable, Modifiability::Yes);
+    assert_eq!(summary.prefixes.used, 2);
+    assert_eq!(summary.prefixes.max, Some(3));
+    assert_eq!(summary.prefixes.open, Some(1));
+    assert!(!summary.prefixes.has_crafted);
+
+    assert_eq!(summary.suffixes.used, 3);
+    assert_eq!(summary.suffixes.max, Some(3));
+    assert_eq!(summary.suffixes.open, Some(0));
+    assert!(summary.suffixes.has_crafted); // "of Craft" is master crafted
+}
+
+#[test]
+fn affix_rare_belt_without_rarity_data() {
+    // Without rarity data, max/open should be None
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    assert_eq!(summary.prefixes.used, 2);
+    assert_eq!(summary.prefixes.max, None);
+    assert_eq!(summary.prefixes.open, None);
+}
+
+#[test]
+fn affix_corrupted_item() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-amulet-talisman-corrupted.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    assert_eq!(summary.modifiable, Modifiability::Corrupted);
+    // Still reports counts even though unmodifiable
+    assert_eq!(summary.prefixes.used, 3);
+    assert_eq!(summary.suffixes.used, 3);
+}
+
+#[test]
+fn affix_unique_not_applicable() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("unique-ring-ventors-gamble.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    // Unique items don't have standard prefix/suffix slots
+    assert_eq!(summary.prefixes.max, Some(0));
+    assert_eq!(summary.suffixes.max, Some(0));
+}
+
+#[test]
+fn affix_crafted_suffix_detected() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    // Suffixes has a bench craft — removing it would open a slot
+    assert!(summary.suffixes.has_crafted);
+    assert!(!summary.prefixes.has_crafted);
 }
