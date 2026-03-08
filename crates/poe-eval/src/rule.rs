@@ -9,7 +9,7 @@ use crate::predicate::Predicate;
 
 /// A rule is either an atomic predicate or a logical combination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "rule_type")]
 pub enum Rule {
     /// A single atomic predicate.
     Pred(Predicate),
