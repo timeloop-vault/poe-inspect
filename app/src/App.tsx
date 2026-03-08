@@ -3,28 +3,48 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { PhysicalSize } from "@tauri-apps/api/dpi";
-import { ItemOverlay } from "./components/ItemOverlay";
+import { ItemOverlay, type DisplaySettings } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
 import { loadGeneral, loadHotkeys } from "./store";
 
 /** Resize the Tauri window to fit the rendered content.
- *  Scaling is handled via CSS `zoom` which affects layout, so
- *  getBoundingClientRect naturally reflects the zoomed dimensions. */
-function useAutoResize(deps: unknown[]) {
+ *  CSS `zoom` reduces available CSS pixels (parent_width / zoom), so we
+ *  first expand the transparent window to give content enough room to
+ *  lay out at its natural max-width, then measure and shrink to fit. */
+function useAutoResize(deps: unknown[], zoom = 1) {
 	const ref = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const el = ref.current;
 		if (!el) return;
 
-		requestAnimationFrame(() => {
-			const rect = el.getBoundingClientRect();
-			const win = getCurrentWebviewWindow();
-			win.setSize(new PhysicalSize(
-				Math.ceil(rect.width * window.devicePixelRatio),
-				Math.ceil(rect.height * window.devicePixelRatio),
-			));
+		let cancelled = false;
+		const win = getCurrentWebviewWindow();
+		const dpr = window.devicePixelRatio;
+
+		// Expand window so the panel's max-width (420px + padding) isn't
+		// starved by zoom.  The window is transparent so the flash is invisible.
+		const maxCssWidth = 500;
+		const generous = Math.ceil(maxCssWidth * zoom * dpr);
+
+		win.setSize(new PhysicalSize(generous, generous)).then(() => {
+			if (cancelled) return;
+			// Double-rAF: first ensures the browser processes the resize
+			// event, second ensures layout has reflowed with the new size.
+			requestAnimationFrame(() => {
+				if (cancelled) return;
+				requestAnimationFrame(() => {
+					if (cancelled) return;
+					const rect = el.getBoundingClientRect();
+					win.setSize(new PhysicalSize(
+						Math.ceil(rect.width * dpr),
+						Math.ceil(rect.height * dpr),
+					));
+				});
+			});
 		});
+
+		return () => { cancelled = true; };
 	}, deps);
 
 	return ref;
@@ -35,6 +55,12 @@ export function App() {
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(true);
 	const [overlayScale, setOverlayScale] = useState(100);
+	const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
+		showRollBars: true,
+		showTierBadges: true,
+		showTypeBadges: true,
+		showOpenAffixes: true,
+	});
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
@@ -45,23 +71,35 @@ export function App() {
 
 	useEffect(() => {
 		// Load settings
-		loadGeneral().then((s) => setOverlayScale(s.overlayScale));
-		loadHotkeys().then((h) => {
-			dismissKeyRef.current = h.dismissOverlay;
-		});
-
-		const unlistenCapture = listen<string>("item-captured", (event) => {
-			// Reload settings each time overlay shows (picks up scale/hotkey changes)
-			loadGeneral().then((s) => setOverlayScale(s.overlayScale));
+		const reloadSettings = () => {
+			loadGeneral().then((s) => {
+				setOverlayScale(s.overlayScale);
+				setDisplaySettings({
+					showRollBars: s.showRollBars,
+					showTierBadges: s.showTierBadges,
+					showTypeBadges: s.showTypeBadges,
+					showOpenAffixes: s.showOpenAffixes,
+				});
+			});
 			loadHotkeys().then((h) => {
 				dismissKeyRef.current = h.dismissOverlay;
 			});
+		};
+		reloadSettings();
+
+		const unlistenCapture = listen<string>("item-captured", (event) => {
+			reloadSettings();
 			setItemText(event.payload);
 			setShowMock(false);
 		});
 
 		const unlistenDismiss = listen("overlay-dismissed", () => {
 			setItemText(null);
+		});
+
+		const unlistenDebug = listen("show-debug-overlay", () => {
+			reloadSettings();
+			setShowMock(true);
 		});
 
 		// Dismiss overlay on configured key (window-level, not global shortcut)
@@ -88,15 +126,15 @@ export function App() {
 		return () => {
 			unlistenCapture.then((fn) => fn());
 			unlistenDismiss.then((fn) => fn());
+			unlistenDebug.then((fn) => fn());
 			document.removeEventListener("keydown", handleKeydown);
 		};
 	}, [dismiss]);
 
 	// Auto-resize window to fit content
-	const containerRef = useAutoResize([itemText, mockIndex, showMock, overlayScale]);
-	const scaleStyle = overlayScale !== 100
-		? { zoom: overlayScale / 100 }
-		: undefined;
+	const zoom = overlayScale / 100;
+	const containerRef = useAutoResize([itemText, mockIndex, showMock, overlayScale], zoom);
+	const scaleStyle = zoom !== 1 ? { zoom } : undefined;
 
 	// When we have raw clipboard text (real Ctrl+I capture), show it
 	if (itemText && !showMock) {
@@ -143,7 +181,7 @@ export function App() {
 				))}
 			</div>
 
-			{currentItem !== undefined && <ItemOverlay item={currentItem} />}
+			{currentItem !== undefined && <ItemOverlay item={currentItem} display={displaySettings} />}
 		</div>
 	);
 }
