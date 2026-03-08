@@ -15,7 +15,7 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-dat (stat_desc) | **Done** | PEST parser + reverse index (15.5k patterns, 100% hit rate) |
 | poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
-| poe-item | Empty | Ctrl+Alt+C parser (section split → classify → typed parse) |
+| poe-item | **Done** | PEST grammar + resolver, 75 tests, 41 fixtures |
 | poe-eval | Empty | Tier coloring, profile scoring, crafting potential |
 | app | Future | Tauri v2 overlay (needs 7-point prototype validation) |
 
@@ -39,6 +39,8 @@ crates/
   poe-bundle/      — (owned) ex-nihil/poe-bundle — Rust library for reading PoE GGPK bundles (Oodle FFI)
   poe-query/       — (owned) ex-nihil/poe-query — Query tool for .dat files using PQL + dat-schema
 app/               — Tauri v2 overlay application (future)
+fixtures/
+  items/           — Shared Ctrl+Alt+C item text fixtures (used by poe-item, poe-eval, etc.)
 docs/
   HYPOTHESIS.md    — Core vision and scope
   RESEARCH_SYNTHESIS.md — Consolidated research findings

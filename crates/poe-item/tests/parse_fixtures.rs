@@ -3,7 +3,7 @@ use poe_item::types::{
 };
 
 fn fixture(name: &str) -> String {
-    let path = format!("{}/tests/test_data/{name}", env!("CARGO_MANIFEST_DIR"));
+    let path = format!("{}/../../fixtures/items/{name}", env!("CARGO_MANIFEST_DIR"));
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"))
 }
 
@@ -785,9 +785,9 @@ fn unique_flask_parsed() {
 
 #[test]
 fn all_fixtures_parse() {
-    let dir = format!("{}/tests/test_data", env!("CARGO_MANIFEST_DIR"));
+    let dir = format!("{}/../../fixtures/items", env!("CARGO_MANIFEST_DIR"));
     let mut count = 0;
-    for entry in std::fs::read_dir(&dir).expect("can't read test_data dir") {
+    for entry in std::fs::read_dir(&dir).expect("can't read fixtures/items dir") {
         let entry = entry.expect("can't read dir entry");
         let path = entry.path();
         if path.extension().is_some_and(|ext| ext == "txt") {
