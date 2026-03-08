@@ -37,10 +37,11 @@ fn handle_inspect(app: &tauri::AppHandle) {
         // Get cursor position for overlay placement
         let (cursor_x, cursor_y) = get_cursor_position();
 
-        // Position and show the overlay window
+        // Position and show the overlay window, clamped to monitor bounds
         if let Some(window) = app.get_webview_window("overlay") {
+            let (pos_x, pos_y) = clamp_to_monitor(&window, cursor_x, cursor_y);
             let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
-                cursor_x, cursor_y,
+                pos_x, pos_y,
             )));
             let _ = window.set_ignore_cursor_events(false);
             let _ = window.show();
@@ -113,6 +114,62 @@ fn get_cursor_position() -> (i32, i32) {
     // TODO: X11 — use XQueryPointer via x11 crate
     // Wayland — no standard API, may need libei or compositor-specific approach
     (100, 100)
+}
+
+/// Clamp overlay position to stay within the monitor that contains the cursor.
+/// Offset 20px from cursor. If the overlay would overflow the right or bottom
+/// edge, flip to the other side of the cursor.
+fn clamp_to_monitor(window: &tauri::WebviewWindow, cursor_x: i32, cursor_y: i32) -> (i32, i32) {
+    let offset = 20;
+    let win_size = window
+        .outer_size()
+        .unwrap_or(tauri::PhysicalSize::new(440, 900));
+
+    // Find the monitor containing the cursor
+    let monitors = window.available_monitors().unwrap_or_default();
+    let monitor = monitors.iter().find(|m| {
+        let pos = m.position();
+        let size = m.size();
+        cursor_x >= pos.x
+            && cursor_x < pos.x + size.width as i32
+            && cursor_y >= pos.y
+            && cursor_y < pos.y + size.height as i32
+    });
+
+    let (mon_x, mon_y, mon_w, mon_h) = match monitor {
+        Some(m) => (
+            m.position().x,
+            m.position().y,
+            m.size().width as i32,
+            m.size().height as i32,
+        ),
+        None => {
+            // Fallback: just offset from cursor
+            return (cursor_x + offset, cursor_y + offset);
+        }
+    };
+
+    let mon_right = mon_x + mon_w;
+    let mon_bottom = mon_y + mon_h;
+
+    // Try placing to the right and below cursor
+    let mut x = cursor_x + offset;
+    let mut y = cursor_y + offset;
+
+    // Flip horizontally if overflow
+    if x + win_size.width as i32 > mon_right {
+        x = cursor_x - offset - win_size.width as i32;
+    }
+    // Flip vertically if overflow
+    if y + win_size.height as i32 > mon_bottom {
+        y = cursor_y - offset - win_size.height as i32;
+    }
+
+    // Final clamp to monitor edges (in case window is larger than remaining space)
+    x = x.max(mon_x).min(mon_right - win_size.width as i32);
+    y = y.max(mon_y).min(mon_bottom - win_size.height as i32);
+
+    (x, y)
 }
 
 /// Dismiss the overlay: hide window, notify frontend.
