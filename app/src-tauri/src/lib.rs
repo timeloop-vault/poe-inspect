@@ -15,6 +15,18 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 /// Shared game data, loaded once at startup.
 struct GameDataState(Arc<GameData>);
 
+/// Read the "dismiss on focus loss" setting from the store (default: true).
+fn read_dismiss_on_focus_loss(app: &tauri::AppHandle) -> bool {
+    app.store("settings.json")
+        .ok()
+        .and_then(|store| {
+            store
+                .get("general")
+                .and_then(|v| v.get("dismissOnFocusLoss").and_then(|v| v.as_bool()))
+        })
+        .unwrap_or(true)
+}
+
 /// Read the overlay position setting from the store ("cursor" or "panel").
 fn read_overlay_position(app: &tauri::AppHandle) -> String {
     let val = app
@@ -327,6 +339,33 @@ impl Default for HotkeyConfig {
 
 struct HotkeyState(std::sync::Mutex<HotkeyConfig>);
 
+/// Load hotkey config from the tauri-plugin-store settings file.
+/// Falls back to defaults if the store doesn't exist or keys are missing.
+fn load_hotkey_config(app: &tauri::AppHandle) -> HotkeyConfig {
+    let defaults = HotkeyConfig::default();
+
+    let Ok(store) = app.store("settings.json") else {
+        return defaults;
+    };
+
+    let Some(hotkeys_val) = store.get("hotkeys") else {
+        return defaults;
+    };
+
+    HotkeyConfig {
+        inspect_item: hotkeys_val
+            .get("inspectItem")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or(defaults.inspect_item),
+        open_settings: hotkeys_val
+            .get("openSettings")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or(defaults.open_settings),
+    }
+}
+
 /// Register global shortcuts from config. Only inspect + settings are global.
 fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
     let gs = app.global_shortcut();
@@ -521,15 +560,16 @@ pub fn run() {
                 })
                 .build(app)?;
 
-            // --- Global hotkeys from settings (or defaults) ---
+            // --- Global hotkeys from stored settings (or defaults) ---
             #[cfg(desktop)]
             {
                 let handle = app.handle().clone();
                 handle.plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
-                // Register with default config; frontend will call update_hotkeys
-                // with stored settings once it loads
-                let config = app.state::<HotkeyState>().0.lock().unwrap().clone();
+
+                // Load saved hotkeys from the store so custom bindings work on startup
+                let config = load_hotkey_config(app.handle());
                 register_hotkeys(app.handle(), &config);
+                *app.state::<HotkeyState>().0.lock().unwrap() = config;
             }
 
             // --- Start minimized check ---
@@ -564,6 +604,16 @@ pub fn run() {
                     let _ = window.app_handle().save_window_state(StateFlags::all());
                     api.prevent_close();
                     let _ = window.hide();
+                }
+            }
+
+            // Dismiss overlay on focus loss (if enabled in settings)
+            if window.label() == "overlay" {
+                if let tauri::WindowEvent::Focused(false) = event {
+                    if read_dismiss_on_focus_loss(window.app_handle()) {
+                        let _ = window.hide();
+                        let _ = window.emit("overlay-dismissed", ());
+                    }
                 }
             }
         })
