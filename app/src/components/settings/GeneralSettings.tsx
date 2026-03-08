@@ -41,7 +41,7 @@ export function GeneralSettings() {
 					<div class="setting-label">
 						Scale
 						<div class="setting-description">
-							Zoom factor for the overlay panel
+							Zoom factor for the overlay panel (applies on next inspect)
 						</div>
 					</div>
 					<div class="setting-slider">

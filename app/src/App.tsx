@@ -5,8 +5,11 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 import { ItemOverlay } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
+import { loadGeneral, loadHotkeys } from "./store";
 
-/** Resize the Tauri window to fit the rendered content */
+/** Resize the Tauri window to fit the rendered content.
+ *  Scaling is handled via CSS `zoom` which affects layout, so
+ *  getBoundingClientRect naturally reflects the zoomed dimensions. */
 function useAutoResize(deps: unknown[]) {
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -14,7 +17,6 @@ function useAutoResize(deps: unknown[]) {
 		const el = ref.current;
 		if (!el) return;
 
-		// Wait one frame for layout to settle
 		requestAnimationFrame(() => {
 			const rect = el.getBoundingClientRect();
 			const win = getCurrentWebviewWindow();
@@ -32,14 +34,28 @@ export function App() {
 	const [itemText, setItemText] = useState<string | null>(null);
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(true);
+	const [overlayScale, setOverlayScale] = useState(100);
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
 		await invoke("dismiss_overlay");
 	}, []);
 
+	const dismissKeyRef = useRef("Escape");
+
 	useEffect(() => {
+		// Load settings
+		loadGeneral().then((s) => setOverlayScale(s.overlayScale));
+		loadHotkeys().then((h) => {
+			dismissKeyRef.current = h.dismissOverlay;
+		});
+
 		const unlistenCapture = listen<string>("item-captured", (event) => {
+			// Reload settings each time overlay shows (picks up scale/hotkey changes)
+			loadGeneral().then((s) => setOverlayScale(s.overlayScale));
+			loadHotkeys().then((h) => {
+				dismissKeyRef.current = h.dismissOverlay;
+			});
 			setItemText(event.payload);
 			setShowMock(false);
 		});
@@ -48,9 +64,18 @@ export function App() {
 			setItemText(null);
 		});
 
-		// Dismiss on Escape key
+		// Dismiss overlay on configured key (window-level, not global shortcut)
 		const handleKeydown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
+			const parts: string[] = [];
+			if (e.ctrlKey) parts.push("Ctrl");
+			if (e.shiftKey) parts.push("Shift");
+			if (e.altKey) parts.push("Alt");
+			let keyName = e.key;
+			if (keyName === " ") keyName = "Space";
+			else if (keyName.length === 1) keyName = keyName.toUpperCase();
+			parts.push(keyName);
+			const combo = parts.join("+");
+			if (combo === dismissKeyRef.current) {
 				dismiss();
 			}
 		};
@@ -68,12 +93,15 @@ export function App() {
 	}, [dismiss]);
 
 	// Auto-resize window to fit content
-	const containerRef = useAutoResize([itemText, mockIndex, showMock]);
+	const containerRef = useAutoResize([itemText, mockIndex, showMock, overlayScale]);
+	const scaleStyle = overlayScale !== 100
+		? { zoom: overlayScale / 100 }
+		: undefined;
 
 	// When we have raw clipboard text (real Ctrl+I capture), show it
 	if (itemText && !showMock) {
 		return (
-			<div class="overlay-panel" ref={containerRef}>
+			<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
 				<button type="button" class="dismiss-btn" onClick={dismiss}>
 					&times;
 				</button>
@@ -86,7 +114,7 @@ export function App() {
 	const currentItem = mockItems[mockIndex];
 
 	return (
-		<div class="overlay-panel" ref={containerRef}>
+		<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
 			<button
 				type="button"
 				class="dismiss-btn"

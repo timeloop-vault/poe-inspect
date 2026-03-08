@@ -1,10 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { invoke } from "@tauri-apps/api/core";
 import {
 	type HotkeySettings as HotkeySettingsType,
 	defaultHotkeys,
 	loadHotkeys,
 	saveHotkeys,
 } from "../../store";
+
+/** Sync hotkey settings to the Rust backend for global shortcut registration. */
+async function syncHotkeysToBackend(settings: HotkeySettingsType) {
+	await invoke("update_hotkeys", {
+		inspectItem: settings.inspectItem.toLowerCase().replace(/\+/g, "+"),
+		dismissOverlay: settings.dismissOverlay.toLowerCase().replace(/\+/g, "+"),
+		openSettings: settings.openSettings.toLowerCase().replace(/\+/g, "+"),
+	});
+}
 
 const hotkeyFields: { label: string; key: keyof HotkeySettingsType }[] = [
 	{ label: "Inspect Item", key: "inspectItem" },
@@ -38,6 +48,7 @@ export function HotkeySettings() {
 		loadHotkeys().then((s) => {
 			setSettings(s);
 			setLoaded(true);
+			syncHotkeysToBackend(s);
 		});
 	}, []);
 
@@ -45,11 +56,13 @@ export function HotkeySettings() {
 		capturingRef.current = key;
 		setCapturing(key);
 		setConflict(null);
+		invoke("pause_hotkeys");
 	}, []);
 
 	const cancelCapture = useCallback(() => {
 		capturingRef.current = null;
 		setCapturing(null);
+		invoke("resume_hotkeys");
 	}, []);
 
 	const handleKeyDown = useCallback(
@@ -81,6 +94,7 @@ export function HotkeySettings() {
 				setConflict({ key, message: `"${combo}" is already used by ${conflictWith}` });
 				capturingRef.current = null;
 				setCapturing(null);
+				invoke("resume_hotkeys");
 				return;
 			}
 
@@ -88,6 +102,7 @@ export function HotkeySettings() {
 			const next = { ...settingsRef.current, [key]: combo };
 			setSettings(next);
 			saveHotkeys(next);
+			syncHotkeysToBackend(next);
 			capturingRef.current = null;
 			setCapturing(null);
 		},
@@ -99,6 +114,7 @@ export function HotkeySettings() {
 			const next = { ...settingsRef.current, [key]: defaultHotkeys[key] };
 			setSettings(next);
 			saveHotkeys(next);
+			syncHotkeysToBackend(next);
 			setConflict(null);
 		},
 		[],
@@ -166,7 +182,7 @@ export function HotkeySettings() {
 					class="setting-description"
 					style={{ marginTop: conflict ? "4px" : "12px" }}
 				>
-					Click a hotkey to rebind it. Currently registered global shortcuts (Ctrl+I, Ctrl+Shift+I) cannot be captured until dynamic wiring is implemented.
+					Click a hotkey to rebind it. Global shortcuts are paused during capture.
 				</div>
 			</div>
 		</>
