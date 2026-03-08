@@ -100,7 +100,9 @@ Priority ordered by impact on the parser/resolver:
 - [ ] **Heist contract/blueprint** — unique section structure
 - [ ] **Awakened support gem** — different level/quality display?
 - [ ] **Split item** — Split status marker (in grammar, untested)
-- [ ] **Enchanted item without mod headers** — Ctrl+C (non-advanced) format
+
+> **Note:** Ctrl+C (non-advanced) format is NOT supported. We require Ctrl+Alt+C exclusively.
+> The `{ }` mod headers eliminate all section-classification ambiguity.
 
 ## Feature matrix — what the parser handles
 
@@ -110,7 +112,7 @@ Priority ordered by impact on the parser/resolver:
 | Rare/Unique 2-line header | ✅ | ✅ | — | ✅ |
 | Normal/Magic/Gem/Currency 1-line header | ✅ | ✅ | — | ✅ |
 | Divination Card header | ✅ | ✅ | — | ✅ |
-| Magic base type extraction | — | — | TODO | ❌ |
+| Magic base type extraction | — | — | ✅ | ✅ |
 | Requirements section | ✅ | ✅ | — | ✅ |
 | Sockets section | ✅ | ✅ | — | ✅ |
 | Item Level section | ✅ | ✅ | — | ✅ |
@@ -142,7 +144,10 @@ Priority ordered by impact on the parser/resolver:
 | Enchant lines | ✅ (generic) | ✅ | — | ✅ |
 | Blank lines within sections (gems) | ✅ | ✅ | — | ✅ |
 | Locale decimals (3,50 vs 3.50) | ✅ (generic) | ✅ | — | ✅ |
-| Stat line → stat ID resolution | — | — | TODO | ❌ |
-| Flask property vs modifier disambiguation | — | — | TODO | ❌ |
-| Value range parsing (e.g., +68(65-68)) | — | — | TODO | ❌ |
-| Negative ranges (e.g., 1(10--10)%) | — | — | TODO | ❌ |
+| Stat line → stat ID resolution | — | — | ✅ | ⚠️ (needs ReverseIndex) |
+| Flask property vs modifier disambiguation | — | — | N/A | N/A (Ctrl+Alt+C `{ }` headers separate them) |
+| Value range parsing (e.g., +68(65-68)) | — | — | ✅ | ✅ |
+| Negative ranges (e.g., 1(10--10)%) | — | — | ✅ | ✅ |
+| Suffix stripping (implicit/crafted/enchant/fractured) | — | — | ✅ | ✅ |
+| Section flattening (RawItem → ResolvedItem) | — | — | ✅ | ✅ |
+| Reminder text detection | — | — | ✅ | ✅ |

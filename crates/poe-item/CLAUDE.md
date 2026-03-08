@@ -4,13 +4,15 @@ Parses PoE's Ctrl+Alt+C item clipboard text into structured, type-safe item repr
 
 ## Status
 
-**In progress** — PEST grammar + two-pass architecture.
+**Core complete** — PEST grammar (Pass 1) + Resolver (Pass 2). 75 tests, 41 fixtures.
 
 ## Scope
 
 - Parse raw item text → structured item with fully resolved mods, tiers, and values
 - Handle all item types: equipment, jewels, flasks, gems, currency, divination cards, maps, etc.
-- Support Ctrl+Alt+C (advanced, with `{ }` mod headers) first, Ctrl+C later
+- **Ctrl+Alt+C only** — we require the advanced copy format with `{ }` mod headers.
+  Ctrl+C (no headers) is not supported. The `{ }` headers eliminate all section-classification
+  ambiguity (flask properties vs mods, mod grouping, etc.) that made previous parsers fail.
 - Future: PoE2 format support (different requirements format, rune modifiers)
 
 ## Does NOT own
@@ -108,7 +110,7 @@ Documented in `docs/research/parsing-strategy.md` (sections B.1–B.16). Key one
 |----|---------|-----------|
 | B.1 | Magic item base type embedded in name | Resolver (base item lookup) |
 | B.3 | Weapon sub-header vs first property | Grammar (known item_base set) |
-| B.7 | Flask base properties vs modifiers | Resolver (game data) |
+| B.7 | Flask base properties vs modifiers | N/A — Ctrl+Alt+C `{ }` headers separate them |
 | B.8 | Multi-line enchants | Grammar (enchant suffix detection) |
 | B.9 | Reminder text vs stat lines | Grammar (parenthesized lines) |
 | B.11 | Negative value ranges `1(10--10)%` | Grammar (regex handles double dash) |
@@ -151,10 +153,9 @@ Test fixtures from these projects: `_reference/poe-item-rust/test/data/`,
 4. ~~Write tree walker (`parser.rs`) — PEST parse tree → RawItem types~~ ✓
 5. ~~Write output types (`types.rs`) — RawItem, section enums~~ ✓
 6. ~~Test structural parsing against all fixtures (no game data needed)~~ ✓ (28 tests, 26 fixtures)
-7. **Expand fixture coverage** — see `tests/test_data/COVERAGE.md` for gaps
-8. Write resolver (`resolver.rs`) — GameData-dependent disambiguation
-9. Test full pipeline: text → RawItem → ResolvedItem
-10. Ctrl+C fallback parser (lower priority)
+7. ~~Expand fixture coverage~~ ✓ (41 fixtures) — see `tests/test_data/COVERAGE.md` for gaps
+8. ~~Write resolver (`resolver.rs`) — GameData-dependent disambiguation~~ ✓
+9. ~~Test full pipeline: text → RawItem → ResolvedItem~~ ✓ (21 resolver tests)
 
 ## Fixture-Driven Development
 

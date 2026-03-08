@@ -41,6 +41,47 @@ pub struct GameData {
 }
 
 impl GameData {
+    /// Construct `GameData` from pre-loaded table rows.
+    ///
+    /// Builds all id-based indexes automatically. `reverse_index` is set to `None`;
+    /// call `set_reverse_index()` separately if needed.
+    pub fn new(
+        stats: Vec<StatRow>,
+        tags: Vec<TagRow>,
+        item_classes: Vec<ItemClassRow>,
+        base_item_types: Vec<BaseItemTypeRow>,
+        mod_families: Vec<ModFamilyRow>,
+        mod_types: Vec<ModTypeRow>,
+        mods: Vec<ModRow>,
+    ) -> Self {
+        let stat_by_id = index_by(&stats, |s| s.id.clone());
+        let tag_by_id = index_by(&tags, |t| t.id.clone());
+        let mod_by_id = index_by(&mods, |m| m.id.clone());
+        let item_class_by_id = index_by(&item_classes, |c| c.id.clone());
+        let base_item_by_name = index_by(&base_item_types, |b| b.name.clone());
+
+        Self {
+            stats,
+            tags,
+            item_classes,
+            base_item_types,
+            mod_families,
+            mod_types,
+            mods,
+            stat_by_id,
+            tag_by_id,
+            mod_by_id,
+            item_class_by_id,
+            base_item_by_name,
+            reverse_index: None,
+        }
+    }
+
+    /// Set the stat description reverse index.
+    pub fn set_reverse_index(&mut self, ri: ReverseIndex) {
+        self.reverse_index = Some(ri);
+    }
+
     // ── Lookup by string id ─────────────────────────────────────────────
 
     pub fn stat(&self, id: &str) -> Option<&StatRow> {

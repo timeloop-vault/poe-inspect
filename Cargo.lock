@@ -551,7 +551,9 @@ version = "0.1.0"
 dependencies = [
  "pest",
  "pest_derive",
+ "poe-dat",
  "poe-data",
+ "regex",
  "thiserror",
  "tracing",
 ]

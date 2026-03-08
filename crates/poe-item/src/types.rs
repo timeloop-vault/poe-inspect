@@ -170,3 +170,74 @@ impl StatusKind {
         }
     }
 }
+
+// ── Resolved types (Pass 2 output) ─────────────────────────────────────────
+
+/// Fully resolved item — output of Pass 2 (resolver).
+///
+/// Sections are flattened into typed fields. Value ranges are parsed,
+/// type suffixes stripped, and (when `GameData` has a `ReverseIndex`)
+/// stat IDs resolved.
+#[derive(Debug, Clone)]
+pub struct ResolvedItem {
+    pub header: ResolvedHeader,
+    pub item_level: Option<u32>,
+    pub monster_level: Option<u32>,
+    pub talisman_tier: Option<u32>,
+    pub requirements: Vec<Requirement>,
+    pub sockets: Option<String>,
+    pub experience: Option<String>,
+    pub mods: Vec<ResolvedMod>,
+    pub influences: Vec<InfluenceKind>,
+    pub statuses: Vec<StatusKind>,
+    /// Unresolved generic sections (properties, flavor text, usage text, etc.)
+    pub properties: Vec<Vec<String>>,
+}
+
+/// Resolved header with base type always extracted.
+#[derive(Debug, Clone)]
+pub struct ResolvedHeader {
+    pub item_class: String,
+    pub rarity: Rarity,
+    /// Item name. Present for Rare/Unique items only.
+    pub name: Option<String>,
+    /// Base type name. Always present after resolution.
+    /// For Magic items, extracted from the affixed name via game data lookup.
+    pub base_type: String,
+}
+
+/// A modifier with resolved stat lines.
+#[derive(Debug, Clone)]
+pub struct ResolvedMod {
+    pub header: ModHeader,
+    pub stat_lines: Vec<ResolvedStatLine>,
+}
+
+/// A single stat line with parsed values and optional stat ID resolution.
+#[derive(Debug, Clone)]
+pub struct ResolvedStatLine {
+    /// Original text from Ctrl+Alt+C output.
+    pub raw_text: String,
+    /// Display text with range annotations and type suffixes removed.
+    /// Suitable for `ReverseIndex::lookup()`.
+    pub display_text: String,
+    /// Parsed value ranges from inline annotations like `+32(25-40)`.
+    pub values: Vec<ValueRange>,
+    /// Resolved stat IDs from `ReverseIndex` lookup. `None` if lookup unavailable or failed.
+    pub stat_ids: Option<Vec<String>>,
+    /// Raw stat values from `ReverseIndex` (transforms reversed). `None` if lookup failed.
+    pub stat_values: Option<Vec<i64>>,
+    /// Whether this line is reminder text (parenthesized).
+    pub is_reminder: bool,
+}
+
+/// A rolled value with its possible range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ValueRange {
+    /// The actual rolled value on this item.
+    pub current: i64,
+    /// Lower bound of the roll range.
+    pub min: i64,
+    /// Upper bound of the roll range.
+    pub max: i64,
+}
