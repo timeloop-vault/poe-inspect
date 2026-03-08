@@ -46,6 +46,20 @@ app/
 - Item parsing logic — that's `poe-item`
 - Evaluation logic — that's `poe-eval`
 - Game data — that's `poe-data`
+- **Profile evaluation rules** — that's `poe-eval`. The app provides a UI to build/edit profiles, but the profile format (predicates, rules, scoring weights) is defined by and serialized from poe-eval's types.
+
+## Domain Boundary: Display vs Evaluation
+
+The app owns **display settings**, poe-eval owns **evaluation profiles**. These must not be mixed.
+
+| Concern | Owner | Examples |
+|---------|-------|---------|
+| What makes an item good | poe-eval `Profile` | Filter rules, scoring predicates, mod weights |
+| How to show results | app display settings | Tier colors, badge visibility, overlay scale, dim/highlight |
+
+**Current state (needs refactor on integration):** `store.ts` has a `Profile` type that mixes both concerns — `modWeights` is evaluation logic (belongs in poe-eval), while `tierColors`/`dimIgnored`/`highlightWeights` are display settings (stays in app). On integration, split into:
+- `EvalProfile` — poe-eval's `Profile` serialized as JSON (stored/loaded via poe-eval types)
+- `DisplaySettings` — app-owned visual preferences (tier colors, toggles)
 
 ## Build
 
