@@ -46,6 +46,7 @@ pub enum FieldKind {
     /// Comparison operator dropdown.
     /// `allowed_ops` restricts which operators are valid.
     Comparison {
+        #[serde(rename = "allowedOps")]
         allowed_ops: Vec<Cmp>,
     },
     /// Numeric input.
@@ -64,6 +65,7 @@ pub enum FieldKind {
     /// Text input with optional autocomplete from a data source.
     /// `suggestions_from` names a source the app resolves via `get_suggestions`.
     Text {
+        #[serde(rename = "suggestionsFrom")]
         suggestions_from: Option<String>,
     },
     /// Mod slot dropdown (Prefix / Suffix / Implicit).
