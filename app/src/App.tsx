@@ -39,7 +39,11 @@ function useAutoResize(deps: unknown[], zoom = 1) {
 					win.setSize(new PhysicalSize(
 						Math.ceil(rect.width * dpr),
 						Math.ceil(rect.height * dpr),
-					));
+					)).then(() => {
+						// Reposition after resize so the position accounts for
+						// the actual (post-zoom) window size
+						if (!cancelled) invoke("reposition_overlay");
+					});
 				});
 			});
 		});

@@ -20,9 +20,9 @@ fn read_overlay_position(app: &tauri::AppHandle) -> String {
 }
 
 /// Calculate overlay position for "inventoryLeft" mode.
-/// PoE's inventory panel scales with screen height: width ≈ height * 0.587.
-/// Places the overlay to the left of where the inventory panel would be,
-/// vertically centered in the top half of the screen.
+/// PoE's side panels scale with screen height: width = height * (986/1600).
+/// Source: Awakened PoE Trade (OverlayWindow.vue `poePanelWidth`).
+/// Places the overlay to the left of the inventory panel, top-aligned.
 fn inventory_left_position(window: &tauri::WebviewWindow) -> (i32, i32) {
     let (cursor_x, cursor_y) = get_cursor_position();
 
@@ -51,14 +51,13 @@ fn inventory_left_position(window: &tauri::WebviewWindow) -> (i32, i32) {
         .outer_size()
         .unwrap_or(tauri::PhysicalSize::new(440, 900));
 
-    // PoE inventory panel width ≈ screen_height * 0.587
-    let panel_width = (mon_h as f64 * 0.587) as i32;
-    let padding = 10;
+    // PoE side panel width = screen_height * 986/1600 (from Awakened Trade)
+    let panel_width = (mon_h as f64 * (986.0 / 1600.0)) as i32;
 
-    // X: left of the inventory panel
-    let x = mon_x + mon_w - panel_width - win_size.width as i32 - padding;
-    // Y: vertically offset from top, roughly where items appear
-    let y = mon_y + (mon_h as f64 * 0.15) as i32;
+    // X: immediately left of the inventory panel (right side of screen)
+    let x = mon_x + mon_w - panel_width - win_size.width as i32;
+    // Y: top-aligned (matching Awakened Trade behavior)
+    let y = mon_y;
 
     // Clamp to monitor bounds
     let x = x.max(mon_x);
@@ -240,6 +239,15 @@ fn clamp_to_monitor(window: &tauri::WebviewWindow, cursor_x: i32, cursor_y: i32)
     (x, y)
 }
 
+/// Reposition the overlay after the frontend has resized it.
+/// Called from the frontend after auto-resize so the position accounts
+/// for the actual (post-zoom) window size.
+#[tauri::command]
+fn reposition_overlay(app: tauri::AppHandle, window: tauri::WebviewWindow) {
+    let mode = read_overlay_position(&app);
+    position_overlay(&window, &mode);
+}
+
 /// Dismiss the overlay: hide window, notify frontend.
 #[tauri::command]
 fn dismiss_overlay(window: tauri::WebviewWindow) {
@@ -384,6 +392,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
         .invoke_handler(tauri::generate_handler![
+            reposition_overlay,
             dismiss_overlay,
             update_hotkeys,
             pause_hotkeys,
