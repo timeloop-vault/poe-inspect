@@ -1,6 +1,7 @@
 use poe_dat::tables::BaseItemTypeRow;
 use poe_data::GameData;
 use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatusValue};
+use poe_eval::tier::{self, TierQuality};
 use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
 use poe_eval::{evaluate, score};
@@ -465,6 +466,49 @@ fn profile_no_filter() {
     let result = score(&item, &profile, &gd);
     assert!(result.applicable);
     assert_eq!(result.score, 10.0);
+}
+
+// ─── Tier analysis ──────────────────────────────────────────────────────────
+
+#[test]
+fn tier_analysis_belt() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let summary = tier::analyze_tiers(&item);
+
+    // Belt has 4 explicit mods: T7, T7, T6, T5 — all mid/low
+    // Plus 1 implicit (no tier) + 1 crafted (no tier)
+    assert!(summary.mods.len() >= 4);
+
+    // Worst = Low (T7), best = Mid (T5)
+    assert_eq!(summary.worst_explicit, TierQuality::Low);
+    assert_eq!(summary.best_explicit, TierQuality::Mid);
+    assert!(summary.quality_counts.low >= 2); // Two T7 mods
+}
+
+#[test]
+fn tier_analysis_mixed_tiers() {
+    let gd = test_game_data(&[]);
+    let item = resolve("rare-axe-fractured.txt", &gd);
+
+    let summary = tier::analyze_tiers(&item);
+
+    // Has T1, T1, T2, T4, T5 — best is Best (T1)
+    assert_eq!(summary.best_explicit, TierQuality::Best);
+    assert!(summary.quality_counts.best >= 2); // Two T1 mods
+}
+
+#[test]
+fn tier_analysis_unique_has_no_tiers() {
+    let gd = test_game_data(&[]);
+    let item = resolve("unique-ring-ventors-gamble.txt", &gd);
+
+    let summary = tier::analyze_tiers(&item);
+
+    // Unique mods have no tiers — all Unknown
+    assert_eq!(summary.worst_explicit, TierQuality::Unknown);
+    assert_eq!(summary.best_explicit, TierQuality::Unknown);
 }
 
 #[test]

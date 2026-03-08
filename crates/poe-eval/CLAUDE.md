@@ -4,7 +4,7 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ## Status
 
-**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles. 23 fixture tests.
+**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis. 26 fixture tests.
 
 ## Scope
 
@@ -37,6 +37,7 @@ src/
   rule.rs        — combinators (All, Any, Not) over predicates
   profile.rs     — scoring profiles (weighted rule sets)
   evaluate.rs    — evaluate(item, rule, game_data) -> bool, score(item, profile, game_data)
+  tier.rs        — tier quality analysis (mod tier → Best/Great/Good/Mid/Low)
 tests/
   evaluate_fixtures.rs — tests against real item fixtures
 ```
@@ -92,5 +93,5 @@ tests/
 3. ~~Test with real parsed items~~ ✓
 4. ~~Scoring profiles: `score(item, profile, game_data) -> ScoreResult`~~ ✓
 5. ~~Profile JSON serialization round-trip~~ ✓
-6. Tier coloring evaluator (map mod tier to color)
+6. ~~Tier quality analysis: `analyze_tiers(item) -> ItemTierSummary`~~ ✓
 7. Open affix detection + basic craft suggestion
