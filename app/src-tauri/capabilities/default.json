@@ -23,6 +23,15 @@
     "store:allow-keys",
     "store:allow-entries",
     "store:allow-delete",
-    "store:allow-clear"
+    "store:allow-clear",
+    "dialog:default",
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [{ "path": "**" }]
+    }
   ]
 }

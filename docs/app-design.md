@@ -328,7 +328,7 @@ Wire existing settings to actual behavior. All tasks are independent of the data
 | 2 | **Dynamic hotkey wiring** | Done | `pause_hotkeys`/`resume_hotkeys`/`update_hotkeys` Tauri commands. Only modifier combos registered globally; dismiss is window-level. |
 | 3 | **Display toggles → overlay** | Done | `DisplaySettings` passed from App → ItemOverlay. Settings reloaded on each inspect and debug overlay show. |
 | 4 | **Start minimized / launch on boot** | Done | `startMinimized` read from store in Rust setup. `tauri-plugin-autostart` for launch on boot (cross-platform). UI scale for settings window. |
-| 5 | **Profile import/export** | Not started | Import/Export buttons are stubs. Implement as JSON file save/load via Tauri file dialog. |
+| 5 | **Profile import/export** | Done | JSON file save/load via `tauri-plugin-dialog` + `tauri-plugin-fs`. Export strips id/active; import assigns new id. |
 | 6 | **Overlay positioning** | Not started | Multi-monitor awareness: keep overlay within screen bounds. Smart placement (flip if near screen edge). Use Tauri's monitor APIs. |
 
 ## Open Questions
