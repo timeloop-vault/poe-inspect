@@ -331,6 +331,16 @@ Wire existing settings to actual behavior. All tasks are independent of the data
 | 5 | **Profile import/export** | Done | JSON file save/load via `tauri-plugin-dialog` + `tauri-plugin-fs`. Export strips id/active; import assigns new id. |
 | 6 | **Overlay positioning** | Done | Clamp to monitor bounds via `available_monitors()`. Flips horizontally/vertically if overlay would overflow screen edge. |
 
+### Phase 5: poe-eval Integration & Profile UI
+
+Wire poe-eval's evaluation capabilities into the app. Profiles become real
+(backed by poe-eval's Predicate/Rule/Profile types), scoring works end-to-end,
+and the profile builder UI is driven by a schema from poe-eval.
+
+**See `docs/phase-5-eval-integration.md` for the detailed step-by-step plan.**
+
+**Status: IN PROGRESS** — starting with Step 1 (verify display coloring).
+
 ## Open Questions
 
 - **Multiple items:** Show one overlay at a time, or allow pinning/stacking? Start with one, consider pinning later.
