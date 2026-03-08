@@ -498,6 +498,31 @@ fn evaluate_item(
     Ok(bridge::build_evaluated_item(&resolved, gd, None))
 }
 
+/// Set the active evaluation profile from the frontend.
+/// Accepts a JSON string of poe-eval's Profile format.
+/// Empty string = use the built-in default profile.
+#[tauri::command]
+fn set_active_profile(profile_json: String, state: tauri::State<'_, ProfileState>) {
+    let profile = if profile_json.is_empty() {
+        default_profile()
+    } else {
+        match serde_json::from_str::<Profile>(&profile_json) {
+            Ok(p) => Some(p),
+            Err(e) => {
+                eprintln!("Failed to parse profile from frontend: {e}");
+                default_profile()
+            }
+        }
+    };
+    *state.0.lock().unwrap() = profile;
+}
+
+/// Return the built-in default profile so the frontend can display or customize it.
+#[tauri::command]
+fn get_default_profile() -> Option<String> {
+    default_profile().map(|p| serde_json::to_string(&p).unwrap_or_default())
+}
+
 /// Return the predicate schema so the frontend can build profile editors dynamically.
 #[tauri::command]
 fn get_predicate_schema() -> Vec<poe_eval::PredicateSchema> {
@@ -632,6 +657,8 @@ pub fn run() {
             get_autostart,
             set_autostart,
             evaluate_item,
+            set_active_profile,
+            get_default_profile,
             get_predicate_schema,
             get_suggestions,
         ])
