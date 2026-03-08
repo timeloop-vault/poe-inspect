@@ -50,13 +50,23 @@ function rarityColor(rarity: Rarity): string {
 	}
 }
 
-/** CSS class for tier coloring */
-function tierClass(tier: number | undefined): string {
-	if (tier === undefined) return "tier-none";
-	if (tier === 1) return "tier-1";
-	if (tier <= 3) return "tier-2-3";
-	if (tier <= 5) return "tier-4-5";
-	return "tier-low";
+/** CSS class for tier coloring — driven by quality from poe-data, not raw tier number. */
+function tierClass(mod: Modifier): string {
+	switch (mod.quality) {
+		case "best": return "tier-1";
+		case "great": return "tier-2-3";
+		case "good": return "tier-2-3";
+		case "mid": return "tier-4-5";
+		case "low": return "tier-low";
+		default: return "tier-none";
+	}
+}
+
+/** Badge label: "T1" for tiers, "R1" for ranks */
+function tierBadgeLabel(mod: Modifier): string {
+	if (mod.tier === undefined) return "";
+	const prefix = mod.tierKind === "rank" ? "R" : "T";
+	return `${prefix}${mod.tier}`;
 }
 
 /** Calculate roll quality as 0-100 percentage */
@@ -138,13 +148,13 @@ export const defaultDisplay: DisplaySettings = {
 function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) {
 	const quality = rollQuality(mod);
 	const typeLabel = modTypeLabel(mod);
-	const tierCls = mod.type === "unique" ? "tier-unique" : tierClass(mod.tier);
+	const tierCls = mod.type === "unique" ? "tier-unique" : tierClass(mod);
 
 	return (
 		<div class={`mod-line ${tierCls}`}>
 			<div class="mod-badges">
 				{display.showTierBadges && mod.tier !== undefined && (
-					<span class={`tier-badge ${tierCls}`}>T{mod.tier}</span>
+					<span class={`tier-badge ${tierCls}`}>{tierBadgeLabel(mod)}</span>
 				)}
 				{display.showTypeBadges && typeLabel !== null && (
 					<span class={`type-badge type-${mod.type}`}>{typeLabel}</span>
@@ -264,7 +274,7 @@ export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedIt
 			)}
 
 			{/* Open affixes */}
-			{display.showOpenAffixes && item.rarity === "Rare" &&
+			{display.showOpenAffixes &&
 				(item.openPrefixes > 0 || item.openSuffixes > 0) && (
 					<>
 						<Separator rarity={item.rarity} />
@@ -287,10 +297,10 @@ export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedIt
 				)}
 
 			{/* Affix count summary */}
-			{item.rarity === "Rare" && (
+			{item.maxPrefixes > 0 && (
 				<div class="affix-summary">
-					Prefixes: {3 - item.openPrefixes}/3 · Suffixes:{" "}
-					{3 - item.openSuffixes}/3
+					Prefixes: {item.maxPrefixes - item.openPrefixes}/{item.maxPrefixes} · Suffixes:{" "}
+					{item.maxSuffixes - item.openSuffixes}/{item.maxSuffixes}
 				</div>
 			)}
 
