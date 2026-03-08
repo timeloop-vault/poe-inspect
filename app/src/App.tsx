@@ -5,7 +5,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 import { ItemOverlay, type DisplaySettings } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
-import { loadGeneral, loadHotkeys } from "./store";
+import { loadGeneral, loadHotkeys, loadActiveTierColors, type TierColors } from "./store";
 import type { ParsedItem } from "./types";
 
 /** Resize the Tauri window to fit the rendered content.
@@ -67,6 +67,7 @@ export function App() {
 		showTypeBadges: true,
 		showOpenAffixes: true,
 	});
+	const [tierColors, setTierColors] = useState<TierColors | null>(null);
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
@@ -91,6 +92,7 @@ export function App() {
 			loadHotkeys().then((h) => {
 				dismissKeyRef.current = h.dismissOverlay;
 			});
+			loadActiveTierColors().then(setTierColors);
 		};
 		reloadSettings();
 
@@ -150,12 +152,21 @@ export function App() {
 	// Auto-resize window to fit content
 	const zoom = overlayScale / 100;
 	const containerRef = useAutoResize([itemText, evaluatedItem, mockIndex, showMock, overlayScale], zoom);
-	const scaleStyle = zoom !== 1 ? { zoom } : undefined;
+
+	// Build style object: zoom + tier color CSS custom properties from active profile
+	const panelStyle: Record<string, string | number> = {};
+	if (zoom !== 1) panelStyle.zoom = zoom;
+	if (tierColors) {
+		panelStyle["--tier-1"] = tierColors.t1;
+		panelStyle["--tier-2-3"] = tierColors.t2_3;
+		panelStyle["--tier-4-5"] = tierColors.t4_5;
+		panelStyle["--tier-low"] = tierColors.low;
+	}
 
 	// When we have a parsed+evaluated item, show it with the styled overlay
 	if (evaluatedItem && !showMock) {
 		return (
-			<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
+			<div class="overlay-panel" ref={containerRef} style={panelStyle}>
 				<button type="button" class="dismiss-btn" onClick={dismiss}>
 					&times;
 				</button>
@@ -167,7 +178,7 @@ export function App() {
 	// Fallback: raw clipboard text (parse failed)
 	if (itemText && !showMock) {
 		return (
-			<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
+			<div class="overlay-panel" ref={containerRef} style={panelStyle}>
 				<button type="button" class="dismiss-btn" onClick={dismiss}>
 					&times;
 				</button>
@@ -180,7 +191,7 @@ export function App() {
 	const currentItem = mockItems[mockIndex];
 
 	return (
-		<div class="overlay-panel" ref={containerRef} style={scaleStyle}>
+		<div class="overlay-panel" ref={containerRef} style={panelStyle}>
 			<button
 				type="button"
 				class="dismiss-btn"
