@@ -3,9 +3,11 @@
  *
  * Two store files in the app data directory:
  * - settings.json: General + Hotkey settings
- * - profiles.json: Array of profile objects
+ * - profiles.json: Array of profile objects (eval + display)
  */
 import { load } from "@tauri-apps/plugin-store";
+import { invoke } from "@tauri-apps/api/core";
+import type { EvalProfile } from "./types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -31,8 +33,6 @@ export interface HotkeySettings {
 	openSettings: string;
 }
 
-export type Weight = "Ignore" | "Low" | "Medium" | "High" | "Critical";
-
 export interface TierColors {
 	t1: string;
 	t2_3: string;
@@ -40,14 +40,22 @@ export interface TierColors {
 	low: string;
 }
 
-export interface Profile {
-	id: string;
-	name: string;
-	active: boolean;
-	modWeights: Record<string, Weight>;
+/** App-owned display preferences (per profile). */
+export interface DisplayPrefs {
 	tierColors: TierColors;
 	highlightWeights: boolean;
 	dimIgnored: boolean;
+}
+
+/** A stored profile — links an eval profile with display prefs. */
+export interface StoredProfile {
+	id: string;
+	name: string;
+	active: boolean;
+	/** poe-eval evaluation profile. null = use built-in default. */
+	evalProfile: EvalProfile | null;
+	/** App-owned display settings. */
+	display: DisplayPrefs;
 }
 
 // ── Defaults ──────────────────────────────────────────────────────────────
@@ -79,15 +87,19 @@ export const defaultTierColors: TierColors = {
 	low: "#8c7060",
 };
 
-const defaultProfiles: Profile[] = [
+const defaultDisplay: DisplayPrefs = {
+	tierColors: { ...defaultTierColors },
+	highlightWeights: true,
+	dimIgnored: true,
+};
+
+const defaultProfiles: StoredProfile[] = [
 	{
 		id: "default",
 		name: "Default",
 		active: true,
-		modWeights: {},
-		tierColors: { ...defaultTierColors },
-		highlightWeights: true,
-		dimIgnored: true,
+		evalProfile: null, // uses built-in Generic profile
+		display: { ...defaultDisplay },
 	},
 ];
 
@@ -142,15 +154,44 @@ export async function saveHotkeys(hotkeys: HotkeySettings): Promise<void> {
 	await store.set("hotkeys", hotkeys);
 }
 
-// ── Profiles ──────────────────────────────────────────────────────────────
+// ── Profile migration ─────────────────────────────────────────────────────
 
-export async function loadProfiles(): Promise<Profile[]> {
-	const store = await getProfilesStore();
-	const val = await store.get<Profile[]>("profiles");
-	return val ?? defaultProfiles.map((p) => ({ ...p }));
+/** Migrate old profile format (modWeights) to new format (evalProfile + display). */
+function migrateProfile(raw: Record<string, unknown>): StoredProfile {
+	// Old format detection: has modWeights but no evalProfile
+	if ("modWeights" in raw && !("evalProfile" in raw)) {
+		return {
+			id: (raw.id as string) ?? String(Date.now()),
+			name: (raw.name as string) ?? "Migrated",
+			active: (raw.active as boolean) ?? false,
+			evalProfile: null, // old modWeights don't map to eval rules
+			display: {
+				tierColors: (raw.tierColors as TierColors) ?? { ...defaultTierColors },
+				highlightWeights: (raw.highlightWeights as boolean) ?? true,
+				dimIgnored: (raw.dimIgnored as boolean) ?? true,
+			},
+		};
+	}
+	// New format — pass through with defaults for missing fields
+	return {
+		id: (raw.id as string) ?? String(Date.now()),
+		name: (raw.name as string) ?? "Profile",
+		active: (raw.active as boolean) ?? false,
+		evalProfile: (raw.evalProfile as EvalProfile | null) ?? null,
+		display: (raw.display as DisplayPrefs) ?? { ...defaultDisplay },
+	};
 }
 
-export async function saveProfiles(profiles: Profile[]): Promise<void> {
+// ── Profiles ──────────────────────────────────────────────────────────────
+
+export async function loadProfiles(): Promise<StoredProfile[]> {
+	const store = await getProfilesStore();
+	const val = await store.get<Record<string, unknown>[]>("profiles");
+	if (!val) return defaultProfiles.map((p) => ({ ...p }));
+	return val.map(migrateProfile);
+}
+
+export async function saveProfiles(profiles: StoredProfile[]): Promise<void> {
 	const store = await getProfilesStore();
 	await store.set("profiles", profiles);
 }
@@ -159,5 +200,17 @@ export async function saveProfiles(profiles: Profile[]): Promise<void> {
 export async function loadActiveTierColors(): Promise<TierColors> {
 	const profiles = await loadProfiles();
 	const active = profiles.find((p) => p.active);
-	return active?.tierColors ?? { ...defaultTierColors };
+	return active?.display.tierColors ?? { ...defaultTierColors };
+}
+
+// ── Backend profile sync ──────────────────────────────────────────────────
+
+/** Send the active eval profile to the backend for scoring.
+ *  If the active profile has no custom evalProfile, sends empty string
+ *  to tell the backend to use its built-in default. */
+export async function syncActiveProfile(): Promise<void> {
+	const profiles = await loadProfiles();
+	const active = profiles.find((p) => p.active);
+	const json = active?.evalProfile ? JSON.stringify(active.evalProfile) : "";
+	await invoke("set_active_profile", { profileJson: json });
 }

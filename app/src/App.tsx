@@ -5,7 +5,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { PhysicalSize } from "@tauri-apps/api/dpi";
 import { ItemOverlay, type DisplaySettings } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
-import { loadGeneral, loadHotkeys, loadActiveTierColors, type TierColors } from "./store";
+import { loadGeneral, loadHotkeys, loadActiveTierColors, syncActiveProfile, type TierColors } from "./store";
 import type { ParsedItem } from "./types";
 
 /** Resize the Tauri window to fit the rendered content.
@@ -93,6 +93,7 @@ export function App() {
 				dismissKeyRef.current = h.dismissOverlay;
 			});
 			loadActiveTierColors().then(setTierColors);
+			syncActiveProfile();
 		};
 		reloadSettings();
 

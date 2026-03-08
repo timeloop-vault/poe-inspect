@@ -106,6 +106,29 @@ export interface RuleMatch {
 	weight: number;
 }
 
+// ── Eval Profile (matches poe-eval's serde format — snake_case keys) ──
+
+/** poe-eval's Profile format. Opaque to the app — built via schema UI. */
+export interface EvalProfile {
+	name: string;
+	description: string;
+	filter: Rule | null;
+	scoring: ScoringRule[];
+}
+
+export interface ScoringRule {
+	label: string;
+	weight: number;
+	rule: Rule;
+}
+
+/** Rule tree — matches poe-eval's serde format (rule_type tag). */
+export type Rule =
+	| ({ rule_type: "Pred"; type: string } & Record<string, unknown>)
+	| { rule_type: "All"; rules: Rule[] }
+	| { rule_type: "Any"; rules: Rule[] }
+	| { rule_type: "Not"; rule: Rule };
+
 // ── Predicate Schema (from poe-eval, drives dynamic profile editor) ──
 
 /** Describes one predicate type for the profile editor UI. */
