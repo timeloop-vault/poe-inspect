@@ -6,6 +6,7 @@
 use poe_data::domain::TierQuality;
 use poe_data::GameData;
 use poe_eval::affix::{self, Modifiability};
+use poe_eval::profile::Profile;
 use poe_eval::tier;
 use poe_item::types::{
     InfluenceKind, ModSlot, ModSource, ModTierKind, ResolvedItem, ResolvedMod, StatusKind,
@@ -41,6 +42,33 @@ pub struct EvaluatedItem {
     pub max_prefixes: u32,
     pub max_suffixes: u32,
     pub modifiable: bool,
+    /// Profile score (None if no profile active or not applicable).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub score: Option<ScoreInfo>,
+}
+
+/// Scoring result from evaluating an item against a profile.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScoreInfo {
+    /// Total score (sum of matched rule weights).
+    pub total: f64,
+    /// Maximum possible score (sum of all rule weights).
+    pub max_possible: f64,
+    /// Percentage (total / max_possible * 100), clamped to 0-100.
+    pub percent: f64,
+    /// Whether the profile filter matched this item.
+    pub applicable: bool,
+    /// Rules that matched (label + weight).
+    pub matched: Vec<RuleMatch>,
+    /// Rules that didn't match (label + weight).
+    pub unmatched: Vec<RuleMatch>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RuleMatch {
+    pub label: String,
+    pub weight: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -88,8 +116,12 @@ pub struct Modifier {
     pub fractured: Option<bool>,
 }
 
-/// Build an `EvaluatedItem` from a resolved item + game data.
-pub fn build_evaluated_item(item: &ResolvedItem, gd: &GameData) -> EvaluatedItem {
+/// Build an `EvaluatedItem` from a resolved item + game data + optional profile.
+pub fn build_evaluated_item(
+    item: &ResolvedItem,
+    gd: &GameData,
+    profile: Option<&Profile>,
+) -> EvaluatedItem {
     let tier_summary = tier::analyze_tiers(item);
     let affix_summary = affix::analyze_affixes(item, gd);
 
@@ -170,6 +202,40 @@ pub fn build_evaluated_item(item: &ResolvedItem, gd: &GameData) -> EvaluatedItem
         max_prefixes: affix_summary.prefixes.max.unwrap_or(0),
         max_suffixes: affix_summary.suffixes.max.unwrap_or(0),
         modifiable: affix_summary.modifiable == Modifiability::Yes,
+        score: profile.map(|p| build_score_info(item, p, gd)),
+    }
+}
+
+fn build_score_info(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreInfo {
+    let result = poe_eval::score(item, profile, gd);
+    let max_possible: f64 = profile.scoring.iter().map(|s| s.weight).sum();
+    let percent = if max_possible > 0.0 {
+        (result.score / max_possible * 100.0).clamp(0.0, 100.0)
+    } else {
+        0.0
+    };
+
+    ScoreInfo {
+        total: result.score,
+        max_possible,
+        percent,
+        applicable: result.applicable,
+        matched: result
+            .matched
+            .into_iter()
+            .map(|m| RuleMatch {
+                label: m.label,
+                weight: m.weight,
+            })
+            .collect(),
+        unmatched: result
+            .unmatched
+            .into_iter()
+            .map(|m| RuleMatch {
+                label: m.label,
+                weight: m.weight,
+            })
+            .collect(),
     }
 }
 

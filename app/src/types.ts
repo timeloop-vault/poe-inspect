@@ -87,4 +87,21 @@ export interface ParsedItem {
 	maxPrefixes: number;
 	/** Maximum suffix slots for this item's rarity (from poe-data) */
 	maxSuffixes: number;
+	/** Profile scoring result (if a profile was active) */
+	score?: ScoreInfo;
+}
+
+/** Result of scoring an item against a profile */
+export interface ScoreInfo {
+	total: number;
+	maxPossible: number;
+	percent: number;
+	applicable: boolean;
+	matched: RuleMatch[];
+	unmatched: RuleMatch[];
+}
+
+export interface RuleMatch {
+	label: string;
+	weight: number;
 }

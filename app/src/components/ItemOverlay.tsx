@@ -1,4 +1,4 @@
-import type { Modifier, ParsedItem, Rarity } from "../types";
+import type { Modifier, ParsedItem, Rarity, ScoreInfo } from "../types";
 
 // Tooltip header sprites (left, middle, right) per rarity
 import headerRareLeft from "../assets/tooltip/header-rare-left.webp";
@@ -324,6 +324,47 @@ export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedIt
 					<Separator rarity={item.rarity} />
 					<div class="flavor-text">{item.flavorText}</div>
 				</>
+			)}
+
+			{/* Profile score */}
+			{item.score && item.score.applicable && (
+				<>
+					<Separator rarity={item.rarity} />
+					<ScoreDisplay score={item.score} />
+				</>
+			)}
+		</div>
+	);
+}
+
+function ScoreDisplay({ score }: { score: ScoreInfo }) {
+	const pct = Math.round(score.percent);
+	const barClass = pct >= 70 ? "score-high" : pct >= 40 ? "score-mid" : "score-low";
+
+	return (
+		<div class="score-section">
+			<div class="score-header">
+				<span class="score-label">Score</span>
+				<span class={`score-value ${barClass}`}>{pct}%</span>
+			</div>
+			<div class="score-bar">
+				<div class={`score-fill ${barClass}`} style={{ width: `${pct}%` }} />
+			</div>
+			{score.matched.length > 0 && (
+				<div class="score-details">
+					{score.matched.map((r) => (
+						<div key={r.label} class="score-rule matched">
+							<span class="rule-check">+</span>
+							<span class="rule-label">{r.label}</span>
+						</div>
+					))}
+					{score.unmatched.map((r) => (
+						<div key={r.label} class="score-rule unmatched">
+							<span class="rule-check">-</span>
+							<span class="rule-label">{r.label}</span>
+						</div>
+					))}
+				</div>
 			)}
 		</div>
 	);

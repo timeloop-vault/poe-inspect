@@ -1,0 +1,101 @@
+{
+  "name": "Generic",
+  "description": "Scores universally desirable stats (life, resistances, movement speed)",
+  "filter": {
+    "rule_type": "Pred",
+    "type": "Rarity",
+    "op": "Ge",
+    "value": "Magic"
+  },
+  "scoring": [
+    {
+      "label": "Has life mod",
+      "weight": 20.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "HasStatText",
+        "text": "maximum Life"
+      }
+    },
+    {
+      "label": "Life roll >= 80%",
+      "weight": 10.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "RollPercent",
+        "text": "maximum Life",
+        "value_index": 0,
+        "op": "Ge",
+        "value": 80
+      }
+    },
+    {
+      "label": "Has fire resistance",
+      "weight": 10.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "HasStatText",
+        "text": "Fire Resistance"
+      }
+    },
+    {
+      "label": "Has cold resistance",
+      "weight": 10.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "HasStatText",
+        "text": "Cold Resistance"
+      }
+    },
+    {
+      "label": "Has lightning resistance",
+      "weight": 10.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "HasStatText",
+        "text": "Lightning Resistance"
+      }
+    },
+    {
+      "label": "Has movement speed",
+      "weight": 15.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "HasStatText",
+        "text": "Movement Speed"
+      }
+    },
+    {
+      "label": "Has open prefix",
+      "weight": 10.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "OpenMods",
+        "slot": "Prefix",
+        "op": "Ge",
+        "value": 1
+      }
+    },
+    {
+      "label": "Has open suffix",
+      "weight": 10.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "OpenMods",
+        "slot": "Suffix",
+        "op": "Ge",
+        "value": 1
+      }
+    },
+    {
+      "label": "Item level >= 84",
+      "weight": 5.0,
+      "rule": {
+        "rule_type": "Pred",
+        "type": "ItemLevel",
+        "op": "Ge",
+        "value": 84
+      }
+    }
+  ]
+}
