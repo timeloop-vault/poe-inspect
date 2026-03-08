@@ -1,64 +1,90 @@
-import { useState, useCallback } from "preact/hooks";
-
-interface Profile {
-	id: string;
-	name: string;
-	active: boolean;
-}
-
-const defaultProfiles: Profile[] = [
-	{ id: "1", name: "RF Juggernaut", active: true },
-	{ id: "2", name: "Mapper (generic)", active: false },
-	{ id: "3", name: "Crafter (prefixes)", active: false },
-];
+import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import {
+	type Profile,
+	type Weight,
+	type TierColors,
+	defaultTierColors,
+	loadProfiles,
+	saveProfiles,
+} from "../../store";
 
 export function ProfileSettings() {
-	const [profiles, setProfiles] = useState(defaultProfiles);
+	const [profiles, setProfiles] = useState<Profile[]>([]);
+	const [loaded, setLoaded] = useState(false);
 	const [editing, setEditing] = useState<string | null>(null);
 
-	const setActive = useCallback((id: string) => {
-		setProfiles((prev) =>
-			prev.map((p) => ({ ...p, active: p.id === id })),
-		);
+	// Keep a ref so callbacks always see latest profiles for saving
+	const profilesRef = useRef(profiles);
+	profilesRef.current = profiles;
+
+	useEffect(() => {
+		loadProfiles().then((p) => {
+			setProfiles(p);
+			setLoaded(true);
+		});
 	}, []);
+
+	const persist = useCallback((next: Profile[]) => {
+		setProfiles(next);
+		saveProfiles(next);
+	}, []);
+
+	const setActive = useCallback((id: string) => {
+		persist(profilesRef.current.map((p) => ({ ...p, active: p.id === id })));
+	}, [persist]);
 
 	const addProfile = useCallback(() => {
 		const id = String(Date.now());
-		setProfiles((prev) => [
-			...prev,
-			{ id, name: "New Profile", active: false },
-		]);
+		const next: Profile[] = [
+			...profilesRef.current,
+			{
+				id,
+				name: "New Profile",
+				active: false,
+				modWeights: {},
+				tierColors: { ...defaultTierColors },
+				highlightWeights: true,
+				dimIgnored: true,
+			},
+		];
+		persist(next);
 		setEditing(id);
-	}, []);
+	}, [persist]);
 
 	const deleteProfile = useCallback((id: string) => {
-		setProfiles((prev) => {
-			const filtered = prev.filter((p) => p.id !== id);
-			// If we deleted the active one, activate the first remaining
-			if (filtered.length > 0 && !filtered.some((p) => p.active)) {
-				filtered[0]!.active = true;
-			}
-			return filtered;
-		});
-	}, []);
+		const filtered = profilesRef.current.filter((p) => p.id !== id);
+		if (filtered.length > 0 && !filtered.some((p) => p.active)) {
+			filtered[0]!.active = true;
+		}
+		persist(filtered);
+	}, [persist]);
 
 	const duplicateProfile = useCallback((id: string) => {
-		setProfiles((prev) => {
-			const source = prev.find((p) => p.id === id);
-			if (!source) return prev;
-			const newId = String(Date.now());
-			return [
-				...prev,
-				{ id: newId, name: `${source.name} (copy)`, active: false },
-			];
-		});
-	}, []);
+		const source = profilesRef.current.find((p) => p.id === id);
+		if (!source) return;
+		const newId = String(Date.now());
+		persist([
+			...profilesRef.current,
+			{
+				...source,
+				id: newId,
+				name: `${source.name} (copy)`,
+				active: false,
+				modWeights: { ...source.modWeights },
+				tierColors: { ...source.tierColors },
+			},
+		]);
+	}, [persist]);
 
 	const renameProfile = useCallback((id: string, name: string) => {
-		setProfiles((prev) =>
-			prev.map((p) => (p.id === id ? { ...p, name } : p)),
-		);
-	}, []);
+		persist(profilesRef.current.map((p) => (p.id === id ? { ...p, name } : p)));
+	}, [persist]);
+
+	const updateProfile = useCallback((id: string, patch: Partial<Profile>) => {
+		persist(profilesRef.current.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+	}, [persist]);
+
+	if (!loaded) return null;
 
 	// If editing a profile, show the profile editor
 	if (editing !== null) {
@@ -69,6 +95,7 @@ export function ProfileSettings() {
 					profile={profile}
 					onBack={() => setEditing(null)}
 					onRename={(name) => renameProfile(editing, name)}
+					onUpdate={(patch) => updateProfile(editing, patch)}
 				/>
 			);
 		}
@@ -91,16 +118,16 @@ export function ProfileSettings() {
 						key={profile.id}
 						class={`profile-item ${profile.active ? "active" : ""}`}
 					>
-						<span
-							class="profile-star"
+						<div
+							class="profile-activate"
 							onClick={() => setActive(profile.id)}
 							title={profile.active ? "Active profile" : "Set as active"}
-							style={{ cursor: "pointer" }}
 						>
-							{profile.active ? "\u2605" : "\u2606"}
-						</span>
-
-						<span class="profile-name">{profile.name}</span>
+							<span class="profile-star">
+								{profile.active ? "\u2605" : "\u2606"}
+							</span>
+							<span class="profile-name">{profile.name}</span>
+						</div>
 
 						<div class="profile-item-actions">
 							<button
@@ -152,10 +179,12 @@ function ProfileEditor({
 	profile,
 	onBack,
 	onRename,
+	onUpdate,
 }: {
 	profile: Profile;
 	onBack: () => void;
 	onRename: (name: string) => void;
+	onUpdate: (patch: Partial<Profile>) => void;
 }) {
 	const [tab, setTab] = useState<"weights" | "display">("weights");
 	const [name, setName] = useState(profile.name);
@@ -196,14 +225,32 @@ function ProfileEditor({
 				</button>
 			</div>
 
-			{tab === "weights" && <ModWeightsTab />}
-			{tab === "display" && <DisplayTab />}
+			{tab === "weights" && (
+				<ModWeightsTab
+					modWeights={profile.modWeights}
+					onUpdate={(modWeights) => onUpdate({ modWeights })}
+				/>
+			)}
+			{tab === "display" && (
+				<DisplayTab
+					tierColors={profile.tierColors}
+					highlightWeights={profile.highlightWeights}
+					dimIgnored={profile.dimIgnored}
+					onUpdate={onUpdate}
+				/>
+			)}
 		</>
 	);
 }
 
 /** Mod weights sub-tab — searchable mod list with weight sliders */
-function ModWeightsTab() {
+function ModWeightsTab({
+	modWeights,
+	onUpdate,
+}: {
+	modWeights: Record<string, Weight>;
+	onUpdate: (modWeights: Record<string, Weight>) => void;
+}) {
 	const [search, setSearch] = useState("");
 
 	// Mock mod categories with a few representative mods each
@@ -275,7 +322,12 @@ function ModWeightsTab() {
 					<div class="setting-group" key={cat.name}>
 						<h3>{cat.name}</h3>
 						{filteredMods.map((mod) => (
-							<ModWeightRow key={mod} mod={mod} />
+							<ModWeightRow
+								key={mod}
+								mod={mod}
+								weight={modWeights[mod] ?? "Medium"}
+								onChange={(w) => onUpdate({ ...modWeights, [mod]: w })}
+							/>
 						))}
 					</div>
 				);
@@ -284,8 +336,7 @@ function ModWeightsTab() {
 	);
 }
 
-const weightLabels = ["Ignore", "Low", "Medium", "High", "Critical"] as const;
-type Weight = (typeof weightLabels)[number];
+const weightLabels: Weight[] = ["Ignore", "Low", "Medium", "High", "Critical"];
 
 const weightColors: Record<Weight, string> = {
 	Ignore: "var(--poe-text-dim)",
@@ -295,9 +346,7 @@ const weightColors: Record<Weight, string> = {
 	Critical: "var(--tier-1)",
 };
 
-function ModWeightRow({ mod }: { mod: string }) {
-	const [weight, setWeight] = useState<Weight>("Medium");
-
+function ModWeightRow({ mod, weight, onChange }: { mod: string; weight: Weight; onChange: (w: Weight) => void }) {
 	return (
 		<div class="setting-row">
 			<div class="setting-label" style={{ fontSize: "12px" }}>
@@ -312,7 +361,7 @@ function ModWeightRow({ mod }: { mod: string }) {
 					value={weightLabels.indexOf(weight)}
 					onInput={(e) => {
 						const idx = Number((e.target as HTMLInputElement).value);
-						setWeight(weightLabels[idx]!);
+						onChange(weightLabels[idx]!);
 					}}
 					style={{ width: "80px" }}
 				/>
@@ -328,19 +377,19 @@ function ModWeightRow({ mod }: { mod: string }) {
 }
 
 /** Display sub-tab — tier colors and preview */
-function DisplayTab() {
-	const [tierColors, setTierColors] = useState({
-		t1: "#38d838",
-		t2_3: "#5c98cf",
-		t4_5: "#c8c0b0",
-		low: "#8c7060",
-	});
-
-	const [highlightWeights, setHighlightWeights] = useState(true);
-	const [dimIgnored, setDimIgnored] = useState(true);
-
-	const updateColor = (key: keyof typeof tierColors, value: string) => {
-		setTierColors((prev) => ({ ...prev, [key]: value }));
+function DisplayTab({
+	tierColors,
+	highlightWeights,
+	dimIgnored,
+	onUpdate,
+}: {
+	tierColors: TierColors;
+	highlightWeights: boolean;
+	dimIgnored: boolean;
+	onUpdate: (patch: Partial<Profile>) => void;
+}) {
+	const updateColor = (key: keyof TierColors, value: string) => {
+		onUpdate({ tierColors: { ...tierColors, [key]: value } });
 	};
 
 	return (
@@ -379,7 +428,7 @@ function DisplayTab() {
 						<input
 							type="checkbox"
 							checked={highlightWeights}
-							onChange={(e) => setHighlightWeights((e.target as HTMLInputElement).checked)}
+							onChange={(e) => onUpdate({ highlightWeights: (e.target as HTMLInputElement).checked })}
 						/>
 						<span class="toggle-track" />
 					</label>
@@ -390,7 +439,7 @@ function DisplayTab() {
 						<input
 							type="checkbox"
 							checked={dimIgnored}
-							onChange={(e) => setDimIgnored((e.target as HTMLInputElement).checked)}
+							onChange={(e) => onUpdate({ dimIgnored: (e.target as HTMLInputElement).checked })}
 						/>
 						<span class="toggle-track" />
 					</label>

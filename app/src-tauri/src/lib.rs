@@ -3,6 +3,7 @@ use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// Send Ctrl+Alt+C to the foreground window (PoE) via enigo,
 /// wait briefly, then read clipboard and emit to frontend.
@@ -36,9 +37,9 @@ fn handle_inspect(app: &tauri::AppHandle) {
 
         // Position and show the overlay window
         if let Some(window) = app.get_webview_window("overlay") {
-            let _ = window.set_position(tauri::Position::Physical(
-                tauri::PhysicalPosition::new(cursor_x, cursor_y),
-            ));
+            let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
+                cursor_x, cursor_y,
+            )));
             let _ = window.set_ignore_cursor_events(false);
             let _ = window.show();
             let _ = window.set_focus();
@@ -129,12 +130,17 @@ fn show_settings(app: &tauri::AppHandle) {
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_denylist(&["overlay"])
+                .build(),
+        )
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![dismiss_overlay])
         .setup(|app| {
             // --- System tray ---
-            let settings =
-                MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
+            let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&settings, &quit])?;
 
@@ -146,6 +152,11 @@ pub fn run() {
                     "settings" => show_settings(app),
                     "quit" => app.exit(0),
                     _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::DoubleClick { .. } = event {
+                        show_settings(tray.app_handle());
+                    }
                 })
                 .build(app)?;
 
@@ -160,12 +171,17 @@ pub fn run() {
                             if event.state != ShortcutState::Pressed {
                                 return;
                             }
-                            if shortcut
-                                .matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyI)
-                            {
+                            if shortcut.matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyI) {
                                 show_settings(app);
                             } else if shortcut.matches(Modifiers::CONTROL, Code::KeyI) {
-                                handle_inspect(app);
+                                // Don't inspect if settings window is focused
+                                let settings_focused = app
+                                    .get_webview_window("settings")
+                                    .and_then(|w| w.is_focused().ok())
+                                    .unwrap_or(false);
+                                if !settings_focused {
+                                    handle_inspect(app);
+                                }
                             }
                         })
                         .build(),
@@ -173,6 +189,19 @@ pub fn run() {
             }
 
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // Hide settings window on close instead of destroying it,
+            // and save window state so position/size persists across restarts
+            if window.label() == "settings" {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    let _ = window
+                        .app_handle()
+                        .save_window_state(StateFlags::all());
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

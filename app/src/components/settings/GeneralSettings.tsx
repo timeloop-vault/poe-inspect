@@ -1,14 +1,34 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect, useCallback } from "preact/hooks";
+import {
+	type GeneralSettings as GeneralSettingsType,
+	defaultGeneral,
+	loadGeneral,
+	saveGeneral,
+} from "../../store";
 
 export function GeneralSettings() {
-	const [scale, setScale] = useState(100);
-	const [poeVersion, setPoeVersion] = useState<"poe1" | "poe2">("poe1");
-	const [startMinimized, setStartMinimized] = useState(true);
-	const [launchOnBoot, setLaunchOnBoot] = useState(false);
-	const [showRollBars, setShowRollBars] = useState(true);
-	const [showTierBadges, setShowTierBadges] = useState(true);
-	const [showTypeBadges, setShowTypeBadges] = useState(true);
-	const [showOpenAffixes, setShowOpenAffixes] = useState(true);
+	const [settings, setSettings] = useState<GeneralSettingsType>(defaultGeneral);
+	const [loaded, setLoaded] = useState(false);
+
+	useEffect(() => {
+		loadGeneral().then((s) => {
+			setSettings(s);
+			setLoaded(true);
+		});
+	}, []);
+
+	const update = useCallback(
+		(patch: Partial<GeneralSettingsType>) => {
+			setSettings((prev) => {
+				const next = { ...prev, ...patch };
+				saveGeneral(next);
+				return next;
+			});
+		},
+		[],
+	);
+
+	if (!loaded) return null;
 
 	return (
 		<>
@@ -30,12 +50,12 @@ export function GeneralSettings() {
 							min={50}
 							max={200}
 							step={5}
-							value={scale}
+							value={settings.overlayScale}
 							onInput={(e) =>
-								setScale(Number((e.target as HTMLInputElement).value))
+								update({ overlayScale: Number((e.target as HTMLInputElement).value) })
 							}
 						/>
-						<span class="slider-value">{scale}%</span>
+						<span class="slider-value">{settings.overlayScale}%</span>
 					</div>
 				</div>
 			</div>
@@ -50,8 +70,8 @@ export function GeneralSettings() {
 							<input
 								type="radio"
 								name="poe-version"
-								checked={poeVersion === "poe1"}
-								onChange={() => setPoeVersion("poe1")}
+								checked={settings.poeVersion === "poe1"}
+								onChange={() => update({ poeVersion: "poe1" })}
 							/>
 							PoE 1
 						</label>
@@ -59,8 +79,8 @@ export function GeneralSettings() {
 							<input
 								type="radio"
 								name="poe-version"
-								checked={poeVersion === "poe2"}
-								onChange={() => setPoeVersion("poe2")}
+								checked={settings.poeVersion === "poe2"}
+								onChange={() => update({ poeVersion: "poe2" })}
 							/>
 							PoE 2
 						</label>
@@ -74,14 +94,17 @@ export function GeneralSettings() {
 				<div class="setting-row">
 					<div class="setting-label">Start minimized to tray</div>
 					<Toggle
-						checked={startMinimized}
-						onChange={setStartMinimized}
+						checked={settings.startMinimized}
+						onChange={(v) => update({ startMinimized: v })}
 					/>
 				</div>
 
 				<div class="setting-row">
 					<div class="setting-label">Launch on system startup</div>
-					<Toggle checked={launchOnBoot} onChange={setLaunchOnBoot} />
+					<Toggle
+						checked={settings.launchOnBoot}
+						onChange={(v) => update({ launchOnBoot: v })}
+					/>
 				</div>
 			</div>
 
@@ -90,32 +113,33 @@ export function GeneralSettings() {
 
 				<div class="setting-row">
 					<div class="setting-label">Show roll quality bars</div>
-					<Toggle checked={showRollBars} onChange={setShowRollBars} />
+					<Toggle
+						checked={settings.showRollBars}
+						onChange={(v) => update({ showRollBars: v })}
+					/>
 				</div>
 
 				<div class="setting-row">
 					<div class="setting-label">Show tier badges</div>
 					<Toggle
-						checked={showTierBadges}
-						onChange={setShowTierBadges}
+						checked={settings.showTierBadges}
+						onChange={(v) => update({ showTierBadges: v })}
 					/>
 				</div>
 
 				<div class="setting-row">
-					<div class="setting-label">
-						Show prefix/suffix labels
-					</div>
+					<div class="setting-label">Show prefix/suffix labels</div>
 					<Toggle
-						checked={showTypeBadges}
-						onChange={setShowTypeBadges}
+						checked={settings.showTypeBadges}
+						onChange={(v) => update({ showTypeBadges: v })}
 					/>
 				</div>
 
 				<div class="setting-row">
 					<div class="setting-label">Show open affix count</div>
 					<Toggle
-						checked={showOpenAffixes}
-						onChange={setShowOpenAffixes}
+						checked={settings.showOpenAffixes}
+						onChange={(v) => update({ showOpenAffixes: v })}
 					/>
 				</div>
 			</div>

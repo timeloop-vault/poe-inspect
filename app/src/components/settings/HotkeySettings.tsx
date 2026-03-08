@@ -1,27 +1,62 @@
-import { useState, useCallback } from "preact/hooks";
+import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import {
+	type HotkeySettings as HotkeySettingsType,
+	defaultHotkeys,
+	loadHotkeys,
+	saveHotkeys,
+} from "../../store";
 
-interface HotkeyConfig {
-	label: string;
-	default: string;
-	current: string;
-}
-
-const defaultHotkeys: HotkeyConfig[] = [
-	{ label: "Inspect Item", default: "Ctrl+I", current: "Ctrl+I" },
-	{ label: "Dismiss Overlay", default: "Escape", current: "Escape" },
-	{ label: "Open Settings", default: "Ctrl+Shift+I", current: "Ctrl+Shift+I" },
+const hotkeyFields: { label: string; key: keyof HotkeySettingsType }[] = [
+	{ label: "Inspect Item", key: "inspectItem" },
+	{ label: "Dismiss Overlay", key: "dismissOverlay" },
+	{ label: "Open Settings", key: "openSettings" },
 ];
 
-export function HotkeySettings() {
-	const [hotkeys, setHotkeys] = useState(defaultHotkeys);
-	const [capturing, setCapturing] = useState<number | null>(null);
+function findConflict(
+	settings: HotkeySettingsType,
+	key: keyof HotkeySettingsType,
+	combo: string,
+): string | null {
+	for (const field of hotkeyFields) {
+		if (field.key !== key && settings[field.key] === combo) {
+			return field.label;
+		}
+	}
+	return null;
+}
 
-	const startCapture = useCallback((index: number) => {
-		setCapturing(index);
+export function HotkeySettings() {
+	const [settings, setSettings] = useState<HotkeySettingsType>(defaultHotkeys);
+	const [loaded, setLoaded] = useState(false);
+	const [capturing, setCapturing] = useState<string | null>(null);
+	const [conflict, setConflict] = useState<{ key: string; message: string } | null>(null);
+	const settingsRef = useRef(settings);
+	settingsRef.current = settings;
+	const capturingRef = useRef<string | null>(null);
+
+	useEffect(() => {
+		loadHotkeys().then((s) => {
+			setSettings(s);
+			setLoaded(true);
+		});
+	}, []);
+
+	const startCapture = useCallback((key: string) => {
+		capturingRef.current = key;
+		setCapturing(key);
+		setConflict(null);
+	}, []);
+
+	const cancelCapture = useCallback(() => {
+		capturingRef.current = null;
+		setCapturing(null);
 	}, []);
 
 	const handleKeyDown = useCallback(
-		(e: KeyboardEvent, index: number) => {
+		(e: KeyboardEvent, key: keyof HotkeySettingsType) => {
+			// Guard against stale events (e.g. enigo keystrokes arriving late)
+			if (capturingRef.current !== key) return;
+
 			e.preventDefault();
 			e.stopPropagation();
 
@@ -33,34 +68,43 @@ export function HotkeySettings() {
 			if (e.shiftKey) parts.push("Shift");
 			if (e.altKey) parts.push("Alt");
 
-			if (e.key === "Escape" && parts.length === 0) {
-				// Bare Escape cancels capture
-				setCapturing(null);
-				return;
-			}
-
 			// Map key names
 			let keyName = e.key;
 			if (keyName === " ") keyName = "Space";
+			else if (keyName === "Escape") keyName = "Escape";
 			else if (keyName.length === 1) keyName = keyName.toUpperCase();
 			parts.push(keyName);
 
 			const combo = parts.join("+");
-			setHotkeys((prev) =>
-				prev.map((h, i) => (i === index ? { ...h, current: combo } : h)),
-			);
+			const conflictWith = findConflict(settingsRef.current, key, combo);
+			if (conflictWith) {
+				setConflict({ key, message: `"${combo}" is already used by ${conflictWith}` });
+				capturingRef.current = null;
+				setCapturing(null);
+				return;
+			}
+
+			setConflict(null);
+			const next = { ...settingsRef.current, [key]: combo };
+			setSettings(next);
+			saveHotkeys(next);
+			capturingRef.current = null;
 			setCapturing(null);
 		},
 		[],
 	);
 
-	const resetHotkey = useCallback((index: number) => {
-		setHotkeys((prev) =>
-			prev.map((h, i) =>
-				i === index ? { ...h, current: h.default } : h,
-			),
-		);
-	}, []);
+	const resetHotkey = useCallback(
+		(key: keyof HotkeySettingsType) => {
+			const next = { ...settingsRef.current, [key]: defaultHotkeys[key] };
+			setSettings(next);
+			saveHotkeys(next);
+			setConflict(null);
+		},
+		[],
+	);
+
+	if (!loaded) return null;
 
 	return (
 		<>
@@ -69,42 +113,60 @@ export function HotkeySettings() {
 			<div class="setting-group">
 				<h3>Key Bindings</h3>
 
-				{hotkeys.map((hotkey, i) => (
-					<div class="setting-row" key={hotkey.label}>
-						<div class="setting-label">{hotkey.label}</div>
+				{hotkeyFields.map((field) => (
+					<div class="setting-row" key={field.key}>
+						<div class="setting-label">{field.label}</div>
 						<div class="hotkey-input">
 							<div
-								class={`hotkey-display ${capturing === i ? "capturing" : ""}`}
+								class={`hotkey-display ${capturing === field.key ? "capturing" : ""}`}
 								tabIndex={0}
-								onClick={() => startCapture(i)}
+								onClick={() => {
+									if (capturing !== field.key) startCapture(field.key);
+								}}
 								onKeyDown={(e) => {
-									if (capturing === i) {
-										handleKeyDown(e as unknown as KeyboardEvent, i);
+									if (capturing === field.key) {
+										handleKeyDown(e as unknown as KeyboardEvent, field.key);
 									} else if (e.key === "Enter" || e.key === " ") {
-										startCapture(i);
+										startCapture(field.key);
 									}
 								}}
 							>
-								{capturing === i ? "Press keys..." : hotkey.current}
+								{capturing === field.key ? "Press keys..." : settings[field.key]}
 							</div>
-							{hotkey.current !== hotkey.default && (
+							{capturing === field.key ? (
 								<button
 									type="button"
 									class="hotkey-reset"
-									onClick={() => resetHotkey(i)}
+									onClick={cancelCapture}
 								>
-									Reset
+									Cancel
 								</button>
+							) : (
+								settings[field.key] !== defaultHotkeys[field.key] && (
+									<button
+										type="button"
+										class="hotkey-reset"
+										onClick={() => resetHotkey(field.key)}
+									>
+										Reset
+									</button>
+								)
 							)}
 						</div>
 					</div>
 				))}
 
+				{conflict && (
+					<div class="setting-description" style={{ marginTop: "12px", color: "#e04040" }}>
+						{conflict.message}
+					</div>
+				)}
+
 				<div
 					class="setting-description"
-					style={{ marginTop: "12px" }}
+					style={{ marginTop: conflict ? "4px" : "12px" }}
 				>
-					Click a hotkey to change it. Press Escape to cancel.
+					Click a hotkey to rebind it. Currently registered global shortcuts (Ctrl+I, Ctrl+Shift+I) cannot be captured until dynamic wiring is implemented.
 				</div>
 			</div>
 		</>
