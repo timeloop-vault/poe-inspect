@@ -19,13 +19,16 @@ fn loads_all_tables() {
     assert!(gd.stats.len() > 20_000, "expected >20k stats");
     assert!(gd.tags.len() > 100, "expected >100 tags");
     assert!(gd.item_classes.len() > 50, "expected >50 item classes");
+    assert!(gd.item_class_categories.len() > 3, "expected >3 item class categories");
     assert!(gd.base_item_types.len() > 5_000, "expected >5k base items");
     assert!(gd.mods.len() > 30_000, "expected >30k mods");
+    assert!(gd.rarities.len() >= 4, "expected >=4 rarities (Normal/Magic/Rare/Unique)");
 
-    println!("Loaded: {} stats, {} tags, {} classes, {} base items, {} mod families, {} mod types, {} mods",
+    println!("Loaded: {} stats, {} tags, {} classes, {} categories, {} base items, {} mod families, {} mod types, {} mods, {} rarities",
         gd.stats.len(), gd.tags.len(), gd.item_classes.len(),
-        gd.base_item_types.len(), gd.mod_families.len(),
-        gd.mod_types.len(), gd.mods.len());
+        gd.item_class_categories.len(), gd.base_item_types.len(),
+        gd.mod_families.len(), gd.mod_types.len(), gd.mods.len(),
+        gd.rarities.len());
 }
 
 #[test]
@@ -54,6 +57,18 @@ fn id_lookups_work() {
     // Tag by id
     let default = gd.tag("default");
     assert!(default.is_some(), "default tag not found");
+
+    // Rarity by id
+    let rare = gd.rarity("Rare");
+    assert!(rare.is_some(), "Rare rarity not found");
+    let rare = rare.unwrap();
+    assert!(rare.max_prefix > 0, "Rare should have max_prefix > 0");
+    assert!(rare.max_suffix > 0, "Rare should have max_suffix > 0");
+    println!("Rare: max_prefix={}, max_suffix={}", rare.max_prefix, rare.max_suffix);
+
+    // Max prefixes/suffixes helper
+    assert!(gd.max_prefixes("Rare").is_some());
+    assert!(gd.max_suffixes("Rare").is_some());
 }
 
 #[test]

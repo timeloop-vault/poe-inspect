@@ -71,6 +71,36 @@ pub struct BaseItemTypeRow {
     pub tags: Vec<u64>,
 }
 
+/// A rarity definition from `Rarity.datc64`.
+///
+/// Defines mod limits per rarity (Normal, Magic, Rare, Unique).
+#[derive(Debug, Clone)]
+pub struct RarityRow {
+    /// Internal ID (e.g., "Normal", "Magic", "Rare", "Unique").
+    pub id: String,
+    /// Minimum number of mods.
+    pub min_mods: i32,
+    /// Maximum total mods.
+    pub max_mods: i32,
+    /// Maximum number of prefix mods.
+    pub max_prefix: i32,
+    /// Maximum number of suffix mods.
+    pub max_suffix: i32,
+    /// Display text (localized).
+    pub text: String,
+}
+
+/// An item class category from `ItemClassCategories.datc64`.
+///
+/// Groups related item classes (e.g., "Weapons", "Armour", "Jewellery").
+#[derive(Debug, Clone)]
+pub struct ItemClassCategoryRow {
+    /// Internal ID (e.g., "Weapons", "Armour").
+    pub id: String,
+    /// Display text.
+    pub text: String,
+}
+
 /// A mod entry from `Mods.datc64`.
 #[derive(Debug, Clone)]
 pub struct ModRow {

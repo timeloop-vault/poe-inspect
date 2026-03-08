@@ -23,7 +23,7 @@ fn test_game_data(base_names: &[&str]) -> GameData {
         })
         .collect();
 
-    GameData::new(vec![], vec![], vec![], base_item_types, vec![], vec![], vec![])
+    GameData::new(vec![], vec![], vec![], vec![], base_item_types, vec![], vec![], vec![], vec![])
 }
 
 fn resolve_fixture(name: &str, gd: &GameData) -> poe_item::types::ResolvedItem {

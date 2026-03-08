@@ -8,7 +8,7 @@ Game data lookup tables built from parsed GGPK data.
 
 ## Scope
 
-- Hold all 7 extracted tables (poe-dat row structs, no reshaping)
+- Hold all 9 extracted tables (poe-dat row structs, no reshaping)
 - Build id-based indexes for fast string lookup
 - Resolve FK row indices to human-readable strings
 - Provide `GameData` struct (intended for `Arc<GameData>`)
@@ -36,16 +36,18 @@ src/
 | stats | `Vec<StatRow>` | `stat_by_id: HashMap<String, usize>` |
 | tags | `Vec<TagRow>` | `tag_by_id` |
 | item_classes | `Vec<ItemClassRow>` | `item_class_by_id` |
+| item_class_categories | `Vec<ItemClassCategoryRow>` | `item_class_category_by_id` |
 | base_item_types | `Vec<BaseItemTypeRow>` | `base_item_by_name` |
 | mod_families | `Vec<ModFamilyRow>` | — |
 | mod_types | `Vec<ModTypeRow>` | — |
 | mods | `Vec<ModRow>` | `mod_by_id` |
+| rarities | `Vec<RarityRow>` | `rarity_by_id` |
 | reverse_index | `Option<ReverseIndex>` | — |
 
 ### Loading
 
 ```rust
-let gd = poe_data::load(&dir)?;  // reads 7 datc64 files from dir
+let gd = poe_data::load(&dir)?;  // reads 9 datc64 files from dir
 let stat = gd.stat("base_maximum_life");
 let tag_name = gd.tag_id(some_fk);
 ```

@@ -153,6 +153,56 @@ pub fn extract_base_item_types(dat: &DatFile) -> Vec<BaseItemTypeRow> {
         .collect()
 }
 
+// ── Rarity ──────────────────────────────────────────────────────────────────
+// type Rarity { Id: string, MinMods: i32, MaxMods: i32, _: i32,
+//   MaxPrefix: i32, _: i32, MaxSuffix: i32, Color: string, Text: string @localized }
+mod rarity_offsets {
+    pub const ID: usize = 0;              // ref|string (8)
+    pub const MIN_MODS: usize = 8;        // i32 (4)
+    pub const MAX_MODS: usize = 12;       // i32 (4)
+    // _: i32 @ 16 (skip)
+    pub const MAX_PREFIX: usize = 20;     // i32 (4)
+    // _: i32 @ 24 (skip)
+    pub const MAX_SUFFIX: usize = 28;     // i32 (4)
+    // Color: string @ 32 (skip)
+    pub const TEXT: usize = 40;           // ref|string (8) @localized
+}
+
+/// Extract all rows from `Rarity.datc64`.
+pub fn extract_rarity(dat: &DatFile) -> Vec<RarityRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(RarityRow {
+                id: dat.read_string(row, rarity_offsets::ID)?,
+                min_mods: dat.read_i32(row, rarity_offsets::MIN_MODS).unwrap_or(0),
+                max_mods: dat.read_i32(row, rarity_offsets::MAX_MODS).unwrap_or(0),
+                max_prefix: dat.read_i32(row, rarity_offsets::MAX_PREFIX).unwrap_or(0),
+                max_suffix: dat.read_i32(row, rarity_offsets::MAX_SUFFIX).unwrap_or(0),
+                text: dat.read_string(row, rarity_offsets::TEXT).unwrap_or_default(),
+            })
+        })
+        .collect()
+}
+
+// ── ItemClassCategories ─────────────────────────────────────────────────────
+// type ItemClassCategories { Id: string @unique, Text: string, _: rid }
+mod item_class_categories_offsets {
+    pub const ID: usize = 0;              // ref|string (8)
+    pub const TEXT: usize = 8;            // ref|string (8)
+}
+
+/// Extract all rows from `ItemClassCategories.datc64`.
+pub fn extract_item_class_categories(dat: &DatFile) -> Vec<ItemClassCategoryRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(ItemClassCategoryRow {
+                id: dat.read_string(row, item_class_categories_offsets::ID)?,
+                text: dat.read_string(row, item_class_categories_offsets::TEXT).unwrap_or_default(),
+            })
+        })
+        .collect()
+}
+
 // ── Mods ────────────────────────────────────────────────────────────────────
 // Source: _Core.gql type Mods (PoE1 3.28 / Mirage)
 // Row size: 654 bytes. HASH16 is i16 = 2 bytes in datc64.

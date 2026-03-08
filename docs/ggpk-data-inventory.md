@@ -20,7 +20,8 @@ These are the tables required for item parsing and evaluation. Listed in depende
 |-------|------|------|---------|
 | `BaseItemTypes` | 5,334 | 2.4MB | Item base identification (Id, Name, ItemClass, DropLevel, ImplicitMods, Tags) |
 | `ItemClasses` | — | 21KB | Item class hierarchy (BodyArmour, Ring, etc.) |
-| `ItemClassCategories` | — | 4.5KB | Category grouping (Armour, Weapon, etc.) |
+| `ItemClassCategories` | — | 4.5KB | Category grouping (Armour, Weapon, etc.) ✅ extracted |
+| `Rarity` | ~4 | 358B | Max prefix/suffix counts per rarity ✅ extracted |
 | `WeaponTypes` | — | 15KB | Base stats for weapons (damage, speed, crit) |
 | `ArmourTypes` | — | 29KB | Base stats for armour (armour, evasion, ES) |
 | `ShieldTypes` | — | 2KB | Base stats for shields |
@@ -58,7 +59,7 @@ The stat description files live at `metadata/statdescriptions/*.txt` and use a c
 | `CurrencyItems` | 610KB | Currency item data |
 | `SkillGems` | 147KB | Gem data (if we evaluate gem items) |
 | `Flasks` | 6.5KB | Flask base data |
-| `Rarity` | 358B | Rarity enum (Normal/Magic/Rare/Unique) |
+| `Rarity` | 358B | ~~Moved to Core Item Data~~ (max prefix/suffix counts extracted) |
 | `Words` | 559KB | Word lists (used in magic item name generation) |
 
 ## Localization
