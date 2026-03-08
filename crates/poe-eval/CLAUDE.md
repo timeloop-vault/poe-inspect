@@ -10,7 +10,8 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 - Define rule/profile format for item evaluation
 - Score items against profiles (tier quality, stat weights, build relevance)
-- Crafting potential analysis: open affixes, deterministic craft suggestions
+- Crafting potential: open affixes, deterministic craft suggestions (see `docs/crafting-tiers.md`)
+- Probabilistic crafting strategy is OUT OF SCOPE — that's future `poe-craft` crate
 - Trade value estimation integration point (actual API calls are in `app`)
 - Friend/party wishlist matching
 
