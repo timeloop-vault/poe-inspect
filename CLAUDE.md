@@ -14,7 +14,7 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-query | **Done** | Generic dat reader + schema, PQL queries |
 | poe-dat (stat_desc) | **Done** | PEST parser + reverse index (15.5k patterns, 100% hit rate) |
 | poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
-| poe-data | Empty | Domain types, `GameData` struct, pre-indexed lookup tables |
+| poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
 | poe-item | Empty | Ctrl+Alt+C parser (section split → classify → typed parse) |
 | poe-eval | Empty | Tier coloring, profile scoring, crafting potential |
 | app | Future | Tauri v2 overlay (needs 7-point prototype validation) |
@@ -54,7 +54,8 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 - **Own the data pipeline**: Parse GGPK data directly (via poe-bundle) rather than depending on RePoE. Avoids 1000+ lines of reshaping code that v1 needed.
 - **Own the schema**: Community dat-schema is a starting point, not a dependency. We must be able to reverse-engineer new fields ourselves on league launch (see `docs/ggpk-data-inventory.md`).
 - **poe-bundle/poe-query are owned code**: Converted from submodules. Patched for PoE 3.21.2+ (MurmurHash64A, datc64, updated schema).
-- **poe-dat = "our queries"**: Not a new generic dat layer. Uses poe-query's DatReader to extract the ~15 specific tables we need. Can be used as a library or CLI.
+- **poe-dat owns DatFile**: The datc64 binary reader (`DatFile`) lives in poe-dat. poe-query depends on poe-dat and extends `DatFile` with spec-driven reading via `DatFileQueryExt` extension trait. One source of truth for the core reader.
+- **poe-dat = "our queries"**: Not a new generic dat layer. Typed table extractions for the ~15 specific tables we need, with compile-time field offsets. Can be used as a library or CLI.
 - **Section-first parser**: Split item text on `--------` separators → classify sections → parse with typed handlers.
 - **Iterative build order**: poe-dat → poe-data → poe-item → poe-eval → app. Prove each layer before building the next.
 - **`Arc<GameData>` pattern**: Single shared game data instance, loaded once, passed by reference.
@@ -66,15 +67,13 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 ```
 poe-bundle (GGPK extraction, Oodle FFI)
     ↓
-poe-query (generic dat reader + schema)
-    ↓
-poe-dat (our specific table extractions)
-    ↓
-poe-data (game-domain types + indexed lookups)
-    ↓
-poe-item (Ctrl+Alt+C parser)          poe-eval (rules + scoring)
-    ↓                                      ↓
-    └──────────── app (Tauri overlay) ─────┘
+poe-dat (datc64 binary reader + typed table extraction + stat descriptions)
+    ↑ depends on             ↓
+poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
+  reader, PQL queries)            ↓
+                              poe-item (Ctrl+Alt+C parser)    poe-eval (rules + scoring)
+                                  ↓                               ↓
+                                  └──────── app (Tauri overlay) ──┘
 ```
 
 ## Conventions

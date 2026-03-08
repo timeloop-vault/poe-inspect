@@ -530,8 +530,6 @@ name = "poe-data"
 version = "0.1.0"
 dependencies = [
  "poe-dat",
- "serde",
- "serde_json",
  "thiserror",
  "tracing",
 ]
