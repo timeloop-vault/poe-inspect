@@ -1,0 +1,29 @@
+Item Class: Maps
+Rarity: Rare
+Derelict Crate
+Forge of the Phoenix Map
+--------
+Map Tier: 16
+Item Quantity: +67% (augmented)
+Item Rarity: +30% (augmented)
+Monster Pack Size: +19% (augmented)
+Quality: +18% (augmented)
+--------
+Item Level: 82
+--------
+Monster Level: 83
+--------
+{ Implicit Modifier }
+Area is influenced by The Shaper — Unscalable Value (implicit)
+--------
+{ Prefix Modifier "Conflagrating" (Tier: 1) — Elemental, Fire, Ailment }
+All Monster Damage from Hits always Ignites — Unscalable Value
+(Ignite deals Fire Damage over time, based on the base Fire Damage of the Skill, for 4 seconds)
+{ Suffix Modifier "of Impotence" (Tier: 1) }
+Players have 25% less Area of Effect
+{ Suffix Modifier "of Giants" (Tier: 1) }
+Monsters have 100% increased Area of Effect
+{ Suffix Modifier "of Endurance" (Tier: 1) }
+Monsters gain an Endurance Charge on Hit
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

@@ -1,0 +1,26 @@
+Item Class: Warstaves
+Rarity: Magic
+Smouldering Foul Staff
+--------
+Warstaff
+Physical Damage: 65-121
+Elemental Damage: 18-33 (augmented)
+Critical Strike Chance: 7.50%
+Attacks per Second: 1.30
+Weapon Range: 1.3 metres
+--------
+Requirements:
+Level: 55
+Str: 94
+Int: 94
+--------
+Sockets: B-R-R B
+--------
+Item Level: 70
+--------
+{ Implicit Modifier }
++22% Chance to Block Attack Damage while wielding a Staff
+(Warstaves are considered Staves)
+--------
+{ Prefix Modifier "Smouldering" (Tier: 9) — Damage, Elemental, Fire, Attack }
+Adds 18(14-20) to 33(29-33) Fire Damage

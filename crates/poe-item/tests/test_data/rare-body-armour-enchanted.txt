@@ -1,0 +1,32 @@
+Item Class: Body Armours
+Rarity: Rare
+Agony Carapace
+Majestic Plate
+--------
+Armour: 890 (augmented)
+--------
+Requirements:
+Level: 68
+Str: 144
+--------
+Sockets: R-R-R-R
+--------
+Item Level: 100
+--------
+Quality does not increase Defences
+(Defences are Armour, Evasion Rating and Energy Shield) (enchant)
+Grants +1 to Maximum Life per 2% Quality (enchant)
+--------
+{ Prefix Modifier "Mammoth's" (Tier: 1) — Defences }
+39(39-42)% increased Armour
+16(16-17)% increased Stun and Block Recovery
+{ Prefix Modifier "Rotund" (Tier: 7) — Life }
++67(60-69) to maximum Life
+{ Prefix Modifier "Layered" (Tier: 7) — Defences }
+29(27-42)% increased Armour
+{ Suffix Modifier "of Numbing" (Tier: 1) — Physical }
+4(3-4)% additional Physical Damage Reduction
+{ Suffix Modifier "of the Tempest" (Tier: 4) — Elemental, Lightning, Resistance }
++32(30-35)% to Lightning Resistance
+--------
+Redeemer Item

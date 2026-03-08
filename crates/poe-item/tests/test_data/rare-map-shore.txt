@@ -1,0 +1,30 @@
+Item Class: Maps
+Rarity: Rare
+Horror Secrets
+Shore Map
+--------
+Map Tier: 6
+Item Quantity: +81% (augmented)
+Item Rarity: +48% (augmented)
+Monster Pack Size: +31% (augmented)
+--------
+Item Level: 75
+--------
+Monster Level: 73
+--------
+{ Prefix Modifier "Overlord's" (Tier: 1) — Attack, Caster, Speed }
+Unique Boss deals 20% increased Damage
+Unique Boss has 25% increased Attack and Cast Speed
+{ Prefix Modifier "Empowered" (Tier: 1) — Elemental, Fire, Cold, Lightning, Ailment }
+Monsters have a 15% chance to Ignite, Freeze and Shock on Hit
+{ Prefix Modifier "Shocking" (Tier: 1) — Damage, Physical, Elemental, Lightning }
+Monsters deal 88(70-89)% extra Physical Damage as Lightning
+{ Suffix Modifier "of Enervation" (Tier: 1) }
+Monsters steal Power, Frenzy and Endurance charges on Hit
+{ Suffix Modifier "of Fatigue" (Tier: 1) }
+Players have 30% less Cooldown Recovery Rate
+{ Suffix Modifier "of Temporal Chains" (Tier: 1) — Caster, Curse }
+Players are Cursed with Temporal Chains
+(Temporal Chains is a Hex which reduces Action Speed by 15%, or 9% on Rare or Unique targets, and makes other effects on the target expire 40% slower. It has 50% less effect on Players and lasts 5 seconds)
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

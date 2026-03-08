@@ -1,0 +1,39 @@
+Item Class: Gloves
+Rarity: Rare
+Maelström Fingers
+Dragonscale Gauntlets
+--------
+Quality: +20% (augmented)
+Armour: 230 (augmented)
+Evasion Rating: 230 (augmented)
+--------
+Requirements:
+Level: 70
+Str: 155
+Dex: 68
+Int: 115
+--------
+Sockets: B-R-B-R
+--------
+Item Level: 85
+--------
+{ Searing Exarch Implicit Modifier (Greater) }
+While a Unique Enemy is in your Presence, +18(17-19)% to Fire Damage over Time Multiplier (implicit)
+{ Eater of Worlds Implicit Modifier (Lesser) }
+33(33-35)% increased Evasion Rating from Equipped Helmet and Boots (implicit)
+--------
+{ Prefix Modifier "Virile" (Tier: 2) — Life }
++71(70-79) to maximum Life
+{ Prefix Modifier "Beetle's" (Tier: 6) — Defences }
+10(6-13)% increased Armour and Evasion
+6(6-7)% increased Stun and Block Recovery
+{ Prefix Modifier "Brawler's" (Tier: 6) — Defences }
+37(27-42)% increased Armour and Evasion
+{ Suffix Modifier "of the Essence" — Attack, Speed }
+18(17-18)% increased Attack Speed
+{ Suffix Modifier "of the Storm" (Tier: 6) — Elemental, Lightning, Resistance }
++18(18-23)% to Lightning Resistance
+{ Master Crafted Suffix Modifier "of the Order" — Attack, Caster, Speed }
+36(31-36)% increased Attack and Cast Speed while Focused (crafted)
+Searing Exarch Item
+Eater of Worlds Item

@@ -1,0 +1,12 @@
+Item Class: Jewels
+Rarity: Magic
+Cerebral Cobalt Jewel of Grounding
+--------
+Item Level: 50
+--------
+{ Prefix Modifier "Cerebral" (Tier: 1) — Mana }
+2(2-3)% increased Mana Reservation Efficiency of Skills
+{ Suffix Modifier "of Grounding" (Tier: 1) — Elemental, Lightning, Resistance }
++12(12-15)% to Lightning Resistance
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

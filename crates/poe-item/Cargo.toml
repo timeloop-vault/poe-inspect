@@ -11,5 +11,7 @@ workspace = true
 
 [dependencies]
 poe-data = { path = "../poe-data" }
+pest = "2"
+pest_derive = "2"
 thiserror.workspace = true
 tracing.workspace = true

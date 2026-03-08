@@ -1,0 +1,11 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Filled Coffin
+--------
+Monster: Merveil's Attendant
+Corpse Level: 83
+Monster Category: Demon
+--------
++1 Explicit Modifier (implicit)
+--------
+Right click on this item to use it while in the Necropolis to add it to the Necropolis Morgue.

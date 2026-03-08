@@ -1,0 +1,23 @@
+Item Class: Mana Flasks
+Rarity: Magic
+Enduring Divine Mana Flask of Obstruction
+--------
+Recovers 476 (augmented) Mana over 5 Seconds
+Consumes 8 of 42 Charges on use
+Currently has 42 Charges
+--------
+Requirements:
+Level: 60
+--------
+Item Level: 62
+--------
+{ Prefix Modifier "Enduring" (Tier: 1) — Mana }
+66% reduced Amount Recovered
+Effect is not removed when Unreserved Mana is Filled
+Effect does not Queue
+(The duration of this flask's effect will still expire while other flask effects are active, even if they are from the same flask)
+{ Suffix Modifier "of Obstruction" (Tier: 3) — Caster }
+Hinders nearby Enemies with 25(23-28)% reduced Movement Speed if used while not on Full Mana
+(Hinder reduces movement speed for 4 seconds)
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

@@ -1,0 +1,30 @@
+Item Class: Rings
+Rarity: Unique
+Ventor's Gamble
+Gold Ring
+--------
+Requirements:
+Level: 65
+--------
+Item Level: 75
+--------
+{ Implicit Modifier }
+15(6-15)% increased Rarity of Items found (implicit)
+--------
+{ Unique Modifier — Life }
++44(0-60) to maximum Life
+{ Unique Modifier — Elemental, Fire, Resistance }
++4(-25-50)% to Fire Resistance
+{ Unique Modifier — Elemental, Cold, Resistance }
+-9(-25-50)% to Cold Resistance
+{ Unique Modifier — Elemental, Lightning, Resistance }
++40(-25-50)% to Lightning Resistance
+{ Unique Modifier }
+1(10--10)% reduced Quantity of Items found
+{ Unique Modifier }
+40(-40-40)% increased Rarity of Items found
+--------
+In a blaze of glory,
+An anomaly defying all odds
+The "unkillable" beast met the divine
+And Ventor met his latest trophy.

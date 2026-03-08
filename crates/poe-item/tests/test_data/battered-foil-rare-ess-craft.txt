@@ -1,0 +1,38 @@
+Item Class: Thrusting One Hand Swords
+Rarity: Rare
+Mind Scalpel
+Battered Foil
+--------
+One Handed Sword
+Quality: +20% (augmented)
+Physical Damage: 13-24 (augmented)
+Elemental Damage: 11-24 (augmented)
+Critical Strike Chance: 8.16% (augmented)
+Attacks per Second: 1.77 (augmented)
+Weapon Range: 1.4 metres
+--------
+Requirements:
+Level: 70
+Str: 111
+Dex: 155
+Int: 23
+--------
+Sockets: R-R-G
+--------
+Item Level: 84
+--------
+{ Implicit Modifier — Damage, Critical }
++25% to Global Critical Strike Multiplier (implicit)
+--------
+{ Prefix Modifier "Icy" (Tier: 8) — Damage, Elemental, Cold, Attack }
+Adds 11(11-15) to 24(23-26) Cold Damage
+{ Master Crafted Prefix Modifier "Vagan's" — Attack }
+Hits can't be Evaded — Unscalable Value (crafted)
+{ Suffix Modifier "of Incision" (Tier: 1) — Attack, Critical }
+36(35-38)% increased Critical Strike Chance
+{ Suffix Modifier "of Poison" (Tier: 3) — Damage, Chaos, Attack, Ailment }
+26(21-30)% increased Damage with Poison
+20% chance to Poison on Hit
+(Poison deals Chaos Damage over time, based on the base Physical and Chaos Damage of the Skill. Multiple instances of Poison stack)
+{ Suffix Modifier "of Acclaim" (Tier: 4) — Attack, Speed }
+18(17-19)% increased Attack Speed

@@ -1,0 +1,27 @@
+Item Class: Skill Gems
+Rarity: Gem
+Leap Slam
+--------
+Attack, AoE, Movement, Travel, Slam, Melee
+Level: 17
+Cost: 10 Mana
+Attack Damage: 142.1% of base
+Effectiveness of Added Damage: 142%
+--------
+Requirements:
+Level: 63
+Str: 140
+--------
+Jump through the air, damaging and knocking back enemies with your weapon where you land. Enemies you would land on are pushed out of the way. Requires an Axe, Mace, Sceptre, Sword or Staff. Cannot be supported by Multistrike.
+--------
+36% increased Stun Duration against Enemies that are on Full Life
++0.55 seconds to Attack Time
+Base radius is 1.5 metres
+Damaging Hits always Stun Enemies that are on Full Life
+
+Additional Effects From Quality:
+0(0-40)% increased Stun Duration against Enemies that are on Full Life
+--------
+Experience: 9 031 575/29 817 117
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.

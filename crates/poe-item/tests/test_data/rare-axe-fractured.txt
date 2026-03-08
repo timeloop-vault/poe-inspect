@@ -1,0 +1,36 @@
+Item Class: Two Hand Axes
+Rarity: Rare
+Eagle Etcher
+Karui Chopper
+--------
+Two Handed Axe
+Quality: +20% (augmented)
+Physical Damage: 409-651 (augmented)
+Critical Strike Chance: 6.15% (augmented)
+Attacks per Second: 1.05
+Weapon Range: 13
+--------
+Requirements:
+Level: 66
+Str: 151
+Dex: 43
+--------
+Sockets: R R-R-R-R
+--------
+Item Level: 85
+--------
+{ Prefix Modifier "Gleaming" (Tier: 5) — Damage, Physical, Attack }
+Adds 19(14-21) to 34(32-38) Physical Damage (fractured)
+{ Prefix Modifier "Merciless" (Tier: 1) — Damage, Physical, Attack }
+172(170-179)% increased Physical Damage
+{ Prefix Modifier "Thirsty" (Tier: 1) — Mana, Physical, Attack }
+0.34(0.2-0.4)% of Physical Attack Damage Leeched as Mana
+(Leeched Mana is recovered over time. Multiple Leeches can occur simultaneously, up to a maximum rate)
+{ Suffix Modifier "of Piercing" (Tier: 4) — Attack, Critical }
+23(20-24)% increased Critical Strike Chance
+{ Suffix Modifier "of Haemophilia" (Tier: 2) — Damage, Physical, Attack, Ailment }
+Attacks have 25% chance to cause Bleeding
+(Bleeding deals Physical Damage over time, based on the base Physical Damage of the Skill. Damage is higher while moving)
+38(31-40)% increased Damage with Bleeding
+--------
+Fractured Item

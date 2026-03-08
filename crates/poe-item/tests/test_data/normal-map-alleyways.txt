@@ -1,0 +1,11 @@
+Item Class: Maps
+Rarity: Normal
+Alleyways Map
+--------
+Map Tier: 1
+--------
+Item Level: 68
+--------
+Monster Level: 68
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.

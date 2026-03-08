@@ -1,0 +1,36 @@
+Item Class: Maps
+Rarity: Rare
+Desolate Bayou
+Abomination Map
+--------
+Map Tier: 17
+Item Quantity: +115% (augmented)
+Item Rarity: +107% (augmented)
+Monster Pack Size: +34% (augmented)
+More Maps: +50% (augmented)
+More Scarabs: +103% (augmented)
+--------
+Item Level: 85
+--------
+Monster Level: 84
+--------
+{ Prefix Modifier "Sabotaging" (Tier: 1) }
+Player Skills which Throw Mines throw 1 fewer Mine
+Player Skills which Throw Traps throw 1 fewer Trap
+{ Prefix Modifier "Conflagrating" — Elemental, Fire, Ailment }
+All Monster Damage from Hits always Ignites — Unscalable Value
+(Ignite deals Fire Damage over time, based on the base Fire Damage of the Skill, for 4 seconds)
+{ Prefix Modifier "Oppressive" (Tier: 1) }
+Monsters have +100% chance to Suppress Spell Damage
+(50% of Damage from Suppressed Hits and Ailments they inflict is prevented)
+{ Suffix Modifier "of Impotence" (Tier: 1) }
+Players have 27(30-25)% less Area of Effect
+{ Suffix Modifier "of Elemental Weakness" — Caster, Curse }
+Players are Cursed with Elemental Weakness
+(Elemental Weakness is a Hex which inficts -15% to all Elemental Resistances. It lasts 8 seconds)
+{ Suffix Modifier "of Transience" (Tier: 1) }
+Buffs on Players expire 100% faster
+--------
+Travel to this Map by using it in a personal Map Device. Maps can only be used once.
+--------
+Modifiable only with Chaos Orbs, Vaal Orbs, Delirium Orbs and Chisels

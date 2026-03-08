@@ -549,6 +549,8 @@ dependencies = [
 name = "poe-item"
 version = "0.1.0"
 dependencies = [
+ "pest",
+ "pest_derive",
  "poe-data",
  "thiserror",
  "tracing",

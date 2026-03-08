@@ -1,0 +1,39 @@
+Item Class: Boots
+Rarity: Rare
+Loath Spur
+Murder Boots
+--------
+Quality: +20% (augmented)
+Evasion Rating: 250 (augmented)
+Energy Shield: 37 (augmented)
+--------
+Requirements:
+Level: 70
+Str: 155
+Dex: 98
+Int: 155
+--------
+Sockets: R-G-R-B
+--------
+Item Level: 75
+--------
+{ Searing Exarch Implicit Modifier (Greater) }
+19(18-20)% chance to Avoid being Stunned (implicit)
+{ Eater of Worlds Implicit Modifier (Greater) — Life }
+While a Unique Enemy is in your Presence, Regenerate 0.3% of Life per second per Endurance Charge (implicit)
+--------
+{ Prefix Modifier "Blue" (Tier: 2) — Mana }
++68(65-68) to maximum Mana
+{ Prefix Modifier "Cheetah's" (Tier: 2) — Speed }
+30% increased Movement Speed
+{ Prefix Modifier "Prior's" (Tier: 1) — Life, Defences, Energy Shield }
++11(11-15) to maximum Energy Shield
++25(24-28) to maximum Life
+{ Suffix Modifier "of the Lynx" (Tier: 8) — Attribute }
++14(13-17) to Dexterity
+{ Suffix Modifier "of the Yeti" (Tier: 5) — Elemental, Cold, Resistance }
++27(24-29)% to Cold Resistance
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 2) — Elemental, Lightning, Resistance }
++22(21-28)% to Lightning Resistance (crafted)
+Searing Exarch Item
+Eater of Worlds Item
