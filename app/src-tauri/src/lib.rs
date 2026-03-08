@@ -444,6 +444,8 @@ fn load_game_data() -> GameData {
         std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join("data"))),
+        // Committed game data in the repo (dev + release)
+        Some(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../crates/poe-data/data")),
         Some(std::env::temp_dir().join("poe-dat")),
     ];
 
