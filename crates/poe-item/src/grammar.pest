@@ -139,10 +139,7 @@ mod_slot = {
 
 // Influence implicit tier: (Greater), (Grand), (Exceptional), etc.
 mod_influence_tier       = { " (" ~ mod_influence_tier_value ~ ")" }
-mod_influence_tier_value = {
-    "Lesser" | "Minor" | "Greater" | "Grand"
-  | "Exceptional" | "Exquisite" | "Perfect"
-}
+mod_influence_tier_value = @{ (!(")" | NEWLINE) ~ ANY)+ }
 
 mod_name       = { " \"" ~ mod_name_inner ~ "\"" }
 mod_name_inner = @{ (!"\"" ~ ANY)+ }

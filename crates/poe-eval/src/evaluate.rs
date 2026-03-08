@@ -175,12 +175,9 @@ fn count_mods_in_slot(item: &ResolvedItem, slot: ModSlot) -> u32 {
 /// Calculate open mod slots. Returns 0 if we can't determine the max
 /// (e.g., missing game data or non-applicable rarity).
 fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 {
-    let rarity_id = match item.header.rarity {
-        poe_item::types::Rarity::Normal => "Normal",
-        poe_item::types::Rarity::Magic => "Magic",
-        poe_item::types::Rarity::Rare => "Rare",
-        poe_item::types::Rarity::Unique => "Unique",
-        _ => return 0,
+    let rarity_str = format!("{:?}", item.header.rarity);
+    let Some(rarity_id) = poe_data::domain::rarity_to_ggpk_id(&rarity_str) else {
+        return 0;
     };
 
     let max = match slot {

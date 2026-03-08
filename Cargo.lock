@@ -538,9 +538,11 @@ dependencies = [
 name = "poe-eval"
 version = "0.1.0"
 dependencies = [
+ "poe-dat",
  "poe-data",
  "poe-item",
  "serde",
+ "serde_json",
  "thiserror",
  "tracing",
 ]

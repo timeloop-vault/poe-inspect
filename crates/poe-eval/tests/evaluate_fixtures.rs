@@ -1,7 +1,8 @@
 use poe_dat::tables::BaseItemTypeRow;
 use poe_data::GameData;
 use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatusValue};
-use poe_eval::tier::{self, TierQuality};
+use poe_eval::tier;
+use poe_eval::TierQuality;
 use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
 use poe_eval::{evaluate, score};

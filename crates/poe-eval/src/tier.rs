@@ -1,26 +1,11 @@
 //! Tier quality analysis for item modifiers.
 //!
 //! Maps mod tiers (from Ctrl+Alt+C `{ }` headers) to quality levels
-//! for visual feedback in the overlay. Lower tier number = better roll.
+//! for visual feedback in the overlay. Uses `poe-data`'s domain knowledge
+//! for tier classification — this module is pure evaluation logic.
 
+use poe_data::domain::{classify_tier, TierQuality};
 use poe_item::types::{ModSlot, ModSource, ModTierKind, ResolvedItem, ResolvedMod};
-
-/// Quality level for a mod tier.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum TierQuality {
-    /// Tier 1 — best possible.
-    Best,
-    /// Tier 2 — near-best.
-    Great,
-    /// Tier 3-4 — good.
-    Good,
-    /// Tier 5-6 — mediocre.
-    Mid,
-    /// Tier 7+ — low.
-    Low,
-    /// No tier info available (enchants, implicits without tier, etc.)
-    Unknown,
-}
 
 /// Tier analysis for a single mod.
 #[derive(Debug, Clone)]
@@ -56,17 +41,6 @@ pub struct QualityCounts {
     pub good: u32,
     pub mid: u32,
     pub low: u32,
-}
-
-/// Classify a tier number into a quality level.
-fn classify_tier(tier: u32) -> TierQuality {
-    match tier {
-        1 => TierQuality::Best,
-        2 => TierQuality::Great,
-        3 | 4 => TierQuality::Good,
-        5 | 6 => TierQuality::Mid,
-        _ => TierQuality::Low,
-    }
 }
 
 /// Analyze a single mod's tier.
