@@ -1,0 +1,105 @@
+//! Typed structs mirroring specific dat table rows.
+//!
+//! Only fields needed for item evaluation are included.
+//! Field offsets are computed from the dat-schema GQL definitions.
+
+/// A stat definition from `Stats.datc64`.
+#[derive(Debug, Clone)]
+pub struct StatRow {
+    /// Internal stat ID (e.g., "base_maximum_life").
+    pub id: String,
+    /// Whether this stat is local to the item.
+    pub is_local: bool,
+    /// Whether this stat is local to the weapon.
+    pub is_weapon_local: bool,
+    /// Whether this stat is virtual (computed, not stored).
+    pub is_virtual: bool,
+}
+
+/// A tag from `Tags.datc64`.
+#[derive(Debug, Clone)]
+pub struct TagRow {
+    /// Internal tag ID (e.g., "default", "shield", "ring").
+    pub id: String,
+}
+
+/// A mod family from `ModFamily.datc64`.
+#[derive(Debug, Clone)]
+pub struct ModFamilyRow {
+    /// Family ID (e.g., "IncreasedLife").
+    pub id: String,
+}
+
+/// A mod type entry from `ModType.datc64`.
+#[derive(Debug, Clone)]
+pub struct ModTypeRow {
+    /// Display name (e.g., "Prefix", "Suffix").
+    pub name: String,
+}
+
+/// An item class from `ItemClasses.datc64`.
+#[derive(Debug, Clone)]
+pub struct ItemClassRow {
+    /// Internal ID (e.g., "LifeFlask", "BodyArmour").
+    pub id: String,
+    /// Display name (e.g., "Life Flasks", "Body Armours").
+    pub name: String,
+    /// FK to ItemClassCategories (row index, None if null).
+    pub category: Option<u64>,
+    /// Whether the item can have veiled mods.
+    pub can_have_veiled_mods: bool,
+}
+
+/// A base item type from `BaseItemTypes.datc64`.
+#[derive(Debug, Clone)]
+pub struct BaseItemTypeRow {
+    /// Metadata path (e.g., "Metadata/Items/Armours/Boots/BootsStr1").
+    pub id: String,
+    /// FK to ItemClasses (row index).
+    pub item_class: Option<u64>,
+    /// Grid width in inventory.
+    pub width: i32,
+    /// Grid height in inventory.
+    pub height: i32,
+    /// Display name (e.g., "Iron Greaves").
+    pub name: String,
+    /// Minimum drop level.
+    pub drop_level: i32,
+    /// FK list to Mods (implicit mod row indices).
+    pub implicit_mods: Vec<u64>,
+    /// FK list to Tags (tag row indices).
+    pub tags: Vec<u64>,
+}
+
+/// A mod entry from `Mods.datc64`.
+#[derive(Debug, Clone)]
+pub struct ModRow {
+    /// Internal mod ID (e.g., "Strength1").
+    pub id: String,
+    /// FK to ModType (row index).
+    pub mod_type: Option<u64>,
+    /// Required item level.
+    pub level: i32,
+    /// Up to 6 stat keys (FK to Stats, None if unused).
+    pub stat_keys: [Option<u64>; 6],
+    /// Generation domain (prefix/suffix/etc.) as raw enum index.
+    pub domain: u32,
+    /// Mod display name (e.g., "Hale", "of the Yeti").
+    pub name: String,
+    /// Generation type as raw enum index (1=prefix, 2=suffix, 3=unique, etc.).
+    pub generation_type: u32,
+    /// FK list to ModFamily (row indices).
+    pub families: Vec<u64>,
+    /// Stat value ranges: [min, max] for each of the 6 stats.
+    pub stat_ranges: [(i32, i32); 6],
+    /// Spawn weight tags (FK list to Tags).
+    pub spawn_weight_tags: Vec<u64>,
+    /// Spawn weight values (parallel with spawn_weight_tags).
+    pub spawn_weight_values: Vec<i32>,
+    /// Tags applied to this mod (FK list to Tags).
+    pub tags: Vec<u64>,
+    /// Whether this mod is essence-only.
+    pub is_essence_only: bool,
+    /// Maximum level (0 if no max).
+    pub max_level: i32,
+}
