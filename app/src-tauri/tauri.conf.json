@@ -14,8 +14,8 @@
       {
         "label": "overlay",
         "title": "PoE Inspect",
-        "width": 420,
-        "height": 500,
+        "width": 440,
+        "height": 900,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,

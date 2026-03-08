@@ -1,10 +1,37 @@
-import { useState, useEffect, useCallback } from "preact/hooks";
+import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { PhysicalSize } from "@tauri-apps/api/dpi";
+import { ItemOverlay } from "./components/ItemOverlay";
+import { mockItems } from "./mock-data";
+
+/** Resize the Tauri window to fit the rendered content */
+function useAutoResize(deps: unknown[]) {
+	const ref = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+
+		// Wait one frame for layout to settle
+		requestAnimationFrame(() => {
+			const rect = el.getBoundingClientRect();
+			const win = getCurrentWebviewWindow();
+			win.setSize(new PhysicalSize(
+				Math.ceil(rect.width * window.devicePixelRatio),
+				Math.ceil(rect.height * window.devicePixelRatio),
+			));
+		});
+	}, deps);
+
+	return ref;
+}
 
 export function App() {
 	const [itemText, setItemText] = useState<string | null>(null);
+	const [mockIndex, setMockIndex] = useState(0);
+	const [showMock, setShowMock] = useState(true);
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
@@ -14,6 +41,7 @@ export function App() {
 	useEffect(() => {
 		const unlistenCapture = listen<string>("item-captured", (event) => {
 			setItemText(event.payload);
+			setShowMock(false);
 		});
 
 		const unlistenDismiss = listen("overlay-dismissed", () => {
@@ -39,25 +67,55 @@ export function App() {
 		};
 	}, [dismiss]);
 
-	if (!itemText) {
+	// Auto-resize window to fit content
+	const containerRef = useAutoResize([itemText, mockIndex, showMock]);
+
+	// When we have raw clipboard text (real Ctrl+I capture), show it
+	if (itemText && !showMock) {
 		return (
-			<div class="overlay-panel overlay-idle">
-				<div class="idle-message">
-					<h3>PoE Inspect</h3>
-					<p>
-						Press <kbd>Ctrl+I</kbd> over an item in PoE
-					</p>
-				</div>
+			<div class="overlay-panel" ref={containerRef}>
+				<button type="button" class="dismiss-btn" onClick={dismiss}>
+					&times;
+				</button>
+				<pre class="item-text">{itemText}</pre>
 			</div>
 		);
 	}
 
+	// Mock data mode: show styled item overlay
+	const currentItem = mockItems[mockIndex];
+
 	return (
-		<div class="overlay-panel">
-			<button type="button" class="dismiss-btn" onClick={dismiss}>
+		<div class="overlay-panel" ref={containerRef}>
+			<button
+				type="button"
+				class="dismiss-btn"
+				onClick={() => {
+					setShowMock(false);
+					dismiss();
+				}}
+			>
 				&times;
 			</button>
-			<pre class="item-text">{itemText}</pre>
+
+			{/* Item selector for cycling mock items */}
+			<div class="item-selector">
+				{mockItems.map((item, i) => (
+					<button
+						key={item.name}
+						type="button"
+						class={i === mockIndex ? "active" : ""}
+						onClick={() => {
+							setMockIndex(i);
+							setShowMock(true);
+						}}
+					>
+						{item.name}
+					</button>
+				))}
+			</div>
+
+			{currentItem !== undefined && <ItemOverlay item={currentItem} />}
 		</div>
 	);
 }
