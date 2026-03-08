@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import {
 	type Profile,
 	type Weight,
@@ -76,6 +78,43 @@ export function ProfileSettings() {
 		]);
 	}, [persist]);
 
+	const importProfile = useCallback(async () => {
+		const path = await open({
+			filters: [{ name: "JSON", extensions: ["json"] }],
+			multiple: false,
+		});
+		if (!path) return;
+		try {
+			const text = await readTextFile(path);
+			const data = JSON.parse(text) as Partial<Profile>;
+			if (!data.name) throw new Error("Invalid profile: missing name");
+			const imported: Profile = {
+				id: String(Date.now()),
+				name: data.name,
+				active: false,
+				modWeights: data.modWeights ?? {},
+				tierColors: data.tierColors ?? { ...defaultTierColors },
+				highlightWeights: data.highlightWeights ?? true,
+				dimIgnored: data.dimIgnored ?? true,
+			};
+			persist([...profilesRef.current, imported]);
+		} catch (e) {
+			console.error("Failed to import profile:", e);
+		}
+	}, [persist]);
+
+	const exportProfile = useCallback(async (id: string) => {
+		const profile = profilesRef.current.find((p) => p.id === id);
+		if (!profile) return;
+		const path = await save({
+			defaultPath: `${profile.name.replace(/[^a-zA-Z0-9_-]/g, "_")}.json`,
+			filters: [{ name: "JSON", extensions: ["json"] }],
+		});
+		if (!path) return;
+		const { id: _id, active: _active, ...exportData } = profile;
+		await writeTextFile(path, JSON.stringify(exportData, null, 2));
+	}, []);
+
 	const renameProfile = useCallback((id: string, name: string) => {
 		persist(profilesRef.current.map((p) => (p.id === id ? { ...p, name } : p)));
 	}, [persist]);
@@ -109,7 +148,7 @@ export function ProfileSettings() {
 				<button type="button" class="btn btn-primary" onClick={addProfile}>
 					+ New
 				</button>
-				<button type="button" class="btn">Import</button>
+				<button type="button" class="btn" onClick={importProfile}>Import</button>
 			</div>
 
 			<div class="profile-list">
@@ -148,6 +187,7 @@ export function ProfileSettings() {
 							<button
 								type="button"
 								class="btn btn-small"
+								onClick={() => exportProfile(profile.id)}
 								title="Export"
 							>
 								Export
