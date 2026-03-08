@@ -7,23 +7,28 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
-/// Read the overlay position setting from the store ("cursor" or "inventoryLeft").
+/// Read the overlay position setting from the store ("cursor" or "panel").
 fn read_overlay_position(app: &tauri::AppHandle) -> String {
-    app.store("settings.json")
+    let val = app
+        .store("settings.json")
         .ok()
         .and_then(|store| {
             store
                 .get("general")
                 .and_then(|v| v.get("overlayPosition").and_then(|v| v.as_str().map(String::from)))
         })
-        .unwrap_or_else(|| "cursor".into())
+        .unwrap_or_else(|| "cursor".into());
+    // Migrate legacy value
+    if val == "inventoryLeft" { "panel".into() } else { val }
 }
 
-/// Calculate overlay position for "inventoryLeft" mode.
+/// Calculate overlay position for "panel" mode.
 /// PoE's side panels scale with screen height: width = height * (986/1600).
 /// Source: Awakened PoE Trade (OverlayWindow.vue `poePanelWidth`).
-/// Places the overlay to the left of the inventory panel, top-aligned.
-fn inventory_left_position(window: &tauri::WebviewWindow) -> (i32, i32) {
+/// Detects which panel is open based on cursor position:
+/// - Cursor on right half → inventory open → overlay left of inventory
+/// - Cursor on left half → stash open → overlay right of stash
+fn panel_position(window: &tauri::WebviewWindow) -> (i32, i32) {
     let (cursor_x, cursor_y) = get_cursor_position();
 
     // Find monitor containing cursor
@@ -53,14 +58,21 @@ fn inventory_left_position(window: &tauri::WebviewWindow) -> (i32, i32) {
 
     // PoE side panel width = screen_height * 986/1600 (from Awakened Trade)
     let panel_width = (mon_h as f64 * (986.0 / 1600.0)) as i32;
+    let mid_x = mon_x + mon_w / 2;
 
-    // X: immediately left of the inventory panel (right side of screen)
-    let x = mon_x + mon_w - panel_width - win_size.width as i32;
-    // Y: top-aligned (matching Awakened Trade behavior)
+    let x = if cursor_x >= mid_x {
+        // Right half: inventory open → place overlay left of inventory panel
+        mon_x + mon_w - panel_width - win_size.width as i32
+    } else {
+        // Left half: stash open → place overlay right of stash panel
+        mon_x + panel_width
+    };
+
+    // Y: top-aligned
     let y = mon_y;
 
     // Clamp to monitor bounds
-    let x = x.max(mon_x);
+    let x = x.max(mon_x).min(mon_x + mon_w - win_size.width as i32);
     let y = y
         .max(mon_y)
         .min(mon_y + mon_h - win_size.height as i32);
@@ -70,8 +82,8 @@ fn inventory_left_position(window: &tauri::WebviewWindow) -> (i32, i32) {
 
 /// Position the overlay window based on the configured mode.
 fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
-    let (x, y) = if mode == "inventoryLeft" {
-        inventory_left_position(window)
+    let (x, y) = if mode == "panel" {
+        panel_position(window)
     } else {
         let (cx, cy) = get_cursor_position();
         clamp_to_monitor(window, cx, cy)

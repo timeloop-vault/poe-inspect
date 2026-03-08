@@ -9,7 +9,7 @@ import { load } from "@tauri-apps/plugin-store";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-export type OverlayPosition = "cursor" | "inventoryLeft";
+export type OverlayPosition = "cursor" | "panel";
 
 export interface GeneralSettings {
 	overlayScale: number;

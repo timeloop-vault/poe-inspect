@@ -108,8 +108,9 @@ export function GeneralSettings() {
 					<div class="setting-label">
 						Where to show the overlay
 						<div class="setting-description">
-							"At cursor" follows your mouse. "Left of inventory" places it
-							next to the PoE inventory panel (like Awakened Trade).
+							"At cursor" follows your mouse. "Next to panel" places it
+							beside the inventory or stash panel depending on which side
+							your cursor is on (like Awakened Trade).
 						</div>
 					</div>
 					<div class="setting-radio-group">
@@ -126,10 +127,10 @@ export function GeneralSettings() {
 							<input
 								type="radio"
 								name="overlay-position"
-								checked={settings.overlayPosition === "inventoryLeft"}
-								onChange={() => update({ overlayPosition: "inventoryLeft" })}
+								checked={settings.overlayPosition === "panel"}
+								onChange={() => update({ overlayPosition: "panel" })}
 							/>
-							Left of inventory
+							Next to panel
 						</label>
 					</div>
 				</div>
