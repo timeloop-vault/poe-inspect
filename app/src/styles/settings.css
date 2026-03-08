@@ -280,6 +280,11 @@
 	cursor: pointer;
 	padding: 2px 4px;
 	border-radius: 3px;
+	background: none;
+	border: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
 }
 
 .profile-activate:hover {
@@ -336,4 +341,182 @@
 .btn-small {
 	padding: 4px 8px;
 	font-size: 11px;
+}
+
+/* --- Scoring rule editor --- */
+
+.scoring-rule {
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	padding: 10px 12px;
+	margin-bottom: 6px;
+}
+
+.scoring-rule-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.scoring-rule-label {
+	flex: 1;
+}
+
+.scoring-rule-label input {
+	width: 100%;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid transparent;
+	border-radius: 3px;
+	padding: 3px 8px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 12px;
+}
+
+.scoring-rule-label input:focus {
+	border-color: var(--poe-border);
+	outline: none;
+}
+
+.scoring-rule-weight {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.scoring-rule-weight input {
+	width: 52px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	padding: 3px 6px;
+	color: var(--tier-2-3);
+	font-family: "Consolas", monospace;
+	font-size: 12px;
+	text-align: right;
+}
+
+.scoring-rule-weight input:focus {
+	border-color: var(--poe-accent);
+	outline: none;
+}
+
+.scoring-rule-weight span {
+	font-size: 10px;
+	color: var(--poe-text-dim);
+}
+
+.scoring-rule-body {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid rgba(70, 59, 43, 0.3);
+}
+
+/* --- Predicate editor fields --- */
+
+.predicate-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: flex-end;
+}
+
+.pred-field {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+}
+
+.pred-field-label {
+	font-size: 10px;
+	color: var(--poe-text-dim);
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+.pred-select,
+.pred-input {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 12px;
+}
+
+.pred-select:focus,
+.pred-input:focus {
+	border-color: var(--poe-accent);
+	outline: none;
+}
+
+.pred-select {
+	cursor: pointer;
+	min-width: 64px;
+}
+
+.pred-input-number {
+	width: 64px;
+}
+
+.pred-text-wrapper {
+	position: relative;
+}
+
+.pred-text-wrapper .pred-input {
+	width: 180px;
+}
+
+.pred-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	max-height: 160px;
+	overflow-y: auto;
+	background: rgba(12, 10, 8, 0.98);
+	border: 1px solid var(--poe-border);
+	border-top: none;
+	border-radius: 0 0 3px 3px;
+	z-index: 100;
+}
+
+.pred-dropdown-item {
+	padding: 4px 8px;
+	font-size: 11px;
+	color: var(--poe-text);
+	cursor: pointer;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pred-dropdown-item:hover,
+.pred-dropdown-item.selected {
+	background: rgba(175, 96, 37, 0.2);
+	color: var(--poe-header);
+}
+
+/* --- Predicate type selector --- */
+
+.pred-type-select {
+	width: 100%;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	margin-bottom: 8px;
+}
+
+.pred-type-select:focus {
+	border-color: var(--poe-accent);
+	outline: none;
 }

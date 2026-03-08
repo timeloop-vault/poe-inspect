@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from "preact/hooks";
+import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { invoke } from "@tauri-apps/api/core";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
-	type StoredProfile,
 	type DisplayPrefs,
+	type StoredProfile,
 	type TierColors,
 	defaultTierColors,
 	loadProfiles,
 	saveProfiles,
 	syncActiveProfile,
 } from "../../store";
-import type { EvalProfile } from "../../types";
+import type { EvalProfile, PredicateSchema, ScoringRule } from "../../types";
+import { PredicateEditor, defaultRule, getSchema } from "./PredicateEditor";
 
 const defaultDisplay: DisplayPrefs = {
 	tierColors: { ...defaultTierColors },
@@ -48,9 +49,7 @@ export function ProfileSettings() {
 			persist(next);
 			// Sync the newly active profile to the backend
 			const active = next.find((p) => p.active);
-			const json = active?.evalProfile
-				? JSON.stringify(active.evalProfile)
-				: "";
+			const json = active?.evalProfile ? JSON.stringify(active.evalProfile) : "";
 			invoke("set_active_profile", { profileJson: json });
 		},
 		[persist],
@@ -75,8 +74,9 @@ export function ProfileSettings() {
 	const deleteProfile = useCallback(
 		(id: string) => {
 			const filtered = profilesRef.current.filter((p) => p.id !== id);
-			if (filtered.length > 0 && !filtered.some((p) => p.active)) {
-				filtered[0]!.active = true;
+			const first = filtered[0];
+			if (first && !filtered.some((p) => p.active)) {
+				filtered[0] = { ...first, active: true };
 			}
 			persist(filtered);
 			syncActiveProfile();
@@ -96,9 +96,7 @@ export function ProfileSettings() {
 					id: newId,
 					name: `${source.name} (copy)`,
 					active: false,
-					evalProfile: source.evalProfile
-						? { ...source.evalProfile }
-						: null,
+					evalProfile: source.evalProfile ? { ...source.evalProfile } : null,
 					display: {
 						...source.display,
 						tierColors: { ...source.display.tierColors },
@@ -146,22 +144,14 @@ export function ProfileSettings() {
 
 	const renameProfile = useCallback(
 		(id: string, name: string) => {
-			persist(
-				profilesRef.current.map((p) =>
-					p.id === id ? { ...p, name } : p,
-				),
-			);
+			persist(profilesRef.current.map((p) => (p.id === id ? { ...p, name } : p)));
 		},
 		[persist],
 	);
 
 	const updateProfile = useCallback(
 		(id: string, patch: Partial<StoredProfile>) => {
-			persist(
-				profilesRef.current.map((p) =>
-					p.id === id ? { ...p, ...patch } : p,
-				),
-			);
+			persist(profilesRef.current.map((p) => (p.id === id ? { ...p, ...patch } : p)));
 		},
 		[persist],
 	);
@@ -187,11 +177,7 @@ export function ProfileSettings() {
 			<h2>Profiles</h2>
 
 			<div class="profile-actions">
-				<button
-					type="button"
-					class="btn btn-primary"
-					onClick={addProfile}
-				>
+				<button type="button" class="btn btn-primary" onClick={addProfile}>
 					+ New
 				</button>
 				<button type="button" class="btn" onClick={importProfile}>
@@ -201,31 +187,19 @@ export function ProfileSettings() {
 
 			<div class="profile-list">
 				{profiles.map((profile) => (
-					<div
-						key={profile.id}
-						class={`profile-item ${profile.active ? "active" : ""}`}
-					>
-						<div
+					<div key={profile.id} class={`profile-item ${profile.active ? "active" : ""}`}>
+						<button
+							type="button"
 							class="profile-activate"
 							onClick={() => setActive(profile.id)}
-							title={
-								profile.active
-									? "Active profile"
-									: "Set as active"
-							}
+							title={profile.active ? "Active profile" : "Set as active"}
 						>
-							<span class="profile-star">
-								{profile.active ? "\u2605" : "\u2606"}
-							</span>
+							<span class="profile-star">{profile.active ? "\u2605" : "\u2606"}</span>
 							<span class="profile-name">{profile.name}</span>
-						</div>
+						</button>
 
 						<div class="profile-item-actions">
-							<button
-								type="button"
-								class="btn btn-small"
-								onClick={() => setEditing(profile.id)}
-							>
+							<button type="button" class="btn btn-small" onClick={() => setEditing(profile.id)}>
 								Edit
 							</button>
 							<button
@@ -337,16 +311,13 @@ function ProfileEditor({
 				/>
 			)}
 			{tab === "display" && (
-				<DisplayTab
-					display={profile.display}
-					onUpdate={(display) => onUpdate({ display })}
-				/>
+				<DisplayTab display={profile.display} onUpdate={(display) => onUpdate({ display })} />
 			)}
 		</>
 	);
 }
 
-/** Scoring Rules tab — shows current eval profile rules */
+/** Scoring Rules tab — view and edit eval profile rules */
 function ScoringRulesTab({
 	evalProfile,
 	onUpdate,
@@ -354,46 +325,70 @@ function ScoringRulesTab({
 	evalProfile: EvalProfile | null;
 	onUpdate: (evalProfile: EvalProfile | null) => void;
 }) {
-	const [defaultProfile, setDefaultProfile] = useState<EvalProfile | null>(
-		null,
-	);
+	const [builtinProfile, setBuiltinProfile] = useState<EvalProfile | null>(null);
+	const [schema, setSchema] = useState<PredicateSchema[]>([]);
 
-	// Load the built-in default profile for display and "customize" action
+	// Load built-in default profile and predicate schema
 	useEffect(() => {
 		invoke<string | null>("get_default_profile").then((json) => {
 			if (json) {
 				try {
-					setDefaultProfile(JSON.parse(json) as EvalProfile);
+					setBuiltinProfile(JSON.parse(json) as EvalProfile);
 				} catch {
-					/* ignore parse errors */
+					/* ignore */
 				}
 			}
 		});
+		getSchema().then(setSchema);
 	}, []);
 
-	// What to display: custom profile or the built-in default
-	const displayProfile = evalProfile ?? defaultProfile;
 	const isDefault = evalProfile === null;
 
-	return (
-		<>
-			{isDefault && (
+	// Helper to update the eval profile's scoring rules
+	const updateScoring = (scoring: ScoringRule[]) => {
+		if (!evalProfile) return;
+		onUpdate({ ...evalProfile, scoring });
+	};
+
+	const addRule = () => {
+		if (!evalProfile || schema.length === 0) return;
+		const firstSchema = schema[0];
+		if (!firstSchema) return;
+		const newRule: ScoringRule = {
+			label: firstSchema.label,
+			weight: 10,
+			rule: defaultRule(firstSchema),
+		};
+		updateScoring([...evalProfile.scoring, newRule]);
+	};
+
+	const removeRule = (index: number) => {
+		if (!evalProfile) return;
+		updateScoring(evalProfile.scoring.filter((_, i) => i !== index));
+	};
+
+	const updateRule = (index: number, patch: Partial<ScoringRule>) => {
+		if (!evalProfile) return;
+		updateScoring(evalProfile.scoring.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+	};
+
+	// ── Default profile view (read-only) ──
+
+	if (isDefault) {
+		return (
+			<>
 				<div class="setting-group">
-					<div
-						class="setting-description"
-						style={{ marginBottom: "12px" }}
-					>
-						Using built-in <strong>Generic</strong> profile. Scores
-						universally desirable stats (life, resistances, movement
-						speed).
+					<div class="setting-description" style={{ marginBottom: "12px" }}>
+						Using built-in <strong>Generic</strong> profile. Scores universally desirable stats
+						(life, resistances, movement speed).
 					</div>
-					{defaultProfile && (
+					{builtinProfile && (
 						<button
 							type="button"
 							class="btn"
 							onClick={() =>
 								onUpdate({
-									...defaultProfile,
+									...builtinProfile,
 									name: "Custom",
 									description: "Customized from Generic",
 								})
@@ -403,94 +398,189 @@ function ScoringRulesTab({
 						</button>
 					)}
 				</div>
-			)}
 
-			{!isDefault && (
-				<div class="setting-group">
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "space-between",
-							alignItems: "center",
-							marginBottom: "8px",
-						}}
-					>
-						<span
-							style={{
-								fontSize: "12px",
-								color: "var(--poe-text-dim)",
-							}}
-						>
-							Custom scoring profile
-						</span>
+				{builtinProfile && (
+					<div class="setting-group">
+						<h3>{builtinProfile.scoring.length} Scoring Rules</h3>
+						{builtinProfile.scoring.map((rule, i) => (
+							<div key={`${rule.label}-${i}`} class="setting-row" style={{ padding: "4px 0" }}>
+								<div class="setting-label" style={{ fontSize: "12px" }}>
+									{rule.label}
+								</div>
+								<span
+									style={{
+										fontSize: "12px",
+										color: "var(--tier-2-3)",
+										fontWeight: "bold",
+										minWidth: "36px",
+										textAlign: "right",
+									}}
+								>
+									+{rule.weight}
+								</span>
+							</div>
+						))}
+					</div>
+				)}
+			</>
+		);
+	}
+
+	// ── Custom profile view (editable) ──
+
+	return (
+		<>
+			<div class="setting-group">
+				<div
+					style={{
+						display: "flex",
+						justifyContent: "space-between",
+						alignItems: "center",
+						marginBottom: "12px",
+					}}
+				>
+					<h3 style={{ margin: 0 }}>
+						{evalProfile.scoring.length} Scoring Rule{evalProfile.scoring.length !== 1 ? "s" : ""}
+					</h3>
+					<div style={{ display: "flex", gap: "6px" }}>
+						<button type="button" class="btn btn-small btn-primary" onClick={addRule}>
+							+ Add Rule
+						</button>
 						<button
 							type="button"
 							class="btn btn-small"
 							onClick={() => onUpdate(null)}
 							title="Reset to built-in Generic profile"
 						>
-							Reset to Default
+							Reset
 						</button>
 					</div>
 				</div>
-			)}
 
-			{displayProfile && (
-				<div class="setting-group">
-					<h3>
-						{displayProfile.scoring.length} Scoring Rule
-						{displayProfile.scoring.length !== 1 ? "s" : ""}
-					</h3>
-					{displayProfile.filter && (
-						<div
-							style={{
-								fontSize: "11px",
-								color: "var(--poe-text-dim)",
-								marginBottom: "8px",
-							}}
-						>
-							Filter: only applies to matching items
-						</div>
-					)}
-					{displayProfile.scoring.map((rule, i) => (
-						<div
-							key={`${rule.label}-${i}`}
-							class="setting-row"
-							style={{ padding: "4px 0" }}
-						>
-							<div
-								class="setting-label"
-								style={{ fontSize: "12px" }}
-							>
-								{rule.label}
+				{evalProfile.scoring.map((rule, i) => (
+					<ScoringRuleEditor
+						key={`${rule.label}-${i}`}
+						rule={rule}
+						schema={schema}
+						onChange={(patch) => updateRule(i, patch)}
+						onDelete={() => removeRule(i)}
+					/>
+				))}
+
+				{evalProfile.scoring.length === 0 && (
+					<div class="setting-description">No scoring rules. Click "+ Add Rule" to create one.</div>
+				)}
+			</div>
+		</>
+	);
+}
+
+/** Editor for a single scoring rule: label + weight + predicate. */
+function ScoringRuleEditor({
+	rule,
+	schema,
+	onChange,
+	onDelete,
+}: {
+	rule: ScoringRule;
+	schema: PredicateSchema[];
+	onChange: (patch: Partial<ScoringRule>) => void;
+	onDelete: () => void;
+}) {
+	const [expanded, setExpanded] = useState(false);
+
+	// Find the schema for this rule's predicate type
+	const predType = rule.rule.rule_type === "Pred" ? (rule.rule as { type: string }).type : null;
+	const predSchema = predType ? schema.find((s) => s.typeName === predType) : null;
+
+	// Group schema by category for the type selector
+	const categories: Record<string, PredicateSchema[]> = {};
+	for (const s of schema) {
+		const list = categories[s.category] ?? [];
+		list.push(s);
+		categories[s.category] = list;
+	}
+
+	const handleTypeChange = (typeName: string) => {
+		const newSchema = schema.find((s) => s.typeName === typeName);
+		if (!newSchema) return;
+		onChange({
+			label: rule.label === predSchema?.label ? newSchema.label : rule.label,
+			rule: defaultRule(newSchema),
+		});
+	};
+
+	return (
+		<div class="scoring-rule">
+			<div class="scoring-rule-header">
+				<div class="scoring-rule-label">
+					<input
+						type="text"
+						value={rule.label}
+						onInput={(e) => onChange({ label: (e.target as HTMLInputElement).value })}
+						placeholder="Rule label..."
+					/>
+				</div>
+				<div class="scoring-rule-weight">
+					<span>pts</span>
+					<input
+						type="number"
+						value={rule.weight}
+						onInput={(e) => onChange({ weight: Number((e.target as HTMLInputElement).value) })}
+					/>
+				</div>
+				<button
+					type="button"
+					class="btn btn-small"
+					onClick={() => setExpanded(!expanded)}
+					title={expanded ? "Collapse" : "Edit predicate"}
+				>
+					{expanded ? "\u25B2" : "\u25BC"}
+				</button>
+				<button
+					type="button"
+					class="btn btn-small"
+					onClick={onDelete}
+					title="Delete rule"
+					style={{ color: "var(--tier-low)" }}
+				>
+					&times;
+				</button>
+			</div>
+
+			{expanded && (
+				<div class="scoring-rule-body">
+					<select
+						class="pred-type-select"
+						value={predType ?? ""}
+						onChange={(e) => handleTypeChange((e.target as HTMLSelectElement).value)}
+					>
+						{Object.entries(categories).map(([cat, schemas]) => (
+							<optgroup key={cat} label={cat}>
+								{schemas.map((s) => (
+									<option key={s.typeName} value={s.typeName}>
+										{s.label}
+									</option>
+								))}
+							</optgroup>
+						))}
+					</select>
+
+					{predSchema && (
+						<>
+							<div class="setting-description" style={{ marginBottom: "8px" }}>
+								{predSchema.description}
 							</div>
-							<span
-								style={{
-									fontSize: "12px",
-									color: "var(--tier-2-3)",
-									fontWeight: "bold",
-									minWidth: "36px",
-									textAlign: "right",
-								}}
-							>
-								{rule.weight > 0 ? "+" : ""}
-								{rule.weight}
-							</span>
-						</div>
-					))}
-
-					{!isDefault && (
-						<div
-							class="setting-description"
-							style={{ marginTop: "12px" }}
-						>
-							Rule editing coming soon — use Import/Export for
-							now.
-						</div>
+							<PredicateEditor
+								rule={rule.rule}
+								schema={predSchema}
+								onChange={(newRule) => onChange({ rule: newRule })}
+							/>
+						</>
 					)}
 				</div>
 			)}
-		</>
+		</div>
 	);
 }
 
@@ -516,21 +606,9 @@ function DisplayTab({
 			<div class="setting-group">
 				<h3>Tier Colors</h3>
 
-				<ColorRow
-					label="T1 (best)"
-					color={tierColors.t1}
-					onChange={(v) => updateColor("t1", v)}
-				/>
-				<ColorRow
-					label="T2-T3"
-					color={tierColors.t2_3}
-					onChange={(v) => updateColor("t2_3", v)}
-				/>
-				<ColorRow
-					label="T4-T5"
-					color={tierColors.t4_5}
-					onChange={(v) => updateColor("t4_5", v)}
-				/>
+				<ColorRow label="T1 (best)" color={tierColors.t1} onChange={(v) => updateColor("t1", v)} />
+				<ColorRow label="T2-T3" color={tierColors.t2_3} onChange={(v) => updateColor("t2_3", v)} />
+				<ColorRow label="T4-T5" color={tierColors.t4_5} onChange={(v) => updateColor("t4_5", v)} />
 				<ColorRow
 					label="T6+ (low)"
 					color={tierColors.low}
@@ -582,9 +660,7 @@ function DisplayTab({
 			<div class="setting-group">
 				<h3>Options</h3>
 				<div class="setting-row">
-					<div class="setting-label">
-						Highlight mods matching profile weights
-					</div>
+					<div class="setting-label">Highlight mods matching profile weights</div>
 					<label class="setting-toggle">
 						<input
 							type="checkbox"
@@ -592,9 +668,7 @@ function DisplayTab({
 							onChange={(e) =>
 								onUpdate({
 									...display,
-									highlightWeights: (
-										e.target as HTMLInputElement
-									).checked,
+									highlightWeights: (e.target as HTMLInputElement).checked,
 								})
 							}
 						/>
@@ -602,9 +676,7 @@ function DisplayTab({
 					</label>
 				</div>
 				<div class="setting-row">
-					<div class="setting-label">
-						Dim mods with weight = Ignore
-					</div>
+					<div class="setting-label">Dim mods with weight = Ignore</div>
 					<label class="setting-toggle">
 						<input
 							type="checkbox"
@@ -612,8 +684,7 @@ function DisplayTab({
 							onChange={(e) =>
 								onUpdate({
 									...display,
-									dimIgnored: (e.target as HTMLInputElement)
-										.checked,
+									dimIgnored: (e.target as HTMLInputElement).checked,
 								})
 							}
 						/>
@@ -641,9 +712,7 @@ function ColorRow({
 				<input
 					type="color"
 					value={color}
-					onInput={(e) =>
-						onChange((e.target as HTMLInputElement).value)
-					}
+					onInput={(e) => onChange((e.target as HTMLInputElement).value)}
 					style={{
 						width: "28px",
 						height: "28px",
@@ -718,11 +787,7 @@ function PreviewLine({
 				{label}
 			</span>
 			<span style={{ flex: 1, color }}>{text}</span>
-			<span
-				style={{ fontSize: "10px", color: "var(--poe-text-dim)" }}
-			>
-				{pct}%
-			</span>
+			<span style={{ fontSize: "10px", color: "var(--poe-text-dim)" }}>{pct}%</span>
 		</div>
 	);
 }
