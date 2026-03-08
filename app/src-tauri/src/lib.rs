@@ -7,6 +7,79 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
+/// Read the overlay position setting from the store ("cursor" or "inventoryLeft").
+fn read_overlay_position(app: &tauri::AppHandle) -> String {
+    app.store("settings.json")
+        .ok()
+        .and_then(|store| {
+            store
+                .get("general")
+                .and_then(|v| v.get("overlayPosition").and_then(|v| v.as_str().map(String::from)))
+        })
+        .unwrap_or_else(|| "cursor".into())
+}
+
+/// Calculate overlay position for "inventoryLeft" mode.
+/// PoE's inventory panel scales with screen height: width ≈ height * 0.587.
+/// Places the overlay to the left of where the inventory panel would be,
+/// vertically centered in the top half of the screen.
+fn inventory_left_position(window: &tauri::WebviewWindow) -> (i32, i32) {
+    let (cursor_x, cursor_y) = get_cursor_position();
+
+    // Find monitor containing cursor
+    let monitors = window.available_monitors().unwrap_or_default();
+    let monitor = monitors.iter().find(|m| {
+        let pos = m.position();
+        let size = m.size();
+        cursor_x >= pos.x
+            && cursor_x < pos.x + size.width as i32
+            && cursor_y >= pos.y
+            && cursor_y < pos.y + size.height as i32
+    });
+
+    let (mon_x, mon_y, mon_w, mon_h) = match monitor {
+        Some(m) => (
+            m.position().x,
+            m.position().y,
+            m.size().width as i32,
+            m.size().height as i32,
+        ),
+        None => return (200, 200),
+    };
+
+    let win_size = window
+        .outer_size()
+        .unwrap_or(tauri::PhysicalSize::new(440, 900));
+
+    // PoE inventory panel width ≈ screen_height * 0.587
+    let panel_width = (mon_h as f64 * 0.587) as i32;
+    let padding = 10;
+
+    // X: left of the inventory panel
+    let x = mon_x + mon_w - panel_width - win_size.width as i32 - padding;
+    // Y: vertically offset from top, roughly where items appear
+    let y = mon_y + (mon_h as f64 * 0.15) as i32;
+
+    // Clamp to monitor bounds
+    let x = x.max(mon_x);
+    let y = y
+        .max(mon_y)
+        .min(mon_y + mon_h - win_size.height as i32);
+
+    (x, y)
+}
+
+/// Position the overlay window based on the configured mode.
+fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
+    let (x, y) = if mode == "inventoryLeft" {
+        inventory_left_position(window)
+    } else {
+        let (cx, cy) = get_cursor_position();
+        clamp_to_monitor(window, cx, cy)
+    };
+    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+}
+
 /// Send Ctrl+Alt+C to the foreground window (PoE) via enigo,
 /// wait briefly, then read clipboard and emit to frontend.
 fn handle_inspect(app: &tauri::AppHandle) {
@@ -34,15 +107,10 @@ fn handle_inspect(app: &tauri::AppHandle) {
             return;
         }
 
-        // Get cursor position for overlay placement
-        let (cursor_x, cursor_y) = get_cursor_position();
-
-        // Position and show the overlay window, clamped to monitor bounds
+        // Position and show the overlay window
         if let Some(window) = app.get_webview_window("overlay") {
-            let (pos_x, pos_y) = clamp_to_monitor(&window, cursor_x, cursor_y);
-            let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
-                pos_x, pos_y,
-            )));
+            let mode = read_overlay_position(&app);
+            position_overlay(&window, &mode);
             let _ = window.set_ignore_cursor_events(false);
             let _ = window.show();
             let _ = window.set_focus();
@@ -182,9 +250,8 @@ fn dismiss_overlay(window: tauri::WebviewWindow) {
 /// Show the overlay window with mock data for testing (tray debug button).
 fn show_debug_overlay(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
-            200, 200,
-        )));
+        let mode = read_overlay_position(app);
+        position_overlay(&window, &mode);
         let _ = window.set_ignore_cursor_events(false);
         let _ = window.show();
         let _ = window.set_focus();
