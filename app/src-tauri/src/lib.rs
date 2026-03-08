@@ -445,7 +445,12 @@ pub fn run() {
                 })
                 .unwrap_or(true);
 
-            if !start_minimized {
+            if start_minimized {
+                // Explicitly hide — window-state plugin may have restored it as visible
+                if let Some(window) = app.get_webview_window("settings") {
+                    let _ = window.hide();
+                }
+            } else {
                 show_settings(app.handle());
             }
 
