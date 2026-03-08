@@ -34,13 +34,14 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 ```
 src/
   lib.rs         — public API
+  affix.rs       — open affix analysis (used/max/open slots, modifiability, crafted detection)
   predicate.rs   — atomic conditions (Rarity, ItemClass, ModCount, StatValue, etc.)
   rule.rs        — combinators (All, Any, Not) over predicates
   profile.rs     — scoring profiles (weighted rule sets)
   evaluate.rs    — evaluate(item, rule, game_data) -> bool, score(item, profile, game_data)
   tier.rs        — tier quality analysis (mod tier → Best/Great/Good/Mid/Low)
 tests/
-  evaluate_fixtures.rs — tests against real item fixtures
+  evaluate_fixtures.rs — tests against real item fixtures (31 tests)
 ```
 
 ### Predicate types
@@ -95,4 +96,5 @@ tests/
 4. ~~Scoring profiles: `score(item, profile, game_data) -> ScoreResult`~~ ✓
 5. ~~Profile JSON serialization round-trip~~ ✓
 6. ~~Tier quality analysis: `analyze_tiers(item) -> ItemTierSummary`~~ ✓
-7. Open affix detection + basic craft suggestion
+7. ~~Open affix detection: `analyze_affixes(item, game_data) -> AffixSummary`~~ ✓
+8. Deterministic craft suggestions (needs `CraftingBenchOptions` in poe-data — see `docs/crafting-tiers.md`)
