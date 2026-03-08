@@ -318,6 +318,19 @@ Hotkey fires (Rust)
 - **Theming:** Dark-only to match PoE aesthetic.
 - **Cross-platform:** Windows primary, Linux (XWayland) and macOS secondary. All Rust-side code (hotkeys via `tauri-plugin-global-shortcut`, keystrokes via `enigo`) is cross-platform.
 
+### Phase 4: App Wiring (no backend needed)
+
+Wire existing settings to actual behavior. All tasks are independent of the data pipeline (poe-item/poe-eval) and can be done with mock data.
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | **Overlay scaling** | Not started | Apply `overlayScale` setting via CSS `transform: scale()` on the overlay root. Needs to adjust window size to match scaled content. |
+| 2 | **Dynamic hotkey wiring** | Not started | Read hotkey settings on startup, register those instead of hardcoded combos. Expose Tauri commands to unregister/reregister from frontend. Unregister during hotkey capture so all keys are capturable. |
+| 3 | **Display toggles → overlay** | Not started | Wire `showRollBars`, `showTierBadges`, `showTypeBadges`, `showOpenAffixes` from settings to the overlay. Overlay reads active profile + general settings, conditionally renders each element. |
+| 4 | **Start minimized / launch on boot** | Not started | Wire `startMinimized` (hide main window on startup) and `launchOnBoot` (OS autostart via `tauri-plugin-autostart`). |
+| 5 | **Profile import/export** | Not started | Import/Export buttons are stubs. Implement as JSON file save/load via Tauri file dialog. |
+| 6 | **Overlay positioning** | Not started | Multi-monitor awareness: keep overlay within screen bounds. Smart placement (flip if near screen edge). Use Tauri's monitor APIs. |
+
 ## Open Questions
 
 - **Multiple items:** Show one overlay at a time, or allow pinning/stacking? Start with one, consider pinning later.

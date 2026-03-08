@@ -2,7 +2,7 @@ use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
-use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// Send Ctrl+Alt+C to the foreground window (PoE) via enigo,
@@ -128,6 +128,92 @@ fn show_settings(app: &tauri::AppHandle) {
     }
 }
 
+/// Global shortcut config — only inspect and settings are registered as global
+/// shortcuts. Dismiss is handled at the overlay window level to avoid consuming
+/// keys like Escape system-wide.
+#[derive(Debug, Clone)]
+struct HotkeyConfig {
+    inspect_item: String,
+    open_settings: String,
+}
+
+impl Default for HotkeyConfig {
+    fn default() -> Self {
+        Self {
+            inspect_item: "ctrl+i".into(),
+            open_settings: "ctrl+shift+i".into(),
+        }
+    }
+}
+
+struct HotkeyState(std::sync::Mutex<HotkeyConfig>);
+
+/// Register global shortcuts from config. Only inspect + settings are global.
+fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
+    let gs = app.global_shortcut();
+    let _ = gs.unregister_all();
+
+    let entries: [(&str, &str); 2] = [
+        (&config.inspect_item, "inspect"),
+        (&config.open_settings, "settings"),
+    ];
+
+    for (shortcut_str, action_name) in entries {
+        let action = action_name.to_string();
+        if let Err(e) = gs.on_shortcut(shortcut_str, move |app, _shortcut, event| {
+            if event.state != ShortcutState::Pressed {
+                return;
+            }
+            match action.as_str() {
+                "inspect" => {
+                    let settings_focused = app
+                        .get_webview_window("settings")
+                        .and_then(|w| w.is_focused().ok())
+                        .unwrap_or(false);
+                    if !settings_focused {
+                        handle_inspect(app);
+                    }
+                }
+                "settings" => show_settings(app),
+                _ => {}
+            }
+        }) {
+            eprintln!("Failed to register shortcut '{shortcut_str}': {e}");
+        }
+    }
+}
+
+/// Update global hotkeys from frontend when settings change.
+/// dismiss_overlay is accepted but not registered globally — it's handled
+/// at the overlay window level via a keydown listener.
+#[tauri::command]
+fn update_hotkeys(
+    app: tauri::AppHandle,
+    inspect_item: String,
+    #[allow(unused_variables)] dismiss_overlay: String,
+    open_settings: String,
+) {
+    let config = HotkeyConfig {
+        inspect_item,
+        open_settings,
+    };
+    register_hotkeys(&app, &config);
+    *app.state::<HotkeyState>().0.lock().unwrap() = config;
+}
+
+/// Unregister all global hotkeys (used during hotkey capture in settings).
+#[tauri::command]
+fn pause_hotkeys(app: tauri::AppHandle) {
+    let _ = app.global_shortcut().unregister_all();
+}
+
+/// Re-register global hotkeys from saved config (used after hotkey capture).
+#[tauri::command]
+fn resume_hotkeys(app: tauri::AppHandle) {
+    let config = app.state::<HotkeyState>().0.lock().unwrap().clone();
+    register_hotkeys(&app, &config);
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(
@@ -137,7 +223,13 @@ pub fn run() {
         )
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![dismiss_overlay])
+        .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
+        .invoke_handler(tauri::generate_handler![
+            dismiss_overlay,
+            update_hotkeys,
+            pause_hotkeys,
+            resume_hotkeys,
+        ])
         .setup(|app| {
             // --- System tray ---
             let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
@@ -160,32 +252,22 @@ pub fn run() {
                 })
                 .build(app)?;
 
-            // --- Global hotkeys: Ctrl+I (inspect), Ctrl+Shift+I (settings) ---
+            // --- Global hotkeys from settings (or defaults) ---
             #[cfg(desktop)]
             {
                 let handle = app.handle().clone();
                 handle.plugin(
-                    tauri_plugin_global_shortcut::Builder::new()
-                        .with_shortcuts(["ctrl+i", "ctrl+shift+i"])?
-                        .with_handler(move |app, shortcut, event| {
-                            if event.state != ShortcutState::Pressed {
-                                return;
-                            }
-                            if shortcut.matches(Modifiers::CONTROL | Modifiers::SHIFT, Code::KeyI) {
-                                show_settings(app);
-                            } else if shortcut.matches(Modifiers::CONTROL, Code::KeyI) {
-                                // Don't inspect if settings window is focused
-                                let settings_focused = app
-                                    .get_webview_window("settings")
-                                    .and_then(|w| w.is_focused().ok())
-                                    .unwrap_or(false);
-                                if !settings_focused {
-                                    handle_inspect(app);
-                                }
-                            }
-                        })
-                        .build(),
+                    tauri_plugin_global_shortcut::Builder::new().build(),
                 )?;
+                // Register with default config; frontend will call update_hotkeys
+                // with stored settings once it loads
+                let config = app
+                    .state::<HotkeyState>()
+                    .0
+                    .lock()
+                    .unwrap()
+                    .clone();
+                register_hotkeys(app.handle(), &config);
             }
 
             Ok(())
