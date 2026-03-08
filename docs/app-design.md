@@ -329,7 +329,7 @@ Wire existing settings to actual behavior. All tasks are independent of the data
 | 3 | **Display toggles → overlay** | Done | `DisplaySettings` passed from App → ItemOverlay. Settings reloaded on each inspect and debug overlay show. |
 | 4 | **Start minimized / launch on boot** | Done | `startMinimized` read from store in Rust setup. `tauri-plugin-autostart` for launch on boot (cross-platform). UI scale for settings window. |
 | 5 | **Profile import/export** | Done | JSON file save/load via `tauri-plugin-dialog` + `tauri-plugin-fs`. Export strips id/active; import assigns new id. |
-| 6 | **Overlay positioning** | Not started | Multi-monitor awareness: keep overlay within screen bounds. Smart placement (flip if near screen edge). Use Tauri's monitor APIs. |
+| 6 | **Overlay positioning** | Done | Clamp to monitor bounds via `available_monitors()`. Flips horizontally/vertically if overlay would overflow screen edge. |
 
 ## Open Questions
 
