@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "preact/hooks";
+import { invoke } from "@tauri-apps/api/core";
 import {
 	type GeneralSettings as GeneralSettingsType,
 	defaultGeneral,
@@ -9,19 +10,32 @@ import {
 export function GeneralSettings() {
 	const [settings, setSettings] = useState<GeneralSettingsType>(defaultGeneral);
 	const [loaded, setLoaded] = useState(false);
+	const [uiScalePreview, setUiScalePreview] = useState<number | null>(null);
 
 	useEffect(() => {
-		loadGeneral().then((s) => {
-			setSettings(s);
+		Promise.all([
+			loadGeneral(),
+			invoke<boolean>("get_autostart"),
+		]).then(([s, autostart]) => {
+			// Sync stored launchOnBoot with actual OS autostart state
+			setSettings({ ...s, launchOnBoot: autostart });
 			setLoaded(true);
 		});
 	}, []);
 
 	const update = useCallback(
 		(patch: Partial<GeneralSettingsType>) => {
+			// If toggling launchOnBoot, sync with OS autostart
+			if (patch.launchOnBoot !== undefined) {
+				invoke("set_autostart", { enabled: patch.launchOnBoot });
+			}
 			setSettings((prev) => {
 				const next = { ...prev, ...patch };
 				saveGeneral(next);
+				// Notify parent to apply UI scale immediately
+				if (patch.uiScale !== undefined) {
+					window.dispatchEvent(new CustomEvent("ui-scale-changed", { detail: patch.uiScale }));
+				}
 				return next;
 			});
 		},
@@ -35,13 +49,40 @@ export function GeneralSettings() {
 			<h2>General</h2>
 
 			<div class="setting-group">
-				<h3>Overlay</h3>
+				<h3>UI Scale</h3>
 
 				<div class="setting-row">
 					<div class="setting-label">
-						Scale
+						Settings window
 						<div class="setting-description">
-							Zoom factor for the overlay panel (applies on next inspect)
+							Zoom factor for this settings window (applies on release)
+						</div>
+					</div>
+					<div class="setting-slider">
+						<input
+							type="range"
+							min={75}
+							max={200}
+							step={5}
+							value={uiScalePreview ?? settings.uiScale}
+							onInput={(e) =>
+								setUiScalePreview(Number((e.target as HTMLInputElement).value))
+							}
+							onChange={(e) => {
+								const val = Number((e.target as HTMLInputElement).value);
+								setUiScalePreview(null);
+								update({ uiScale: val });
+							}}
+						/>
+						<span class="slider-value">{uiScalePreview ?? settings.uiScale}%</span>
+					</div>
+				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Overlay panel
+						<div class="setting-description">
+							Zoom factor for the item overlay (applies on next inspect)
 						</div>
 					</div>
 					<div class="setting-slider">

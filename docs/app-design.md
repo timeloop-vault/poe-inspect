@@ -324,10 +324,10 @@ Wire existing settings to actual behavior. All tasks are independent of the data
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | **Overlay scaling** | Not started | Apply `overlayScale` setting via CSS `transform: scale()` on the overlay root. Needs to adjust window size to match scaled content. |
-| 2 | **Dynamic hotkey wiring** | Not started | Read hotkey settings on startup, register those instead of hardcoded combos. Expose Tauri commands to unregister/reregister from frontend. Unregister during hotkey capture so all keys are capturable. |
-| 3 | **Display toggles → overlay** | Not started | Wire `showRollBars`, `showTierBadges`, `showTypeBadges`, `showOpenAffixes` from settings to the overlay. Overlay reads active profile + general settings, conditionally renders each element. |
-| 4 | **Start minimized / launch on boot** | Not started | Wire `startMinimized` (hide main window on startup) and `launchOnBoot` (OS autostart via `tauri-plugin-autostart`). |
+| 1 | **Overlay scaling** | Done | CSS `zoom` on overlay root. Two-phase window resize (expand transparent window first, measure, shrink). |
+| 2 | **Dynamic hotkey wiring** | Done | `pause_hotkeys`/`resume_hotkeys`/`update_hotkeys` Tauri commands. Only modifier combos registered globally; dismiss is window-level. |
+| 3 | **Display toggles → overlay** | Done | `DisplaySettings` passed from App → ItemOverlay. Settings reloaded on each inspect and debug overlay show. |
+| 4 | **Start minimized / launch on boot** | Done | `startMinimized` read from store in Rust setup. `tauri-plugin-autostart` for launch on boot (cross-platform). UI scale for settings window. |
 | 5 | **Profile import/export** | Not started | Import/Export buttons are stubs. Implement as JSON file save/load via Tauri file dialog. |
 | 6 | **Overlay positioning** | Not started | Multi-monitor awareness: keep overlay within screen bounds. Smart placement (flip if near screen edge). Use Tauri's monitor APIs. |
 

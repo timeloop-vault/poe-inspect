@@ -11,6 +11,7 @@ import { load } from "@tauri-apps/plugin-store";
 
 export interface GeneralSettings {
 	overlayScale: number;
+	uiScale: number;
 	poeVersion: "poe1" | "poe2";
 	startMinimized: boolean;
 	launchOnBoot: boolean;
@@ -49,6 +50,7 @@ export interface Profile {
 
 export const defaultGeneral: GeneralSettings = {
 	overlayScale: 100,
+	uiScale: 100,
 	poeVersion: "poe1",
 	startMinimized: true,
 	launchOnBoot: false,
