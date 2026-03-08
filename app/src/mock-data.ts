@@ -1,0 +1,276 @@
+import type { ParsedItem } from "./types";
+
+/**
+ * Mock items for Phase 2 overlay development.
+ * Sourced from real Ctrl+Alt+C fixtures in poe-inspect v1.
+ */
+
+/** Rare boots with Eater/Exarch implicits, mixed tiers, and a crafted mod */
+export const rareBoots: ParsedItem = {
+	itemClass: "Boots",
+	rarity: "Rare",
+	name: "Loath Spur",
+	baseType: "Murder Boots",
+	itemLevel: 75,
+	iconUrl:
+		"https://web.poecdn.com/image/Art/2DItems/Armours/Boots/BootsDexInt3.png?w=2&h=2&scale=1",
+	properties: [
+		{ name: "Evasion Rating", value: "250", augmented: true },
+		{ name: "Energy Shield", value: "37", augmented: true },
+	],
+	requirements: [
+		{ name: "Level", value: "70" },
+		{ name: "Str", value: "155" },
+		{ name: "Dex", value: "98" },
+		{ name: "Int", value: "155" },
+	],
+	sockets: "R-G-R-B",
+	enchants: [],
+	implicits: [
+		{
+			type: "implicit",
+			text: "19% chance to Avoid being Stunned",
+			tags: [],
+			value: 19,
+			min: 18,
+			max: 20,
+		},
+		{
+			type: "implicit",
+			text: "While a Unique Enemy is in your Presence, Regenerate 0.3% of Life per second per Endurance Charge",
+			tags: ["Life"],
+		},
+	],
+	explicits: [
+		{
+			modName: "Blue",
+			type: "prefix",
+			tier: 2,
+			tags: ["Mana"],
+			text: "+68 to maximum Mana",
+			value: 68,
+			min: 65,
+			max: 68,
+		},
+		{
+			modName: "Cheetah's",
+			type: "prefix",
+			tier: 2,
+			tags: ["Speed"],
+			text: "30% increased Movement Speed",
+			value: 30,
+			min: 30,
+			max: 30,
+		},
+		{
+			modName: "Prior's",
+			type: "prefix",
+			tier: 1,
+			tags: ["Life", "Defences", "Energy Shield"],
+			text: "+11 to maximum Energy Shield\n+25 to maximum Life",
+			value: 25,
+			min: 24,
+			max: 28,
+		},
+		{
+			modName: "of the Lynx",
+			type: "suffix",
+			tier: 8,
+			tags: ["Attribute"],
+			text: "+14 to Dexterity",
+			value: 14,
+			min: 13,
+			max: 17,
+		},
+		{
+			modName: "of the Yeti",
+			type: "suffix",
+			tier: 5,
+			tags: ["Elemental", "Cold", "Resistance"],
+			text: "+27% to Cold Resistance",
+			value: 27,
+			min: 24,
+			max: 29,
+		},
+		{
+			modName: "of Craft",
+			type: "crafted",
+			tags: ["Elemental", "Lightning", "Resistance"],
+			text: "+22% to Lightning Resistance",
+			value: 22,
+			min: 21,
+			max: 28,
+			crafted: true,
+		},
+	],
+	influences: ["Searing Exarch", "Eater of Worlds"],
+	openPrefixes: 0,
+	openSuffixes: 0,
+};
+
+/** Rare body armour with enchant, Redeemer influence, open suffix */
+export const rareBodyArmour: ParsedItem = {
+	itemClass: "Body Armours",
+	rarity: "Rare",
+	name: "Agony Carapace",
+	baseType: "Majestic Plate",
+	itemLevel: 100,
+	iconUrl:
+		"https://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStr3.png?w=2&h=3&scale=1",
+	properties: [{ name: "Armour", value: "890", augmented: true }],
+	requirements: [
+		{ name: "Level", value: "68" },
+		{ name: "Str", value: "144" },
+	],
+	sockets: "R-R-R-R",
+	enchants: [
+		{
+			type: "enchant",
+			text: "Quality does not increase Defences",
+			tags: [],
+		},
+		{
+			type: "enchant",
+			text: "Grants +1 to Maximum Life per 2% Quality",
+			tags: [],
+		},
+	],
+	implicits: [],
+	explicits: [
+		{
+			modName: "Mammoth's",
+			type: "prefix",
+			tier: 1,
+			tags: ["Defences"],
+			text: "39% increased Armour\n16% increased Stun and Block Recovery",
+			value: 39,
+			min: 39,
+			max: 42,
+		},
+		{
+			modName: "Rotund",
+			type: "prefix",
+			tier: 7,
+			tags: ["Life"],
+			text: "+67 to maximum Life",
+			value: 67,
+			min: 60,
+			max: 69,
+		},
+		{
+			modName: "Layered",
+			type: "prefix",
+			tier: 7,
+			tags: ["Defences"],
+			text: "29% increased Armour",
+			value: 29,
+			min: 27,
+			max: 42,
+		},
+		{
+			modName: "of Numbing",
+			type: "suffix",
+			tier: 1,
+			tags: ["Physical"],
+			text: "4% additional Physical Damage Reduction",
+			value: 4,
+			min: 3,
+			max: 4,
+		},
+		{
+			modName: "of the Tempest",
+			type: "suffix",
+			tier: 4,
+			tags: ["Elemental", "Lightning", "Resistance"],
+			text: "+32% to Lightning Resistance",
+			value: 32,
+			min: 30,
+			max: 35,
+		},
+	],
+	influences: ["Redeemer"],
+	openPrefixes: 0,
+	openSuffixes: 1,
+};
+
+/** Unique ring with variable rolls (Ventor's Gamble) */
+export const uniqueRing: ParsedItem = {
+	itemClass: "Rings",
+	rarity: "Unique",
+	name: "Ventor's Gamble",
+	baseType: "Gold Ring",
+	itemLevel: 75,
+	iconUrl:
+		"https://web.poecdn.com/image/Art/2DItems/Rings/VentorsGameble.png?w=1&h=1&scale=1",
+	properties: [],
+	requirements: [{ name: "Level", value: "65" }],
+	enchants: [],
+	implicits: [
+		{
+			type: "implicit",
+			text: "15% increased Rarity of Items found",
+			tags: [],
+			value: 15,
+			min: 6,
+			max: 15,
+		},
+	],
+	explicits: [
+		{
+			type: "unique",
+			tags: ["Life"],
+			text: "+44 to maximum Life",
+			value: 44,
+			min: 0,
+			max: 60,
+		},
+		{
+			type: "unique",
+			tags: ["Elemental", "Fire", "Resistance"],
+			text: "+4% to Fire Resistance",
+			value: 4,
+			min: -25,
+			max: 50,
+		},
+		{
+			type: "unique",
+			tags: ["Elemental", "Cold", "Resistance"],
+			text: "-9% to Cold Resistance",
+			value: -9,
+			min: -25,
+			max: 50,
+		},
+		{
+			type: "unique",
+			tags: ["Elemental", "Lightning", "Resistance"],
+			text: "+40% to Lightning Resistance",
+			value: 40,
+			min: -25,
+			max: 50,
+		},
+		{
+			type: "unique",
+			tags: [],
+			text: "1% reduced Quantity of Items found",
+			value: 1,
+			min: -10,
+			max: 10,
+		},
+		{
+			type: "unique",
+			tags: [],
+			text: "40% increased Rarity of Items found",
+			value: 40,
+			min: -40,
+			max: 40,
+		},
+	],
+	influences: [],
+	flavorText:
+		'In a blaze of glory,\nAn anomaly defying all odds\nThe "unkillable" beast met the divine\nAnd Ventor met his latest trophy.',
+	openPrefixes: 0,
+	openSuffixes: 0,
+};
+
+/** All mock items for cycling through in the overlay */
+export const mockItems: ParsedItem[] = [rareBoots, rareBodyArmour, uniqueRing];

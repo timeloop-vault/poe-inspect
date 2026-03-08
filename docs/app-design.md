@@ -84,11 +84,20 @@ The overlay should look like a PoE item tooltip — familiar to players, zero le
 
 **Deliverable:** Polished overlay component rendering mock items with full tier visualization. Looks like a PoE tooltip but better.
 
+**Status: DONE.** Completed items:
+- PoE tooltip art extracted from GGPK sprite atlases (headers + separators per rarity)
+- Game fonts extracted (FrizQuadrata for item names, Fontin SmallCaps/Regular/Bold/Italic for body)
+- Exact rarity colors from `ItemFrameType.datc64`
+- Tier coloring, tier badges, prefix/suffix badges, roll quality bars, open affix counts
+- 3 mock items: rare boots (mixed tiers, dual influence), rare body armour (enchant, open suffix), unique ring (Ventor's Gamble)
+- Remaining nice-to-haves: weapon/jewel mock items, 2D item art display
+
 ### Phase 3: Settings & Profile UI
 
 Separate from the overlay — a proper windowed UI for configuration.
 
 **Settings:**
+- **Overlay scale/size** — user-configurable zoom factor for the overlay panel (critical for different monitor sizes/DPIs)
 - Hotkey configuration
 - Tier color scheme customization
 - Display preferences (what to show/hide)
