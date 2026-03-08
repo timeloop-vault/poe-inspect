@@ -1,4 +1,6 @@
 mod bridge;
+#[cfg(target_os = "linux")]
+mod wayland;
 
 use std::sync::Arc;
 
@@ -108,6 +110,26 @@ fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
         let (cx, cy) = get_cursor_position();
         clamp_to_monitor(window, cx, cy)
     };
+
+    #[cfg(target_os = "linux")]
+    {
+        let is_wayland = window
+            .app_handle()
+            .try_state::<wayland::WaylandOverlayState>()
+            .map(|s| s.active)
+            .unwrap_or(false);
+        if is_wayland {
+            let win = window.clone();
+            let win2 = win.clone();
+            let _ = win.run_on_main_thread(move || {
+                if let Ok(gtk_win) = win2.gtk_window() {
+                    wayland::position_layer_surface(&gtk_win, x, y);
+                }
+            });
+            return;
+        }
+    }
+
     let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
 }
 
@@ -222,8 +244,10 @@ fn get_cursor_position() -> (i32, i32) {
 
 #[cfg(target_os = "linux")]
 fn get_cursor_position() -> (i32, i32) {
-    // TODO: X11 — use XQueryPointer via x11 crate
-    // Wayland — no standard API, may need libei or compositor-specific approach
+    if let Some(pos) = wayland::get_cursor_position_hyprland() {
+        return pos;
+    }
+    // Fallback for X11 / non-Hyprland compositors
     (100, 100)
 }
 
@@ -507,6 +531,19 @@ fn load_game_data() -> GameData {
 }
 
 pub fn run() {
+    // WebKitGTK's DMA-BUF renderer has a bug with explicit sync on Wayland
+    // compositors (Hyprland): it creates a wp_linux_drm_syncobj_surface but
+    // doesn't set the acquire timeline before committing, causing a fatal
+    // "Missing acquire timeline" protocol error. Disable DMA-BUF rendering
+    // to use shared-memory buffers instead. Must be set before GTK init.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WAYLAND_DISPLAY").is_some()
+        || std::env::var_os("XDG_SESSION_TYPE")
+            .is_some_and(|v| v == "wayland")
+    {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
@@ -559,6 +596,24 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
+
+            // --- Wayland layer-shell setup ---
+            #[cfg(target_os = "linux")]
+            {
+                let mut wayland_active = false;
+                if let Some(overlay) = app.get_webview_window("overlay") {
+                    if let Ok(gtk_win) = overlay.gtk_window() {
+                        if wayland::detect_wayland(&gtk_win) {
+                            wayland::init_overlay_layer_shell(&gtk_win);
+                            wayland_active = true;
+                            eprintln!("Wayland detected — layer-shell overlay initialized");
+                        }
+                    }
+                }
+                app.manage(wayland::WaylandOverlayState {
+                    active: wayland_active,
+                });
+            }
 
             // --- Global hotkeys from stored settings (or defaults) ---
             #[cfg(desktop)]
