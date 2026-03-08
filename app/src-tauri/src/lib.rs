@@ -120,6 +120,17 @@ fn dismiss_overlay(window: tauri::WebviewWindow) {
     let _ = window.emit("overlay-dismissed", ());
 }
 
+/// Show the overlay window with mock data for testing (tray debug button).
+fn show_debug_overlay(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("overlay") {
+        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(200, 200)));
+        let _ = window.set_ignore_cursor_events(false);
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+    let _ = app.emit("show-debug-overlay", ());
+}
+
 /// Show the settings window (create if needed, or just show+focus).
 fn show_settings(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("settings") {
@@ -232,15 +243,17 @@ pub fn run() {
         ])
         .setup(|app| {
             // --- System tray ---
+            let show_overlay = MenuItem::with_id(app, "show_overlay", "Show Overlay (Debug)", true, None::<&str>)?;
             let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&settings, &quit])?;
+            let menu = Menu::with_items(app, &[&show_overlay, &settings, &quit])?;
 
             TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("PoE Inspect")
                 .menu(&menu)
                 .on_menu_event(|app, event| match event.id.as_ref() {
+                    "show_overlay" => show_debug_overlay(app),
                     "settings" => show_settings(app),
                     "quit" => app.exit(0),
                     _ => {}

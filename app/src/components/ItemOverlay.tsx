@@ -121,7 +121,21 @@ function ItemHeader({ rarity, name, baseType, doubleLine }: {
 	);
 }
 
-function ModLine({ mod }: { mod: Modifier }) {
+export interface DisplaySettings {
+	showRollBars: boolean;
+	showTierBadges: boolean;
+	showTypeBadges: boolean;
+	showOpenAffixes: boolean;
+}
+
+export const defaultDisplay: DisplaySettings = {
+	showRollBars: true,
+	showTierBadges: true,
+	showTypeBadges: true,
+	showOpenAffixes: true,
+};
+
+function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) {
 	const quality = rollQuality(mod);
 	const typeLabel = modTypeLabel(mod);
 	const tierCls = mod.type === "unique" ? "tier-unique" : tierClass(mod.tier);
@@ -129,10 +143,10 @@ function ModLine({ mod }: { mod: Modifier }) {
 	return (
 		<div class={`mod-line ${tierCls}`}>
 			<div class="mod-badges">
-				{mod.tier !== undefined && (
+				{display.showTierBadges && mod.tier !== undefined && (
 					<span class={`tier-badge ${tierCls}`}>T{mod.tier}</span>
 				)}
-				{typeLabel !== null && (
+				{display.showTypeBadges && typeLabel !== null && (
 					<span class={`type-badge type-${mod.type}`}>{typeLabel}</span>
 				)}
 			</div>
@@ -143,7 +157,7 @@ function ModLine({ mod }: { mod: Modifier }) {
 				{mod.crafted && <span class="crafted-tag">(crafted)</span>}
 				{mod.fractured && <span class="fractured-tag">(fractured)</span>}
 			</div>
-			{quality !== null && (
+			{display.showRollBars && quality !== null && (
 				<div class="roll-quality" title={`Roll: ${quality}%`}>
 					<div class="roll-bar">
 						<div
@@ -158,7 +172,7 @@ function ModLine({ mod }: { mod: Modifier }) {
 	);
 }
 
-export function ItemOverlay({ item }: { item: ParsedItem }) {
+export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedItem; display?: DisplaySettings }) {
 	const doubleLine = item.rarity === "Rare" || item.rarity === "Unique";
 
 	return (
@@ -233,7 +247,7 @@ export function ItemOverlay({ item }: { item: ParsedItem }) {
 				<>
 					<div class="mod-section implicit-section">
 						{item.implicits.map((mod) => (
-							<ModLine key={mod.text} mod={mod} />
+							<ModLine key={mod.text} mod={mod} display={display} />
 						))}
 					</div>
 					<Separator rarity={item.rarity} />
@@ -244,13 +258,13 @@ export function ItemOverlay({ item }: { item: ParsedItem }) {
 			{item.explicits.length > 0 && (
 				<div class="mod-section explicit-section">
 					{item.explicits.map((mod) => (
-						<ModLine key={mod.text} mod={mod} />
+						<ModLine key={mod.text} mod={mod} display={display} />
 					))}
 				</div>
 			)}
 
 			{/* Open affixes */}
-			{item.rarity === "Rare" &&
+			{display.showOpenAffixes && item.rarity === "Rare" &&
 				(item.openPrefixes > 0 || item.openSuffixes > 0) && (
 					<>
 						<Separator rarity={item.rarity} />
