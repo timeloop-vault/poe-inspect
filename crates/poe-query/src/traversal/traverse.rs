@@ -5,7 +5,7 @@ use std::process;
 use log::*;
 
 use crate::{Term};
-use crate::dat::file::DatFile;
+use crate::dat::file::{DatFile, DatFileQueryExt};
 use crate::dat::DatStoreImpl;
 use crate::dat::specification::{FieldSpecImpl, FileSpec};
 use crate::query::{Compare, Operation};
@@ -382,7 +382,7 @@ impl<'a> DataTraverser<'a> for StaticContext<'a> {
             // generate initial values
             let file = cache.files.entry(spec.file_name.to_string()).or_insert_with(|| self.store.unwrap().file_by_filename(&spec.file_name).unwrap());
 
-            let values: Vec<Value> = (0..file.rows_count)
+            let values: Vec<Value> = (0..file.row_count)
                 .map(|i| {
                     let kv_list: Vec<Value> = spec
                         .file_fields

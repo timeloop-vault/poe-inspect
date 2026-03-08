@@ -1,65 +1,31 @@
 use byteorder::{LittleEndian, ReadBytesExt};
-use core::panic;
-use std::fmt::Error;
 use log::*;
 use std::io::Cursor;
-use std::process;
+
+pub use poe_dat::dat_reader::DatFile;
+
 use crate::traversal::value::Value;
 use crate::traversal::value::Value::U64;
 
 use super::specification::FieldSpec;
 use super::specification::FileSpec;
-use super::util;
 
-const DATA_SECTION_MARKER: &[u8; 8] = &[0xBB; 8];
+// ── Spec-driven field reading (poe-query extension) ─────────────────────────
 
-pub struct DatFile {
-    pub name: String,
-    pub bytes: Vec<u8>,
-    pub total_size: usize,
-    pub rows_begin: usize,
-    pub data_section: usize,
-    pub rows_count: u32,
-    pub row_size: usize,
+/// Extension trait that adds schema-driven field reading to `DatFile`.
+///
+/// This is the poe-query layer: it reads fields based on `FieldSpec` type
+/// strings (e.g., "ref|string", "list|u64", "bool") and returns `Value` enums.
+/// The core binary reading lives in poe-dat's `DatFile`.
+pub trait DatFileQueryExt {
+    fn valid(&self, spec: &FileSpec);
+    fn read_field(&self, row: u64, field: &FieldSpec) -> Value;
+    fn read_value(&self, offset: u64, data_type: &str) -> Value;
+    fn read_list(&self, offset: u64, len: u64, data_type: &str) -> Vec<Value>;
 }
 
-impl std::fmt::Debug for DatFile {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), Error> {
-        write!(f, "{} {} rows ({} bytes)", self.name, self.rows_count, self.total_size)
-    }
-}
-
-impl DatFile {
-
-    pub fn from_bytes(name: String, bytes: Vec<u8>) -> Result<DatFile, (String, String)> {
-        if bytes.is_empty() {
-            return Err((name, "No data provided to read the file from".to_string()));
-        }
-        let mut cursor = Cursor::new(&bytes);
-        let Ok(rows_count) = cursor.read_u32::<LittleEndian>() else {
-            return Err((name, "DAT file is empty".to_string()));
-        };
-
-        let rows_begin = 4;
-        let data_section = util::search_for(&bytes, DATA_SECTION_MARKER);
-        let rows_total_size = data_section - rows_begin;
-        let row_size = rows_total_size / rows_count as usize;
-
-        let file = DatFile {
-            name,
-            total_size: bytes.len(),
-            bytes,
-            rows_begin,
-            data_section,
-            rows_count,
-            row_size
-        };
-
-        info!("Read {:?}", file);
-        Ok(file)
-    }
-
-    pub fn valid(&self, spec: &FileSpec) {
+impl DatFileQueryExt for DatFile {
+    fn valid(&self, spec: &FileSpec) {
         debug!("Validating using specification '{}'", spec);
         let last_field = spec.file_fields.last();
         if let Some(field) = last_field {
@@ -75,26 +41,15 @@ impl DatFile {
         }
     }
 
-    pub fn check_offset(&self, offset: usize) {
-        if offset > self.total_size {
-            error!("Attempt to read outside the file {}. Offset {}, Size {}", self.name, offset, self.total_size);
-            error!("This is most likely a bug or an incorrect specification. It is also possible that the DAT file is corrupted.");
-            error!("You can report the error here: https://github.com/ex-nihil/poe-query/issues");
-            process::exit(-1);
-        }
-    }
-
-    pub fn read_field(&self, row: u64, field: &FieldSpec) -> Value {
+    fn read_field(&self, row: u64, field: &FieldSpec) -> Value {
         let row_offset = self.rows_begin + row as usize * self.row_size;
         let exact_offset = row_offset + field.field_offset;
 
         if field.field_offset > self.row_size {
-            // Spec describes more data than is in the row
             return Value::Empty;
         }
 
         let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
-
 
         let mut parts = field.field_type.split('|');
         let prefix = parts.next();
@@ -124,17 +79,23 @@ impl DatFile {
         result
     }
 
-    pub fn read_value(&self, offset: u64, data_type: &str) -> Value {
+    fn read_value(&self, offset: u64, data_type: &str) -> Value {
         let exact_offset = self.data_section + offset as usize;
-        self.check_offset(exact_offset);
+        if !self.check_offset(exact_offset) {
+            error!("Offset {} exceeds file size {}", exact_offset, self.total_size);
+            return Value::Empty;
+        }
 
         let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
         cursor.read_value(data_type)
     }
 
-    pub fn read_list(&self, offset: u64, len: u64, data_type: &str) -> Vec<Value> {
+    fn read_list(&self, offset: u64, len: u64, data_type: &str) -> Vec<Value> {
         let exact_offset = self.data_section + offset as usize;
-        self.check_offset(exact_offset);
+        if !self.check_offset(exact_offset) {
+            error!("Offset {} exceeds file size {}", exact_offset, self.total_size);
+            return Vec::new();
+        }
 
         let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
         (0..len).map(|_| {
@@ -150,6 +111,8 @@ impl DatFile {
         }).collect()
     }
 }
+
+// ── Cursor → Value conversion (poe-query specific) ─────────────────────────
 
 trait ReadBytesToValue {
     fn read_value(&mut self, tag: &str) -> Value;
@@ -181,7 +144,6 @@ impl ReadBytesToValue for Cursor<&[u8]> {
         }
     }
 
-    // I've seen booleans return both 1 and 254, what's the significance?
     fn bool(&mut self) -> Value {
         match self.read_u8() {
             Ok(0) => Value::Bool(false),
@@ -263,7 +225,6 @@ fn u32_to_enum(value: u32) -> Value {
 }
 
 fn i32_to_enum(value: i32) -> Value {
-    // TODO: check for empty signal
     Value::I64(value as i64)
 }
 

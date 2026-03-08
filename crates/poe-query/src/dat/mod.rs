@@ -4,7 +4,7 @@ use std::path::Path;
 use log::info;
 use poe_bundle::{BundleReader, BundleReaderRead};
 
-use crate::dat::file::DatFile;
+use crate::dat::file::{DatFile, DatFileQueryExt};
 use crate::dat::specification::{EnumSpec, FileSpec};
 
 pub mod util;
@@ -59,7 +59,7 @@ impl<'a> DatStoreImpl<'a> for DatReader<'a> {
         // TODO: remove unwrap() in poe_bundle and return an actual error
         let Ok(bytes) = self.bundle_reader.bytes(&path) else { return None };
 
-        let dat_file = DatFile::from_bytes(path, bytes).ok();
+        let dat_file = DatFile::from_bytes(bytes).ok();
         match (spec, dat_file) {
             (Some(file_specification), Some(dat_file)) => {
                 dat_file.valid(file_specification);

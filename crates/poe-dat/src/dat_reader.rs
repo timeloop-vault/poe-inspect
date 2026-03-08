@@ -1,4 +1,8 @@
-//! Minimal reader for PoE `.datc64` binary files.
+//! Reader for PoE `.datc64` binary files.
+//!
+//! Based on poe-query's `dat/file.rs` (proven implementation). Adapted to
+//! return native Rust types instead of the generic `Value` enum, and to use
+//! typed field accessors instead of spec-driven `read_field()`.
 //!
 //! The datc64 format:
 //! - Bytes 0..4: u32 LE row count
@@ -7,18 +11,35 @@
 //! - After marker: variable-length data section (strings, lists)
 //!
 //! All multi-byte values are little-endian. Strings are UTF-16LE null-terminated.
-//! Foreign key references are u64 (row index into another table, or `0xFEFEFEFEFEFEFEFE` for null).
-//! Lists are (u64 length, u64 offset) pointing into the variable data section.
+//! String/list offsets in row data are relative to the marker position.
+//! Foreign key references are 16 bytes: u64 row index + u64 key hash.
+//! Null sentinel: `0xFEFEFEFEFEFEFEFE`.
 
 use std::fmt;
+use std::io::Cursor;
+
+use byteorder::{LittleEndian, ReadBytesExt};
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+/// Sentinel value for null foreign keys and empty fields.
+const NULL_U64: u64 = 0xFEFE_FEFE_FEFE_FEFE;
+
+/// The 8-byte marker that separates fixed rows from variable data.
+const DATA_SECTION_MARKER: &[u8; 8] = &[0xBB; 8];
+
+// ── DatFile ──────────────────────────────────────────────────────────────────
 
 /// A parsed datc64 file, ready for field extraction.
 pub struct DatFile {
-    bytes: Vec<u8>,
+    pub bytes: Vec<u8>,
+    pub total_size: usize,
+    pub rows_begin: usize,
+    /// Offset of the data section marker within `bytes`.
+    /// String and list offsets stored in rows are relative to this position.
+    pub data_section: usize,
     pub row_count: u32,
     pub row_size: usize,
-    rows_start: usize,
-    data_section: usize,
 }
 
 impl fmt::Debug for DatFile {
@@ -26,162 +47,135 @@ impl fmt::Debug for DatFile {
         write!(
             f,
             "DatFile({} rows, {} bytes/row, {} total bytes)",
-            self.row_count,
-            self.row_size,
-            self.bytes.len()
+            self.row_count, self.row_size, self.total_size
         )
     }
 }
 
-/// Sentinel value for null foreign keys and empty fields.
-const NULL_FK: u64 = 0xFEFE_FEFE_FEFE_FEFE;
-
-/// The 8-byte marker that separates fixed rows from variable data.
-const DATA_SECTION_MARKER: [u8; 8] = [0xBB; 8];
-
 impl DatFile {
     /// Parse a datc64 file from raw bytes.
+    ///
+    /// Adapted from poe-query `DatFile::from_bytes`.
     pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, DatError> {
-        if bytes.len() < 4 {
-            return Err(DatError::TooShort);
+        if bytes.is_empty() {
+            return Err(DatError::Empty);
         }
 
-        let row_count = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
-        let rows_start = 4;
+        let mut cursor = Cursor::new(&bytes);
+        let row_count = cursor
+            .read_u32::<LittleEndian>()
+            .map_err(|_| DatError::TooShort)?;
 
-        // Find the data section marker
-        let data_section = find_marker(&bytes, &DATA_SECTION_MARKER)
+        let rows_begin = 4;
+        let data_section = search_for(&bytes, DATA_SECTION_MARKER)
             .ok_or(DatError::NoMarker)?;
 
-        let rows_total = data_section - rows_start;
-        if row_count == 0 {
-            return Ok(DatFile {
-                bytes,
-                row_count: 0,
-                row_size: 0,
-                rows_start,
-                data_section,
-            });
-        }
-
-        let row_size = rows_total / row_count as usize;
+        let rows_total_size = data_section - rows_begin;
+        let row_size = if row_count == 0 {
+            0
+        } else {
+            rows_total_size / row_count as usize
+        };
 
         Ok(DatFile {
+            total_size: bytes.len(),
             bytes,
+            rows_begin,
+            data_section,
             row_count,
             row_size,
-            rows_start,
-            data_section, // string/list offsets are relative to the marker position
         })
     }
+
+    /// Check that an absolute offset is within the file bounds.
+    ///
+    /// From poe-query `DatFile::check_offset`.
+    pub fn check_offset(&self, offset: usize) -> bool {
+        offset <= self.total_size
+    }
+
+    // ── Typed field accessors ────────────────────────────────────────────
 
     /// Read a u32 field from a row at the given byte offset within the row.
     pub fn read_u32(&self, row: u32, offset: usize) -> Option<u32> {
         let pos = self.field_pos(row, offset)?;
-        if pos + 4 > self.bytes.len() {
-            return None;
-        }
-        Some(u32::from_le_bytes([
-            self.bytes[pos],
-            self.bytes[pos + 1],
-            self.bytes[pos + 2],
-            self.bytes[pos + 3],
-        ]))
+        let slice = self.bytes.get(pos..pos + 4)?;
+        let mut cursor = Cursor::new(slice);
+        let val = cursor.read_u32::<LittleEndian>().ok()?;
+        if val == 0xFEFE_FEFE { None } else { Some(val) }
     }
 
     /// Read an i32 field.
     pub fn read_i32(&self, row: u32, offset: usize) -> Option<i32> {
         let pos = self.field_pos(row, offset)?;
-        if pos + 4 > self.bytes.len() {
-            return None;
-        }
-        Some(i32::from_le_bytes([
-            self.bytes[pos],
-            self.bytes[pos + 1],
-            self.bytes[pos + 2],
-            self.bytes[pos + 3],
-        ]))
+        let slice = self.bytes.get(pos..pos + 4)?;
+        let mut cursor = Cursor::new(slice);
+        Some(cursor.read_i32::<LittleEndian>().ok()?)
     }
 
     /// Read a u64 field (used for foreign keys).
     /// Returns `None` for null FK (`0xFEFEFEFEFEFEFEFE`).
+    ///
+    /// Null check from poe-query `u64_to_enum`.
     pub fn read_fk(&self, row: u32, offset: usize) -> Option<u64> {
         let pos = self.field_pos(row, offset)?;
-        if pos + 8 > self.bytes.len() {
-            return None;
-        }
-        let val = u64::from_le_bytes([
-            self.bytes[pos],
-            self.bytes[pos + 1],
-            self.bytes[pos + 2],
-            self.bytes[pos + 3],
-            self.bytes[pos + 4],
-            self.bytes[pos + 5],
-            self.bytes[pos + 6],
-            self.bytes[pos + 7],
-        ]);
-        if val == NULL_FK { None } else { Some(val) }
+        let slice = self.bytes.get(pos..pos + 8)?;
+        let mut cursor = Cursor::new(slice);
+        let val = cursor.read_u64::<LittleEndian>().ok()?;
+        if val == NULL_U64 { None } else { Some(val) }
     }
 
-    /// Read a bool field (1 byte, 0 = false, anything else = true).
+    /// Read a bool field (1 byte).
+    ///
+    /// Matches poe-query's bool handling: 0 = false, 1/255 = true,
+    /// other non-zero values treated as true.
     pub fn read_bool(&self, row: u32, offset: usize) -> Option<bool> {
         let pos = self.field_pos(row, offset)?;
-        if pos >= self.bytes.len() {
-            return None;
-        }
-        Some(self.bytes[pos] != 0)
+        let val = *self.bytes.get(pos)?;
+        Some(val != 0)
     }
 
-    /// Read a string field. The row contains a `ref|string` (u64 offset into data section).
-    /// The string is UTF-16LE null-terminated in the data section.
+    /// Read a string field. The row contains a `ref|string` (u64 offset
+    /// into the data section). The string is UTF-16LE null-terminated.
+    ///
+    /// String reading logic from poe-query `ReadBytesToValue::utf16`.
     pub fn read_string(&self, row: u32, offset: usize) -> Option<String> {
         let str_offset = self.read_fk(row, offset)?;
         self.read_string_at(str_offset)
     }
 
     /// Read a UTF-16LE null-terminated string at a data section offset.
+    ///
+    /// Adapted from poe-query `DatFile::read_value` + `utf16()`.
     fn read_string_at(&self, offset: u64) -> Option<String> {
-        let pos = self.data_section + offset as usize;
-        if pos >= self.bytes.len() {
+        let exact_offset = self.data_section + offset as usize;
+        if !self.check_offset(exact_offset) {
             return None;
         }
-        let mut chars = Vec::new();
-        let mut i = pos;
-        while i + 1 < self.bytes.len() {
-            let c = u16::from_le_bytes([self.bytes[i], self.bytes[i + 1]]);
-            if c == 0 {
-                break;
-            }
-            chars.push(c);
-            i += 2;
-        }
-        String::from_utf16(&chars).ok()
+        let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
+        let raw: Vec<u16> = (0..)
+            .map(|_| cursor.read_u16::<LittleEndian>().unwrap_or(0))
+            .take_while(|&x| x != 0)
+            .collect();
+        String::from_utf16(&raw).ok()
     }
 
     /// Read a list of u64 values (typically FK indices).
     /// The row contains (u64 length, u64 offset) at the given offset.
+    ///
+    /// List reading logic from poe-query `DatFile::read_list`.
     pub fn read_list_u64(&self, row: u32, offset: usize) -> Vec<u64> {
         let Some((len, list_offset)) = self.read_list_header(row, offset) else {
             return Vec::new();
         };
-        let pos = self.data_section + list_offset as usize;
+        let exact_offset = self.data_section + list_offset as usize;
+        if !self.check_offset(exact_offset) {
+            return Vec::new();
+        }
+        let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
         (0..len)
-            .filter_map(|i| {
-                let p = pos + i as usize * 8;
-                if p + 8 > self.bytes.len() {
-                    return None;
-                }
-                let val = u64::from_le_bytes([
-                    self.bytes[p],
-                    self.bytes[p + 1],
-                    self.bytes[p + 2],
-                    self.bytes[p + 3],
-                    self.bytes[p + 4],
-                    self.bytes[p + 5],
-                    self.bytes[p + 6],
-                    self.bytes[p + 7],
-                ]);
-                Some(val)
+            .filter_map(|_| {
+                cursor.read_u64::<LittleEndian>().ok()
             })
             .collect()
     }
@@ -191,50 +185,28 @@ impl DatFile {
         let Some((len, list_offset)) = self.read_list_header(row, offset) else {
             return Vec::new();
         };
-        let pos = self.data_section + list_offset as usize;
+        let exact_offset = self.data_section + list_offset as usize;
+        if !self.check_offset(exact_offset) {
+            return Vec::new();
+        }
+        let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
         (0..len)
-            .filter_map(|i| {
-                let p = pos + i as usize * 4;
-                if p + 4 > self.bytes.len() {
-                    return None;
-                }
-                Some(i32::from_le_bytes([
-                    self.bytes[p],
-                    self.bytes[p + 1],
-                    self.bytes[p + 2],
-                    self.bytes[p + 3],
-                ]))
+            .filter_map(|_| {
+                cursor.read_i32::<LittleEndian>().ok()
             })
             .collect()
     }
 
+    // ── Internal helpers ─────────────────────────────────────────────────
+
     /// Read the (length, offset) header for a list field.
     fn read_list_header(&self, row: u32, offset: usize) -> Option<(u64, u64)> {
         let pos = self.field_pos(row, offset)?;
-        if pos + 16 > self.bytes.len() {
-            return None;
-        }
-        let len = u64::from_le_bytes([
-            self.bytes[pos],
-            self.bytes[pos + 1],
-            self.bytes[pos + 2],
-            self.bytes[pos + 3],
-            self.bytes[pos + 4],
-            self.bytes[pos + 5],
-            self.bytes[pos + 6],
-            self.bytes[pos + 7],
-        ]);
-        let off = u64::from_le_bytes([
-            self.bytes[pos + 8],
-            self.bytes[pos + 9],
-            self.bytes[pos + 10],
-            self.bytes[pos + 11],
-            self.bytes[pos + 12],
-            self.bytes[pos + 13],
-            self.bytes[pos + 14],
-            self.bytes[pos + 15],
-        ]);
-        if len == NULL_FK {
+        let slice = self.bytes.get(pos..pos + 16)?;
+        let mut cursor = Cursor::new(slice);
+        let len = cursor.read_u64::<LittleEndian>().ok()?;
+        let off = cursor.read_u64::<LittleEndian>().ok()?;
+        if len == NULL_U64 {
             return None;
         }
         Some((len, off))
@@ -245,25 +217,34 @@ impl DatFile {
         if row >= self.row_count || offset >= self.row_size {
             return None;
         }
-        Some(self.rows_start + row as usize * self.row_size + offset)
+        Some(self.rows_begin + row as usize * self.row_size + offset)
     }
 }
+
+// ── Errors ───────────────────────────────────────────────────────────────────
 
 /// Errors that can occur when reading a datc64 file.
 #[derive(Debug, thiserror::Error)]
 pub enum DatError {
+    #[error("file is empty")]
+    Empty,
     #[error("file too short to contain row count header")]
     TooShort,
     #[error("data section marker (0xBB*8) not found")]
     NoMarker,
 }
 
-/// Find the position of an 8-byte marker in a byte slice.
-fn find_marker(bytes: &[u8], marker: &[u8; 8]) -> Option<usize> {
-    bytes
-        .windows(8)
-        .position(|w| w == marker)
+// ── Utilities ────────────────────────────────────────────────────────────────
+
+/// Find the position of a byte pattern in a slice.
+///
+/// From poe-query `dat/util.rs`.
+fn search_for(data: &[u8], needle: &[u8]) -> Option<usize> {
+    data.windows(needle.len())
+        .position(|window| window == needle)
 }
+
+// ── Tests ────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -287,7 +268,7 @@ mod tests {
         bytes.extend_from_slice(&14u64.to_le_bytes());
 
         // Data section marker
-        bytes.extend_from_slice(&DATA_SECTION_MARKER);
+        bytes.extend_from_slice(DATA_SECTION_MARKER);
 
         // Variable data: "Hi\0" then "Ok\0" in UTF-16LE
         for c in &[b'H', b'i'] {

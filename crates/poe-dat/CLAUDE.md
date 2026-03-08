@@ -72,7 +72,50 @@ one format string. The caller must join these lines with `\n` before calling `lo
 ### Format Reference
 See `docs/research/stat-description-file-format.md` for complete format specification.
 
-## Future Work (after stat descriptions)
-- Table extraction for BaseItemTypes, Mods, Stats, Tags, etc.
-- Uses poe-query's DatReader for dat table access
-- CLI for debugging/exploration
+## Table Extraction (dat_reader + tables)
+
+### Architecture
+```
+src/
+  dat_reader.rs        — minimal datc64 binary reader (no poe-query dependency)
+  tables/
+    mod.rs             — public API
+    types.rs           — typed row structs (StatRow, ModRow, BaseItemTypeRow, etc.)
+    extract.rs         — extraction functions with hardcoded byte offsets
+```
+
+### datc64 Format Notes
+- Row count: u32 LE at byte 0
+- Fixed rows: bytes 4..(4 + row_count * row_size)
+- BB marker: 8 bytes `0xBBBBBBBBBBBBBBBB`
+- Variable data section starts at the marker (string/list offsets are relative to marker position)
+- Strings: `ref|string` = u64 offset (8 bytes in row), UTF-16LE null-terminated in data section
+- FK: 16 bytes (u64 row index + u64 key hash), null = `0xFEFEFEFEFEFEFEFE`
+- Lists: 16 bytes (u64 length + u64 offset), elements in data section
+- Enums: u32 (4 bytes)
+- `i16` fields: 2 bytes in datc64 (NOT padded to 4 — confirmed empirically for Mods.HASH16)
+
+### Tables Extracted
+| Table | Rows (3.28) | Row Size | Key Fields |
+|-------|-------------|----------|------------|
+| Stats | 22,749 | 105 | id, is_local, is_weapon_local, is_virtual |
+| Tags | 1,353 | 28 | id |
+| ModFamily | — | — | id |
+| ModType | — | — | name |
+| ItemClasses | 99 | 153 | id, name, category (FK), can_have_veiled_mods |
+| BaseItemTypes | 5,334 | — | id, item_class (FK), width, height, name, drop_level, implicit_mods, tags |
+| Mods | 39,291 | 654 | id, mod_type, level, 6×stat_keys, domain, name, generation_type, families, 6×stat_ranges, spawn_weights, tags, is_essence_only, max_level |
+
+### Extracting Raw Files
+Use `extract_dat` binary (in poe-query crate):
+```sh
+cd crates/poe-query
+cargo run --bin extract_dat -- -p "D:/games/PathofExile"
+# Writes to %TEMP%/poe-dat/{table}.datc64
+```
+
+### Testing
+```sh
+cargo test -p poe-dat --test extract_tables -- --nocapture
+```
+Requires extracted datc64 files in `%TEMP%/poe-dat/`.
