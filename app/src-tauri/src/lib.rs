@@ -2,9 +2,10 @@ mod bridge;
 #[cfg(target_os = "linux")]
 mod wayland;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use poe_data::GameData;
+use poe_eval::Profile;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
@@ -16,6 +17,9 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// Shared game data, loaded once at startup.
 struct GameDataState(Arc<GameData>);
+
+/// Active evaluation profile, loaded from JSON data files.
+struct ProfileState(Mutex<Option<Profile>>);
 
 /// Read the "dismiss on focus loss" setting from the store (default: true).
 fn read_dismiss_on_focus_loss(app: &tauri::AppHandle) -> bool {
@@ -171,10 +175,12 @@ fn handle_inspect(app: &tauri::AppHandle) {
 
         // Try to parse and evaluate the item
         let gd = &app.state::<GameDataState>().0;
+        let profile = app.state::<ProfileState>().0.lock().unwrap().clone();
         match poe_item::parse(&clipboard_text) {
             Ok(raw) => {
                 let resolved = poe_item::resolve(&raw, gd);
-                let evaluated = bridge::build_evaluated_item(&resolved, gd);
+                let evaluated =
+                    bridge::build_evaluated_item(&resolved, gd, profile.as_ref());
                 let _ = app.emit("item-evaluated", &evaluated);
             }
             Err(e) => {
@@ -488,8 +494,8 @@ fn evaluate_item(
     // Pass 2: resolve against game data
     let resolved = poe_item::resolve(&raw, gd);
 
-    // Build frontend-compatible response
-    Ok(bridge::build_evaluated_item(&resolved, gd))
+    // Build frontend-compatible response (no profile for direct command calls)
+    Ok(bridge::build_evaluated_item(&resolved, gd, None))
 }
 
 /// Load game data from extracted datc64 files.
@@ -530,6 +536,20 @@ fn load_game_data() -> GameData {
     GameData::new(vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![])
 }
 
+/// Built-in default profile — compiled into the binary, can never be deleted.
+const DEFAULT_PROFILE_JSON: &str = include_str!("../data/profiles/generic.json");
+
+/// Parse the built-in default profile.
+fn default_profile() -> Option<Profile> {
+    match serde_json::from_str(DEFAULT_PROFILE_JSON) {
+        Ok(p) => Some(p),
+        Err(e) => {
+            eprintln!("Failed to parse built-in default profile: {e}");
+            None
+        }
+    }
+}
+
 pub fn run() {
     // WebKitGTK's DMA-BUF renderer has a bug with explicit sync on Wayland
     // compositors (Hyprland): it creates a wp_linux_drm_syncobj_surface but
@@ -557,6 +577,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
         .manage(GameDataState(Arc::new(load_game_data())))
+        .manage(ProfileState(Mutex::new(default_profile())))
         .invoke_handler(tauri::generate_handler![
             reposition_overlay,
             dismiss_overlay,

@@ -552,3 +552,74 @@ body {
 	white-space: pre-line;
 	opacity: 0.8;
 }
+
+/* --- Profile score --- */
+
+.score-section {
+	padding: 4px 10px 6px;
+}
+
+.score-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 3px;
+}
+
+.score-label {
+	font-size: 11px;
+	color: var(--poe-text-dim);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.score-value {
+	font-size: 13px;
+	font-weight: bold;
+}
+
+.score-value.score-high { color: var(--tier-1); }
+.score-value.score-mid { color: var(--tier-2-3); }
+.score-value.score-low { color: var(--tier-low); }
+
+.score-bar {
+	height: 4px;
+	background: rgba(255, 255, 255, 0.08);
+	border-radius: 2px;
+	overflow: hidden;
+	margin-bottom: 4px;
+}
+
+.score-fill {
+	height: 100%;
+	border-radius: 2px;
+	transition: width 0.3s;
+}
+
+.score-fill.score-high { background: var(--tier-1); }
+.score-fill.score-mid { background: var(--tier-2-3); }
+.score-fill.score-low { background: var(--tier-low); }
+
+.score-details {
+	font-size: 10px;
+	line-height: 1.5;
+}
+
+.score-rule {
+	display: flex;
+	gap: 4px;
+}
+
+.score-rule.matched .rule-check { color: var(--tier-1); }
+.score-rule.unmatched .rule-check { color: var(--tier-low); opacity: 0.6; }
+.score-rule.unmatched .rule-label { color: var(--poe-text-dim); opacity: 0.6; }
+
+.rule-check {
+	flex-shrink: 0;
+	width: 10px;
+	text-align: center;
+}
+
+.rule-label {
+	color: var(--poe-text);
+}
