@@ -23,7 +23,6 @@ struct GameDataState(Arc<GameData>);
 /// Active evaluation profile, loaded from JSON data files.
 struct ProfileState(Mutex<Option<Profile>>);
 
-
 /// Cursor position in CSS pixels, emitted to the frontend for panel positioning.
 #[derive(serde::Serialize, Clone)]
 struct OverlayPosition {
@@ -67,9 +66,9 @@ fn setup_fullscreen_overlay(
     let is_wayland = false;
 
     if !is_wayland {
-        let _ = window.set_position(tauri::Position::Physical(
-            tauri::PhysicalPosition::new(mon_pos.x, mon_pos.y),
-        ));
+        let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
+            mon_pos.x, mon_pos.y,
+        )));
         let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize::new(
             mon_size.width,
             mon_size.height,
@@ -117,8 +116,7 @@ fn handle_inspect(app: &tauri::AppHandle) {
         match poe_item::parse(&clipboard_text) {
             Ok(raw) => {
                 let resolved = poe_item::resolve(&raw, gd);
-                let evaluated =
-                    bridge::build_evaluated_item(&resolved, gd, profile.as_ref());
+                let evaluated = bridge::build_evaluated_item(&resolved, gd, profile.as_ref());
                 let _ = app.emit("item-evaluated", &evaluated);
             }
             Err(e) => {
@@ -212,7 +210,6 @@ fn get_cursor_position() -> (i32, i32) {
     // Fallback for X11 / non-Hyprland compositors
     (100, 100)
 }
-
 
 /// Dismiss the overlay: hide window, notify frontend.
 #[tauri::command]
@@ -486,12 +483,16 @@ fn resolve_stat_template(template: &str, gd: tauri::State<'_, GameDataState>) ->
 /// just without stat resolution or open affix detection).
 fn load_game_data() -> GameData {
     let candidates = [
-        std::env::var("POE_DATA_DIR").ok().map(std::path::PathBuf::from),
+        std::env::var("POE_DATA_DIR")
+            .ok()
+            .map(std::path::PathBuf::from),
         std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join("data"))),
         // Committed game data in the repo (dev + release)
-        Some(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../crates/poe-data/data")),
+        Some(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../crates/poe-data/data"),
+        ),
         Some(std::env::temp_dir().join("poe-dat")),
     ];
 
@@ -510,7 +511,17 @@ fn load_game_data() -> GameData {
     }
 
     eprintln!("No game data found — running without stat resolution");
-    GameData::new(vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![], vec![])
+    GameData::new(
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+    )
 }
 
 /// Built-in default profile — compiled into the binary, can never be deleted.
@@ -535,13 +546,12 @@ pub fn run() {
     // to use shared-memory buffers instead. Must be set before GTK init.
     #[cfg(target_os = "linux")]
     if std::env::var_os("WAYLAND_DISPLAY").is_some()
-        || std::env::var_os("XDG_SESSION_TYPE")
-            .is_some_and(|v| v == "wayland")
+        || std::env::var_os("XDG_SESSION_TYPE").is_some_and(|v| v == "wayland")
     {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::Builder::new().build())
@@ -554,7 +564,17 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_store::Builder::default().build());
+
+    // MCP plugin for AI-agent debugging — dev builds only
+    #[cfg(debug_assertions)]
+    let builder = builder.plugin(tauri_plugin_mcp::init_with_config(
+        tauri_plugin_mcp::PluginConfig::new("poe-inspect".to_string())
+            .start_socket_server(true)
+            .tcp_localhost(4000),
+    ));
+
+    builder
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
         .manage(GameDataState(Arc::new(load_game_data())))
         .manage(ProfileState(Mutex::new(default_profile())))
@@ -668,12 +688,13 @@ pub fn run() {
             // and save window state so position/size persists across restarts
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    let _ = window.app_handle().save_window_state(StateFlags::all().difference(StateFlags::VISIBLE));
+                    let _ = window
+                        .app_handle()
+                        .save_window_state(StateFlags::all().difference(StateFlags::VISIBLE));
                     api.prevent_close();
                     let _ = window.hide();
                 }
             }
-
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

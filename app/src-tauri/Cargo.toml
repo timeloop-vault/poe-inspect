@@ -22,6 +22,7 @@ enigo = { version = "0.2", features = ["xdo", "wayland"] }
 tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+tauri-plugin-mcp = { git = "https://github.com/P3GLEG/tauri-plugin-mcp" }
 
 # Workspace crates
 poe-item = { path = "../../crates/poe-item" }
