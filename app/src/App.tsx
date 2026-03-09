@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { Component } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
@@ -59,9 +60,35 @@ function computePanelPosition(
 	return { anchor: "left", left: x, top: y };
 }
 
+/** Catches render errors in the overlay content to prevent orphan DOM nodes. */
+class OverlayErrorBoundary extends Component<
+	{ children: preact.ComponentChildren },
+	{ error: string | null }
+> {
+	state = { error: null as string | null };
+	static getDerivedStateFromError(err: Error) {
+		return { error: err.message };
+	}
+	componentDidCatch(err: Error) {
+		console.error("[overlay] Render error caught:", err);
+	}
+	render() {
+		if (this.state.error) {
+			return (
+				<div class="parse-error">
+					<div class="parse-error-title">Overlay render error</div>
+					<div class="parse-error-hint">{this.state.error}</div>
+				</div>
+			);
+		}
+		return this.props.children;
+	}
+}
+
 export function App() {
 	const [itemText, setItemText] = useState<string | null>(null);
 	const [evaluatedItem, setEvaluatedItem] = useState<ParsedItem | null>(null);
+	const [parseError, setParseError] = useState<{ error: string; rawText: string } | null>(null);
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(true);
 	const [overlayScale, setOverlayScale] = useState(100);
@@ -81,6 +108,7 @@ export function App() {
 	const dismiss = useCallback(async () => {
 		setItemText(null);
 		setEvaluatedItem(null);
+		setParseError(null);
 		setShowMock(false);
 		await invoke("dismiss_overlay");
 	}, []);
@@ -116,6 +144,7 @@ export function App() {
 			reloadSettings();
 			setEvaluatedItem(event.payload);
 			setItemText(null);
+			setParseError(null);
 			setShowMock(false);
 		});
 
@@ -123,12 +152,25 @@ export function App() {
 			reloadSettings();
 			setItemText(event.payload);
 			setEvaluatedItem(null);
+			setParseError(null);
 			setShowMock(false);
 		});
+
+		const unlistenParseFailed = listen<{ error: string; rawText: string }>(
+			"item-parse-failed",
+			(event) => {
+				reloadSettings();
+				setParseError(event.payload);
+				setEvaluatedItem(null);
+				setItemText(null);
+				setShowMock(false);
+			},
+		);
 
 		const unlistenDismiss = listen("overlay-dismissed", () => {
 			setItemText(null);
 			setEvaluatedItem(null);
+			setParseError(null);
 		});
 
 		const unlistenDebug = listen("show-debug-overlay", () => {
@@ -157,6 +199,7 @@ export function App() {
 			unlistenPosition.then((fn) => fn());
 			unlistenEvaluated.then((fn) => fn());
 			unlistenCapture.then((fn) => fn());
+			unlistenParseFailed.then((fn) => fn());
 			unlistenDismiss.then((fn) => fn());
 			unlistenDebug.then((fn) => fn());
 			document.removeEventListener("keydown", handleKeydown);
@@ -194,6 +237,20 @@ export function App() {
 
 	if (evaluatedItem && !showMock) {
 		content = <ItemOverlay item={evaluatedItem} display={displaySettings} />;
+	} else if (parseError && !showMock) {
+		content = (
+			<div class="parse-error">
+				<div class="parse-error-title">Item not supported yet</div>
+				<div class="parse-error-hint">
+					This item type can't be parsed. Copy the item text (Ctrl+Alt+C) and report it to help us
+					add support.
+				</div>
+				<details class="parse-error-details">
+					<summary>Raw item text</summary>
+					<pre>{parseError.rawText}</pre>
+				</details>
+			</div>
+		);
 	} else if (itemText && !showMock) {
 		content = <pre class="item-text">{itemText}</pre>;
 	} else if (showMock) {
@@ -245,7 +302,7 @@ export function App() {
 							&times;
 						</button>
 					)}
-					{content}
+					<OverlayErrorBoundary>{content}</OverlayErrorBoundary>
 				</div>
 			)}
 		</div>

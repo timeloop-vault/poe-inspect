@@ -9,8 +9,14 @@ license.workspace = true
 [lints]
 workspace = true
 
+[features]
+serde = ["dep:serde"]
+ts = ["serde", "dep:ts-rs"]
+
 [dependencies]
 poe-dat = { path = "../poe-dat" }
+serde = { workspace = true, optional = true }
+ts-rs = { version = "12", optional = true }
 serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true

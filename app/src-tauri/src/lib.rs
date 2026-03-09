@@ -141,8 +141,14 @@ fn handle_inspect(app: &tauri::AppHandle) {
             }
             Err(e) => {
                 eprintln!("Item parse failed: {e}");
-                // Fall back to raw text so the overlay still shows something
-                let _ = app.emit("item-captured", &clipboard_text);
+                // Show parse-error overlay so the user can dismiss and report
+                let _ = app.emit(
+                    "item-parse-failed",
+                    serde_json::json!({
+                        "error": e.to_string(),
+                        "rawText": clipboard_text,
+                    }),
+                );
             }
         }
     });

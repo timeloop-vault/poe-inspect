@@ -28,6 +28,10 @@
 /// Ordered so that `Best < Great < Good < Mid < Low < Unknown`,
 /// which means "better" sorts first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum TierQuality {
     /// Tier 1 — best possible.
     Best,
