@@ -26,7 +26,7 @@
 .settings-layout {
 	display: grid;
 	grid-template-columns: 180px 1fr;
-	height: 100vh;
+	height: 100%;
 	overflow: hidden;
 	background: var(--poe-bg);
 	color: var(--poe-text);

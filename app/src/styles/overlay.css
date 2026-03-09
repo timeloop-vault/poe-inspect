@@ -90,7 +90,9 @@
 }
 
 html,
-body {
+body,
+#root {
+	height: 100%;
 	background: transparent;
 	overflow: hidden;
 	font-family: "Fontin SmallCaps", "Fontin", "Segoe UI", sans-serif;

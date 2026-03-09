@@ -4,6 +4,9 @@ import { App } from "./App";
 import { SettingsApp } from "./SettingsApp";
 import "./styles/overlay.css";
 import "./styles/settings.css";
+if (import.meta.env.DEV) {
+	import("tauri-plugin-mcp").then((m) => m.setupPluginListeners());
+}
 
 const windowLabel = getCurrentWebviewWindow().label;
 const Root = windowLabel === "settings" ? SettingsApp : App;
