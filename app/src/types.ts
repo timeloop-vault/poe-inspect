@@ -154,7 +154,7 @@ export type FieldKind =
 	| { type: "enum"; options: EnumOption[] }
 	| { type: "orderedEnum"; options: EnumOption[] }
 	| { type: "text"; suggestionsFrom: string | null }
-	| { type: "slot" };
+	| { type: "slot"; options: EnumOption[] };
 
 /** A selectable option in an enum field. */
 export interface EnumOption {

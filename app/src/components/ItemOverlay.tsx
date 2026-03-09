@@ -1,5 +1,11 @@
 import type { Modifier, ParsedItem, Rarity, ScoreInfo } from "../types";
 
+import headerMagicLeft from "../assets/tooltip/header-magic-left.webp";
+import headerMagicMiddle from "../assets/tooltip/header-magic-middle.webp";
+import headerMagicRight from "../assets/tooltip/header-magic-right.webp";
+import headerNormalLeft from "../assets/tooltip/header-normal-left.webp";
+import headerNormalMiddle from "../assets/tooltip/header-normal-middle.webp";
+import headerNormalRight from "../assets/tooltip/header-normal-right.webp";
 // Tooltip header sprites (left, middle, right) per rarity
 import headerRareLeft from "../assets/tooltip/header-rare-left.webp";
 import headerRareMiddle from "../assets/tooltip/header-rare-middle.webp";
@@ -7,18 +13,12 @@ import headerRareRight from "../assets/tooltip/header-rare-right.webp";
 import headerUniqueLeft from "../assets/tooltip/header-unique-left.webp";
 import headerUniqueMiddle from "../assets/tooltip/header-unique-middle.webp";
 import headerUniqueRight from "../assets/tooltip/header-unique-right.webp";
-import headerNormalLeft from "../assets/tooltip/header-normal-left.webp";
-import headerNormalMiddle from "../assets/tooltip/header-normal-middle.webp";
-import headerNormalRight from "../assets/tooltip/header-normal-right.webp";
-import headerMagicLeft from "../assets/tooltip/header-magic-left.webp";
-import headerMagicMiddle from "../assets/tooltip/header-magic-middle.webp";
-import headerMagicRight from "../assets/tooltip/header-magic-right.webp";
 
+import separatorMagic from "../assets/tooltip/separator-magic.webp";
+import separatorNormal from "../assets/tooltip/separator-normal.webp";
 // Tooltip separator sprites per rarity
 import separatorRare from "../assets/tooltip/separator-rare.webp";
 import separatorUnique from "../assets/tooltip/separator-unique.webp";
-import separatorMagic from "../assets/tooltip/separator-magic.webp";
-import separatorNormal from "../assets/tooltip/separator-normal.webp";
 
 type HeaderSprites = { left: string; middle: string; right: string };
 
@@ -53,12 +53,18 @@ function rarityColor(rarity: Rarity): string {
 /** CSS class for tier coloring — driven by quality from poe-data, not raw tier number. */
 function tierClass(mod: Modifier): string {
 	switch (mod.quality) {
-		case "best": return "tier-1";
-		case "great": return "tier-2-3";
-		case "good": return "tier-2-3";
-		case "mid": return "tier-4-5";
-		case "low": return "tier-low";
-		default: return "tier-none";
+		case "best":
+			return "tier-1";
+		case "great":
+			return "tier-2-3";
+		case "good":
+			return "tier-2-3";
+		case "mid":
+			return "tier-4-5";
+		case "low":
+			return "tier-low";
+		default:
+			return "tier-none";
 	}
 }
 
@@ -71,8 +77,7 @@ function tierBadgeLabel(mod: Modifier): string {
 
 /** Calculate roll quality as 0-100 percentage */
 function rollQuality(mod: Modifier): number | null {
-	if (mod.value === undefined || mod.min === undefined || mod.max === undefined)
-		return null;
+	if (mod.value === undefined || mod.min === undefined || mod.max === undefined) return null;
 	const range = mod.max - mod.min;
 	if (range === 0) return 100;
 	return Math.round(((mod.value - mod.min) / range) * 100);
@@ -103,7 +108,12 @@ function Separator({ rarity }: { rarity: Rarity }) {
 }
 
 /** PoE-style item header with left cap, tiling middle, right cap */
-function ItemHeader({ rarity, name, baseType, doubleLine }: {
+function ItemHeader({
+	rarity,
+	name,
+	baseType,
+	doubleLine,
+}: {
 	rarity: Rarity;
 	name: string;
 	baseType: string;
@@ -124,7 +134,10 @@ function ItemHeader({ rarity, name, baseType, doubleLine }: {
 						<div class="item-base">{baseType}</div>
 					</>
 				) : (
-					<div class="item-name">{name}{baseType !== name ? ` ${baseType}` : ""}</div>
+					<div class="item-name">
+						{name}
+						{baseType !== name ? ` ${baseType}` : ""}
+					</div>
 				)}
 			</div>
 		</div>
@@ -182,7 +195,10 @@ function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) 
 	);
 }
 
-export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedItem; display?: DisplaySettings }) {
+export function ItemOverlay({
+	item,
+	display = defaultDisplay,
+}: { item: ParsedItem; display?: DisplaySettings }) {
 	const doubleLine = item.rarity === "Rare" || item.rarity === "Unique";
 
 	return (
@@ -202,10 +218,7 @@ export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedIt
 				<>
 					<div class="item-properties">
 						{item.properties.map((prop) => (
-							<div
-								key={prop.name}
-								class={`property-line ${prop.augmented ? "augmented" : ""}`}
-							>
+							<div key={prop.name} class={`property-line ${prop.augmented ? "augmented" : ""}`}>
 								{prop.name}: {prop.value}
 							</div>
 						))}
@@ -274,27 +287,26 @@ export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedIt
 			)}
 
 			{/* Open affixes */}
-			{display.showOpenAffixes &&
-				(item.openPrefixes > 0 || item.openSuffixes > 0) && (
-					<>
-						<Separator rarity={item.rarity} />
-						<div class="open-affixes">
-							{item.openPrefixes > 0 && (
-								<span class="open-prefix">
-									{item.openPrefixes} open prefix
-									{item.openPrefixes > 1 ? "es" : ""}
-								</span>
-							)}
-							{item.openPrefixes > 0 && item.openSuffixes > 0 && " · "}
-							{item.openSuffixes > 0 && (
-								<span class="open-suffix">
-									{item.openSuffixes} open suffix
-									{item.openSuffixes > 1 ? "es" : ""}
-								</span>
-							)}
-						</div>
-					</>
-				)}
+			{display.showOpenAffixes && (item.openPrefixes > 0 || item.openSuffixes > 0) && (
+				<>
+					<Separator rarity={item.rarity} />
+					<div class="open-affixes">
+						{item.openPrefixes > 0 && (
+							<span class="open-prefix">
+								{item.openPrefixes} open prefix
+								{item.openPrefixes > 1 ? "es" : ""}
+							</span>
+						)}
+						{item.openPrefixes > 0 && item.openSuffixes > 0 && " · "}
+						{item.openSuffixes > 0 && (
+							<span class="open-suffix">
+								{item.openSuffixes} open suffix
+								{item.openSuffixes > 1 ? "es" : ""}
+							</span>
+						)}
+					</div>
+				</>
+			)}
 
 			{/* Affix count summary */}
 			{item.maxPrefixes > 0 && (
@@ -327,7 +339,7 @@ export function ItemOverlay({ item, display = defaultDisplay }: { item: ParsedIt
 			)}
 
 			{/* Profile score */}
-			{item.score && item.score.applicable && (
+			{item.score?.applicable && (
 				<>
 					<Separator rarity={item.rarity} />
 					<ScoreDisplay score={item.score} />

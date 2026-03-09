@@ -100,18 +100,20 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
         // ── Stat value predicates ────────────────────────────────────
         Predicate::StatValue {
             text,
+            stat_id,
             value_index,
             op,
             value,
-        } => find_stat_value(item, text, *value_index)
+        } => find_stat_value(item, text.as_deref(), stat_id.as_deref(), *value_index)
             .is_some_and(|current| op.eval(&current, value)),
 
         Predicate::RollPercent {
             text,
+            stat_id,
             value_index,
             op,
             value,
-        } => find_roll_percent(item, text, *value_index)
+        } => find_roll_percent(item, text.as_deref(), stat_id.as_deref(), *value_index)
             .is_some_and(|pct| op.eval(&pct, value)),
 
         // ── Influence / status ───────────────────────────────────────
@@ -201,11 +203,39 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
     max_u32.saturating_sub(current)
 }
 
-/// Find the current rolled value of the first stat line matching `text`.
-fn find_stat_value(item: &ResolvedItem, text: &str, value_index: usize) -> Option<i64> {
+/// Check if a stat line matches by stat_id (preferred) or text fallback.
+fn stat_line_matches(
+    sl: &poe_item::types::ResolvedStatLine,
+    text: Option<&str>,
+    stat_id: Option<&str>,
+) -> bool {
+    if sl.is_reminder {
+        return false;
+    }
+    // Prefer stat_id matching (language-independent)
+    if let Some(sid) = stat_id {
+        return sl
+            .stat_ids
+            .as_ref()
+            .is_some_and(|ids| ids.iter().any(|id| id == sid));
+    }
+    // Fall back to text substring matching
+    if let Some(t) = text {
+        return sl.display_text.contains(t);
+    }
+    false
+}
+
+/// Find the current rolled value of the first matching stat line.
+fn find_stat_value(
+    item: &ResolvedItem,
+    text: Option<&str>,
+    stat_id: Option<&str>,
+    value_index: usize,
+) -> Option<i64> {
     for m in &item.mods {
         for sl in &m.stat_lines {
-            if !sl.is_reminder && sl.display_text.contains(text) {
+            if stat_line_matches(sl, text, stat_id) {
                 return sl.values.get(value_index).map(|v| v.current);
             }
         }
@@ -216,10 +246,15 @@ fn find_stat_value(item: &ResolvedItem, text: &str, value_index: usize) -> Optio
 /// Calculate how close a roll is to max, as a percentage (0–100).
 ///
 /// Returns `None` if the stat line has no range data or if range span is zero.
-fn find_roll_percent(item: &ResolvedItem, text: &str, value_index: usize) -> Option<u32> {
+fn find_roll_percent(
+    item: &ResolvedItem,
+    text: Option<&str>,
+    stat_id: Option<&str>,
+    value_index: usize,
+) -> Option<u32> {
     for m in &item.mods {
         for sl in &m.stat_lines {
-            if !sl.is_reminder && sl.display_text.contains(text) {
+            if stat_line_matches(sl, text, stat_id) {
                 let vr = sl.values.get(value_index)?;
                 let span = vr.max - vr.min;
                 if span == 0 {

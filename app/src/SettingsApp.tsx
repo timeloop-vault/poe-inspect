@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { GeneralSettings } from "./components/settings/GeneralSettings";
 import { HotkeySettings } from "./components/settings/HotkeySettings";
 import { ProfileSettings } from "./components/settings/ProfileSettings";
