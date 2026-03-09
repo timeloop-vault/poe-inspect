@@ -427,6 +427,8 @@ groups inside groups. Phase 8b addresses this.
 
 #### Phase 8b: Nested Compound Rules (Tree Editor)
 
+**Status: DONE (not tested end-to-end)**
+
 Extend compound rules to support arbitrary nesting. A compound rule's children
 can be either a `Rule::Pred` or another `Rule::All`/`Rule::Any` group. This enables
 expressions like `life > 100 AND (body armour OR helmet)`:
@@ -442,20 +444,25 @@ All:
 The backend already supports this — `Rule::All`/`Rule::Any` take `Vec<Rule>` which
 can contain nested compound rules. This is purely a UI extension.
 
-**UI changes:**
-- "+ Add Sub-Group" button inside compound groups (alongside "+ Add Condition")
-- Nested groups rendered with additional indent level (recursive `PredicateRow`)
-- Each sub-group gets its own All/Any toggle
-- Delete sub-group collapses its children or removes entirely
+**What was implemented:**
+- `CompoundGroupEditor`: recursive component with own All/Any toggle, +Condition,
+  +Sub-Group buttons. Nested groups default to opposite mode (All parent → Any child).
+- `ScoringRuleEditor` delegates compound body to `CompoundGroupEditor`
+- `summarizeRule()`: plain-English summary shown in collapsed header for compound
+  rules (e.g., "Has Max Life AND (Item Class OR Item Class)")
+- Scroll fix: `.compound-predicates` gets `max-height: 50vh` + `overflow-y: auto`
+- CSS: `.compound-nested` (dimmer border), `.compound-group-header`, `.compound-actions`
 
 **Design constraints:**
 - No hard depth limit, but visual indentation makes 3+ levels impractical
-- Recursive component: `PredicateRow` renders either a Pred or a nested compound
+- Recursive component: children rendered as `PredicateRow` or nested `CompoundGroupEditor`
 - Performance: compound rules are small trees (10-20 nodes max), no concern
 
 **Future consideration:** VS Code extension for writing rules in a text DSL outside
 of poe-inspect. Power users and community rule-sharers may prefer a textual format
 over a visual builder. The text format would compile to the same `Rule` JSON.
+Grafana's bidirectional sync between visual builder and text DSL is the gold standard.
+Also consider "wrap in group" right-click action for restructuring existing conditions.
 
 #### Phase 8c: Multi-Profile Stacking (Friend Wishlists)
 
