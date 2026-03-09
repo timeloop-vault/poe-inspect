@@ -655,14 +655,128 @@ function PredicateRow({
 	);
 }
 
+// ── Compound Group Editor (recursive) ────────────────────────────────
+
+/** Renders a compound rule (All/Any) with its children. Supports nesting. */
+function CompoundGroupEditor({
+	rule,
+	schema,
+	onChange,
+	onDelete,
+	depth,
+}: {
+	rule: { rule_type: "All" | "Any"; rules: Rule[] };
+	schema: PredicateSchema[];
+	onChange: (updated: Rule) => void;
+	onDelete?: () => void;
+	depth: number;
+}) {
+	const mode = rule.rule_type;
+
+	const setMode = (newMode: "All" | "Any") => {
+		if (newMode === mode) return;
+		onChange({ ...rule, rule_type: newMode });
+	};
+
+	const updateChild = (index: number, updated: Rule) => {
+		const next = [...rule.rules];
+		next[index] = updated;
+		onChange({ ...rule, rules: next });
+	};
+
+	const deleteChild = (index: number) => {
+		const next = rule.rules.filter((_: Rule, i: number) => i !== index);
+		if (next.length === 0) {
+			// If nested, remove this group entirely; if top-level, add a default
+			const firstSchema = schema[0];
+			if (firstSchema) onChange({ ...rule, rules: [defaultRule(firstSchema)] });
+		} else {
+			onChange({ ...rule, rules: next });
+		}
+	};
+
+	const addCondition = () => {
+		const firstSchema = schema[0];
+		if (!firstSchema) return;
+		onChange({ ...rule, rules: [...rule.rules, defaultRule(firstSchema)] });
+	};
+
+	const addSubGroup = () => {
+		const firstSchema = schema[0];
+		if (!firstSchema) return;
+		const subGroup: Rule = {
+			rule_type: mode === "All" ? "Any" : "All",
+			rules: [defaultRule(firstSchema)],
+		};
+		onChange({ ...rule, rules: [...rule.rules, subGroup] });
+	};
+
+	return (
+		<div class={`compound-predicates ${depth > 0 ? "compound-nested" : ""}`}>
+			<div class="compound-group-header">
+				<button
+					type="button"
+					class={`btn btn-small ${mode === "All" ? "btn-primary" : ""}`}
+					onClick={() => setMode("All")}
+				>
+					All (AND)
+				</button>
+				<button
+					type="button"
+					class={`btn btn-small ${mode === "Any" ? "btn-primary" : ""}`}
+					onClick={() => setMode("Any")}
+				>
+					Any (OR)
+				</button>
+				{onDelete && (
+					<button
+						type="button"
+						class="btn btn-small"
+						onClick={onDelete}
+						title="Remove group"
+						style={{ color: "var(--tier-low)", marginLeft: "auto" }}
+					>
+						&times;
+					</button>
+				)}
+			</div>
+			{rule.rules.map((child: Rule, i: number) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: sub-rules have no stable ID
+				<div key={i}>
+					{i > 0 && <div class="compound-separator">{mode === "All" ? "AND" : "OR"}</div>}
+					{isCompoundRule(child) ? (
+						<CompoundGroupEditor
+							rule={child}
+							schema={schema}
+							onChange={(updated) => updateChild(i, updated)}
+							{...(rule.rules.length > 1 ? { onDelete: () => deleteChild(i) } : {})}
+							depth={depth + 1}
+						/>
+					) : (
+						<PredicateRow
+							rule={child}
+							schema={schema}
+							onChange={(updated) => updateChild(i, updated)}
+							{...(rule.rules.length > 1 ? { onDelete: () => deleteChild(i) } : {})}
+						/>
+					)}
+				</div>
+			))}
+			<div class="compound-actions">
+				<button type="button" class="compound-add-btn btn btn-small" onClick={addCondition}>
+					+ Condition
+				</button>
+				<button type="button" class="compound-add-btn btn btn-small" onClick={addSubGroup}>
+					+ Sub-Group
+				</button>
+			</div>
+		</div>
+	);
+}
+
 // ── Scoring Rule Editor ──────────────────────────────────────────────
 
 type RuleMode = "Simple" | "All" | "Any";
-
-/** Get compound sub-rules if this is a compound rule, or null. */
-function getCompoundRules(r: Rule): Rule[] | null {
-	return isCompoundRule(r) ? r.rules : null;
-}
 
 /** Get current mode from a rule. */
 function getRuleMode(r: Rule): RuleMode {
@@ -683,54 +797,21 @@ function ScoringRuleEditor({
 }) {
 	const [expanded, setExpanded] = useState(false);
 
-	const subRules = getCompoundRules(rule.rule);
 	const mode = getRuleMode(rule.rule);
 
 	const setMode = (newMode: RuleMode) => {
 		if (newMode === mode) return;
 		if (newMode === "Simple") {
-			// Unwrap: use first sub-rule or a default
-			if (subRules && subRules.length > 0) {
-				const first = subRules[0];
-				if (first) onChange({ ...rule, rule: first });
-			} else {
-				const firstSchema = schema[0];
-				if (firstSchema) onChange({ ...rule, rule: defaultRule(firstSchema) });
-			}
+			// Unwrap: use first leaf predicate or a default
+			const firstPred = findFirstPred(rule.rule);
+			const fallbackSchema = schema[0];
+			if (!firstPred && !fallbackSchema) return;
+			onChange({ ...rule, rule: firstPred ?? defaultRule(fallbackSchema as PredicateSchema) });
 		} else {
 			// Wrap current rule into compound
-			const inner = subRules ?? [rule.rule];
+			const inner = isCompoundRule(rule.rule) ? rule.rule.rules : [rule.rule];
 			onChange({ ...rule, rule: { rule_type: newMode, rules: inner } });
 		}
-	};
-
-	const updateSubRule = (index: number, updated: Rule) => {
-		if (!subRules) return;
-		const next = [...subRules];
-		next[index] = updated;
-		onChange({ ...rule, rule: { rule_type: mode as "All" | "Any", rules: next } });
-	};
-
-	const deleteSubRule = (index: number) => {
-		if (!subRules) return;
-		const next = subRules.filter((_: Rule, i: number) => i !== index);
-		if (next.length === 0) {
-			// Auto-switch to simple with default
-			const firstSchema = schema[0];
-			if (firstSchema) onChange({ ...rule, rule: defaultRule(firstSchema) });
-		} else {
-			onChange({ ...rule, rule: { rule_type: mode as "All" | "Any", rules: next } });
-		}
-	};
-
-	const addCondition = () => {
-		if (!subRules) return;
-		const firstSchema = schema[0];
-		if (!firstSchema) return;
-		onChange({
-			...rule,
-			rule: { rule_type: mode as "All" | "Any", rules: [...subRules, defaultRule(firstSchema)] },
-		});
 	};
 
 	return (
@@ -776,6 +857,11 @@ function ScoringRuleEditor({
 				</button>
 			</div>
 
+			{/* Collapsed summary for compound rules */}
+			{!expanded && isCompoundRule(rule.rule) && (
+				<div class="scoring-rule-summary">{summarizeRule(rule.rule, schema)}</div>
+			)}
+
 			{expanded && (
 				<div class="scoring-rule-body">
 					{/* Mode selector */}
@@ -793,7 +879,7 @@ function ScoringRuleEditor({
 					</div>
 
 					{/* Simple mode: single predicate */}
-					{!subRules && (
+					{!isCompoundRule(rule.rule) && (
 						<PredicateRow
 							rule={rule.rule}
 							schema={schema}
@@ -801,30 +887,49 @@ function ScoringRuleEditor({
 						/>
 					)}
 
-					{/* Compound mode: list of predicates */}
-					{subRules && (
-						<div class="compound-predicates">
-							{subRules.map((subRule: Rule, i: number) => (
-								// biome-ignore lint/suspicious/noArrayIndexKey: sub-rules have no stable ID
-								<div key={i}>
-									{i > 0 && <div class="compound-separator">{mode === "All" ? "AND" : "OR"}</div>}
-									<PredicateRow
-										rule={subRule}
-										schema={schema}
-										onChange={(updated) => updateSubRule(i, updated)}
-										{...(subRules.length > 1 ? { onDelete: () => deleteSubRule(i) } : {})}
-									/>
-								</div>
-							))}
-							<button type="button" class="compound-add-btn btn btn-small" onClick={addCondition}>
-								+ Add Condition
-							</button>
-						</div>
+					{/* Compound mode: recursive group editor */}
+					{isCompoundRule(rule.rule) && (
+						<CompoundGroupEditor
+							rule={rule.rule}
+							schema={schema}
+							onChange={(updated) => onChange({ ...rule, rule: updated })}
+							depth={0}
+						/>
 					)}
 				</div>
 			)}
 		</div>
 	);
+}
+
+/** Walk a rule tree and return the first Pred node found. */
+function findFirstPred(r: Rule): Rule | null {
+	if (isPredRule(r)) return r;
+	if (isCompoundRule(r)) {
+		for (const child of r.rules) {
+			const found = findFirstPred(child);
+			if (found) return found;
+		}
+	}
+	return null;
+}
+
+/** Generate a plain-English summary of a rule tree for the collapsed header. */
+function summarizeRule(r: Rule, schema: PredicateSchema[]): string {
+	if (isPredRule(r)) {
+		const s = schema.find((sc) => sc.typeName === r.type);
+		return s?.label ?? r.type;
+	}
+	if (isCompoundRule(r)) {
+		const joiner = r.rule_type === "All" ? " AND " : " OR ";
+		const parts = r.rules.map((child) => {
+			const text = summarizeRule(child, schema);
+			// Wrap nested compound in parens for clarity
+			return isCompoundRule(child) ? `(${text})` : text;
+		});
+		return parts.join(joiner);
+	}
+	return "?";
 }
 
 // ── Mod Weights ──────────────────────────────────────────────────────────

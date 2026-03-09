@@ -438,6 +438,15 @@
 	border-top: 1px solid rgba(70, 59, 43, 0.3);
 }
 
+.scoring-rule-summary {
+	font-size: 10px;
+	color: var(--poe-text-dim);
+	margin-top: 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 /* --- Predicate editor fields --- */
 
 .predicate-fields {
@@ -559,6 +568,8 @@
 	border-left: 2px solid var(--poe-accent);
 	padding-left: 10px;
 	margin-top: 4px;
+	max-height: 50vh;
+	overflow-y: auto;
 }
 
 .compound-pred-row {
@@ -577,7 +588,21 @@
 	opacity: 0.8;
 }
 
-.compound-add-btn {
+.compound-nested {
+	margin-top: 4px;
+	border-color: var(--poe-text-dim);
+}
+
+.compound-group-header {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 8px;
+	align-items: center;
+}
+
+.compound-actions {
+	display: flex;
+	gap: 6px;
 	margin-top: 8px;
 }
 
