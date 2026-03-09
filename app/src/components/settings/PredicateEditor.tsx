@@ -13,7 +13,7 @@ import type { FieldKind, PredicateField, PredicateSchema, Rule } from "../../typ
 
 const suggestionCache = new Map<string, string[]>();
 
-async function getSuggestions(source: string): Promise<string[]> {
+export async function getSuggestions(source: string): Promise<string[]> {
 	const cached = suggestionCache.get(source);
 	if (cached) return cached;
 	try {

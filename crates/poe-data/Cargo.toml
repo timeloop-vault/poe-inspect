@@ -11,5 +11,6 @@ workspace = true
 
 [dependencies]
 poe-dat = { path = "../poe-dat" }
+serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true

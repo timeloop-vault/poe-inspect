@@ -197,7 +197,7 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
         "GameData loaded"
     );
 
-    Ok(GameData::new(
+    let mut gd = GameData::new(
         stats,
         tags,
         item_classes,
@@ -207,7 +207,21 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
         mod_types,
         mods,
         rarities,
-    ))
+    );
+
+    // Load reverse index if available
+    let ri_path = dat_dir.join("reverse_index.json");
+    match ReverseIndex::load(&ri_path) {
+        Ok(ri) => {
+            tracing::info!(patterns = ri.len(), "Reverse index loaded");
+            gd.set_reverse_index(ri);
+        }
+        Err(e) => {
+            tracing::warn!("No reverse index at {}: {e}", ri_path.display());
+        }
+    }
+
+    Ok(gd)
 }
 
 /// Read a single datc64 file and extract typed rows.

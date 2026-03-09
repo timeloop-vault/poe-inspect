@@ -14,5 +14,7 @@ byteorder = "1"
 pest = "2"
 pest_derive = "2"
 regex = "1"
+serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true

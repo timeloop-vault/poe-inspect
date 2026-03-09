@@ -1,11 +1,13 @@
 use std::collections::HashMap;
+use std::path::Path;
 
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 
 use super::types::*;
 
 /// Result of matching display text against the reverse index.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatMatch {
     /// The stat IDs that produced this display text.
     pub stat_ids: Vec<String>,
@@ -20,6 +22,7 @@ pub struct StatMatch {
 /// Uses a two-level lookup strategy:
 /// 1. Template key: replace numbers in display text with markers, hash-match against templates
 /// 2. Regex: for ambiguous cases, fall back to compiled regex
+#[derive(Serialize, Deserialize)]
 pub struct ReverseIndex {
     /// All pattern entries, indexed by position.
     entries: Vec<PatternEntry>,
@@ -27,9 +30,15 @@ pub struct ReverseIndex {
     /// Template key = format string with placeholders replaced by \x00.
     template_map: HashMap<String, Vec<usize>>,
     /// Precompiled regex for finding number tokens in display text.
+    #[serde(skip, default = "default_number_re")]
     number_re: Regex,
 }
 
+fn default_number_re() -> Regex {
+    Regex::new(NUMBER_PATTERN).expect("valid regex")
+}
+
+#[derive(Serialize, Deserialize)]
 struct PatternEntry {
     regex_pattern: String,
     stat_ids: Vec<String>,
@@ -225,6 +234,22 @@ impl ReverseIndex {
             .keys()
             .map(|k| k.replace('\x00', "#"))
             .collect()
+    }
+
+    /// Save the reverse index to a JSON file.
+    pub fn save(&self, path: &Path) -> std::io::Result<()> {
+        let file = std::fs::File::create(path)?;
+        let writer = std::io::BufWriter::new(file);
+        serde_json::to_writer(writer, self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+    }
+
+    /// Load a reverse index from a JSON file.
+    pub fn load(path: &Path) -> std::io::Result<Self> {
+        let file = std::fs::File::open(path)?;
+        let reader = std::io::BufReader::new(file);
+        serde_json::from_reader(reader)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
     }
 }
 
