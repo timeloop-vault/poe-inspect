@@ -17,7 +17,7 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
 | poe-item | **Done** | PEST grammar + resolver, 75 tests, 41 fixtures |
 | poe-eval | **Foundation** | Predicates, rules, evaluate, scoring profiles, tier analysis (26 tests) |
-| app | **Phase 8b** | Tauri v2 overlay — Phases 1-7 done, 8a done (compound rules UI), 8b next (nested rules) |
+| app | **Phase 8c** | Tauri v2 overlay — Phases 1-8b done, 8c next (rule builder UX redesign) |
 
 **Side track:** poe-rqe (reverse query engine / demand marketplace) — working, independent of main pipeline.
 **Future:** poe-craft (probabilistic crafting strategy engine) — see `docs/crafting-tiers.md`.

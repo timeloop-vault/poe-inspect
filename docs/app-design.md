@@ -464,7 +464,78 @@ over a visual builder. The text format would compile to the same `Rule` JSON.
 Grafana's bidirectional sync between visual builder and text DSL is the gold standard.
 Also consider "wrap in group" right-click action for restructuring existing conditions.
 
-#### Phase 8c: Multi-Profile Stacking (Friend Wishlists)
+#### Phase 8c: Rule Builder UX Redesign
+
+**Status: PLANNED**
+
+The 8b tree editor works functionally but the UX is poor — compound rules are
+verbose, hard to scan, and awkward to edit. Redesign based on UX research across
+rule builder tools (React Query Builder, Segment, Notion, Airtable, Datadog,
+Cloudflare WAF) and gaming-specific filter UIs (FilterBlade, PoE trade site,
+Awakened PoE Trade, Last Epoch).
+
+**Problems identified:**
+1. Each condition takes 4-5 vertical lines (type dropdown + description + labeled fields)
+2. AND/OR logic appears in 3 redundant places (mode selector, group header, separator text)
+3. Nested groups lack visual distinction (subtle border only)
+4. No way to collapse a compound group — always fully expanded
+5. No condition/group reuse across rules or profiles
+
+**Planned changes (priority order):**
+
+1. **Compact inline conditions** — each predicate on a single row:
+   `[Rarity ▾] [> ▾] [Magic ▾] [×]`. Hide description text (tooltip on hover),
+   hide field labels. Biggest space savings.
+
+2. **Clickable AND/OR pill between conditions** — replace the group header toggle
+   AND the decorative separator with a single interactive pill between rows.
+   Clicking toggles the group's combinator. One control, one place. Inspired by
+   React Query Builder's `showCombinatorsBetweenRules` and the PoE trade site
+   where the combinator lives at the group level, not repeated per-row.
+
+3. **Collapsible groups** — click group header to collapse into a one-line summary:
+   `▸ Rarity AND Life AND Open Prefix [×]` with styled AND/OR keywords.
+   FilterBlade's UI overhaul identified accordion-by-default as their biggest UX win.
+
+4. **Depth-colored left borders + background tinting** — depth 0: orange
+   (`--poe-accent`), depth 1: teal (`#6cc`), depth 2: purple (`#c6c`).
+   Each nesting level gets +2% white background overlay. Makes tree structure
+   immediately scannable without counting indentation.
+
+5. **"Match all/any of:" natural language header** — replace two-button
+   `All(AND) / Any(OR)` toggle with a sentence: `Match [all ▾] of:` using
+   an inline dropdown. Reads as English, takes less space. Apple Smart Playlists
+   pattern.
+
+6. **Progressive disclosure** — new rules start as Simple (no mode selector).
+   A subtle "+ Add condition" converts to compound. No nesting UI until user
+   explicitly clicks "+ Sub-Group". Keeps simple cases simple.
+
+7. **Reusable conditions and groups** — "Save as template" on any condition or
+   group. "Insert template" button alongside "+ Condition". Stored in profile
+   store, referenced by name. Enables community-shared condition libraries.
+   Requires data model extension in poe-eval.
+
+8. **"Count" group type** — alongside All/Any, add Count(N): "at least N of
+   these conditions must match". Very common in PoE evaluation (e.g., "at least
+   2 of: fire res, cold res, lightning res"). Mirrors the PoE trade site's Count
+   stat group type. Requires `Rule::Count(n, Vec<Rule>)` in poe-eval.
+
+9. **Enable/disable toggle on collapsed rules** — checkbox on the collapsed
+   header to toggle a rule without expanding it. FilterBlade pattern.
+
+**Research sources:**
+- React Query Builder (InlineCombinator, compactMode, depth-colored branches)
+- jQuery QueryBuilder (bracket metaphor, depth-colored borders)
+- Segment audience builder (background tinting per depth)
+- Apple Smart Playlists ("Match all/any of the following")
+- Hagan Rivers / Two Rivers Consulting (rule builder UX guidelines)
+- FilterBlade UI overhaul (accordion-by-default, checkbox-on-collapsed)
+- PoE official trade site (flat stat groups with typed combinators, Count groups)
+- Awakened PoE Trade (compact overlay, checkbox + inline range, no nesting)
+- Last Epoch loot filter (card-based vertical list, hover-to-reveal actions)
+
+#### Phase 8d: Multi-Profile Stacking (Friend Wishlists)
 
 Support multiple active profiles evaluated simultaneously. Primary profile is the
 user's build. Secondary profiles are imported from friends or the community.
