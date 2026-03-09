@@ -27,8 +27,8 @@ export interface ModWeight {
 
 /** Numeric scoring weight for each level. */
 export const WEIGHT_VALUES: Record<WeightLevel, number> = {
-	low: 10,
-	medium: 25,
+	low: 5,
+	medium: 15,
 	high: 50,
 	critical: 100,
 };
@@ -177,15 +177,37 @@ export async function saveHotkeys(hotkeys: HotkeySettings): Promise<void> {
 
 // ── Profile migration ─────────────────────────────────────────────────────
 
+/** Merge legacy modWeights into evalProfile.scoring as HasStatId rules. */
+export function mergeModWeightsIntoScoring(profile: StoredProfile): StoredProfile {
+	if (profile.modWeights.length === 0 || profile.evalProfile === null) return profile;
+	const weightRules = profile.modWeights.flatMap((mw) =>
+		(mw.statIds ?? []).map((statId) => ({
+			label: mw.template,
+			weight: WEIGHT_VALUES[mw.level],
+			rule: { rule_type: "Pred" as const, type: "HasStatId", stat_id: statId },
+		})),
+	);
+	return {
+		...profile,
+		evalProfile: {
+			...profile.evalProfile,
+			scoring: [...profile.evalProfile.scoring, ...weightRules],
+		},
+		modWeights: [],
+	};
+}
+
 /** Migrate old profile format (modWeights) to new format (evalProfile + display). */
 function migrateProfile(raw: Record<string, unknown>): StoredProfile {
+	let result: StoredProfile;
+
 	// Old format detection: has modWeights but no evalProfile
 	if ("modWeights" in raw && !("evalProfile" in raw)) {
-		return {
+		result = {
 			id: (raw.id as string) ?? String(Date.now()),
 			name: (raw.name as string) ?? "Migrated",
 			active: (raw.active as boolean) ?? false,
-			evalProfile: null, // old modWeights don't map to eval rules
+			evalProfile: null,
 			modWeights: [],
 			display: {
 				tierColors: (raw.tierColors as TierColors) ?? { ...defaultTierColors },
@@ -193,16 +215,20 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 				dimIgnored: (raw.dimIgnored as boolean) ?? true,
 			},
 		};
+	} else {
+		// New format — pass through with defaults for missing fields
+		result = {
+			id: (raw.id as string) ?? String(Date.now()),
+			name: (raw.name as string) ?? "Profile",
+			active: (raw.active as boolean) ?? false,
+			evalProfile: (raw.evalProfile as EvalProfile | null) ?? null,
+			modWeights: (raw.modWeights as ModWeight[] | undefined) ?? [],
+			display: (raw.display as DisplayPrefs) ?? { ...defaultDisplay },
+		};
 	}
-	// New format — pass through with defaults for missing fields
-	return {
-		id: (raw.id as string) ?? String(Date.now()),
-		name: (raw.name as string) ?? "Profile",
-		active: (raw.active as boolean) ?? false,
-		evalProfile: (raw.evalProfile as EvalProfile | null) ?? null,
-		modWeights: (raw.modWeights as ModWeight[] | undefined) ?? [],
-		display: (raw.display as DisplayPrefs) ?? { ...defaultDisplay },
-	};
+
+	// Phase 8D: merge any remaining modWeights into evalProfile.scoring
+	return mergeModWeightsIntoScoring(result);
 }
 
 // ── Profiles ──────────────────────────────────────────────────────────────
@@ -231,7 +257,6 @@ export async function loadActiveTierColors(): Promise<TierColors> {
 /** Send the active eval profile to the backend for scoring.
  *  If the active profile has no custom evalProfile, sends empty string
  *  to tell the backend to use its built-in default.
- *  Mod weights are merged into the scoring array before sending.
  *  Pass `known` to avoid re-reading from the store (prevents race with save). */
 export async function syncActiveProfile(known?: StoredProfile[]): Promise<void> {
 	const profiles = known ?? (await loadProfiles());
@@ -240,17 +265,5 @@ export async function syncActiveProfile(known?: StoredProfile[]): Promise<void> 
 		await invoke("set_active_profile", { profileJson: "" });
 		return;
 	}
-	// Merge mod weights into scoring rules (one HasStatId per stat ID)
-	const weightRules = (active.modWeights ?? []).flatMap((mw) =>
-		(mw.statIds ?? []).map((statId) => ({
-			label: mw.template,
-			weight: WEIGHT_VALUES[mw.level],
-			rule: { rule_type: "Pred" as const, type: "HasStatId", stat_id: statId },
-		})),
-	);
-	const merged = {
-		...active.evalProfile,
-		scoring: [...active.evalProfile.scoring, ...weightRules],
-	};
-	await invoke("set_active_profile", { profileJson: JSON.stringify(merged) });
+	await invoke("set_active_profile", { profileJson: JSON.stringify(active.evalProfile) });
 }
