@@ -69,6 +69,11 @@ export function defaultRule(schema: PredicateSchema): Rule {
 	return rule as Rule;
 }
 
+/** Build a default compound Rule (All or Any) containing one default predicate. */
+export function defaultCompoundRule(schema: PredicateSchema, mode: "All" | "Any" = "All"): Rule {
+	return { rule_type: mode, rules: [defaultRule(schema)] };
+}
+
 // ── Comparison operator display ───────────────────────────────────────
 
 const CMP_LABELS: Record<string, string> = {

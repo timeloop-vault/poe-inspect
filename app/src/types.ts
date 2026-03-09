@@ -129,6 +129,16 @@ export type Rule =
 	| { rule_type: "Any"; rules: Rule[] }
 	| { rule_type: "Not"; rule: Rule };
 
+export function isCompoundRule(rule: Rule): rule is { rule_type: "All" | "Any"; rules: Rule[] } {
+	return rule.rule_type === "All" || rule.rule_type === "Any";
+}
+
+export function isPredRule(
+	rule: Rule,
+): rule is { rule_type: "Pred"; type: string } & Record<string, unknown> {
+	return rule.rule_type === "Pred";
+}
+
 // ── Predicate Schema (from poe-eval, drives dynamic profile editor) ──
 
 /** Describes one predicate type for the profile editor UI. */
