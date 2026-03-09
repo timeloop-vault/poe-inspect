@@ -578,9 +578,15 @@ body {
 	font-weight: bold;
 }
 
-.score-value.score-high { color: var(--tier-1); }
-.score-value.score-mid { color: var(--tier-2-3); }
-.score-value.score-low { color: var(--tier-low); }
+.score-value.score-high {
+	color: var(--tier-1);
+}
+.score-value.score-mid {
+	color: var(--tier-2-3);
+}
+.score-value.score-low {
+	color: var(--tier-low);
+}
 
 .score-bar {
 	height: 4px;
@@ -596,9 +602,15 @@ body {
 	transition: width 0.3s;
 }
 
-.score-fill.score-high { background: var(--tier-1); }
-.score-fill.score-mid { background: var(--tier-2-3); }
-.score-fill.score-low { background: var(--tier-low); }
+.score-fill.score-high {
+	background: var(--tier-1);
+}
+.score-fill.score-mid {
+	background: var(--tier-2-3);
+}
+.score-fill.score-low {
+	background: var(--tier-low);
+}
 
 .score-details {
 	font-size: 10px;
@@ -610,9 +622,17 @@ body {
 	gap: 4px;
 }
 
-.score-rule.matched .rule-check { color: var(--tier-1); }
-.score-rule.unmatched .rule-check { color: var(--tier-low); opacity: 0.6; }
-.score-rule.unmatched .rule-label { color: var(--poe-text-dim); opacity: 0.6; }
+.score-rule.matched .rule-check {
+	color: var(--tier-1);
+}
+.score-rule.unmatched .rule-check {
+	color: var(--tier-low);
+	opacity: 0.6;
+}
+.score-rule.unmatched .rule-label {
+	color: var(--poe-text-dim);
+	opacity: 0.6;
+}
 
 .rule-check {
 	flex-shrink: 0;

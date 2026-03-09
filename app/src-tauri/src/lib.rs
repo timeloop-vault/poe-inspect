@@ -668,6 +668,9 @@ pub fn run() {
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_denylist(&["overlay"])
+                // Don't save/restore visibility — we control that in setup()
+                // based on the "start minimized" setting
+                .with_state_flags(StateFlags::all().difference(StateFlags::VISIBLE))
                 .build(),
         )
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -786,7 +789,7 @@ pub fn run() {
             // and save window state so position/size persists across restarts
             if window.label() == "settings" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    let _ = window.app_handle().save_window_state(StateFlags::all());
+                    let _ = window.app_handle().save_window_state(StateFlags::all().difference(StateFlags::VISIBLE));
                     api.prevent_close();
                     let _ = window.hide();
                 }

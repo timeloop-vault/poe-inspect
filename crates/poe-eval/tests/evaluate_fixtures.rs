@@ -217,9 +217,10 @@ fn stat_value_check() {
     let gd = test_game_data(&[]);
     let item = resolve("rare-belt-crafted.txt", &gd);
 
-    // "+32 to maximum Life" — current value is 32
+    // "+32 to maximum Life" — current value is 32 (text match)
     let rule = Rule::pred(Predicate::StatValue {
-        text: "maximum Life".to_string(),
+        text: Some("maximum Life".to_string()),
+        stat_id: None,
         value_index: 0,
         op: Cmp::Ge,
         value: 30,
@@ -227,7 +228,8 @@ fn stat_value_check() {
     assert!(evaluate(&item, &rule, &gd));
 
     let rule = Rule::pred(Predicate::StatValue {
-        text: "maximum Life".to_string(),
+        text: Some("maximum Life".to_string()),
+        stat_id: None,
         value_index: 0,
         op: Cmp::Ge,
         value: 40,
@@ -240,9 +242,10 @@ fn roll_percent_check() {
     let gd = test_game_data(&[]);
     let item = resolve("rare-belt-crafted.txt", &gd);
 
-    // "+32(25-40) to maximum Life" — 32 is 46% of the 25..40 range
+    // "+32(25-40) to maximum Life" — 32 is 46% of the 25..40 range (text match)
     let rule = Rule::pred(Predicate::RollPercent {
-        text: "maximum Life".to_string(),
+        text: Some("maximum Life".to_string()),
+        stat_id: None,
         value_index: 0,
         op: Cmp::Ge,
         value: 40,
@@ -250,7 +253,8 @@ fn roll_percent_check() {
     assert!(evaluate(&item, &rule, &gd));
 
     let rule = Rule::pred(Predicate::RollPercent {
-        text: "maximum Life".to_string(),
+        text: Some("maximum Life".to_string()),
+        stat_id: None,
         value_index: 0,
         op: Cmp::Ge,
         value: 90,

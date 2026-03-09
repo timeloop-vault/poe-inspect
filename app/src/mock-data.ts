@@ -227,8 +227,7 @@ export const uniqueRing: ParsedItem = {
 	name: "Ventor's Gamble",
 	baseType: "Gold Ring",
 	itemLevel: 75,
-	iconUrl:
-		"https://web.poecdn.com/image/Art/2DItems/Rings/VentorsGameble.png?w=1&h=1&scale=1",
+	iconUrl: "https://web.poecdn.com/image/Art/2DItems/Rings/VentorsGameble.png?w=1&h=1&scale=1",
 	properties: [],
 	requirements: [{ name: "Level", value: "65" }],
 	enchants: [],

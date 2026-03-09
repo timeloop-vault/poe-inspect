@@ -83,10 +83,14 @@ pub enum Predicate {
 
     // ── Stat value predicates ────────────────────────────────────────
 
-    /// Rolled value of a stat line matching `text` (current value comparison).
-    /// Matches the first stat line whose `display_text` contains `text`.
+    /// Rolled value of a stat line (current value comparison).
+    /// Matches by `stat_id` if set (language-independent), otherwise falls back
+    /// to substring matching on `text`.
     StatValue {
-        text: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        text: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        stat_id: Option<String>,
         /// Which value index (0 for most stats, 0/1 for "Adds X to Y" stats).
         value_index: usize,
         op: Cmp,
@@ -94,10 +98,13 @@ pub enum Predicate {
     },
 
     /// Roll quality: how close the current roll is to the max, as a percentage.
-    /// `roll_percent { text: "maximum Life", value_index: 0, op: Ge, value: 90 }`
-    /// means "the life roll is at least 90% of its range".
+    /// Matches by `stat_id` if set (language-independent), otherwise falls back
+    /// to substring matching on `text`.
     RollPercent {
-        text: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        text: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        stat_id: Option<String>,
         value_index: usize,
         op: Cmp,
         value: u32,

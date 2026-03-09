@@ -53,7 +53,7 @@ function defaultFieldValue(kind: FieldKind): unknown {
 		case "text":
 			return "";
 		case "slot":
-			return "Prefix";
+			return kind.options[0]?.value ?? "Prefix";
 	}
 }
 
@@ -164,7 +164,12 @@ function FieldWidget({
 			);
 		case "slot":
 			return (
-				<SlotField label={field.label} value={String(value ?? "Prefix")} onChange={onChange} />
+				<EnumField
+					label={field.label}
+					options={field.kind.options}
+					value={String(value ?? "Prefix")}
+					onChange={onChange}
+				/>
 			);
 	}
 }
@@ -237,39 +242,6 @@ function EnumField({
 	value: string;
 	onChange: (v: string) => void;
 }) {
-	return (
-		<label class="pred-field">
-			<span class="pred-field-label">{label}</span>
-			<select
-				class="pred-select"
-				value={value}
-				onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
-			>
-				{options.map((opt) => (
-					<option key={opt.value} value={opt.value}>
-						{opt.label}
-					</option>
-				))}
-			</select>
-		</label>
-	);
-}
-
-function SlotField({
-	label,
-	value,
-	onChange,
-}: {
-	label: string;
-	value: string;
-	onChange: (v: string) => void;
-}) {
-	const options = [
-		{ value: "Prefix", label: "Prefix" },
-		{ value: "Suffix", label: "Suffix" },
-		{ value: "Implicit", label: "Implicit" },
-	];
-
 	return (
 		<label class="pred-field">
 			<span class="pred-field-label">{label}</span>

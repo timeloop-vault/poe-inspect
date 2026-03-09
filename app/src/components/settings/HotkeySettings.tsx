@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "preact/hooks";
 import { invoke } from "@tauri-apps/api/core";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
 	type HotkeySettings as HotkeySettingsType,
 	defaultHotkeys,
@@ -65,60 +65,54 @@ export function HotkeySettings() {
 		invoke("resume_hotkeys");
 	}, []);
 
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent, key: keyof HotkeySettingsType) => {
-			// Guard against stale events (e.g. enigo keystrokes arriving late)
-			if (capturingRef.current !== key) return;
+	const handleKeyDown = useCallback((e: KeyboardEvent, key: keyof HotkeySettingsType) => {
+		// Guard against stale events (e.g. enigo keystrokes arriving late)
+		if (capturingRef.current !== key) return;
 
-			e.preventDefault();
-			e.stopPropagation();
+		e.preventDefault();
+		e.stopPropagation();
 
-			// Ignore lone modifier keys
-			if (["Control", "Shift", "Alt", "Meta"].includes(e.key)) return;
+		// Ignore lone modifier keys
+		if (["Control", "Shift", "Alt", "Meta"].includes(e.key)) return;
 
-			const parts: string[] = [];
-			if (e.ctrlKey) parts.push("Ctrl");
-			if (e.shiftKey) parts.push("Shift");
-			if (e.altKey) parts.push("Alt");
+		const parts: string[] = [];
+		if (e.ctrlKey) parts.push("Ctrl");
+		if (e.shiftKey) parts.push("Shift");
+		if (e.altKey) parts.push("Alt");
 
-			// Map key names
-			let keyName = e.key;
-			if (keyName === " ") keyName = "Space";
-			else if (keyName === "Escape") keyName = "Escape";
-			else if (keyName.length === 1) keyName = keyName.toUpperCase();
-			parts.push(keyName);
+		// Map key names
+		let keyName = e.key;
+		if (keyName === " ") keyName = "Space";
+		else if (keyName === "Escape") keyName = "Escape";
+		else if (keyName.length === 1) keyName = keyName.toUpperCase();
+		parts.push(keyName);
 
-			const combo = parts.join("+");
-			const conflictWith = findConflict(settingsRef.current, key, combo);
-			if (conflictWith) {
-				setConflict({ key, message: `"${combo}" is already used by ${conflictWith}` });
-				capturingRef.current = null;
-				setCapturing(null);
-				invoke("resume_hotkeys");
-				return;
-			}
-
-			setConflict(null);
-			const next = { ...settingsRef.current, [key]: combo };
-			setSettings(next);
-			saveHotkeys(next);
-			syncHotkeysToBackend(next);
+		const combo = parts.join("+");
+		const conflictWith = findConflict(settingsRef.current, key, combo);
+		if (conflictWith) {
+			setConflict({ key, message: `"${combo}" is already used by ${conflictWith}` });
 			capturingRef.current = null;
 			setCapturing(null);
-		},
-		[],
-	);
+			invoke("resume_hotkeys");
+			return;
+		}
 
-	const resetHotkey = useCallback(
-		(key: keyof HotkeySettingsType) => {
-			const next = { ...settingsRef.current, [key]: defaultHotkeys[key] };
-			setSettings(next);
-			saveHotkeys(next);
-			syncHotkeysToBackend(next);
-			setConflict(null);
-		},
-		[],
-	);
+		setConflict(null);
+		const next = { ...settingsRef.current, [key]: combo };
+		setSettings(next);
+		saveHotkeys(next);
+		syncHotkeysToBackend(next);
+		capturingRef.current = null;
+		setCapturing(null);
+	}, []);
+
+	const resetHotkey = useCallback((key: keyof HotkeySettingsType) => {
+		const next = { ...settingsRef.current, [key]: defaultHotkeys[key] };
+		setSettings(next);
+		saveHotkeys(next);
+		syncHotkeysToBackend(next);
+		setConflict(null);
+	}, []);
 
 	if (!loaded) return null;
 
@@ -133,9 +127,9 @@ export function HotkeySettings() {
 					<div class="setting-row" key={field.key}>
 						<div class="setting-label">{field.label}</div>
 						<div class="hotkey-input">
-							<div
+							<button
+								type="button"
 								class={`hotkey-display ${capturing === field.key ? "capturing" : ""}`}
-								tabIndex={0}
 								onClick={() => {
 									if (capturing !== field.key) startCapture(field.key);
 								}}
@@ -148,22 +142,14 @@ export function HotkeySettings() {
 								}}
 							>
 								{capturing === field.key ? "Press keys..." : settings[field.key]}
-							</div>
+							</button>
 							{capturing === field.key ? (
-								<button
-									type="button"
-									class="hotkey-reset"
-									onClick={cancelCapture}
-								>
+								<button type="button" class="hotkey-reset" onClick={cancelCapture}>
 									Cancel
 								</button>
 							) : (
 								settings[field.key] !== defaultHotkeys[field.key] && (
-									<button
-										type="button"
-										class="hotkey-reset"
-										onClick={() => resetHotkey(field.key)}
-									>
+									<button type="button" class="hotkey-reset" onClick={() => resetHotkey(field.key)}>
 										Reset
 									</button>
 								)
@@ -178,10 +164,7 @@ export function HotkeySettings() {
 					</div>
 				)}
 
-				<div
-					class="setting-description"
-					style={{ marginTop: conflict ? "4px" : "12px" }}
-				>
+				<div class="setting-description" style={{ marginTop: conflict ? "4px" : "12px" }}>
 					Click a hotkey to rebind it. Global shortcuts are paused during capture.
 				</div>
 			</div>

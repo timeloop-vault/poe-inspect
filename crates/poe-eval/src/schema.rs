@@ -69,7 +69,9 @@ pub enum FieldKind {
         suggestions_from: Option<String>,
     },
     /// Mod slot dropdown (Prefix / Suffix / Implicit).
-    Slot,
+    Slot {
+        options: Vec<EnumOption>,
+    },
 }
 
 /// A selectable option in an enum/ordered-enum field.
@@ -433,7 +435,13 @@ fn slot_field() -> PredicateField {
     PredicateField {
         name: "slot".into(),
         label: "Slot".into(),
-        kind: FieldKind::Slot,
+        kind: FieldKind::Slot {
+            options: vec![
+                opt("Prefix", "Prefix"),
+                opt("Suffix", "Suffix"),
+                opt("Implicit", "Implicit"),
+            ],
+        },
     }
 }
 

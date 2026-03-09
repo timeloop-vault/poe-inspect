@@ -1,11 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from "preact/hooks";
-import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { PhysicalSize } from "@tauri-apps/api/dpi";
-import { ItemOverlay, type DisplaySettings } from "./components/ItemOverlay";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
-import { loadGeneral, loadHotkeys, loadActiveTierColors, syncActiveProfile, type TierColors } from "./store";
+import {
+	type TierColors,
+	loadActiveTierColors,
+	loadGeneral,
+	loadHotkeys,
+	syncActiveProfile,
+} from "./store";
 import type { ParsedItem } from "./types";
 
 /** Resize the Tauri window to fit the rendered content.
@@ -37,20 +43,21 @@ function useAutoResize(deps: unknown[], zoom = 1) {
 				requestAnimationFrame(() => {
 					if (cancelled) return;
 					const rect = el.getBoundingClientRect();
-					win.setSize(new PhysicalSize(
-						Math.ceil(rect.width * dpr),
-						Math.ceil(rect.height * dpr),
-					)).then(() => {
-						// Reposition after resize so the position accounts for
-						// the actual (post-zoom) window size
-						if (!cancelled) invoke("reposition_overlay");
-					});
+					win
+						.setSize(new PhysicalSize(Math.ceil(rect.width * dpr), Math.ceil(rect.height * dpr)))
+						.then(() => {
+							// Reposition after resize so the position accounts for
+							// the actual (post-zoom) window size
+							if (!cancelled) invoke("reposition_overlay");
+						});
 				});
 			});
 		});
 
-		return () => { cancelled = true; };
-	}, deps);
+		return () => {
+			cancelled = true;
+		};
+	}, [...deps, zoom]);
 
 	return ref;
 }
@@ -152,7 +159,10 @@ export function App() {
 
 	// Auto-resize window to fit content
 	const zoom = overlayScale / 100;
-	const containerRef = useAutoResize([itemText, evaluatedItem, mockIndex, showMock, overlayScale], zoom);
+	const containerRef = useAutoResize(
+		[itemText, evaluatedItem, mockIndex, showMock, overlayScale],
+		zoom,
+	);
 
 	// Build style object: zoom + tier color CSS custom properties from active profile
 	const panelStyle: Record<string, string | number> = {};

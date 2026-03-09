@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "preact/hooks";
 import { invoke } from "@tauri-apps/api/core";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import {
 	type GeneralSettings as GeneralSettingsType,
 	defaultGeneral,
@@ -13,34 +13,28 @@ export function GeneralSettings() {
 	const [uiScalePreview, setUiScalePreview] = useState<number | null>(null);
 
 	useEffect(() => {
-		Promise.all([
-			loadGeneral(),
-			invoke<boolean>("get_autostart"),
-		]).then(([s, autostart]) => {
+		Promise.all([loadGeneral(), invoke<boolean>("get_autostart")]).then(([s, autostart]) => {
 			// Sync stored launchOnBoot with actual OS autostart state
 			setSettings({ ...s, launchOnBoot: autostart });
 			setLoaded(true);
 		});
 	}, []);
 
-	const update = useCallback(
-		(patch: Partial<GeneralSettingsType>) => {
-			// If toggling launchOnBoot, sync with OS autostart
-			if (patch.launchOnBoot !== undefined) {
-				invoke("set_autostart", { enabled: patch.launchOnBoot });
+	const update = useCallback((patch: Partial<GeneralSettingsType>) => {
+		// If toggling launchOnBoot, sync with OS autostart
+		if (patch.launchOnBoot !== undefined) {
+			invoke("set_autostart", { enabled: patch.launchOnBoot });
+		}
+		setSettings((prev) => {
+			const next = { ...prev, ...patch };
+			saveGeneral(next);
+			// Notify parent to apply UI scale immediately
+			if (patch.uiScale !== undefined) {
+				window.dispatchEvent(new CustomEvent("ui-scale-changed", { detail: patch.uiScale }));
 			}
-			setSettings((prev) => {
-				const next = { ...prev, ...patch };
-				saveGeneral(next);
-				// Notify parent to apply UI scale immediately
-				if (patch.uiScale !== undefined) {
-					window.dispatchEvent(new CustomEvent("ui-scale-changed", { detail: patch.uiScale }));
-				}
-				return next;
-			});
-		},
-		[],
-	);
+			return next;
+		});
+	}, []);
 
 	if (!loaded) return null;
 
@@ -65,9 +59,7 @@ export function GeneralSettings() {
 							max={200}
 							step={5}
 							value={uiScalePreview ?? settings.uiScale}
-							onInput={(e) =>
-								setUiScalePreview(Number((e.target as HTMLInputElement).value))
-							}
+							onInput={(e) => setUiScalePreview(Number((e.target as HTMLInputElement).value))}
 							onChange={(e) => {
 								const val = Number((e.target as HTMLInputElement).value);
 								setUiScalePreview(null);
@@ -108,9 +100,8 @@ export function GeneralSettings() {
 					<div class="setting-label">
 						Where to show the overlay
 						<div class="setting-description">
-							"At cursor" follows your mouse. "Next to panel" places it
-							beside the inventory or stash panel depending on which side
-							your cursor is on (like Awakened Trade).
+							"At cursor" follows your mouse. "Next to panel" places it beside the inventory or
+							stash panel depending on which side your cursor is on (like Awakened Trade).
 						</div>
 					</div>
 					<div class="setting-radio-group">
@@ -177,10 +168,7 @@ export function GeneralSettings() {
 
 				<div class="setting-row">
 					<div class="setting-label">Launch on system startup</div>
-					<Toggle
-						checked={settings.launchOnBoot}
-						onChange={(v) => update({ launchOnBoot: v })}
-					/>
+					<Toggle checked={settings.launchOnBoot} onChange={(v) => update({ launchOnBoot: v })} />
 				</div>
 			</div>
 
@@ -189,10 +177,7 @@ export function GeneralSettings() {
 
 				<div class="setting-row">
 					<div class="setting-label">Show roll quality bars</div>
-					<Toggle
-						checked={settings.showRollBars}
-						onChange={(v) => update({ showRollBars: v })}
-					/>
+					<Toggle checked={settings.showRollBars} onChange={(v) => update({ showRollBars: v })} />
 				</div>
 
 				<div class="setting-row">
@@ -227,8 +212,7 @@ export function GeneralSettings() {
 					<div class="setting-label">
 						Dismiss on focus loss
 						<div class="setting-description">
-							Automatically close the overlay when you click elsewhere
-							or switch windows
+							Automatically close the overlay when you click elsewhere or switch windows
 						</div>
 					</div>
 					<Toggle
@@ -241,18 +225,13 @@ export function GeneralSettings() {
 	);
 }
 
-function Toggle({
-	checked,
-	onChange,
-}: { checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
 	return (
 		<label class="setting-toggle">
 			<input
 				type="checkbox"
 				checked={checked}
-				onChange={(e) =>
-					onChange((e.target as HTMLInputElement).checked)
-				}
+				onChange={(e) => onChange((e.target as HTMLInputElement).checked)}
 			/>
 			<span class="toggle-track" />
 		</label>
