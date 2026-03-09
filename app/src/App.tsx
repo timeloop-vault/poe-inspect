@@ -1,7 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { PhysicalSize } from "@tauri-apps/api/dpi";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
@@ -14,52 +12,51 @@ import {
 } from "./store";
 import type { ParsedItem } from "./types";
 
-/** Resize the Tauri window to fit the rendered content.
- *  CSS `zoom` reduces available CSS pixels (parent_width / zoom), so we
- *  first expand the transparent window to give content enough room to
- *  lay out at its natural max-width, then measure and shrink to fit. */
-function useAutoResize(deps: unknown[], zoom = 1) {
-	const ref = useRef<HTMLDivElement>(null);
+/** Panel position — either left-anchored or right-anchored. */
+type PanelPosition =
+	| { anchor: "left"; left: number; top: number }
+	| { anchor: "right"; right: number; top: number };
 
-	useEffect(() => {
-		const el = ref.current;
-		if (!el) return;
+/** Calculate panel position within the fullscreen overlay.
+ *  Handles cursor mode (offset from cursor, flip if overflow)
+ *  and panel mode (beside PoE inventory/stash panel). */
+function computePanelPosition(
+	cursor: { x: number; y: number },
+	mode: string,
+	zoom: number,
+): PanelPosition {
+	const vpW = window.innerWidth;
+	const vpH = window.innerHeight;
+	const panelW = 440 * zoom;
+	const panelEstH = 600 * zoom;
 
-		let cancelled = false;
-		const win = getCurrentWebviewWindow();
-		const dpr = window.devicePixelRatio;
+	if (mode === "panel") {
+		// PoE's inventory/stash panel width is proportional to screen height.
+		// Ratio 986/1600 is derived from PoE's UI layout (confirmed by Awakened Trade).
+		// Do not change unless GGG changes the in-game panel sizing.
+		const poePanelW = vpH * (986 / 1600);
+		const midX = vpW / 2;
 
-		// Expand window so the panel's max-width (420px + padding) isn't
-		// starved by zoom.  The window is transparent so the flash is invisible.
-		const maxCssWidth = 500;
-		const generous = Math.ceil(maxCssWidth * zoom * dpr);
+		if (cursor.x >= midX) {
+			// Right side (inventory) — anchor panel's right edge to inventory's left edge
+			return { anchor: "right", right: poePanelW, top: 0 };
+		}
+		// Left side (stash) — anchor panel's left edge to stash's right edge
+		return { anchor: "left", left: poePanelW, top: 0 };
+	}
 
-		win.setSize(new PhysicalSize(generous, generous)).then(() => {
-			if (cancelled) return;
-			// Double-rAF: first ensures the browser processes the resize
-			// event, second ensures layout has reflowed with the new size.
-			requestAnimationFrame(() => {
-				if (cancelled) return;
-				requestAnimationFrame(() => {
-					if (cancelled) return;
-					const rect = el.getBoundingClientRect();
-					win
-						.setSize(new PhysicalSize(Math.ceil(rect.width * dpr), Math.ceil(rect.height * dpr)))
-						.then(() => {
-							// Reposition after resize so the position accounts for
-							// the actual (post-zoom) window size
-							if (!cancelled) invoke("reposition_overlay");
-						});
-				});
-			});
-		});
+	// Cursor mode: small offset from cursor, flip if overflow
+	const offset = 10;
+	let x = cursor.x + offset;
+	let y = cursor.y + offset;
 
-		return () => {
-			cancelled = true;
-		};
-	}, [...deps, zoom]);
+	if (x + panelW > vpW) x = cursor.x - offset - panelW;
+	if (y + panelEstH > vpH) y = cursor.y - offset - panelEstH;
 
-	return ref;
+	x = Math.max(0, Math.min(x, vpW - panelW));
+	y = Math.max(0, y);
+
+	return { anchor: "left", left: x, top: y };
 }
 
 export function App() {
@@ -68,6 +65,7 @@ export function App() {
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(true);
 	const [overlayScale, setOverlayScale] = useState(100);
+	const [overlayMode, setOverlayMode] = useState("cursor");
 	const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
 		showRollBars: true,
 		showTierBadges: true,
@@ -75,10 +73,15 @@ export function App() {
 		showOpenAffixes: true,
 	});
 	const [tierColors, setTierColors] = useState<TierColors | null>(null);
+	const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({
+		x: 200,
+		y: 100,
+	});
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
 		setEvaluatedItem(null);
+		setShowMock(false);
 		await invoke("dismiss_overlay");
 	}, []);
 
@@ -89,6 +92,7 @@ export function App() {
 		const reloadSettings = () => {
 			loadGeneral().then((s) => {
 				setOverlayScale(s.overlayScale);
+				setOverlayMode(s.overlayPosition);
 				setDisplaySettings({
 					showRollBars: s.showRollBars,
 					showTierBadges: s.showTierBadges,
@@ -103,6 +107,10 @@ export function App() {
 			syncActiveProfile();
 		};
 		reloadSettings();
+
+		const unlistenPosition = listen<{ x: number; y: number }>("overlay-position", (event) => {
+			setCursorPos(event.payload);
+		});
 
 		const unlistenEvaluated = listen<ParsedItem>("item-evaluated", (event) => {
 			reloadSettings();
@@ -145,10 +153,8 @@ export function App() {
 		};
 		document.addEventListener("keydown", handleKeydown);
 
-		// Overlay stays hidden until inspect hotkey or debug tray button.
-		// Use tray → "Show Overlay (Debug)" for testing.
-
 		return () => {
+			unlistenPosition.then((fn) => fn());
 			unlistenEvaluated.then((fn) => fn());
 			unlistenCapture.then((fn) => fn());
 			unlistenDismiss.then((fn) => fn());
@@ -157,16 +163,24 @@ export function App() {
 		};
 	}, [dismiss]);
 
-	// Auto-resize window to fit content
 	const zoom = overlayScale / 100;
-	const containerRef = useAutoResize(
-		[itemText, evaluatedItem, mockIndex, showMock, overlayScale],
-		zoom,
-	);
+	const pos = computePanelPosition(cursorPos, overlayMode, zoom);
 
-	// Build style object: zoom + tier color CSS custom properties from active profile
-	const panelStyle: Record<string, string | number> = {};
-	if (zoom !== 1) panelStyle.zoom = zoom;
+	// Build style object: scale + tier color CSS custom properties + absolute position
+	// Use transform instead of CSS zoom — zoom affects layout and breaks
+	// absolute positioning within the fullscreen backdrop.
+	const panelStyle: Record<string, string | number> = {
+		top: `${pos.top}px`,
+	};
+	if (pos.anchor === "right") {
+		panelStyle.right = `${pos.right}px`;
+	} else {
+		panelStyle.left = `${pos.left}px`;
+	}
+	if (zoom !== 1) {
+		panelStyle.transform = `scale(${zoom})`;
+		panelStyle.transformOrigin = pos.anchor === "right" ? "top right" : "top left";
+	}
 	if (tierColors) {
 		panelStyle["--tier-1"] = tierColors.t1;
 		panelStyle["--tier-2-3"] = tierColors.t2_3;
@@ -174,64 +188,66 @@ export function App() {
 		panelStyle["--tier-low"] = tierColors.low;
 	}
 
-	// When we have a parsed+evaluated item, show it with the styled overlay
+	// Determine content to display
+	let content: preact.ComponentChildren = null;
+	let showDismiss = true;
+
 	if (evaluatedItem && !showMock) {
-		return (
-			<div class="overlay-panel" ref={containerRef} style={panelStyle}>
-				<button type="button" class="dismiss-btn" onClick={dismiss}>
-					&times;
-				</button>
-				<ItemOverlay item={evaluatedItem} display={displaySettings} />
-			</div>
+		content = <ItemOverlay item={evaluatedItem} display={displaySettings} />;
+	} else if (itemText && !showMock) {
+		content = <pre class="item-text">{itemText}</pre>;
+	} else if (showMock) {
+		const currentItem = mockItems[mockIndex];
+		showDismiss = true;
+		content = (
+			<>
+				{/* Item selector for cycling mock items */}
+				<div class="item-selector">
+					{mockItems.map((item, i) => (
+						<button
+							key={item.name}
+							type="button"
+							class={i === mockIndex ? "active" : ""}
+							onClick={() => {
+								setMockIndex(i);
+								setShowMock(true);
+							}}
+						>
+							{item.name}
+						</button>
+					))}
+				</div>
+				{currentItem !== undefined && <ItemOverlay item={currentItem} display={displaySettings} />}
+			</>
 		);
 	}
-
-	// Fallback: raw clipboard text (parse failed)
-	if (itemText && !showMock) {
-		return (
-			<div class="overlay-panel" ref={containerRef} style={panelStyle}>
-				<button type="button" class="dismiss-btn" onClick={dismiss}>
-					&times;
-				</button>
-				<pre class="item-text">{itemText}</pre>
-			</div>
-		);
-	}
-
-	// Mock data mode: show styled item overlay
-	const currentItem = mockItems[mockIndex];
 
 	return (
-		<div class="overlay-panel" ref={containerRef} style={panelStyle}>
-			<button
-				type="button"
-				class="dismiss-btn"
-				onClick={() => {
-					setShowMock(false);
-					dismiss();
-				}}
-			>
-				&times;
-			</button>
-
-			{/* Item selector for cycling mock items */}
-			<div class="item-selector">
-				{mockItems.map((item, i) => (
-					<button
-						key={item.name}
-						type="button"
-						class={i === mockIndex ? "active" : ""}
-						onClick={() => {
-							setMockIndex(i);
-							setShowMock(true);
-						}}
-					>
-						{item.name}
-					</button>
-				))}
-			</div>
-
-			{currentItem !== undefined && <ItemOverlay item={currentItem} display={displaySettings} />}
+		// biome-ignore lint/a11y/useKeyWithClickEvents: backdrop is mouse-only, keyboard dismiss handled via document keydown listener
+		<div
+			class="overlay-backdrop"
+			onClick={(e) => {
+				// Click on backdrop (not on panel) = dismiss
+				if (e.target === e.currentTarget) dismiss();
+			}}
+		>
+			{content && (
+				<div class="overlay-panel" style={panelStyle}>
+					{showDismiss && (
+						<button
+							type="button"
+							class="dismiss-btn"
+							onClick={() => {
+								if (showMock) setShowMock(false);
+								dismiss();
+							}}
+						>
+							&times;
+						</button>
+					)}
+					{content}
+				</div>
+			)}
 		</div>
 	);
 }

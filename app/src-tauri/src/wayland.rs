@@ -39,9 +39,11 @@ pub fn init_overlay_layer_shell(gtk_window: &gtk::ApplicationWindow) {
     gtk_window.init_layer_shell();
     gtk_window.set_layer(gtk_layer_shell::Layer::Overlay);
 
-    // Anchor to top-left — positioning is done via margins from these edges
+    // Anchor to all 4 edges to fill the entire monitor (fullscreen overlay)
     gtk_window.set_anchor(gtk_layer_shell::Edge::Top, true);
     gtk_window.set_anchor(gtk_layer_shell::Edge::Left, true);
+    gtk_window.set_anchor(gtk_layer_shell::Edge::Bottom, true);
+    gtk_window.set_anchor(gtk_layer_shell::Edge::Right, true);
 
     // Don't reserve screen space (not a panel/dock)
     gtk_window.set_exclusive_zone(-1);
@@ -103,8 +105,7 @@ pub fn get_cursor_position_hyprland() -> Option<(i32, i32)> {
     let v: serde_json::Value = serde_json::from_str(&buf).ok()?;
     let x = v.get("x")?.as_i64()? as i32;
     let y = v.get("y")?.as_i64()? as i32;
-    // 20px offset so overlay doesn't cover the cursor
-    Some((x + 20, y + 20))
+    Some((x, y))
 }
 
 /// Read text from the X11 CLIPBOARD selection directly via

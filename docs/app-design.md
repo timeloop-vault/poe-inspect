@@ -324,12 +324,12 @@ Wire existing settings to actual behavior. All tasks are independent of the data
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | **Overlay scaling** | Done | CSS `zoom` on overlay root. Two-phase window resize (expand transparent window first, measure, shrink). |
+| 1 | **Overlay scaling** | Done | `transform: scale()` on panel element. Fullscreen window, no resize needed. |
 | 2 | **Dynamic hotkey wiring** | Done | `pause_hotkeys`/`resume_hotkeys`/`update_hotkeys` Tauri commands. Only modifier combos registered globally; dismiss is window-level. |
 | 3 | **Display toggles → overlay** | Done | `DisplaySettings` passed from App → ItemOverlay. Settings reloaded on each inspect and debug overlay show. |
 | 4 | **Start minimized / launch on boot** | Done | `startMinimized` read from store in Rust setup. `tauri-plugin-autostart` for launch on boot (cross-platform). UI scale for settings window. |
 | 5 | **Profile import/export** | Done | JSON file save/load via `tauri-plugin-dialog` + `tauri-plugin-fs`. Export strips id/active; import assigns new id. |
-| 6 | **Overlay positioning** | Done | Clamp to monitor bounds via `available_monitors()`. Flips horizontally/vertically if overlay would overflow screen edge. |
+| 6 | **Overlay positioning** | Done | Fullscreen overlay, CSS absolute positioning. Cursor mode: offset + flip on overflow. Panel mode: right-anchored beside inventory, left-anchored beside stash. |
 
 ### Phase 5: poe-eval Integration & Profile UI
 
@@ -349,7 +349,104 @@ the reverse index, making matching language-independent and unambiguous.
 
 **See `docs/phase-6-stat-id-matching.md` for the detailed step-by-step plan.**
 
-**Status: IN PROGRESS**
+**Status: DONE**
+
+### Phase 7: Fullscreen Transparent Overlay
+
+Replace the current resizable overlay window with a single fullscreen transparent
+window. The item panel is positioned within the fullscreen canvas using CSS, eliminating
+all window-resize complexity.
+
+**Status: DONE**
+
+**What was implemented:**
+- Overlay window expands to fill the monitor containing the cursor (`setup_fullscreen_overlay`)
+- Backend captures cursor position (physical pixels), converts to CSS pixels via monitor scale factor
+- Frontend receives cursor position via `overlay-position` event, positions panel with CSS `position: absolute`
+- Fullscreen `overlay-backdrop` (fixed, inset 0) catches clicks outside the panel to dismiss
+- Panel mode: right-anchored (CSS `right`) when beside inventory, left-anchored beside stash
+- PoE panel width = `screen_height * 986/1600` (from PoE's UI layout, do not change unless GGG changes in-game)
+- Overlay scale uses `transform: scale()` (not CSS `zoom`) to avoid layout interference
+- Removed `useAutoResize`, `reposition_overlay`, `position_overlay`, `clamp_to_monitor`
+- Removed `dismissOnFocusLoss` setting — backdrop click handles this inherently
+- Wayland layer-shell: anchors all 4 edges for fullscreen coverage
+
+### Phase 8: Compound Scoring Rules
+
+Upgrade the scoring system from independent single-predicate lines to compound
+rules (AND/OR groups). This lets users express "I want a wand with ilvl 83+ AND
++1 fire spell skills" as a single scored entry instead of four unrelated lines.
+
+**Problem:** Currently each scoring rule is a single predicate evaluated independently.
+"Has max life" scores +20 whether it's on a wand or a belt. Users can't express
+"this combination of properties on a specific item type" — which is the most common
+real-world use case (build-specific gear shopping).
+
+**The rule engine already supports this** — `Rule::All` and `Rule::Any` exist.
+The gap is the UI: the profile editor only creates `Rule::Pred` scoring entries.
+
+#### Phase 8a: Compound Rule UI
+
+Allow scoring entries to use `Rule::All` / `Rule::Any` instead of just `Rule::Pred`.
+The UI shows these as expandable groups:
+
+```
+[Wand + ilvl 83+ + fire spell skills]  weight: 50
+  ├─ ItemClass = "Wands"
+  ├─ ItemLevel >= 83
+  └─ HasStatId = "fire_spell_skill_gem_level_+"
+
+[Life + open prefix]                   weight: 30
+  ├─ HasStatId = "base_maximum_life"
+  └─ OpenMods Prefix >= 1
+```
+
+One weight per group, all conditions must match. Single-predicate rules still work
+as before (they're just a group of one). The profile editor gets:
+- "Add rule" → single predicate (current behavior)
+- "Add rule group" → creates an `All` container, user adds predicates into it
+- Toggle between All (AND) / Any (OR) on each group
+- Drag-and-drop or buttons to reorder predicates within a group
+
+The mod weight quick-add still works: adding "+# to maximum Life" creates a simple
+single-predicate rule. But the scoring rules tab now shows and edits compound rules.
+
+#### Phase 8b: Multi-Profile Stacking (Friend Wishlists)
+
+Support multiple active profiles evaluated simultaneously. Primary profile is the
+user's build. Secondary profiles are imported from friends or the community.
+
+**Use case:** "I'm farming maps. My primary profile scores gear for my RF Jugg.
+My friend imported their Cold DoT Occultist profile as secondary. When I find an
+item that matches their wishlist, the overlay shows a secondary indicator so I can
+set it aside for them."
+
+**Design:**
+- One **primary profile** — full overlay scoring, tier colors, the whole treatment
+- Zero or more **secondary profiles** — lightweight indicators on the overlay:
+  - Small colored tag/badge: "Alice's Cold DoT: 85%" or a friend icon
+  - Distinct visual treatment (border, icon, muted color) so it doesn't clutter
+    the primary display
+  - Only shown when the item actually matches the secondary profile's filter
+- Profile list in settings: each profile has a role selector (Primary / Secondary / Off)
+- Import: receive a profile JSON from a friend → import → set as secondary
+- Future: share profiles via a link or code (cloud sync, RQE integration)
+
+**Overlay layout with secondaries:**
+```
++------------------------------------------+
+|  Brood Thirst — Vaal Regalia             |
+|  ... normal tier-colored mods ...        |
+|------------------------------------------|
+|  ★ RF Juggernaut: 75/100 (75%)           |  <- primary score
+|  👤 Alice (Cold DoT): Match!             |  <- secondary hit
++------------------------------------------+
+```
+
+**Connection to RQE:** Secondary profiles are the local version of what poe-rqe
+does at scale. A friend's profile is their "want list". Locally, we evaluate items
+against imported friend profiles. In the cloud, poe-rqe matches items against
+thousands of registered want lists. The predicate model is shared.
 
 ## Open Questions
 
