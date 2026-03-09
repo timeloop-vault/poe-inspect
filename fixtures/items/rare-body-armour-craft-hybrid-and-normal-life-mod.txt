@@ -1,0 +1,35 @@
+Item Class: Body Armours
+Rarity: Rare
+Demon Wrap
+Titan Plate
+--------
+Quality: +20% (augmented)
+Armour: 1388 (augmented)
+--------
+Requirements:
+Level: 73
+Str: 222
+Int: 108
+--------
+Sockets: B-B-R-R-R
+--------
+Item Level: 76
+--------
+{ Searing Exarch Implicit Modifier (Lesser) — Life }
+8(8-9)% of Damage taken Recouped as Life
+(Only Damage from Hits can be Recouped, over 4 seconds following the Hit)
+--------
+{ Prefix Modifier "Urchin's" (Tier: 3) — Life, Defences, Armour }
++35(33-48) to Armour
++24(24-28) to maximum Life
+{ Prefix Modifier "Carapaced" (Tier: 6) — Defences, Armour }
++113(102-120) to Armour
+{ Prefix Modifier "Fecund" (Tier: 4) — Life }
++139(130-144) to maximum Life
+{ Suffix Modifier "of the Troll" (Tier: 6) — Life }
+Regenerate 41.1(32.1-48) Life per second
+{ Suffix Modifier "of the Ice" (Tier: 2) — Elemental, Cold, Resistance }
++42(42-45)% to Cold Resistance
+{ Suffix Modifier "of the Volcano" (Tier: 3) — Elemental, Fire, Resistance }
++37(36-41)% to Fire Resistance
+Searing Exarch Item

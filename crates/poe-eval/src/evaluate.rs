@@ -99,22 +99,30 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
 
         // ── Stat value predicates ────────────────────────────────────
         Predicate::StatValue {
-            text,
+            text: _,
             stat_id,
             value_index,
             op,
             value,
-        } => find_stat_value(item, text.as_deref(), stat_id.as_deref(), *value_index)
-            .is_some_and(|current| op.eval(&current, value)),
+        } => find_matching_stats(item, stat_id.as_deref())
+            .any(|sl| sl.values.get(*value_index).is_some_and(|v| op.eval(&v.current, value))),
 
         Predicate::RollPercent {
-            text,
+            text: _,
             stat_id,
             value_index,
             op,
             value,
-        } => find_roll_percent(item, text.as_deref(), stat_id.as_deref(), *value_index)
-            .is_some_and(|pct| op.eval(&pct, value)),
+        } => find_matching_stats(item, stat_id.as_deref()).any(|sl| {
+            sl.values.get(*value_index).is_some_and(|vr| {
+                let span = vr.max - vr.min;
+                if span == 0 {
+                    return op.eval(&100_u32, value);
+                }
+                let pct = ((vr.current - vr.min) * 100 / span).clamp(0, 100);
+                op.eval(&u32::try_from(pct).unwrap_or(0), value)
+            })
+        }),
 
         // ── Influence / status ───────────────────────────────────────
         Predicate::HasInfluence { influence } => {
@@ -203,68 +211,22 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
     max_u32.saturating_sub(current)
 }
 
-/// Check if a stat line matches by stat_id (preferred) or text fallback.
-fn stat_line_matches(
-    sl: &poe_item::types::ResolvedStatLine,
-    text: Option<&str>,
-    stat_id: Option<&str>,
-) -> bool {
-    if sl.is_reminder {
-        return false;
-    }
-    // Prefer stat_id matching (language-independent)
-    if let Some(sid) = stat_id {
-        return sl
-            .stat_ids
-            .as_ref()
-            .is_some_and(|ids| ids.iter().any(|id| id == sid));
-    }
-    // Fall back to text substring matching
-    if let Some(t) = text {
-        return sl.display_text.contains(t);
-    }
-    false
-}
-
-/// Find the current rolled value of the first matching stat line.
-fn find_stat_value(
-    item: &ResolvedItem,
-    text: Option<&str>,
-    stat_id: Option<&str>,
-    value_index: usize,
-) -> Option<i64> {
-    for m in &item.mods {
-        for sl in &m.stat_lines {
-            if stat_line_matches(sl, text, stat_id) {
-                return sl.values.get(value_index).map(|v| v.current);
-            }
-        }
-    }
-    None
-}
-
-/// Calculate how close a roll is to max, as a percentage (0–100).
-///
-/// Returns `None` if the stat line has no range data or if range span is zero.
-fn find_roll_percent(
-    item: &ResolvedItem,
-    text: Option<&str>,
-    stat_id: Option<&str>,
-    value_index: usize,
-) -> Option<u32> {
-    for m in &item.mods {
-        for sl in &m.stat_lines {
-            if stat_line_matches(sl, text, stat_id) {
-                let vr = sl.values.get(value_index)?;
-                let span = vr.max - vr.min;
-                if span == 0 {
-                    return Some(100);
-                }
-                let offset = vr.current - vr.min;
-                let pct = (offset * 100) / span;
-                return Some(u32::try_from(pct.clamp(0, 100)).unwrap_or(0));
-            }
-        }
-    }
-    None
+/// Iterate all non-reminder stat lines matching by stat_id.
+/// Returns no matches if stat_id is None (rules must have a resolved stat_id).
+fn find_matching_stats<'a>(
+    item: &'a ResolvedItem,
+    stat_id: Option<&'a str>,
+) -> impl Iterator<Item = &'a poe_item::types::ResolvedStatLine> {
+    let sid = stat_id.unwrap_or("");
+    item.mods
+        .iter()
+        .flat_map(|m| &m.stat_lines)
+        .filter(move |sl| {
+            !sl.is_reminder
+                && !sid.is_empty()
+                && sl
+                    .stat_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.iter().any(|id| id == sid))
+        })
 }

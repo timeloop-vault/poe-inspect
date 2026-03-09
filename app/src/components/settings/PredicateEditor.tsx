@@ -102,7 +102,23 @@ export function PredicateEditor({
 	if (rule.rule_type !== "Pred") return null;
 
 	const updateField = (name: string, value: unknown) => {
-		onChange({ ...rule, [name]: value } as Rule);
+		const updated = { ...rule, [name]: value } as Rule;
+		// Auto-resolve stat_id when user picks a stat template
+		if (
+			name === "text" &&
+			typeof value === "string" &&
+			(schema.typeName === "StatValue" || schema.typeName === "RollPercent")
+		) {
+			invoke<string[]>("resolve_stat_template", { template: value }).then((ids) => {
+				if (ids.length > 0) {
+					onChange({ ...updated, stat_id: ids[0] } as Rule);
+				} else {
+					onChange(updated);
+				}
+			});
+			return;
+		}
+		onChange(updated);
 	};
 
 	return (
