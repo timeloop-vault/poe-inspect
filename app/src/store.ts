@@ -66,11 +66,26 @@ export interface DisplayPrefs {
 	dimIgnored: boolean;
 }
 
+/** Profile role: primary (one at a time), watching (background), or off. */
+export type ProfileRole = "primary" | "watching" | "off";
+
+/** Preset colors for watching profiles (PoE-themed palette). */
+export const WATCH_COLORS = [
+	"#3498db", // blue
+	"#2ecc71", // green
+	"#e74c3c", // red
+	"#9b59b6", // purple
+	"#f1c40f", // gold
+	"#1abc9c", // teal
+] as const;
+
 /** A stored profile — links an eval profile with display prefs. */
 export interface StoredProfile {
 	id: string;
 	name: string;
-	active: boolean;
+	role: ProfileRole;
+	/** Color used for watching indicator in the overlay. */
+	watchColor: string;
 	/** poe-eval evaluation profile. null = use built-in default. */
 	evalProfile: EvalProfile | null;
 	/** Stat weights from the mod weight editor. Merged into scoring at sync time. */
@@ -117,7 +132,8 @@ const defaultProfiles: StoredProfile[] = [
 	{
 		id: "default",
 		name: "Default",
-		active: true,
+		role: "primary",
+		watchColor: WATCH_COLORS[0],
 		evalProfile: null, // uses built-in Generic profile
 		modWeights: [],
 		display: { ...defaultDisplay },
@@ -197,16 +213,29 @@ export function mergeModWeightsIntoScoring(profile: StoredProfile): StoredProfil
 	};
 }
 
-/** Migrate old profile format (modWeights) to new format (evalProfile + display). */
+/** Migrate old profile format to current format.
+ *  Handles: modWeights-only (pre-8D), active→role (pre-8e). */
 function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 	let result: StoredProfile;
+
+	// Phase 8e: migrate active (boolean) → role (string)
+	let role: ProfileRole = "off";
+	if ("role" in raw && typeof raw.role === "string") {
+		role = raw.role as ProfileRole;
+	} else if ("active" in raw && raw.active === true) {
+		role = "primary";
+	}
+
+	const watchColor =
+		(typeof raw.watchColor === "string" ? raw.watchColor : null) ?? WATCH_COLORS[0];
 
 	// Old format detection: has modWeights but no evalProfile
 	if ("modWeights" in raw && !("evalProfile" in raw)) {
 		result = {
 			id: (raw.id as string) ?? String(Date.now()),
 			name: (raw.name as string) ?? "Migrated",
-			active: (raw.active as boolean) ?? false,
+			role,
+			watchColor,
 			evalProfile: null,
 			modWeights: [],
 			display: {
@@ -220,7 +249,8 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 		result = {
 			id: (raw.id as string) ?? String(Date.now()),
 			name: (raw.name as string) ?? "Profile",
-			active: (raw.active as boolean) ?? false,
+			role,
+			watchColor,
 			evalProfile: (raw.evalProfile as EvalProfile | null) ?? null,
 			modWeights: (raw.modWeights as ModWeight[] | undefined) ?? [],
 			display: (raw.display as DisplayPrefs) ?? { ...defaultDisplay },
@@ -245,25 +275,36 @@ export async function saveProfiles(profiles: StoredProfile[]): Promise<void> {
 	await store.set("profiles", profiles);
 }
 
-/** Load tier colors from the active profile (or defaults if none active). */
+/** Load tier colors from the primary profile (or defaults if none). */
 export async function loadActiveTierColors(): Promise<TierColors> {
 	const profiles = await loadProfiles();
-	const active = profiles.find((p) => p.active);
-	return active?.display.tierColors ?? { ...defaultTierColors };
+	const primary = profiles.find((p) => p.role === "primary");
+	return primary?.display.tierColors ?? { ...defaultTierColors };
 }
 
 // ── Backend profile sync ──────────────────────────────────────────────────
 
-/** Send the active eval profile to the backend for scoring.
- *  If the active profile has no custom evalProfile, sends empty string
+/** Send primary + watching profiles to the backend for scoring.
+ *  If the primary profile has no custom evalProfile, sends empty string
  *  to tell the backend to use its built-in default.
  *  Pass `known` to avoid re-reading from the store (prevents race with save). */
 export async function syncActiveProfile(known?: StoredProfile[]): Promise<void> {
 	const profiles = known ?? (await loadProfiles());
-	const active = profiles.find((p) => p.active);
-	if (!active?.evalProfile) {
-		await invoke("set_active_profile", { profileJson: "" });
-		return;
-	}
-	await invoke("set_active_profile", { profileJson: JSON.stringify(active.evalProfile) });
+	const primary = profiles.find((p) => p.role === "primary");
+	const watching = profiles.filter((p) => p.role === "watching" && p.evalProfile !== null);
+
+	// "none" = no primary profile (show overlay without scoring)
+	// "" = use built-in default profile
+	// JSON = custom profile
+	const primaryJson =
+		primary === undefined ? "none" : primary.evalProfile ? JSON.stringify(primary.evalProfile) : "";
+	const watchingJson = JSON.stringify(
+		watching.map((w) => ({
+			name: w.name,
+			color: w.watchColor,
+			profile: w.evalProfile,
+		})),
+	);
+
+	await invoke("set_active_profile", { primaryJson, watchingJson });
 }

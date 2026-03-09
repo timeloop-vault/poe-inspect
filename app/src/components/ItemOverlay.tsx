@@ -1,4 +1,5 @@
-import type { Modifier, ParsedItem, Rarity, ScoreInfo } from "../types";
+import { useState } from "preact/hooks";
+import type { Modifier, ParsedItem, Rarity, ScoreInfo, WatchingScore } from "../types";
 
 import headerMagicLeft from "../assets/tooltip/header-magic-left.webp";
 import headerMagicMiddle from "../assets/tooltip/header-magic-middle.webp";
@@ -200,9 +201,26 @@ export function ItemOverlay({
 	display = defaultDisplay,
 }: { item: ParsedItem; display?: DisplaySettings }) {
 	const doubleLine = item.rarity === "Rare" || item.rarity === "Unique";
+	const [swapView, setSwapView] = useState<WatchingScore | null>(null);
+
+	// The active score to display (swapped watching profile or primary)
+	const activeScore = swapView?.score ?? item.score;
+	const watchingScores = item.watchingScores ?? [];
 
 	return (
 		<div class="item-card">
+			{/* Swap view header — shown when viewing a watching profile */}
+			{swapView && (
+				<div class="swap-view-header" style={{ borderColor: swapView.color }}>
+					<span>
+						Viewing: <strong style={{ color: swapView.color }}>{swapView.profileName}</strong>
+					</span>
+					<button type="button" class="swap-view-back" onClick={() => setSwapView(null)}>
+						&times;
+					</button>
+				</div>
+			)}
+
 			{/* Header with PoE art */}
 			<ItemHeader
 				rarity={item.rarity}
@@ -338,25 +356,56 @@ export function ItemOverlay({
 				</>
 			)}
 
-			{/* Profile score */}
-			{item.score?.applicable && (
+			{/* Profile score (primary or swapped watching) */}
+			{activeScore?.applicable && (
 				<>
 					<Separator rarity={item.rarity} />
-					<ScoreDisplay score={item.score} />
+					<ScoreDisplay
+						score={activeScore}
+						{...(swapView ? { label: swapView.profileName, color: swapView.color } : {})}
+					/>
 				</>
+			)}
+
+			{/* Watching profile indicators */}
+			{!swapView && watchingScores.length > 0 && (
+				<div class="watching-indicators">
+					{watchingScores.map((ws) => (
+						<button
+							key={ws.profileName}
+							type="button"
+							class="watching-pill"
+							style={{
+								borderColor: ws.color,
+								color: ws.color,
+							}}
+							onClick={() => setSwapView(ws)}
+							title={`Click to view ${ws.profileName} scoring`}
+						>
+							<span class="watching-dot" style={{ background: ws.color }} />
+							{ws.profileName}: {Math.round(ws.score.percent)}%
+						</button>
+					))}
+				</div>
 			)}
 		</div>
 	);
 }
 
-function ScoreDisplay({ score }: { score: ScoreInfo }) {
+function ScoreDisplay({
+	score,
+	label,
+	color,
+}: { score: ScoreInfo; label?: string; color?: string }) {
 	const pct = Math.round(score.percent);
 	const barClass = pct >= 70 ? "score-high" : pct >= 40 ? "score-mid" : "score-low";
 
 	return (
 		<div class="score-section">
 			<div class="score-header">
-				<span class="score-label">Score</span>
+				<span class="score-label" {...(color ? { style: { color } } : {})}>
+					{label ?? "Score"}
+				</span>
 				<span class={`score-value ${barClass}`}>{pct}%</span>
 			</div>
 			<div class="score-bar">

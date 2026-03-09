@@ -4,8 +4,10 @@ import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
 	type DisplayPrefs,
+	type ProfileRole,
 	type StoredProfile,
 	type TierColors,
+	WATCH_COLORS,
 	WEIGHT_VALUES,
 	type WeightLevel,
 	defaultDisplay,
@@ -80,12 +82,23 @@ export function ProfileSettings() {
 		saveProfiles(next);
 	}, []);
 
-	const setActive = useCallback(
-		(id: string) => {
-			const next = profilesRef.current.map((p) => ({
-				...p,
-				active: p.id === id,
-			}));
+	const setRole = useCallback(
+		(id: string, role: ProfileRole) => {
+			const next = profilesRef.current.map((p) => {
+				if (p.id === id) return { ...p, role };
+				// Only one primary allowed — demote the old primary
+				if (role === "primary" && p.role === "primary") return { ...p, role: "off" as const };
+				return p;
+			});
+			persist(next);
+			syncActiveProfile(next);
+		},
+		[persist],
+	);
+
+	const setWatchColor = useCallback(
+		(id: string, color: string) => {
+			const next = profilesRef.current.map((p) => (p.id === id ? { ...p, watchColor: color } : p));
 			persist(next);
 			syncActiveProfile(next);
 		},
@@ -94,12 +107,16 @@ export function ProfileSettings() {
 
 	const addProfile = useCallback(() => {
 		const id = String(Date.now());
+		// Auto-assign the first unused watch color
+		const usedColors = new Set(profilesRef.current.map((p) => p.watchColor));
+		const color = WATCH_COLORS.find((c) => !usedColors.has(c)) ?? WATCH_COLORS[0];
 		const next: StoredProfile[] = [
 			...profilesRef.current,
 			{
 				id,
 				name: "New Profile",
-				active: false,
+				role: "off",
+				watchColor: color,
 				evalProfile: null,
 				modWeights: [],
 				display: { ...defaultDisplay },
@@ -113,8 +130,8 @@ export function ProfileSettings() {
 		(id: string) => {
 			const filtered = profilesRef.current.filter((p) => p.id !== id);
 			const first = filtered[0];
-			if (first && !filtered.some((p) => p.active)) {
-				filtered[0] = { ...first, active: true };
+			if (first && !filtered.some((p) => p.role === "primary")) {
+				filtered[0] = { ...first, role: "primary" as const };
 			}
 			persist(filtered);
 			syncActiveProfile(filtered);
@@ -133,7 +150,7 @@ export function ProfileSettings() {
 					...structuredClone(source),
 					id: newId,
 					name: `${source.name} (copy)`,
-					active: false,
+					role: "off" as const,
 				},
 			]);
 		},
@@ -153,7 +170,8 @@ export function ProfileSettings() {
 			const imported = mergeModWeightsIntoScoring({
 				id: String(Date.now()),
 				name: data.name,
-				active: false,
+				role: "off",
+				watchColor: WATCH_COLORS[0],
 				evalProfile: data.evalProfile ?? null,
 				modWeights: data.modWeights ?? [],
 				display: data.display ?? { ...defaultDisplay },
@@ -172,7 +190,7 @@ export function ProfileSettings() {
 			filters: [{ name: "JSON", extensions: ["json"] }],
 		});
 		if (!path) return;
-		const { id: _id, active: _active, ...exportData } = profile;
+		const { id: _id, role: _role, watchColor: _wc, ...exportData } = profile;
 		await writeTextFile(path, JSON.stringify(exportData, null, 2));
 	}, []);
 
@@ -213,18 +231,39 @@ export function ProfileSettings() {
 				</button>
 			</div>
 
+			<div class="setting-description" style={{ marginTop: "6px", marginBottom: "6px" }}>
+				{"\u2605"} Primary = scored in overlay &nbsp; {"\u25CF"} Watching = background indicator
+			</div>
+
+			<ProfileWarnings profiles={profiles} />
+
 			<div class="profile-list">
 				{profiles.map((profile) => (
-					<div key={profile.id} class={`profile-item ${profile.active ? "active" : ""}`}>
-						<button
-							type="button"
-							class="profile-activate"
-							onClick={() => setActive(profile.id)}
-							title={profile.active ? "Active profile" : "Set as active"}
-						>
-							<span class="profile-star">{profile.active ? "\u2605" : "\u2606"}</span>
-							<span class="profile-name">{profile.name}</span>
-						</button>
+					<div
+						key={profile.id}
+						class={`profile-item ${profile.role === "primary" ? "active" : ""}`}
+					>
+						<div class="profile-role-area">
+							<select
+								class="profile-role-select"
+								value={profile.role}
+								onChange={(e) =>
+									setRole(profile.id, (e.target as HTMLSelectElement).value as ProfileRole)
+								}
+								title="Profile role"
+							>
+								<option value="primary">{"\u2605"} Primary</option>
+								<option value="watching">{"\u25CF"} Watching</option>
+								<option value="off">Off</option>
+							</select>
+							{profile.role === "watching" && (
+								<WatchColorPicker
+									color={profile.watchColor}
+									onChange={(c) => setWatchColor(profile.id, c)}
+								/>
+							)}
+						</div>
+						<span class="profile-name">{profile.name}</span>
 
 						<div class="profile-item-actions">
 							<button type="button" class="btn btn-small" onClick={() => setEditing(profile.id)}>
@@ -259,10 +298,6 @@ export function ProfileSettings() {
 						</div>
 					</div>
 				))}
-			</div>
-
-			<div class="setting-description" style={{ marginTop: "12px" }}>
-				{"\u2605"} = active profile used for item evaluation
 			</div>
 		</>
 	);
@@ -1452,6 +1487,85 @@ function PreviewLine({
 			</span>
 			<span style={{ flex: 1, color }}>{text}</span>
 			<span style={{ fontSize: "10px", color: "var(--poe-text-dim)" }}>{pct}%</span>
+		</div>
+	);
+}
+
+// ── Profile Warnings ─────────────────────────────────────────────────────
+
+function ProfileWarnings({ profiles }: { profiles: StoredProfile[] }) {
+	const hasPrimary = profiles.some((p) => p.role === "primary");
+	const allOff = profiles.every((p) => p.role === "off");
+	const hasWatching = profiles.some((p) => p.role === "watching");
+
+	if (allOff) {
+		return (
+			<div class="profile-warning">
+				All profiles are off. The overlay will show item data without any scoring.
+			</div>
+		);
+	}
+
+	if (!hasPrimary) {
+		return (
+			<div class="profile-warning">
+				No primary profile. Overlay will show item data without scoring.
+				{hasWatching && " Watching profiles will still evaluate in the background."}
+			</div>
+		);
+	}
+
+	return null;
+}
+
+// ── Watch Color Picker ───────────────────────────────────────────────────
+
+function WatchColorPicker({
+	color,
+	onChange,
+}: {
+	color: string;
+	onChange: (color: string) => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const ref = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!open) return;
+		const handler = (e: MouseEvent) => {
+			if (ref.current && !ref.current.contains(e.target as Node)) {
+				setOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handler);
+		return () => document.removeEventListener("mousedown", handler);
+	}, [open]);
+
+	return (
+		<div class="watch-color-picker" ref={ref}>
+			<button
+				type="button"
+				class="watch-color-dot"
+				style={{ background: color }}
+				onClick={() => setOpen(!open)}
+				title="Change watch color"
+			/>
+			{open && (
+				<div class="watch-color-palette">
+					{WATCH_COLORS.map((c) => (
+						<button
+							key={c}
+							type="button"
+							class={`watch-color-swatch ${c === color ? "selected" : ""}`}
+							style={{ background: c }}
+							onClick={() => {
+								onChange(c);
+								setOpen(false);
+							}}
+						/>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }

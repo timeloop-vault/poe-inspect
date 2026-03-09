@@ -3,6 +3,7 @@
 //! Converts `ResolvedItem` + analysis results into a serializable
 //! `EvaluatedItem` that matches the frontend's `ParsedItem` interface.
 
+use crate::WatchingProfileEntry;
 use poe_data::domain::TierQuality;
 use poe_data::GameData;
 use poe_eval::affix::{self, Modifiability};
@@ -45,6 +46,18 @@ pub struct EvaluatedItem {
     /// Profile score (None if no profile active or not applicable).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub score: Option<ScoreInfo>,
+    /// Scores from watching profiles.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub watching_scores: Vec<WatchingScoreInfo>,
+}
+
+/// Score result from a watching profile, sent alongside the primary evaluation.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WatchingScoreInfo {
+    pub profile_name: String,
+    pub color: String,
+    pub score: ScoreInfo,
 }
 
 /// Scoring result from evaluating an item against a profile.
@@ -121,6 +134,7 @@ pub fn build_evaluated_item(
     item: &ResolvedItem,
     gd: &GameData,
     profile: Option<&Profile>,
+    watching: &[WatchingProfileEntry],
 ) -> EvaluatedItem {
     let tier_summary = tier::analyze_tiers(item);
     let affix_summary = affix::analyze_affixes(item, gd);
@@ -177,6 +191,24 @@ pub fn build_evaluated_item(
     // Flavor text: last generic section if it looks like flavor text (no colon lines)
     let flavor_text = extract_flavor_text(item);
 
+    // Evaluate watching profiles
+    let watching_scores = watching
+        .iter()
+        .filter_map(|w| {
+            let score = build_score_info(item, &w.profile, gd);
+            // Only include if the filter passes and at least one rule matched
+            if score.applicable && score.total > 0.0 {
+                Some(WatchingScoreInfo {
+                    profile_name: w.name.clone(),
+                    color: w.color.clone(),
+                    score,
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+
     EvaluatedItem {
         item_class: item.header.item_class.clone(),
         rarity: format!("{:?}", item.header.rarity),
@@ -203,6 +235,7 @@ pub fn build_evaluated_item(
         max_suffixes: affix_summary.suffixes.max.unwrap_or(0),
         modifiable: affix_summary.modifiable == Modifiability::Yes,
         score: profile.map(|p| build_score_info(item, p, gd)),
+        watching_scores,
     }
 }
 
