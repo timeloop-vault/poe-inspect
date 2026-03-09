@@ -57,6 +57,7 @@ tests/
 | `OpenMods` | Available mod slots (uses GameData for max) |
 | `HasModNamed` | Whether any mod has a specific name |
 | `HasStatText` | Whether any stat line contains text |
+| `HasStatId` | Whether any stat has a resolved stat ID (language-independent) |
 | `ModTier` | Mod tier comparison by name |
 | `StatValue` | Rolled value of a matching stat |
 | `RollPercent` | How close a roll is to max (0-100%) |

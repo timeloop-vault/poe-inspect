@@ -79,6 +79,14 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
                 .any(|sl| !sl.is_reminder && sl.display_text.contains(text.as_str()))
         }),
 
+        Predicate::HasStatId { stat_id } => item.mods.iter().any(|m| {
+            m.stat_lines.iter().any(|sl| {
+                sl.stat_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.iter().any(|id| id == stat_id))
+            })
+        }),
+
         Predicate::ModTier { name, op, value } => item.mods.iter().any(|m| {
             m.header.name.as_deref() == Some(name.as_str())
                 && m.header

@@ -16,9 +16,12 @@ export type OverlayPosition = "cursor" | "panel";
 /** Discrete weight levels for the mod weight editor. */
 export type WeightLevel = "low" | "medium" | "high" | "critical";
 
-/** A stat text with a weight level. */
+/** A stat weight with resolved stat IDs for matching. */
 export interface ModWeight {
-	text: string;
+	/** Human-readable template text (e.g. "+# to maximum Life"). */
+	template: string;
+	/** Internal stat IDs resolved from the reverse index (e.g. ["base_maximum_life"]). */
+	statIds: string[];
 	level: WeightLevel;
 }
 
@@ -239,12 +242,14 @@ export async function syncActiveProfile(known?: StoredProfile[]): Promise<void> 
 		await invoke("set_active_profile", { profileJson: "" });
 		return;
 	}
-	// Merge mod weights into scoring rules
-	const weightRules = (active.modWeights ?? []).map((mw) => ({
-		label: mw.text,
-		weight: WEIGHT_VALUES[mw.level],
-		rule: { rule_type: "Pred" as const, type: "HasStatText", text: mw.text },
-	}));
+	// Merge mod weights into scoring rules (one HasStatId per stat ID)
+	const weightRules = (active.modWeights ?? []).flatMap((mw) =>
+		(mw.statIds ?? []).map((statId) => ({
+			label: mw.template,
+			weight: WEIGHT_VALUES[mw.level],
+			rule: { rule_type: "Pred" as const, type: "HasStatId", stat_id: statId },
+		})),
+	);
 	const merged = {
 		...active.evalProfile,
 		scoring: [...active.evalProfile.scoring, ...weightRules],

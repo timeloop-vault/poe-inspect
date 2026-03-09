@@ -564,8 +564,23 @@ fn get_suggestions(source: String, state: tauri::State<'_, GameDataState>) -> Ve
                 keys
             })
             .unwrap_or_default(),
+        "stat_ids" => {
+            let mut ids: Vec<String> = gd.stats.iter().map(|s| s.id.clone()).collect();
+            ids.sort();
+            ids
+        }
         _ => vec![],
     }
+}
+
+/// Resolve a stat template key (e.g. "+# to maximum Life") to its internal stat IDs.
+#[tauri::command]
+fn resolve_stat_template(template: &str, gd: tauri::State<'_, GameDataState>) -> Vec<String> {
+    let gd = &gd.0;
+    gd.reverse_index
+        .as_ref()
+        .and_then(|ri| ri.stat_ids_for_template(template))
+        .unwrap_or_default()
 }
 
 /// Load game data from extracted datc64 files.
@@ -661,6 +676,7 @@ pub fn run() {
             get_default_profile,
             get_predicate_schema,
             get_suggestions,
+            resolve_stat_template,
         ])
         .setup(|app| {
             // --- System tray ---

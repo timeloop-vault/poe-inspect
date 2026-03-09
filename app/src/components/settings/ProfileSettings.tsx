@@ -289,16 +289,17 @@ function ProfileEditor({
 		onBack();
 	};
 
-	/** Customize from the built-in profile: split HasStatText rules into mod weights. */
+	/** Customize from the built-in profile: split HasStatId rules into mod weights. */
 	const handleCustomize = () => {
 		if (!builtinProfile) return;
 		const modWeights: ModWeight[] = [];
 		const otherRules: ScoringRule[] = [];
 		for (const sr of builtinProfile.scoring) {
 			const ruleData = sr.rule as Record<string, unknown>;
-			if (sr.rule.rule_type === "Pred" && ruleData.type === "HasStatText") {
+			if (sr.rule.rule_type === "Pred" && ruleData.type === "HasStatId") {
 				modWeights.push({
-					text: ruleData.text as string,
+					template: sr.label,
+					statIds: [ruleData.stat_id as string],
 					level: weightToLevel(sr.weight),
 				});
 			} else {
@@ -698,15 +699,16 @@ function ModWeightsTab({
 		return () => document.removeEventListener("mousedown", handler);
 	}, []);
 
-	const existingTexts = new Set(modWeights.map((mw) => mw.text));
+	const existingTemplates = new Set(modWeights.map((mw) => mw.template));
 	const filtered = search
 		? suggestions
-				.filter((s) => !existingTexts.has(s) && s.toLowerCase().includes(search.toLowerCase()))
+				.filter((s) => !existingTemplates.has(s) && s.toLowerCase().includes(search.toLowerCase()))
 				.slice(0, 30)
 		: [];
 
-	const addWeight = (text: string) => {
-		onUpdate([...modWeights, { text, level: "medium" }]);
+	const addWeight = async (template: string) => {
+		const statIds = await invoke<string[]>("resolve_stat_template", { template });
+		onUpdate([...modWeights, { template, statIds, level: "medium" }]);
 		setSearch("");
 		setShowDropdown(false);
 		setSelectedIndex(-1);
@@ -787,8 +789,8 @@ function ModWeightsTab({
 			{/* Weighted stat list */}
 			<div class="mod-weight-list">
 				{modWeights.map((mw, i) => (
-					<div key={mw.text} class="mod-weight-row">
-						<span class="mod-weight-text">{mw.text}</span>
+					<div key={mw.template} class="mod-weight-row">
+						<span class="mod-weight-text">{mw.template}</span>
 						<WeightSelector level={mw.level} onChange={(level) => updateLevel(i, level)} />
 						<button
 							type="button"

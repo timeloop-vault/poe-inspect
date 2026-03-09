@@ -244,6 +244,20 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
             }],
         },
         PredicateSchema {
+            type_name: "HasStatId".into(),
+            label: "Has Stat ID".into(),
+            description: "Whether any stat has the given internal stat ID (language-independent)"
+                .into(),
+            category: "Stats".into(),
+            fields: vec![PredicateField {
+                name: "stat_id".into(),
+                label: "Stat ID".into(),
+                kind: FieldKind::Text {
+                    suggestions_from: Some("stat_ids".into()),
+                },
+            }],
+        },
+        PredicateSchema {
             type_name: "ModTier".into(),
             label: "Mod Tier".into(),
             description: "Tier of a named mod (T1 = best for regular, R1 = worst for bench)".into(),
@@ -430,7 +444,7 @@ mod tests {
     #[test]
     fn schema_has_all_predicates() {
         let schema = predicate_schema();
-        assert_eq!(schema.len(), 15, "schema should have exactly 15 predicates");
+        assert_eq!(schema.len(), 16, "schema should have exactly 16 predicates");
     }
 
     #[test]
@@ -439,7 +453,7 @@ mod tests {
         let mut names: Vec<&str> = schema.iter().map(|s| s.type_name.as_str()).collect();
         names.sort();
         names.dedup();
-        assert_eq!(names.len(), 15, "all type names should be unique");
+        assert_eq!(names.len(), 16, "all type names should be unique");
     }
 
     #[test]
@@ -458,6 +472,7 @@ mod tests {
             r#"{"type":"OpenMods","slot":"Suffix","op":"Ge","value":1}"#,
             r#"{"type":"HasModNamed","name":"Test"}"#,
             r#"{"type":"HasStatText","text":"Life"}"#,
+            r#"{"type":"HasStatId","stat_id":"base_maximum_life"}"#,
             r#"{"type":"ModTier","name":"Test","op":"Le","value":3}"#,
             r#"{"type":"StatValue","text":"Life","value_index":0,"op":"Ge","value":50}"#,
             r#"{"type":"RollPercent","text":"Life","value_index":0,"op":"Ge","value":80}"#,
