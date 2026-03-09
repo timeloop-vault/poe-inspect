@@ -6,6 +6,9 @@ import "./styles/overlay.css";
 import "./styles/settings.css";
 
 const windowLabel = getCurrentWebviewWindow().label;
+if (windowLabel !== "settings") {
+	document.body.classList.add("overlay-window");
+}
 const Root = windowLabel === "settings" ? SettingsApp : App;
 
 const root = document.getElementById("root");
