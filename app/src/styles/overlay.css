@@ -92,15 +92,11 @@
 html,
 body {
 	background: transparent;
+	overflow: hidden;
 	font-family: "Fontin SmallCaps", "Fontin", "Segoe UI", sans-serif;
 	font-size: 13px;
 	color: var(--poe-text);
 	user-select: none;
-}
-
-/* Only the overlay window needs overflow hidden (transparent fullscreen) */
-body.overlay-window {
-	overflow: hidden;
 }
 
 /* --- Fullscreen backdrop --- */
