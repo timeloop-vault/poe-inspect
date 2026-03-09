@@ -18,16 +18,17 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-clipboard-manager = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+ts-rs = "12"
 enigo = { version = "0.2", features = ["xdo", "wayland"] }
 tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-mcp = { git = "https://github.com/P3GLEG/tauri-plugin-mcp" }
 
-# Workspace crates
-poe-item = { path = "../../crates/poe-item" }
+# Workspace crates (ts feature enables TypeScript type generation via ts-rs)
+poe-item = { path = "../../crates/poe-item", features = ["ts"] }
 poe-eval = { path = "../../crates/poe-eval" }
-poe-data = { path = "../../crates/poe-data" }
+poe-data = { path = "../../crates/poe-data", features = ["ts"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"

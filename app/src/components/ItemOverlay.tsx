@@ -28,6 +28,9 @@ const headerSprites: Record<Rarity, HeaderSprites> = {
 	Magic: { left: headerMagicLeft, middle: headerMagicMiddle, right: headerMagicRight },
 	Rare: { left: headerRareLeft, middle: headerRareMiddle, right: headerRareRight },
 	Unique: { left: headerUniqueLeft, middle: headerUniqueMiddle, right: headerUniqueRight },
+	Gem: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
+	Currency: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
+	Unknown: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
 };
 
 const separatorSprites: Record<Rarity, string> = {
@@ -35,6 +38,9 @@ const separatorSprites: Record<Rarity, string> = {
 	Magic: separatorMagic,
 	Rare: separatorRare,
 	Unique: separatorUnique,
+	Gem: separatorNormal,
+	Currency: separatorNormal,
+	Unknown: separatorNormal,
 };
 
 /** Color for item name based on rarity */
@@ -48,6 +54,12 @@ function rarityColor(rarity: Rarity): string {
 			return "var(--rarity-rare)";
 		case "Unique":
 			return "var(--rarity-unique)";
+		case "Gem":
+			return "var(--rarity-gem, #1ba29b)";
+		case "Currency":
+			return "var(--rarity-currency, #aa9e82)";
+		case "Unknown":
+			return "var(--rarity-normal)";
 	}
 }
 
@@ -71,14 +83,14 @@ function tierClass(mod: Modifier): string {
 
 /** Badge label: "T1" for tiers, "R1" for ranks */
 function tierBadgeLabel(mod: Modifier): string {
-	if (mod.tier === undefined) return "";
+	if (mod.tier == null) return "";
 	const prefix = mod.tierKind === "rank" ? "R" : "T";
 	return `${prefix}${mod.tier}`;
 }
 
 /** Calculate roll quality as 0-100 percentage */
 function rollQuality(mod: Modifier): number | null {
-	if (mod.value === undefined || mod.min === undefined || mod.max === undefined) return null;
+	if (mod.value == null || mod.min == null || mod.max == null) return null;
 	const range = mod.max - mod.min;
 	if (range === 0) return 100;
 	return Math.round(((mod.value - mod.min) / range) * 100);
@@ -120,7 +132,7 @@ function ItemHeader({
 	baseType: string;
 	doubleLine: boolean;
 }) {
-	const sprites = headerSprites[rarity];
+	const sprites = headerSprites[rarity] ?? headerSprites.Normal;
 	return (
 		<div class={`item-header ${doubleLine ? "header-double" : "header-single"}`}>
 			<div class="header-bg">
@@ -167,7 +179,7 @@ function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) 
 	return (
 		<div class={`mod-line ${tierCls}`}>
 			<div class="mod-badges">
-				{display.showTierBadges && mod.tier !== undefined && (
+				{display.showTierBadges && mod.tier != null && (
 					<span class={`tier-badge ${tierCls}`}>{tierBadgeLabel(mod)}</span>
 				)}
 				{display.showTypeBadges && typeLabel !== null && (

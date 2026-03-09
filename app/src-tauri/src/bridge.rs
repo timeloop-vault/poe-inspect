@@ -10,17 +10,18 @@ use poe_eval::affix::{self, Modifiability};
 use poe_eval::profile::Profile;
 use poe_eval::tier;
 use poe_item::types::{
-    InfluenceKind, ModSlot, ModSource, ModTierKind, ResolvedItem, ResolvedMod, StatusKind,
+    InfluenceKind, ModSlot, ModSource, ModTierKind, Rarity, ResolvedItem, ResolvedMod, StatusKind,
 };
 use serde::Serialize;
+use ts_rs::TS;
 
 /// Serializable item for the frontend overlay.
-/// Matches the TypeScript `ParsedItem` interface in `app/src/types.ts`.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct EvaluatedItem {
     pub item_class: String,
-    pub rarity: String,
+    pub rarity: Rarity,
     pub name: String,
     pub base_type: String,
     pub item_level: u32,
@@ -52,8 +53,9 @@ pub struct EvaluatedItem {
 }
 
 /// Score result from a watching profile, sent alongside the primary evaluation.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct WatchingScoreInfo {
     pub profile_name: String,
     pub color: String,
@@ -61,8 +63,9 @@ pub struct WatchingScoreInfo {
 }
 
 /// Scoring result from evaluating an item against a profile.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct ScoreInfo {
     /// Total score (sum of matched rule weights).
     pub total: f64,
@@ -78,43 +81,47 @@ pub struct ScoreInfo {
     pub unmatched: Vec<RuleMatch>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
 pub struct RuleMatch {
     pub label: String,
     pub weight: f64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
 pub struct ItemProperty {
     pub name: String,
     pub value: String,
     pub augmented: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
 pub struct Requirement {
     pub name: String,
     pub value: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct Modifier {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mod_name: Option<String>,
     #[serde(rename = "type")]
-    pub mod_type: String,
+    pub mod_type: BridgeModType,
     /// Raw tier/rank number (for badge display).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tier: Option<u32>,
     /// Whether this is a "tier" (regular mod) or "rank" (bench craft).
     /// Frontend uses this for badge label: "T1" vs "R1".
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tier_kind: Option<String>,
+    pub tier_kind: Option<BridgeTierKind>,
     /// Quality classification from poe-data (Best/Great/Good/Mid/Low).
     /// Frontend uses this for coloring — no domain logic in the app.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quality: Option<String>,
+    pub quality: Option<TierQuality>,
     pub tags: Vec<String>,
     pub text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -211,7 +218,7 @@ pub fn build_evaluated_item(
 
     EvaluatedItem {
         item_class: item.header.item_class.clone(),
-        rarity: format!("{:?}", item.header.rarity),
+        rarity: item.header.rarity,
         name: item
             .header
             .name
@@ -274,29 +281,25 @@ fn build_score_info(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> Sc
 
 fn build_modifier(m: &ResolvedMod, tier_num: Option<u32>, quality: TierQuality) -> Modifier {
     let mod_type = match (m.header.slot, m.header.source) {
-        (_, ModSource::MasterCrafted) => "crafted",
-        (ModSlot::Prefix, _) => "prefix",
-        (ModSlot::Suffix, _) => "suffix",
+        (_, ModSource::MasterCrafted) => BridgeModType::Crafted,
+        (ModSlot::Prefix, _) => BridgeModType::Prefix,
+        (ModSlot::Suffix, _) => BridgeModType::Suffix,
         (ModSlot::Implicit | ModSlot::SearingExarchImplicit | ModSlot::EaterOfWorldsImplicit, _) => {
-            "implicit"
+            BridgeModType::Implicit
         }
-        (ModSlot::Unique, _) => "unique",
+        (ModSlot::Unique, _) => BridgeModType::Unique,
     };
 
-    // Tier kind: "tier" for regular mods, "rank" for bench crafts
+    // Tier kind: tier for regular mods, rank for bench crafts
     let tier_kind = m.header.tier.as_ref().map(|t| match t {
-        ModTierKind::Tier(_) => "tier".to_string(),
-        ModTierKind::Rank(_) => "rank".to_string(),
+        ModTierKind::Tier(_) => BridgeTierKind::Tier,
+        ModTierKind::Rank(_) => BridgeTierKind::Rank,
     });
 
-    // Quality string from poe-data classification
-    let quality_str = match quality {
-        TierQuality::Best => Some("best"),
-        TierQuality::Great => Some("great"),
-        TierQuality::Good => Some("good"),
-        TierQuality::Mid => Some("mid"),
-        TierQuality::Low => Some("low"),
+    // Quality from poe-data classification (None for Unknown)
+    let quality_val = match quality {
         TierQuality::Unknown => None,
+        q => Some(q),
     };
 
     // Combine stat lines into display text
@@ -331,10 +334,10 @@ fn build_modifier(m: &ResolvedMod, tier_num: Option<u32>, quality: TierQuality) 
 
     Modifier {
         mod_name: m.header.name.clone(),
-        mod_type: mod_type.to_string(),
+        mod_type,
         tier: tier_num,
         tier_kind,
-        quality: quality_str.map(String::from),
+        quality: quality_val,
         tags: m.header.tags.clone(),
         text,
         value,
@@ -371,6 +374,34 @@ fn extract_properties(item: &ResolvedItem) -> Vec<ItemProperty> {
         }
     }
     props
+}
+
+// ── Bridge-specific enums ────────────────────────────────────────────────────
+// These flatten complex source types (ModSlot + ModSource, ModTierKind) into
+// simple enums for the frontend. Rarity and TierQuality are generated from
+// their source crates (poe-item, poe-data) via the `ts` feature.
+
+/// Modifier source slot (bridge maps ModSlot + ModSource → this flat set).
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, rename = "ModType")]
+pub enum BridgeModType {
+    Prefix,
+    Suffix,
+    Implicit,
+    Enchant,
+    Unique,
+    Crafted,
+    Fractured,
+}
+
+/// Whether a mod number is a tier or rank (bridge splits ModTierKind's data).
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, rename = "TierKind")]
+pub enum BridgeTierKind {
+    Tier,
+    Rank,
 }
 
 /// Extract flavor text — last generic section that has no colon-lines.
