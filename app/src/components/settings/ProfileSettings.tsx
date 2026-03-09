@@ -14,8 +14,21 @@ import {
 	saveProfiles,
 	syncActiveProfile,
 } from "../../store";
-import type { EvalProfile, PredicateSchema, ScoringRule } from "../../types";
-import { PredicateEditor, defaultRule, getSchema, getSuggestions } from "./PredicateEditor";
+import {
+	type EvalProfile,
+	type PredicateSchema,
+	type Rule,
+	type ScoringRule,
+	isCompoundRule,
+	isPredRule,
+} from "../../types";
+import {
+	PredicateEditor,
+	defaultCompoundRule,
+	defaultRule,
+	getSchema,
+	getSuggestions,
+} from "./PredicateEditor";
 
 const WEIGHT_LEVELS: WeightLevel[] = ["low", "medium", "high", "critical"];
 
@@ -502,6 +515,15 @@ function CustomProfileView({
 		]);
 	};
 
+	const addGroup = () => {
+		const firstSchema = schema[0];
+		if (!firstSchema) return;
+		onUpdateScoring([
+			...scoring,
+			{ label: "Rule Group", weight: 10, rule: defaultCompoundRule(firstSchema) },
+		]);
+	};
+
 	return (
 		<div class="setting-group">
 			<div
@@ -518,6 +540,9 @@ function CustomProfileView({
 				<div style={{ display: "flex", gap: "6px" }}>
 					<button type="button" class="btn btn-small btn-primary" onClick={addRule}>
 						+ Add Rule
+					</button>
+					<button type="button" class="btn btn-small btn-primary" onClick={addGroup}>
+						+ Add Group
 					</button>
 					<button
 						type="button"
@@ -552,7 +577,99 @@ function CustomProfileView({
 	);
 }
 
-/** Editor for a single scoring rule: label + weight + predicate. */
+// ── Predicate Row (reusable: single Pred rule with type selector) ─────
+
+/** Group schemas by category (for type selector dropdown). */
+function groupByCategory(schema: PredicateSchema[]): Record<string, PredicateSchema[]> {
+	const categories: Record<string, PredicateSchema[]> = {};
+	for (const s of schema) {
+		const list = categories[s.category] ?? [];
+		list.push(s);
+		categories[s.category] = list;
+	}
+	return categories;
+}
+
+/** A single predicate: type selector + fields + optional delete button. */
+function PredicateRow({
+	rule,
+	schema,
+	onChange,
+	onDelete,
+}: {
+	rule: Rule;
+	schema: PredicateSchema[];
+	onChange: (rule: Rule) => void;
+	onDelete?: () => void;
+}) {
+	const predType = isPredRule(rule) ? rule.type : null;
+	const predSchema = predType ? schema.find((s) => s.typeName === predType) : null;
+	const categories = groupByCategory(schema);
+
+	const handleTypeChange = (typeName: string) => {
+		const newSchema = schema.find((s) => s.typeName === typeName);
+		if (!newSchema) return;
+		onChange(defaultRule(newSchema));
+	};
+
+	return (
+		<div class="compound-pred-row">
+			<div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+				<select
+					class="pred-type-select"
+					style={{ flex: 1, marginBottom: 0 }}
+					value={predType ?? ""}
+					onChange={(e) => handleTypeChange((e.target as HTMLSelectElement).value)}
+				>
+					{Object.entries(categories).map(([cat, schemas]) => (
+						<optgroup key={cat} label={cat}>
+							{schemas.map((s) => (
+								<option key={s.typeName} value={s.typeName}>
+									{s.label}
+								</option>
+							))}
+						</optgroup>
+					))}
+				</select>
+				{onDelete && (
+					<button
+						type="button"
+						class="btn btn-small"
+						onClick={onDelete}
+						title="Remove condition"
+						style={{ color: "var(--tier-low)", flexShrink: 0 }}
+					>
+						&times;
+					</button>
+				)}
+			</div>
+			{predSchema && (
+				<>
+					<div class="setting-description" style={{ marginBottom: "8px" }}>
+						{predSchema.description}
+					</div>
+					<PredicateEditor rule={rule} schema={predSchema} onChange={onChange} />
+				</>
+			)}
+		</div>
+	);
+}
+
+// ── Scoring Rule Editor ──────────────────────────────────────────────
+
+type RuleMode = "Simple" | "All" | "Any";
+
+/** Get compound sub-rules if this is a compound rule, or null. */
+function getCompoundRules(r: Rule): Rule[] | null {
+	return isCompoundRule(r) ? r.rules : null;
+}
+
+/** Get current mode from a rule. */
+function getRuleMode(r: Rule): RuleMode {
+	return isCompoundRule(r) ? r.rule_type : "Simple";
+}
+
+/** Editor for a single scoring rule: label + weight + predicate(s). */
 function ScoringRuleEditor({
 	rule,
 	schema,
@@ -566,26 +683,53 @@ function ScoringRuleEditor({
 }) {
 	const [expanded, setExpanded] = useState(false);
 
-	// Find the schema for this rule's predicate type
-	const predType = rule.rule.rule_type === "Pred" ? (rule.rule as { type: string }).type : null;
-	const predSchema = predType ? schema.find((s) => s.typeName === predType) : null;
+	const subRules = getCompoundRules(rule.rule);
+	const mode = getRuleMode(rule.rule);
 
-	// Group schema by category for the type selector (computed once per render)
-	const categories: Record<string, PredicateSchema[]> = {};
-	for (const s of schema) {
-		const list = categories[s.category] ?? [];
-		list.push(s);
-		categories[s.category] = list;
-	}
+	const setMode = (newMode: RuleMode) => {
+		if (newMode === mode) return;
+		if (newMode === "Simple") {
+			// Unwrap: use first sub-rule or a default
+			if (subRules && subRules.length > 0) {
+				const first = subRules[0];
+				if (first) onChange({ ...rule, rule: first });
+			} else {
+				const firstSchema = schema[0];
+				if (firstSchema) onChange({ ...rule, rule: defaultRule(firstSchema) });
+			}
+		} else {
+			// Wrap current rule into compound
+			const inner = subRules ?? [rule.rule];
+			onChange({ ...rule, rule: { rule_type: newMode, rules: inner } });
+		}
+	};
 
-	const handleTypeChange = (typeName: string) => {
-		const newSchema = schema.find((s) => s.typeName === typeName);
-		if (!newSchema) return;
-		// Replace the entire rule — don't merge with old fields
+	const updateSubRule = (index: number, updated: Rule) => {
+		if (!subRules) return;
+		const next = [...subRules];
+		next[index] = updated;
+		onChange({ ...rule, rule: { rule_type: mode as "All" | "Any", rules: next } });
+	};
+
+	const deleteSubRule = (index: number) => {
+		if (!subRules) return;
+		const next = subRules.filter((_: Rule, i: number) => i !== index);
+		if (next.length === 0) {
+			// Auto-switch to simple with default
+			const firstSchema = schema[0];
+			if (firstSchema) onChange({ ...rule, rule: defaultRule(firstSchema) });
+		} else {
+			onChange({ ...rule, rule: { rule_type: mode as "All" | "Any", rules: next } });
+		}
+	};
+
+	const addCondition = () => {
+		if (!subRules) return;
+		const firstSchema = schema[0];
+		if (!firstSchema) return;
 		onChange({
-			label: rule.label === predSchema?.label ? newSchema.label : rule.label,
-			weight: rule.weight,
-			rule: defaultRule(newSchema),
+			...rule,
+			rule: { rule_type: mode as "All" | "Any", rules: [...subRules, defaultRule(firstSchema)] },
 		});
 	};
 
@@ -634,33 +778,48 @@ function ScoringRuleEditor({
 
 			{expanded && (
 				<div class="scoring-rule-body">
-					<select
-						class="pred-type-select"
-						value={predType ?? ""}
-						onChange={(e) => handleTypeChange((e.target as HTMLSelectElement).value)}
-					>
-						{Object.entries(categories).map(([cat, schemas]) => (
-							<optgroup key={cat} label={cat}>
-								{schemas.map((s) => (
-									<option key={s.typeName} value={s.typeName}>
-										{s.label}
-									</option>
-								))}
-							</optgroup>
+					{/* Mode selector */}
+					<div class="compound-mode-selector">
+						{(["Simple", "All", "Any"] as const).map((m) => (
+							<button
+								key={m}
+								type="button"
+								class={`btn btn-small ${mode === m ? "btn-primary" : ""}`}
+								onClick={() => setMode(m)}
+							>
+								{m === "All" ? "All (AND)" : m === "Any" ? "Any (OR)" : m}
+							</button>
 						))}
-					</select>
+					</div>
 
-					{predSchema && (
-						<>
-							<div class="setting-description" style={{ marginBottom: "8px" }}>
-								{predSchema.description}
-							</div>
-							<PredicateEditor
-								rule={rule.rule}
-								schema={predSchema}
-								onChange={(newRule) => onChange({ ...rule, rule: newRule })}
-							/>
-						</>
+					{/* Simple mode: single predicate */}
+					{!subRules && (
+						<PredicateRow
+							rule={rule.rule}
+							schema={schema}
+							onChange={(newRule) => onChange({ ...rule, rule: newRule })}
+						/>
+					)}
+
+					{/* Compound mode: list of predicates */}
+					{subRules && (
+						<div class="compound-predicates">
+							{subRules.map((subRule: Rule, i: number) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: sub-rules have no stable ID
+								<div key={i}>
+									{i > 0 && <div class="compound-separator">{mode === "All" ? "AND" : "OR"}</div>}
+									<PredicateRow
+										rule={subRule}
+										schema={schema}
+										onChange={(updated) => updateSubRule(i, updated)}
+										{...(subRules.length > 1 ? { onDelete: () => deleteSubRule(i) } : {})}
+									/>
+								</div>
+							))}
+							<button type="button" class="compound-add-btn btn btn-small" onClick={addCondition}>
+								+ Add Condition
+							</button>
+						</div>
 					)}
 				</div>
 			)}

@@ -387,6 +387,8 @@ The gap is the UI: the profile editor only creates `Rule::Pred` scoring entries.
 
 #### Phase 8a: Compound Rule UI
 
+**Status: DONE (not tested end-to-end)**
+
 Allow scoring entries to use `Rule::All` / `Rule::Any` instead of just `Rule::Pred`.
 The UI shows these as expandable groups:
 
@@ -405,13 +407,57 @@ One weight per group, all conditions must match. Single-predicate rules still wo
 as before (they're just a group of one). The profile editor gets:
 - "Add rule" → single predicate (current behavior)
 - "Add rule group" → creates an `All` container, user adds predicates into it
-- Toggle between All (AND) / Any (OR) on each group
-- Drag-and-drop or buttons to reorder predicates within a group
+- Toggle between Simple / All (AND) / Any (OR) on each group
+- Mode selector in expanded body, header stays clean
 
 The mod weight quick-add still works: adding "+# to maximum Life" creates a simple
 single-predicate rule. But the scoring rules tab now shows and edits compound rules.
 
-#### Phase 8b: Multi-Profile Stacking (Friend Wishlists)
+**What was implemented:**
+- Type guards `isCompoundRule()` / `isPredRule()` in `types.ts`
+- `defaultCompoundRule()` factory in `PredicateEditor.tsx`
+- `PredicateRow` extracted as reusable component (type selector + fields + optional delete)
+- `ScoringRuleEditor` refactored for Simple/All/Any modes with state transitions
+- "+ Add Group" button in `CustomProfileView`
+- CSS: `.compound-mode-selector`, `.compound-predicates` (left border indent),
+  `.compound-separator` (AND/OR labels), `.compound-pred-row`
+
+**Limitation:** Flat compound only — children must be `Rule::Pred`. Cannot nest
+groups inside groups. Phase 8b addresses this.
+
+#### Phase 8b: Nested Compound Rules (Tree Editor)
+
+Extend compound rules to support arbitrary nesting. A compound rule's children
+can be either a `Rule::Pred` or another `Rule::All`/`Rule::Any` group. This enables
+expressions like `life > 100 AND (body armour OR helmet)`:
+
+```
+All:
+  ├─ HasStatId >= 100 (life)
+  └─ Any:
+       ├─ ItemClass = "Body Armours"
+       └─ ItemClass = "Helmets"
+```
+
+The backend already supports this — `Rule::All`/`Rule::Any` take `Vec<Rule>` which
+can contain nested compound rules. This is purely a UI extension.
+
+**UI changes:**
+- "+ Add Sub-Group" button inside compound groups (alongside "+ Add Condition")
+- Nested groups rendered with additional indent level (recursive `PredicateRow`)
+- Each sub-group gets its own All/Any toggle
+- Delete sub-group collapses its children or removes entirely
+
+**Design constraints:**
+- No hard depth limit, but visual indentation makes 3+ levels impractical
+- Recursive component: `PredicateRow` renders either a Pred or a nested compound
+- Performance: compound rules are small trees (10-20 nodes max), no concern
+
+**Future consideration:** VS Code extension for writing rules in a text DSL outside
+of poe-inspect. Power users and community rule-sharers may prefer a textual format
+over a visual builder. The text format would compile to the same `Rule` JSON.
+
+#### Phase 8c: Multi-Profile Stacking (Friend Wishlists)
 
 Support multiple active profiles evaluated simultaneously. Primary profile is the
 user's build. Secondary profiles are imported from friends or the community.
@@ -447,6 +493,41 @@ set it aside for them."
 does at scale. A friend's profile is their "want list". Locally, we evaluate items
 against imported friend profiles. In the cloud, poe-rqe matches items against
 thousands of registered want lists. The predicate model is shared.
+
+## Future Features (Not Yet Phased)
+
+### Stash Tab Scrolling
+
+Mouse scroll wheel to cycle stash tabs left/right. Popular feature from Awakened PoE Trade.
+Need to research their implementation — likely intercepts scroll events when cursor is over
+the stash tab header area and sends arrow key presses or tab switch commands.
+
+- Research: look at Awakened PoE Trade's stash scroll implementation for reference
+- Detect cursor over stash tab header region
+- Convert scroll up/down to stash tab left/right navigation
+
+### Chat Macros
+
+Custom keybindings that send commands to PoE's chat window. Example: F5 → press Enter,
+type `/hideout`, press Enter — ports to hideout. Essentially macros restricted to chat
+commands only (not arbitrary input).
+
+- Configurable in Settings → Hotkeys (or a dedicated Macros section)
+- Each macro: hotkey + chat command string
+- Implementation: global shortcut → enigo sends Enter, types command, sends Enter
+- Chat-only restriction keeps it within GGG's ToS (one server action per keypress)
+
+### Map Mod Checker
+
+Separate keybinding from item inspect (e.g., Ctrl+M). Evaluates map mods for danger
+level: dangerous / warning / fine. Uses poe-eval with map-specific profiles.
+
+- Different hotkey, different overlay presentation (color-coded mod danger, not tier analysis)
+- Map profiles are separate from item profiles — different purpose, different predicates
+- Shares the same poe-eval engine but with map-oriented rules (e.g., "reflect is dangerous",
+  "cannot leech is warning for my build")
+- Overlay could be simpler: list of map mods with red/yellow/green indicators
+- Profile could include build-specific map mod preferences (RF doesn't care about reflect)
 
 ## Open Questions
 

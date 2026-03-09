@@ -547,6 +547,40 @@
 	outline: none;
 }
 
+/* --- Compound rule editor --- */
+
+.compound-mode-selector {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 10px;
+}
+
+.compound-predicates {
+	border-left: 2px solid var(--poe-accent);
+	padding-left: 10px;
+	margin-top: 4px;
+}
+
+.compound-pred-row {
+	background: rgba(255, 255, 255, 0.02);
+	border-radius: 3px;
+	padding: 8px;
+}
+
+.compound-separator {
+	text-align: center;
+	font-size: 10px;
+	font-variant: small-caps;
+	letter-spacing: 1px;
+	color: var(--poe-accent);
+	padding: 4px 0;
+	opacity: 0.8;
+}
+
+.compound-add-btn {
+	margin-top: 8px;
+}
+
 /* --- Mod weight editor --- */
 
 .mod-weight-search {
