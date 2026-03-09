@@ -204,23 +204,6 @@ export function GeneralSettings() {
 					/>
 				</div>
 			</div>
-
-			<div class="setting-group">
-				<h3>Overlay Behavior</h3>
-
-				<div class="setting-row">
-					<div class="setting-label">
-						Dismiss on focus loss
-						<div class="setting-description">
-							Automatically close the overlay when you click elsewhere or switch windows
-						</div>
-					</div>
-					<Toggle
-						checked={settings.dismissOnFocusLoss}
-						onChange={(v) => update({ dismissOnFocusLoss: v })}
-					/>
-				</div>
-			</div>
 		</>
 	);
 }

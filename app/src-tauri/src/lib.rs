@@ -23,43 +23,21 @@ struct GameDataState(Arc<GameData>);
 /// Active evaluation profile, loaded from JSON data files.
 struct ProfileState(Mutex<Option<Profile>>);
 
-/// Read the "dismiss on focus loss" setting from the store (default: true).
-fn read_dismiss_on_focus_loss(app: &tauri::AppHandle) -> bool {
-    app.store("settings.json")
-        .ok()
-        .and_then(|store| {
-            store
-                .get("general")
-                .and_then(|v| v.get("dismissOnFocusLoss").and_then(|v| v.as_bool()))
-        })
-        .unwrap_or(true)
+
+/// Cursor position in CSS pixels, emitted to the frontend for panel positioning.
+#[derive(serde::Serialize, Clone)]
+struct OverlayPosition {
+    x: f64,
+    y: f64,
 }
 
-/// Read the overlay position setting from the store ("cursor" or "panel").
-fn read_overlay_position(app: &tauri::AppHandle) -> String {
-    let val = app
-        .store("settings.json")
-        .ok()
-        .and_then(|store| {
-            store
-                .get("general")
-                .and_then(|v| v.get("overlayPosition").and_then(|v| v.as_str().map(String::from)))
-        })
-        .unwrap_or_else(|| "cursor".into());
-    // Migrate legacy value
-    if val == "inventoryLeft" { "panel".into() } else { val }
-}
-
-/// Calculate overlay position for "panel" mode.
-/// PoE's side panels scale with screen height: width = height * (986/1600).
-/// Source: Awakened PoE Trade (OverlayWindow.vue `poePanelWidth`).
-/// Detects which panel is open based on cursor position:
-/// - Cursor on right half → inventory open → overlay left of inventory
-/// - Cursor on left half → stash open → overlay right of stash
-fn panel_position(window: &tauri::WebviewWindow) -> (i32, i32) {
-    let (cursor_x, cursor_y) = get_cursor_position();
-
-    // Find monitor containing cursor
+/// Expand the overlay window to fill the monitor containing the cursor.
+/// Returns the cursor position in CSS pixels relative to the window.
+fn setup_fullscreen_overlay(
+    window: &tauri::WebviewWindow,
+    cursor_x: i32,
+    cursor_y: i32,
+) -> (f64, f64) {
     let monitors = window.available_monitors().unwrap_or_default();
     let monitor = monitors.iter().find(|m| {
         let pos = m.position();
@@ -70,73 +48,38 @@ fn panel_position(window: &tauri::WebviewWindow) -> (i32, i32) {
             && cursor_y < pos.y + size.height as i32
     });
 
-    let (mon_x, mon_y, mon_w, mon_h) = match monitor {
-        Some(m) => (
-            m.position().x,
-            m.position().y,
-            m.size().width as i32,
-            m.size().height as i32,
-        ),
-        None => return (200, 200),
+    let Some(monitor) = monitor else {
+        return (200.0, 200.0);
     };
 
-    let win_size = window
-        .outer_size()
-        .unwrap_or(tauri::PhysicalSize::new(440, 900));
+    let mon_pos = monitor.position();
+    let mon_size = monitor.size();
+    let scale = monitor.scale_factor();
 
-    // PoE side panel width = screen_height * 986/1600 (from Awakened Trade)
-    let panel_width = (mon_h as f64 * (986.0 / 1600.0)) as i32;
-    let mid_x = mon_x + mon_w / 2;
-
-    let x = if cursor_x >= mid_x {
-        // Right half: inventory open → place overlay left of inventory panel
-        mon_x + mon_w - panel_width - win_size.width as i32
-    } else {
-        // Left half: stash open → place overlay right of stash panel
-        mon_x + panel_width
-    };
-
-    // Y: top-aligned
-    let y = mon_y;
-
-    // Clamp to monitor bounds
-    let x = x.max(mon_x).min(mon_x + mon_w - win_size.width as i32);
-    let y = y
-        .max(mon_y)
-        .min(mon_y + mon_h - win_size.height as i32);
-
-    (x, y)
-}
-
-/// Position the overlay window based on the configured mode.
-fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
-    let (x, y) = if mode == "panel" {
-        panel_position(window)
-    } else {
-        let (cx, cy) = get_cursor_position();
-        clamp_to_monitor(window, cx, cy)
-    };
-
+    // Skip window positioning on Wayland (layer-shell manages geometry)
     #[cfg(target_os = "linux")]
-    {
-        let is_wayland = window
-            .app_handle()
-            .try_state::<wayland::WaylandOverlayState>()
-            .map(|s| s.active)
-            .unwrap_or(false);
-        if is_wayland {
-            let win = window.clone();
-            let win2 = win.clone();
-            let _ = win.run_on_main_thread(move || {
-                if let Ok(gtk_win) = win2.gtk_window() {
-                    wayland::position_layer_surface(&gtk_win, x, y);
-                }
-            });
-            return;
-        }
+    let is_wayland = window
+        .app_handle()
+        .try_state::<wayland::WaylandOverlayState>()
+        .map(|s| s.active)
+        .unwrap_or(false);
+    #[cfg(not(target_os = "linux"))]
+    let is_wayland = false;
+
+    if !is_wayland {
+        let _ = window.set_position(tauri::Position::Physical(
+            tauri::PhysicalPosition::new(mon_pos.x, mon_pos.y),
+        ));
+        let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize::new(
+            mon_size.width,
+            mon_size.height,
+        )));
     }
 
-    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
+    // Cursor position in CSS pixels relative to the window
+    let css_x = (cursor_x - mon_pos.x) as f64 / scale;
+    let css_y = (cursor_y - mon_pos.y) as f64 / scale;
+    (css_x, css_y)
 }
 
 /// Send Ctrl+Alt+C to PoE and read the resulting clipboard text.
@@ -147,6 +90,9 @@ fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
 fn handle_inspect(app: &tauri::AppHandle) {
     let app = app.clone();
     std::thread::spawn(move || {
+        // Capture cursor position BEFORE sending keystroke (while hovering the item)
+        let (cursor_x, cursor_y) = get_cursor_position();
+
         let clipboard_text = acquire_clipboard(&app);
 
         let Some(clipboard_text) = clipboard_text else {
@@ -157,11 +103,10 @@ fn handle_inspect(app: &tauri::AppHandle) {
         let preview: String = clipboard_text.chars().take(80).collect();
         eprintln!("[inspect] Got {} bytes — {preview:?}", clipboard_text.len());
 
-        // Position and show the overlay window
+        // Expand overlay to fill the monitor and emit cursor position
         if let Some(window) = app.get_webview_window("overlay") {
-            let mode = read_overlay_position(&app);
-            position_overlay(&window, &mode);
-            let _ = window.set_ignore_cursor_events(false);
+            let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
+            let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
             let _ = window.show();
             let _ = window.set_focus();
         }
@@ -246,8 +191,7 @@ fn get_cursor_position() -> (i32, i32) {
     let success = unsafe { GetCursorPos(point.as_mut_ptr()) };
     if success != 0 {
         let point = unsafe { point.assume_init() };
-        // Offset slightly so overlay doesn't cover the cursor
-        (point.x + 20, point.y + 20)
+        (point.x, point.y)
     } else {
         (100, 100)
     }
@@ -269,70 +213,6 @@ fn get_cursor_position() -> (i32, i32) {
     (100, 100)
 }
 
-/// Clamp overlay position to stay within the monitor that contains the cursor.
-/// Offset 20px from cursor. If the overlay would overflow the right or bottom
-/// edge, flip to the other side of the cursor.
-fn clamp_to_monitor(window: &tauri::WebviewWindow, cursor_x: i32, cursor_y: i32) -> (i32, i32) {
-    let offset = 20;
-    let win_size = window
-        .outer_size()
-        .unwrap_or(tauri::PhysicalSize::new(440, 900));
-
-    // Find the monitor containing the cursor
-    let monitors = window.available_monitors().unwrap_or_default();
-    let monitor = monitors.iter().find(|m| {
-        let pos = m.position();
-        let size = m.size();
-        cursor_x >= pos.x
-            && cursor_x < pos.x + size.width as i32
-            && cursor_y >= pos.y
-            && cursor_y < pos.y + size.height as i32
-    });
-
-    let (mon_x, mon_y, mon_w, mon_h) = match monitor {
-        Some(m) => (
-            m.position().x,
-            m.position().y,
-            m.size().width as i32,
-            m.size().height as i32,
-        ),
-        None => {
-            // Fallback: just offset from cursor
-            return (cursor_x + offset, cursor_y + offset);
-        }
-    };
-
-    let mon_right = mon_x + mon_w;
-    let mon_bottom = mon_y + mon_h;
-
-    // Try placing to the right and below cursor
-    let mut x = cursor_x + offset;
-    let mut y = cursor_y + offset;
-
-    // Flip horizontally if overflow
-    if x + win_size.width as i32 > mon_right {
-        x = cursor_x - offset - win_size.width as i32;
-    }
-    // Flip vertically if overflow
-    if y + win_size.height as i32 > mon_bottom {
-        y = cursor_y - offset - win_size.height as i32;
-    }
-
-    // Final clamp to monitor edges (in case window is larger than remaining space)
-    x = x.max(mon_x).min(mon_right - win_size.width as i32);
-    y = y.max(mon_y).min(mon_bottom - win_size.height as i32);
-
-    (x, y)
-}
-
-/// Reposition the overlay after the frontend has resized it.
-/// Called from the frontend after auto-resize so the position accounts
-/// for the actual (post-zoom) window size.
-#[tauri::command]
-fn reposition_overlay(app: tauri::AppHandle, window: tauri::WebviewWindow) {
-    let mode = read_overlay_position(&app);
-    position_overlay(&window, &mode);
-}
 
 /// Dismiss the overlay: hide window, notify frontend.
 #[tauri::command]
@@ -344,9 +224,9 @@ fn dismiss_overlay(window: tauri::WebviewWindow) {
 /// Show the overlay window with mock data for testing (tray debug button).
 fn show_debug_overlay(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("overlay") {
-        let mode = read_overlay_position(app);
-        position_overlay(&window, &mode);
-        let _ = window.set_ignore_cursor_events(false);
+        let (cursor_x, cursor_y) = get_cursor_position();
+        let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
+        let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -679,7 +559,6 @@ pub fn run() {
         .manage(GameDataState(Arc::new(load_game_data())))
         .manage(ProfileState(Mutex::new(default_profile())))
         .invoke_handler(tauri::generate_handler![
-            reposition_overlay,
             dismiss_overlay,
             update_hotkeys,
             pause_hotkeys,
@@ -795,15 +674,6 @@ pub fn run() {
                 }
             }
 
-            // Dismiss overlay on focus loss (if enabled in settings)
-            if window.label() == "overlay" {
-                if let tauri::WindowEvent::Focused(false) = event {
-                    if read_dismiss_on_focus_loss(window.app_handle()) {
-                        let _ = window.hide();
-                        let _ = window.emit("overlay-dismissed", ());
-                    }
-                }
-            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
