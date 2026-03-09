@@ -1,5 +1,7 @@
 mod bridge;
 #[cfg(target_os = "linux")]
+mod clipboard;
+#[cfg(target_os = "linux")]
 mod wayland;
 
 use std::sync::{Arc, Mutex};
@@ -137,32 +139,23 @@ fn position_overlay(window: &tauri::WebviewWindow, mode: &str) {
     let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(x, y)));
 }
 
-/// Send Ctrl+Alt+C to the foreground window (PoE) via enigo,
-/// wait briefly, then read clipboard, parse, evaluate, and emit to frontend.
+/// Send Ctrl+Alt+C to PoE and read the resulting clipboard text.
+///
+/// Linux: Wayland watcher (event-driven, <1ms) → X11 direct fallback
+/// (retry keystroke, poll for change). Non-Linux: send keystroke → poll
+/// via Tauri clipboard plugin.
 fn handle_inspect(app: &tauri::AppHandle) {
     let app = app.clone();
     std::thread::spawn(move || {
-        // Send Ctrl+Alt+C to PoE
-        if let Err(e) = send_copy_keystroke() {
-            eprintln!("Failed to send keystroke: {e}");
+        let clipboard_text = acquire_clipboard(&app);
+
+        let Some(clipboard_text) = clipboard_text else {
+            eprintln!("[inspect] No clipboard text, aborting");
             return;
-        }
-
-        // Wait for clipboard to populate
-        std::thread::sleep(std::time::Duration::from_millis(100));
-
-        // Read clipboard
-        let clipboard_text: String = match app.clipboard().read_text() {
-            Ok(text) => text,
-            Err(e) => {
-                eprintln!("Failed to read clipboard: {e}");
-                return;
-            }
         };
 
-        if clipboard_text.is_empty() {
-            return;
-        }
+        let preview: String = clipboard_text.chars().take(80).collect();
+        eprintln!("[inspect] Got {} bytes — {preview:?}", clipboard_text.len());
 
         // Position and show the overlay window
         if let Some(window) = app.get_webview_window("overlay") {
@@ -192,26 +185,45 @@ fn handle_inspect(app: &tauri::AppHandle) {
     });
 }
 
-/// Send Ctrl+Alt+C keystroke to the active window via enigo.
-fn send_copy_keystroke() -> Result<(), String> {
+/// Send Ctrl+Alt+C to PoE and read the resulting clipboard text.
+#[cfg(target_os = "linux")]
+fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
+    clipboard::acquire_clipboard(app)
+}
+
+/// Send Ctrl+Alt+C to PoE and read the resulting clipboard text.
+#[cfg(not(target_os = "linux"))]
+fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
+    if let Err(e) = send_copy_keystroke() {
+        eprintln!("[inspect] Keystroke FAILED: {e}");
+        return None;
+    }
+
+    let delays_ms = [100, 80, 80, 100, 150];
+    for (attempt, &delay) in delays_ms.iter().enumerate() {
+        std::thread::sleep(std::time::Duration::from_millis(delay));
+        match app.clipboard().read_text() {
+            Ok(text) if !text.is_empty() => return Some(text),
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("[inspect] Clipboard read error (attempt {}): {e}", attempt + 1);
+            }
+        }
+    }
+
+    None
+}
+
+/// Send Ctrl+Alt+C keystroke to PoE via enigo.
+pub(crate) fn send_copy_keystroke() -> Result<(), String> {
     use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 
     let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
-    enigo
-        .key(Key::Control, Direction::Press)
-        .map_err(|e| e.to_string())?;
-    enigo
-        .key(Key::Alt, Direction::Press)
-        .map_err(|e| e.to_string())?;
-    enigo
-        .key(Key::Unicode('c'), Direction::Click)
-        .map_err(|e| e.to_string())?;
-    enigo
-        .key(Key::Alt, Direction::Release)
-        .map_err(|e| e.to_string())?;
-    enigo
-        .key(Key::Control, Direction::Release)
-        .map_err(|e| e.to_string())?;
+    enigo.key(Key::Control, Direction::Press).map_err(|e| e.to_string())?;
+    enigo.key(Key::Alt, Direction::Press).map_err(|e| e.to_string())?;
+    enigo.key(Key::Unicode('c'), Direction::Click).map_err(|e| e.to_string())?;
+    enigo.key(Key::Alt, Direction::Release).map_err(|e| e.to_string())?;
+    enigo.key(Key::Control, Direction::Release).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -724,6 +736,13 @@ pub fn run() {
                 app.manage(wayland::WaylandOverlayState {
                     active: wayland_active,
                 });
+
+                if wayland_active {
+                    if let Some(watcher) = clipboard::ClipboardWatcher::start() {
+                        eprintln!("[clipboard-watcher] Started successfully");
+                        app.manage(watcher);
+                    }
+                }
             }
 
             // --- Global hotkeys from stored settings (or defaults) ---

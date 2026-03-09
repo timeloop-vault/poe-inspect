@@ -2660,6 +2660,7 @@ dependencies = [
  "gdk",
  "gtk",
  "gtk-layer-shell",
+ "os_pipe",
  "poe-data",
  "poe-eval",
  "poe-item",
@@ -2674,6 +2675,9 @@ dependencies = [
  "tauri-plugin-global-shortcut",
  "tauri-plugin-store",
  "tauri-plugin-window-state",
+ "wayland-client",
+ "wayland-protocols-wlr 0.3.11",
+ "x11rb",
 ]
 
 [[package]]

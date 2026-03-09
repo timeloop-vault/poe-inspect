@@ -36,3 +36,7 @@ tauri-plugin-window-state = "2"
 gtk = "0.18"
 gdk = "0.18"
 gtk-layer-shell = { version = "0.8", features = ["v0_6"] }
+x11rb = "0.13"
+wayland-client = "0.31"
+wayland-protocols-wlr = { version = "0.3", features = ["client"] }
+os_pipe = "1"
