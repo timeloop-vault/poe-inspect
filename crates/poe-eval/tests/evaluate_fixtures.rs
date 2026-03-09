@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+use std::sync::OnceLock;
+
 use poe_dat::tables::{BaseItemTypeRow, RarityRow};
 use poe_data::GameData;
 use poe_eval::affix;
@@ -12,6 +15,23 @@ use poe_item::types::ResolvedItem;
 fn fixture(name: &str) -> String {
     let path = format!("{}/../../fixtures/items/{name}", env!("CARGO_MANIFEST_DIR"));
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"))
+}
+
+/// Load full game data (with reverse index for stat_id resolution).
+/// Cached via OnceLock so it's loaded at most once per test run.
+fn full_game_data() -> &'static GameData {
+    static GD: OnceLock<GameData> = OnceLock::new();
+    GD.get_or_init(|| {
+        let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../crates/poe-data/data");
+        poe_data::load(&data_dir)
+            .expect("full game data required — run poe-data extraction first")
+    })
+}
+
+fn resolve_full(name: &str) -> ResolvedItem {
+    let raw = poe_item::parse(&fixture(name)).unwrap();
+    poe_item::resolve(&raw, full_game_data())
 }
 
 fn test_game_data(base_names: &[&str]) -> GameData {
@@ -210,56 +230,101 @@ fn has_stat_text() {
     assert!(evaluate(&item, &rule, &gd));
 }
 
-// ─── Stat values ────────────────────────────────────────────────────────────
+// ─── Stat values (require full game data for stat_id resolution) ────────────
 
 #[test]
 fn stat_value_check() {
-    let gd = test_game_data(&[]);
-    let item = resolve("rare-belt-crafted.txt", &gd);
+    let gd = full_game_data();
+    let item = resolve_full("rare-belt-crafted.txt");
 
-    // "+32 to maximum Life" — current value is 32 (text match)
+    // Belt has two life mods: implicit +32 and prefix +49.
+    // StatValue checks all matching stats — any match satisfies the predicate.
     let rule = Rule::pred(Predicate::StatValue {
-        text: Some("maximum Life".to_string()),
-        stat_id: None,
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
         value_index: 0,
         op: Cmp::Ge,
         value: 30,
     });
-    assert!(evaluate(&item, &rule, &gd));
+    assert!(evaluate(&item, &rule, gd));
 
+    // >= 40 should pass because the prefix has +49
     let rule = Rule::pred(Predicate::StatValue {
-        text: Some("maximum Life".to_string()),
-        stat_id: None,
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
         value_index: 0,
         op: Cmp::Ge,
         value: 40,
     });
-    assert!(!evaluate(&item, &rule, &gd));
+    assert!(evaluate(&item, &rule, gd));
+
+    // >= 55 should fail — neither 32 nor 49 reaches 55
+    let rule = Rule::pred(Predicate::StatValue {
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
+        value_index: 0,
+        op: Cmp::Ge,
+        value: 55,
+    });
+    assert!(!evaluate(&item, &rule, gd));
+}
+
+#[test]
+fn stat_value_checks_all_matching_mods() {
+    // Bug: find_stat_value returned on the first matching stat line.
+    // This item has two "+# to maximum Life" mods: +24 (hybrid T3) and +139 (pure T4).
+    // StatValue > 100 should match because the 139 exceeds the threshold,
+    // even though the 24 (which appears first) does not.
+    let gd = full_game_data();
+    let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
+
+    let rule = Rule::pred(Predicate::StatValue {
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
+        value_index: 0,
+        op: Cmp::Gt,
+        value: 100,
+    });
+    assert!(evaluate(&item, &rule, gd));
+
+    // Neither +24 nor +139 exceeds 150
+    let rule_high = Rule::pred(Predicate::StatValue {
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
+        value_index: 0,
+        op: Cmp::Gt,
+        value: 150,
+    });
+    assert!(!evaluate(&item, &rule_high, gd));
 }
 
 #[test]
 fn roll_percent_check() {
-    let gd = test_game_data(&[]);
-    let item = resolve("rare-belt-crafted.txt", &gd);
+    let gd = full_game_data();
+    let item = resolve_full("rare-belt-crafted.txt");
 
-    // "+32(25-40) to maximum Life" — 32 is 46% of the 25..40 range (text match)
+    // Belt has implicit +32(25-40) and prefix +49(40-54).
+    // Implicit: 32 is 46% of 25..40 range.
+    // Prefix: 49 is 64% of 40..54 range.
+    // Any match: >= 40 should pass (both exceed 40%).
     let rule = Rule::pred(Predicate::RollPercent {
-        text: Some("maximum Life".to_string()),
-        stat_id: None,
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
         value_index: 0,
         op: Cmp::Ge,
         value: 40,
     });
-    assert!(evaluate(&item, &rule, &gd));
+    assert!(evaluate(&item, &rule, gd));
 
+    // >= 90 should fail — neither roll is that high
     let rule = Rule::pred(Predicate::RollPercent {
-        text: Some("maximum Life".to_string()),
-        stat_id: None,
+        text: None,
+        stat_id: Some("base_maximum_life".to_string()),
         value_index: 0,
         op: Cmp::Ge,
         value: 90,
     });
-    assert!(!evaluate(&item, &rule, &gd));
+    assert!(!evaluate(&item, &rule, gd));
 }
 
 // ─── Influence / status ─────────────────────────────────────────────────────
