@@ -26,6 +26,7 @@
 .settings-layout {
 	display: flex;
 	height: 100vh;
+	overflow: hidden;
 	background: var(--poe-bg);
 	color: var(--poe-text);
 	font-family: "Fontin SmallCaps", "Fontin", "Segoe UI", sans-serif;
@@ -568,8 +569,6 @@
 	border-left: 2px solid var(--poe-accent);
 	padding-left: 10px;
 	margin-top: 4px;
-	max-height: 50vh;
-	overflow-y: auto;
 }
 
 .compound-pred-row {
