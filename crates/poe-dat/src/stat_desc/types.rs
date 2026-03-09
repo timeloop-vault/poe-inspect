@@ -32,7 +32,7 @@ pub struct Variant {
 }
 
 /// A value range condition for a variant line.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Range {
     /// `#` — any value
     Any,
@@ -45,7 +45,7 @@ pub enum Range {
 }
 
 /// A bound in a range expression.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Bound {
     /// `#` — unbounded
     Unbounded,
@@ -54,13 +54,13 @@ pub enum Bound {
 }
 
 /// A value transform applied to a stat before display.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Transform {
     pub kind: TransformKind,
     pub stat_index: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum TransformKind {
     Negate,
     NegateAndDouble,

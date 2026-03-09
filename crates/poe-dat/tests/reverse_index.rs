@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use poe_dat::stat_desc;
 
 fn load_index() -> Option<stat_desc::ReverseIndex> {
@@ -124,6 +126,28 @@ fn lookup_batch_common_mods() {
     if !not_found.is_empty() {
         println!("Not found: {not_found:?}");
     }
+}
+
+/// Build the reverse index and save it to crates/poe-data/data/ for use at runtime.
+/// Run with: cargo test -p poe-dat --test reverse_index save_reverse_index -- --nocapture
+#[test]
+fn save_reverse_index() {
+    let Some(index) = load_index() else { return };
+
+    let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../poe-data/data");
+    assert!(out_dir.exists(), "poe-data/data/ directory not found");
+
+    let out_path = out_dir.join("reverse_index.json");
+    index.save(&out_path).expect("failed to save reverse index");
+
+    let size = std::fs::metadata(&out_path).expect("metadata").len();
+    println!("Saved reverse index: {} ({} bytes)", out_path.display(), size);
+
+    // Verify round-trip
+    let loaded = stat_desc::ReverseIndex::load(&out_path).expect("failed to load");
+    assert_eq!(loaded.len(), index.len());
+    println!("Round-trip OK: {} patterns", loaded.len());
 }
 
 /// Test against real item data from a 3.28 Mirage character snapshot.

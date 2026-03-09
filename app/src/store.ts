@@ -5,13 +5,30 @@
  * - settings.json: General + Hotkey settings
  * - profiles.json: Array of profile objects (eval + display)
  */
-import { load } from "@tauri-apps/plugin-store";
 import { invoke } from "@tauri-apps/api/core";
+import { load } from "@tauri-apps/plugin-store";
 import type { EvalProfile } from "./types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export type OverlayPosition = "cursor" | "panel";
+
+/** Discrete weight levels for the mod weight editor. */
+export type WeightLevel = "low" | "medium" | "high" | "critical";
+
+/** A stat text with a weight level. */
+export interface ModWeight {
+	text: string;
+	level: WeightLevel;
+}
+
+/** Numeric scoring weight for each level. */
+export const WEIGHT_VALUES: Record<WeightLevel, number> = {
+	low: 10,
+	medium: 25,
+	high: 50,
+	critical: 100,
+};
 
 export interface GeneralSettings {
 	overlayScale: number;
@@ -54,6 +71,8 @@ export interface StoredProfile {
 	active: boolean;
 	/** poe-eval evaluation profile. null = use built-in default. */
 	evalProfile: EvalProfile | null;
+	/** Stat weights from the mod weight editor. Merged into scoring at sync time. */
+	modWeights: ModWeight[];
 	/** App-owned display settings. */
 	display: DisplayPrefs;
 }
@@ -87,7 +106,7 @@ export const defaultTierColors: TierColors = {
 	low: "#8c7060",
 };
 
-const defaultDisplay: DisplayPrefs = {
+export const defaultDisplay: DisplayPrefs = {
 	tierColors: { ...defaultTierColors },
 	highlightWeights: true,
 	dimIgnored: true,
@@ -99,6 +118,7 @@ const defaultProfiles: StoredProfile[] = [
 		name: "Default",
 		active: true,
 		evalProfile: null, // uses built-in Generic profile
+		modWeights: [],
 		display: { ...defaultDisplay },
 	},
 ];
@@ -165,6 +185,7 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 			name: (raw.name as string) ?? "Migrated",
 			active: (raw.active as boolean) ?? false,
 			evalProfile: null, // old modWeights don't map to eval rules
+			modWeights: [],
 			display: {
 				tierColors: (raw.tierColors as TierColors) ?? { ...defaultTierColors },
 				highlightWeights: (raw.highlightWeights as boolean) ?? true,
@@ -178,6 +199,7 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 		name: (raw.name as string) ?? "Profile",
 		active: (raw.active as boolean) ?? false,
 		evalProfile: (raw.evalProfile as EvalProfile | null) ?? null,
+		modWeights: (raw.modWeights as ModWeight[] | undefined) ?? [],
 		display: (raw.display as DisplayPrefs) ?? { ...defaultDisplay },
 	};
 }
@@ -207,10 +229,25 @@ export async function loadActiveTierColors(): Promise<TierColors> {
 
 /** Send the active eval profile to the backend for scoring.
  *  If the active profile has no custom evalProfile, sends empty string
- *  to tell the backend to use its built-in default. */
-export async function syncActiveProfile(): Promise<void> {
-	const profiles = await loadProfiles();
+ *  to tell the backend to use its built-in default.
+ *  Mod weights are merged into the scoring array before sending.
+ *  Pass `known` to avoid re-reading from the store (prevents race with save). */
+export async function syncActiveProfile(known?: StoredProfile[]): Promise<void> {
+	const profiles = known ?? (await loadProfiles());
 	const active = profiles.find((p) => p.active);
-	const json = active?.evalProfile ? JSON.stringify(active.evalProfile) : "";
-	await invoke("set_active_profile", { profileJson: json });
+	if (!active?.evalProfile) {
+		await invoke("set_active_profile", { profileJson: "" });
+		return;
+	}
+	// Merge mod weights into scoring rules
+	const weightRules = (active.modWeights ?? []).map((mw) => ({
+		label: mw.text,
+		weight: WEIGHT_VALUES[mw.level],
+		rule: { rule_type: "Pred" as const, type: "HasStatText", text: mw.text },
+	}));
+	const merged = {
+		...active.evalProfile,
+		scoring: [...active.evalProfile.scoring, ...weightRules],
+	};
+	await invoke("set_active_profile", { profileJson: JSON.stringify(merged) });
 }

@@ -2625,6 +2625,8 @@ dependencies = [
  "pest",
  "pest_derive",
  "regex",
+ "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "tracing",
 ]
@@ -2634,6 +2636,7 @@ name = "poe-data"
 version = "0.1.0"
 dependencies = [
  "poe-dat",
+ "serde_json",
  "thiserror 2.0.18",
  "tracing",
 ]
