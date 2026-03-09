@@ -80,14 +80,8 @@ pub fn position_layer_surface(gtk_window: &gtk::ApplicationWindow, x: i32, y: i3
     gtk_window.set_layer_shell_margin(gtk_layer_shell::Edge::Top, margin_top);
 }
 
-/// Query cursor position via Hyprland's IPC socket.
-///
-/// Connects to the Hyprland Unix socket and sends `j/cursorpos`,
-/// which returns `{"x": N, "y": N}`. Adds a 20px offset to match
-/// the Windows cursor-offset behavior.
-///
-/// Returns `None` if not running under Hyprland or on any error.
-pub fn get_cursor_position_hyprland() -> Option<(i32, i32)> {
+/// Send a command to Hyprland's IPC socket and return the response.
+fn hyprctl(command: &str) -> Option<String> {
     use std::io::{Read, Write};
     use std::os::unix::net::UnixStream;
 
@@ -96,15 +90,141 @@ pub fn get_cursor_position_hyprland() -> Option<(i32, i32)> {
     let socket_path = format!("{xdg}/hypr/{sig}/.socket.sock");
 
     let mut stream = UnixStream::connect(&socket_path).ok()?;
-    stream.write_all(b"j/cursorpos").ok()?;
+    stream.write_all(command.as_bytes()).ok()?;
 
     let mut buf = String::new();
     stream.read_to_string(&mut buf).ok()?;
+    Some(buf)
+}
 
+/// Query cursor position via Hyprland IPC.
+pub fn get_cursor_position_hyprland() -> Option<(i32, i32)> {
+    let buf = hyprctl("j/cursorpos")?;
     let v: serde_json::Value = serde_json::from_str(&buf).ok()?;
     let x = v.get("x")?.as_i64()? as i32;
     let y = v.get("y")?.as_i64()? as i32;
-
     // 20px offset so overlay doesn't cover the cursor
     Some((x + 20, y + 20))
+}
+
+/// Read text from the X11 CLIPBOARD selection directly via
+/// `ConvertSelection` → `SelectionNotify` → `GetProperty`.
+///
+/// Used to snapshot and poll the clipboard in the X11 fallback path:
+/// when the Wayland watcher times out (keystroke not processed by PoE),
+/// we read the old value, retry the keystroke, then poll until it changes.
+pub fn read_x11_clipboard(timeout_ms: u64) -> Result<String, String> {
+    use x11rb::connection::Connection;
+    use x11rb::protocol::xproto::{ConnectionExt, WindowClass};
+    use x11rb::protocol::Event;
+
+    let (conn, screen_num) =
+        x11rb::connect(None).map_err(|e| format!("X11 connect: {e}"))?;
+    let screen = &conn.setup().roots[screen_num];
+    let root = screen.root;
+
+    // Create a temporary INPUT_ONLY window as requestor
+    let requestor = conn
+        .generate_id()
+        .map_err(|e| format!("generate_id: {e}"))?;
+    conn.create_window(
+        0, // depth (0 = copy from parent, fine for InputOnly)
+        requestor,
+        root,
+        0,
+        0,
+        1,
+        1,
+        0,
+        WindowClass::INPUT_ONLY,
+        0, // visual (0 = copy from parent)
+        &x11rb::protocol::xproto::CreateWindowAux::new(),
+    )
+    .map_err(|e| format!("CreateWindow: {e}"))?;
+
+    // Pipeline 3 intern_atom requests (1 roundtrip instead of 3)
+    let cookie_clipboard = conn
+        .intern_atom(false, b"CLIPBOARD")
+        .map_err(|e| format!("intern_atom: {e}"))?;
+    let cookie_utf8 = conn
+        .intern_atom(false, b"UTF8_STRING")
+        .map_err(|e| format!("intern_atom: {e}"))?;
+    let cookie_prop = conn
+        .intern_atom(false, b"_POE_INSPECT_CB")
+        .map_err(|e| format!("intern_atom: {e}"))?;
+
+    let atom_clipboard = cookie_clipboard
+        .reply()
+        .map_err(|e| format!("intern_atom reply: {e}"))?
+        .atom;
+    let atom_utf8 = cookie_utf8
+        .reply()
+        .map_err(|e| format!("intern_atom reply: {e}"))?
+        .atom;
+    let atom_prop = cookie_prop
+        .reply()
+        .map_err(|e| format!("intern_atom reply: {e}"))?
+        .atom;
+
+    // Ask the CLIPBOARD owner to convert to UTF8_STRING and store in our property
+    conn.convert_selection(
+        requestor,
+        atom_clipboard,
+        atom_utf8,
+        atom_prop,
+        x11rb::CURRENT_TIME,
+    )
+    .map_err(|e| format!("ConvertSelection: {e}"))?;
+    conn.flush().map_err(|e| format!("Flush: {e}"))?;
+
+    // Poll for the SelectionNotify response with timeout
+    let deadline = std::time::Instant::now()
+        + std::time::Duration::from_millis(timeout_ms);
+    loop {
+        if std::time::Instant::now() >= deadline {
+            conn.destroy_window(requestor)
+                .map_err(|e| format!("DestroyWindow: {e}"))?;
+            conn.flush().map_err(|e| format!("Flush: {e}"))?;
+            return Err("Timed out waiting for SelectionNotify".into());
+        }
+
+        match conn.poll_for_event().map_err(|e| format!("poll_for_event: {e}"))? {
+            Some(Event::SelectionNotify(ev))
+                if ev.requestor == requestor
+                    && ev.selection == atom_clipboard =>
+            {
+                if ev.property == x11rb::NONE {
+                    conn.destroy_window(requestor)
+                        .map_err(|e| format!("DestroyWindow: {e}"))?;
+                    conn.flush().map_err(|e| format!("Flush: {e}"))?;
+                    return Err("Selection owner refused conversion".into());
+                }
+                break;
+            }
+            Some(_) => {} // Ignore other events
+            None => {
+                std::thread::sleep(std::time::Duration::from_millis(5));
+            }
+        }
+    }
+
+    // Read the property data
+    let reply = conn
+        .get_property(
+            true, // delete after reading
+            requestor,
+            atom_prop,
+            0u32, // AnyPropertyType
+            0,
+            256 * 1024, // 1MB in 32-bit units — PoE items are <10KB
+        )
+        .map_err(|e| format!("GetProperty: {e}"))?
+        .reply()
+        .map_err(|e| format!("GetProperty reply: {e}"))?;
+
+    conn.destroy_window(requestor)
+        .map_err(|e| format!("DestroyWindow: {e}"))?;
+    conn.flush().map_err(|e| format!("Flush: {e}"))?;
+
+    String::from_utf8(reply.value).map_err(|e| format!("UTF-8 decode: {e}"))
 }
