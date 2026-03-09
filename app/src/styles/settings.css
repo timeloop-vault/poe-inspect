@@ -294,34 +294,43 @@
 	background: rgba(175, 96, 37, 0.08);
 }
 
-.profile-activate {
+.profile-warning {
+	background: rgba(175, 96, 37, 0.12);
+	border: 1px solid rgba(175, 96, 37, 0.35);
+	border-radius: 4px;
+	color: var(--poe-accent);
+	font-size: 11px;
+	padding: 6px 10px;
+	margin-bottom: 8px;
+}
+
+.profile-role-area {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	flex: 1;
-	min-width: 0;
-	cursor: pointer;
-	padding: 2px 4px;
-	border-radius: 3px;
-	background: none;
-	border: none;
-	color: inherit;
-	font: inherit;
-	text-align: left;
-}
-
-.profile-activate:hover {
-	background: rgba(200, 192, 176, 0.08);
-}
-
-.profile-star {
-	color: var(--poe-accent);
-	font-size: 14px;
-	width: 16px;
+	gap: 4px;
 	flex-shrink: 0;
 }
 
+.profile-role-select {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 11px;
+	padding: 2px 4px;
+	cursor: pointer;
+	color-scheme: dark;
+}
+
+.profile-role-select:focus {
+	border-color: var(--poe-accent);
+	outline: none;
+}
+
 .profile-name {
+	flex: 1;
+	min-width: 0;
 	color: var(--poe-header);
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -331,6 +340,63 @@
 .profile-item-actions {
 	display: flex;
 	gap: 4px;
+	flex-shrink: 0;
+}
+
+/* --- Watch color picker --- */
+
+.watch-color-picker {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.watch-color-dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	cursor: pointer;
+	padding: 0;
+	transition: border-color 0.15s;
+	flex-shrink: 0;
+}
+
+.watch-color-dot:hover {
+	border-color: rgba(255, 255, 255, 0.5);
+}
+
+.watch-color-palette {
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	margin-top: 4px;
+	display: flex;
+	gap: 3px;
+	padding: 4px 6px;
+	background: rgba(12, 10, 8, 0.98);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	z-index: 100;
+}
+
+.watch-color-swatch {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 2px solid transparent;
+	cursor: pointer;
+	padding: 0;
+	transition: border-color 0.1s;
+}
+
+.watch-color-swatch:hover {
+	border-color: rgba(255, 255, 255, 0.5);
+}
+
+.watch-color-swatch.selected {
+	border-color: white;
 }
 
 /* --- Shared button styles --- */

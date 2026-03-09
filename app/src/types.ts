@@ -89,6 +89,15 @@ export interface ParsedItem {
 	maxSuffixes: number;
 	/** Profile scoring result (if a profile was active) */
 	score?: ScoreInfo;
+	/** Scores from watching profiles (if any are active) */
+	watchingScores?: WatchingScore[];
+}
+
+/** Score result from a watching profile. */
+export interface WatchingScore {
+	profileName: string;
+	color: string;
+	score: ScoreInfo;
 }
 
 /** Result of scoring an item against a profile */

@@ -20,8 +20,23 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 /// Shared game data, loaded once at startup.
 struct GameDataState(Arc<GameData>);
 
-/// Active evaluation profile, loaded from JSON data files.
-struct ProfileState(Mutex<Option<Profile>>);
+/// A watching profile entry sent from the frontend.
+#[derive(Clone, serde::Deserialize)]
+pub(crate) struct WatchingProfileEntry {
+    pub name: String,
+    pub color: String,
+    pub profile: Profile,
+}
+
+/// Primary + watching profiles, synced from the frontend.
+#[derive(Clone)]
+struct ProfileSet {
+    primary: Option<Profile>,
+    watching: Vec<WatchingProfileEntry>,
+}
+
+/// Active evaluation profiles, loaded from JSON data files.
+struct ProfileState(Mutex<ProfileSet>);
 
 /// Cursor position in CSS pixels, emitted to the frontend for panel positioning.
 #[derive(serde::Serialize, Clone)]
@@ -112,11 +127,16 @@ fn handle_inspect(app: &tauri::AppHandle) {
 
         // Try to parse and evaluate the item
         let gd = &app.state::<GameDataState>().0;
-        let profile = app.state::<ProfileState>().0.lock().unwrap().clone();
+        let profiles = app.state::<ProfileState>().0.lock().unwrap().clone();
         match poe_item::parse(&clipboard_text) {
             Ok(raw) => {
                 let resolved = poe_item::resolve(&raw, gd);
-                let evaluated = bridge::build_evaluated_item(&resolved, gd, profile.as_ref());
+                let evaluated = bridge::build_evaluated_item(
+                    &resolved,
+                    gd,
+                    profiles.primary.as_ref(),
+                    &profiles.watching,
+                );
                 let _ = app.emit("item-evaluated", &evaluated);
             }
             Err(e) => {
@@ -384,26 +404,47 @@ fn evaluate_item(
     let resolved = poe_item::resolve(&raw, gd);
 
     // Build frontend-compatible response (no profile for direct command calls)
-    Ok(bridge::build_evaluated_item(&resolved, gd, None))
+    Ok(bridge::build_evaluated_item(&resolved, gd, None, &[]))
 }
 
-/// Set the active evaluation profile from the frontend.
-/// Accepts a JSON string of poe-eval's Profile format.
-/// Empty string = use the built-in default profile.
+/// Set primary + watching profiles from the frontend.
+/// primaryJson: poe-eval Profile JSON (empty = built-in default).
+/// watchingJson: JSON array of {name, color, profile} objects.
 #[tauri::command]
-fn set_active_profile(profile_json: String, state: tauri::State<'_, ProfileState>) {
-    let profile = if profile_json.is_empty() {
+fn set_active_profile(
+    primary_json: String,
+    watching_json: String,
+    state: tauri::State<'_, ProfileState>,
+) {
+    // "none" = no primary (show overlay without scoring)
+    // "" = use built-in default profile
+    // JSON = custom profile
+    let primary = if primary_json == "none" {
+        None
+    } else if primary_json.is_empty() {
         default_profile()
     } else {
-        match serde_json::from_str::<Profile>(&profile_json) {
+        match serde_json::from_str::<Profile>(&primary_json) {
             Ok(p) => Some(p),
             Err(e) => {
-                eprintln!("Failed to parse profile from frontend: {e}");
+                eprintln!("Failed to parse primary profile: {e}");
                 default_profile()
             }
         }
     };
-    *state.0.lock().unwrap() = profile;
+
+    let watching: Vec<WatchingProfileEntry> =
+        serde_json::from_str(&watching_json).unwrap_or_default();
+
+    eprintln!(
+        "[profiles] Primary: {}, Watching: {}",
+        if primary.is_some() { "set" } else { "none" },
+        watching.len()
+    );
+
+    let mut ps = state.0.lock().unwrap();
+    ps.primary = primary;
+    ps.watching = watching;
 }
 
 /// Return the built-in default profile so the frontend can display or customize it.
@@ -577,7 +618,10 @@ pub fn run() {
     builder
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
         .manage(GameDataState(Arc::new(load_game_data())))
-        .manage(ProfileState(Mutex::new(default_profile())))
+        .manage(ProfileState(Mutex::new(ProfileSet {
+            primary: default_profile(),
+            watching: vec![],
+        })))
         .invoke_handler(tauri::generate_handler![
             dismiss_overlay,
             update_hotkeys,
