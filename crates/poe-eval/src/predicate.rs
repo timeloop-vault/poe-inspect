@@ -74,6 +74,10 @@ pub enum Predicate {
     /// Whether any stat line's display text contains the given substring.
     HasStatText { text: String },
 
+    /// Whether any stat line has a resolved stat ID matching the given ID.
+    /// Uses the internal stat ID from `ReverseIndex` (language-independent).
+    HasStatId { stat_id: String },
+
     /// Mod tier comparison — checks if any mod of the given name has tier <op> value.
     ModTier { name: String, op: Cmp, value: u32 },
 

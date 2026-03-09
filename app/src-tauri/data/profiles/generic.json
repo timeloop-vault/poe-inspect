@@ -9,12 +9,12 @@
   },
   "scoring": [
     {
-      "label": "Has life mod",
+      "label": "+# to maximum Life",
       "weight": 20.0,
       "rule": {
         "rule_type": "Pred",
-        "type": "HasStatText",
-        "text": "maximum Life"
+        "type": "HasStatId",
+        "stat_id": "base_maximum_life"
       }
     },
     {
@@ -30,39 +30,39 @@
       }
     },
     {
-      "label": "Has fire resistance",
+      "label": "+#% to Fire Resistance",
       "weight": 10.0,
       "rule": {
         "rule_type": "Pred",
-        "type": "HasStatText",
-        "text": "Fire Resistance"
+        "type": "HasStatId",
+        "stat_id": "base_fire_damage_resistance_%"
       }
     },
     {
-      "label": "Has cold resistance",
+      "label": "+#% to Cold Resistance",
       "weight": 10.0,
       "rule": {
         "rule_type": "Pred",
-        "type": "HasStatText",
-        "text": "Cold Resistance"
+        "type": "HasStatId",
+        "stat_id": "base_cold_damage_resistance_%"
       }
     },
     {
-      "label": "Has lightning resistance",
+      "label": "+#% to Lightning Resistance",
       "weight": 10.0,
       "rule": {
         "rule_type": "Pred",
-        "type": "HasStatText",
-        "text": "Lightning Resistance"
+        "type": "HasStatId",
+        "stat_id": "base_lightning_damage_resistance_%"
       }
     },
     {
-      "label": "Has movement speed",
+      "label": "#% increased Movement Speed",
       "weight": 15.0,
       "rule": {
         "rule_type": "Pred",
-        "type": "HasStatText",
-        "text": "Movement Speed"
+        "type": "HasStatId",
+        "stat_id": "base_movement_velocity_+%"
       }
     },
     {

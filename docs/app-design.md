@@ -339,7 +339,17 @@ and the profile builder UI is driven by a schema from poe-eval.
 
 **See `docs/phase-5-eval-integration.md` for the detailed step-by-step plan.**
 
-**Status: IN PROGRESS** — starting with Step 1 (verify display coloring).
+**Status: DONE** — all 7 steps complete (display → scoring → schema → profiles → builder → weights → overlay).
+
+### Phase 6: Stat ID Matching
+
+Replace substring-based stat matching (`HasStatText`) with proper stat ID
+matching (`HasStatId`). Mod weights store internal stat IDs resolved from
+the reverse index, making matching language-independent and unambiguous.
+
+**See `docs/phase-6-stat-id-matching.md` for the detailed step-by-step plan.**
+
+**Status: IN PROGRESS**
 
 ## Open Questions
 

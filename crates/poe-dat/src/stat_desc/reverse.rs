@@ -236,6 +236,19 @@ impl ReverseIndex {
             .collect()
     }
 
+    /// Return the stat IDs for a given template key.
+    ///
+    /// The template should use `#` as the number placeholder (the format
+    /// returned by `template_keys()`). Returns `None` if no match found.
+    pub fn stat_ids_for_template(&self, template: &str) -> Option<Vec<String>> {
+        let internal_key = template.replace('#', "\x00");
+        let indices = self.template_map.get(&internal_key)?;
+        // Return stat_ids from the first matching entry
+        indices
+            .first()
+            .map(|&idx| self.entries[idx].stat_ids.clone())
+    }
+
     /// Save the reverse index to a JSON file.
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
         let file = std::fs::File::create(path)?;
