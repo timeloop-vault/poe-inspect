@@ -503,6 +503,34 @@ thousands of registered want lists. The predicate model is shared.
 
 ## Future Features (Not Yet Phased)
 
+### CSS Split: Overlay vs Settings
+
+Currently both windows share the same entry point (`main.tsx`) and load both
+`overlay.css` and `settings.css`. This causes conflicts — e.g., `body { overflow: hidden }`
+for the overlay was preventing settings from scrolling (fixed with `.overlay-window` class).
+
+Split into per-window CSS bundles:
+- `overlay.css` — only loaded by the overlay window (transparent, no-scroll, fullscreen)
+- `settings.css` — only loaded by the settings window (standard scrollable app layout)
+- `shared.css` — CSS variables, fonts, base button/input styles used by both
+
+Could be done via:
+- Separate Vite entry points per window (Tauri supports multiple windows with different HTML)
+- Or conditional CSS imports in `main.tsx` based on `windowLabel`
+
+Low priority — current class-scoping workaround is fine.
+
+### Rule Text DSL / VS Code Extension
+
+Power users and community rule-sharers may prefer a textual format over the visual
+builder. A VS Code extension could provide syntax highlighting, autocompletion, and
+validation for a rule DSL that compiles to the same `Rule` JSON.
+
+- Define a compact text grammar (e.g., `life > 100 AND (class:body OR class:helmet)`)
+- Bidirectional sync with visual builder (Grafana-style)
+- VS Code extension: language server for the DSL, snippets, schema validation
+- Import/export between text DSL and the visual builder JSON
+
 ### Stash Tab Scrolling
 
 Mouse scroll wheel to cycle stash tabs left/right. Popular feature from Awakened PoE Trade.
