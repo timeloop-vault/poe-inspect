@@ -24,6 +24,13 @@ export function SettingsApp() {
 		loadGeneral().then((s) => setUiScale(s.uiScale));
 	}, []);
 
+	// Apply zoom on the document element so vh units respect the zoom level.
+	// Putting zoom on a child div breaks vh-based height constraints (100vh
+	// resolves against the physical viewport, not the zoomed container).
+	useEffect(() => {
+		document.documentElement.style.zoom = uiScale !== 100 ? `${uiScale / 100}` : "";
+	}, [uiScale]);
+
 	// Listen for uiScale changes from GeneralSettings via a custom event
 	useEffect(() => {
 		const handler = (e: Event) => {
@@ -33,10 +40,8 @@ export function SettingsApp() {
 		return () => window.removeEventListener("ui-scale-changed", handler);
 	}, []);
 
-	const zoomStyle = uiScale !== 100 ? { zoom: uiScale / 100 } : undefined;
-
 	return (
-		<div class="settings-layout" style={zoomStyle}>
+		<div class="settings-layout">
 			<nav class="settings-nav">
 				<div class="settings-nav-header">PoE Inspect</div>
 				{sections.map((s) => (
