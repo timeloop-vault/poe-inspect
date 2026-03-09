@@ -4,13 +4,13 @@ import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
 	type DisplayPrefs,
-	type ModWeight,
 	type StoredProfile,
 	type TierColors,
 	WEIGHT_VALUES,
 	type WeightLevel,
 	defaultDisplay,
 	loadProfiles,
+	mergeModWeightsIntoScoring,
 	saveProfiles,
 	syncActiveProfile,
 } from "../../store";
@@ -42,9 +42,22 @@ const LEVEL_LABELS: Record<WeightLevel, string> = {
 /** Map a numeric weight to the closest discrete level. */
 function weightToLevel(weight: number): WeightLevel {
 	if (weight >= 75) return "critical";
-	if (weight >= 37) return "high";
-	if (weight >= 17) return "medium";
+	if (weight >= 32) return "high";
+	if (weight >= 10) return "medium";
 	return "low";
+}
+
+/** Check if a weight matches an exact level value. */
+function weightMatchesLevel(weight: number): WeightLevel | null {
+	for (const l of WEIGHT_LEVELS) {
+		if (WEIGHT_VALUES[l] === weight) return l;
+	}
+	return null;
+}
+
+/** Check if a ScoringRule is a simple stat weight (HasStatId predicate). */
+function isStatRule(rule: ScoringRule): boolean {
+	return isPredRule(rule.rule) && (rule.rule as Record<string, unknown>).type === "HasStatId";
 }
 
 export function ProfileSettings() {
@@ -137,14 +150,14 @@ export function ProfileSettings() {
 			const text = await readTextFile(path);
 			const data = JSON.parse(text) as Partial<StoredProfile>;
 			if (!data.name) throw new Error("Invalid profile: missing name");
-			const imported: StoredProfile = {
+			const imported = mergeModWeightsIntoScoring({
 				id: String(Date.now()),
 				name: data.name,
 				active: false,
 				evalProfile: data.evalProfile ?? null,
 				modWeights: data.modWeights ?? [],
 				display: data.display ?? { ...defaultDisplay },
-			};
+			});
 			persist([...profilesRef.current, imported]);
 		} catch (e) {
 			console.error("Failed to import profile:", e);
@@ -257,7 +270,7 @@ export function ProfileSettings() {
 
 // ── Profile Editor ───────────────────────────────────────────────────────
 
-/** Profile editor with Scoring Rules, Mod Weights, and Display sub-tabs */
+/** Profile editor with Scoring and Display sub-tabs */
 function ProfileEditor({
 	profile,
 	onBack,
@@ -267,7 +280,7 @@ function ProfileEditor({
 	onBack: () => void;
 	onSave: (patch: Partial<StoredProfile>) => void;
 }) {
-	const [tab, setTab] = useState<"scoring" | "weights" | "display">("scoring");
+	const [tab, setTab] = useState<"scoring" | "display">("scoring");
 	const [draft, setDraft] = useState<Partial<StoredProfile>>({});
 	const [builtinProfile, setBuiltinProfile] = useState<EvalProfile | null>(null);
 	const [schema, setSchema] = useState<PredicateSchema[]>([]);
@@ -290,7 +303,6 @@ function ProfileEditor({
 	const currentName = (draft.name as string | undefined) ?? profile.name;
 	const currentEval =
 		"evalProfile" in draft ? (draft.evalProfile as EvalProfile | null) : profile.evalProfile;
-	const currentModWeights = (draft.modWeights as ModWeight[] | undefined) ?? profile.modWeights;
 	const currentDisplay = (draft.display as DisplayPrefs | undefined) ?? profile.display;
 
 	const save = () => {
@@ -302,32 +314,16 @@ function ProfileEditor({
 		onBack();
 	};
 
-	/** Customize from the built-in profile: split HasStatId rules into mod weights. */
+	/** Customize from the built-in profile — clone all rules into evalProfile. */
 	const handleCustomize = () => {
 		if (!builtinProfile) return;
-		const modWeights: ModWeight[] = [];
-		const otherRules: ScoringRule[] = [];
-		for (const sr of builtinProfile.scoring) {
-			const ruleData = sr.rule as Record<string, unknown>;
-			if (sr.rule.rule_type === "Pred" && ruleData.type === "HasStatId") {
-				modWeights.push({
-					template: sr.label,
-					statIds: [ruleData.stat_id as string],
-					level: weightToLevel(sr.weight),
-				});
-			} else {
-				otherRules.push(sr);
-			}
-		}
 		setDraft({
 			...draft,
 			evalProfile: {
-				...builtinProfile,
+				...structuredClone(builtinProfile),
 				name: "Custom",
 				description: "Customized from Generic",
-				scoring: otherRules,
 			},
-			modWeights,
 		});
 	};
 
@@ -337,7 +333,7 @@ function ProfileEditor({
 	};
 
 	const resetToDefault = () => {
-		setDraft({ ...draft, evalProfile: null, modWeights: [] });
+		setDraft({ ...draft, evalProfile: null });
 	};
 
 	return (
@@ -382,14 +378,7 @@ function ProfileEditor({
 					class={`btn ${tab === "scoring" ? "btn-primary" : ""}`}
 					onClick={() => setTab("scoring")}
 				>
-					Scoring Rules
-				</button>
-				<button
-					type="button"
-					class={`btn ${tab === "weights" ? "btn-primary" : ""}`}
-					onClick={() => setTab("weights")}
-				>
-					Mod Weights
+					Scoring
 				</button>
 				<button
 					type="button"
@@ -410,21 +399,6 @@ function ProfileEditor({
 					schema={schema}
 					onUpdateScoring={updateEvalScoring}
 					onReset={resetToDefault}
-				/>
-			)}
-
-			{tab === "weights" && currentEval === null && (
-				<div class="setting-group">
-					<div class="setting-description">
-						Customize the profile to add mod weights. Click the <strong>Scoring Rules</strong> tab
-						and press <strong>Customize</strong>.
-					</div>
-				</div>
-			)}
-			{tab === "weights" && currentEval !== null && (
-				<ModWeightsTab
-					modWeights={currentModWeights}
-					onUpdate={(modWeights) => setDraft({ ...draft, modWeights })}
 				/>
 			)}
 
@@ -477,31 +451,33 @@ function DefaultProfileView({
 			{builtinProfile && (
 				<div class="setting-group">
 					<h3>{builtinProfile.scoring.length} Scoring Rules</h3>
-					{builtinProfile.scoring.map((rule) => (
-						<div key={rule.label} class="setting-row" style={{ padding: "4px 0" }}>
-							<div class="setting-label" style={{ fontSize: "12px" }}>
-								{rule.label}
+					{builtinProfile.scoring.map((rule) => {
+						const level = weightMatchesLevel(rule.weight);
+						return (
+							<div key={rule.label} class="setting-row" style={{ padding: "4px 0" }}>
+								<div class="setting-label" style={{ fontSize: "12px" }}>
+									{rule.label}
+								</div>
+								<span
+									style={{
+										fontSize: "11px",
+										color: "var(--poe-text-dim)",
+										minWidth: "48px",
+										textAlign: "right",
+									}}
+								>
+									{level ? LEVEL_LABELS[level] : `${rule.weight} pts`}
+								</span>
 							</div>
-							<span
-								style={{
-									fontSize: "12px",
-									color: "var(--tier-2-3)",
-									fontWeight: "bold",
-									minWidth: "36px",
-									textAlign: "right",
-								}}
-							>
-								+{rule.weight}
-							</span>
-						</div>
-					))}
+						);
+					})}
 				</div>
 			)}
 		</>
 	);
 }
 
-/** Editable scoring rules list */
+/** Editable scoring rules list with stat search, drag-and-drop reordering. */
 function CustomProfileView({
 	scoring,
 	originalScoring,
@@ -515,12 +491,15 @@ function CustomProfileView({
 	onUpdateScoring: (scoring: ScoringRule[]) => void;
 	onReset: () => void;
 }) {
+	const [dragFrom, setDragFrom] = useState<number | null>(null);
+	const [dragOver, setDragOver] = useState<number | null>(null);
+
 	const addRule = () => {
 		const firstSchema = schema[0];
 		if (!firstSchema) return;
 		onUpdateScoring([
 			...scoring,
-			{ label: firstSchema.label, weight: 10, rule: defaultRule(firstSchema) },
+			{ label: firstSchema.label, weight: 15, rule: defaultRule(firstSchema) },
 		]);
 	};
 
@@ -529,8 +508,44 @@ function CustomProfileView({
 		if (!firstSchema) return;
 		onUpdateScoring([
 			...scoring,
-			{ label: "Rule Group", weight: 10, rule: defaultCompoundRule(firstSchema) },
+			{ label: "Rule Group", weight: 15, rule: defaultCompoundRule(firstSchema) },
 		]);
+	};
+
+	const addStatRule = async (template: string) => {
+		const statIds = await invoke<string[]>("resolve_stat_template", { template });
+		const firstId = statIds[0];
+		if (!firstId) return;
+		// Deduplicate — check if stat already exists in scoring
+		const exists = scoring.some((sr) => {
+			const rd = sr.rule as Record<string, unknown>;
+			return sr.rule.rule_type === "Pred" && rd.type === "HasStatId" && rd.stat_id === firstId;
+		});
+		if (exists) return;
+		onUpdateScoring([
+			...scoring,
+			{
+				label: template,
+				weight: WEIGHT_VALUES.medium,
+				rule: { rule_type: "Pred", type: "HasStatId", stat_id: firstId },
+			},
+		]);
+	};
+
+	const handleDrop = (targetIndex: number) => {
+		if (dragFrom === null || dragFrom === targetIndex) return;
+		const next = [...scoring];
+		const moved = next[dragFrom];
+		if (!moved) return;
+		next.splice(dragFrom, 1);
+		next.splice(targetIndex, 0, moved);
+		onUpdateScoring(next);
+	};
+
+	const handleChange = (i: number, updated: ScoringRule) => {
+		const next = [...scoring];
+		next[i] = updated;
+		onUpdateScoring(next);
 	};
 
 	return (
@@ -543,15 +558,13 @@ function CustomProfileView({
 					marginBottom: "12px",
 				}}
 			>
-				<h3 style={{ margin: 0 }}>
-					{scoring.length} Scoring Rule{scoring.length !== 1 ? "s" : ""}
-				</h3>
+				<h3 style={{ margin: 0 }}>Scoring ({scoring.length})</h3>
 				<div style={{ display: "flex", gap: "6px" }}>
 					<button type="button" class="btn btn-small btn-primary" onClick={addRule}>
-						+ Add Rule
+						+ Rule
 					</button>
 					<button type="button" class="btn btn-small btn-primary" onClick={addGroup}>
-						+ Add Group
+						+ Group
 					</button>
 					<button
 						type="button"
@@ -564,28 +577,71 @@ function CustomProfileView({
 				</div>
 			</div>
 
+			{/* Stat search — fast path for adding stat-based scoring rules */}
+			<StatSearchBar onAdd={addStatRule} existingLabels={new Set(scoring.map((r) => r.label))} />
+
+			{/* Scoring rules with drag-and-drop reordering */}
 			{scoring.map((rule, i) => {
 				const orig = originalScoring ? originalScoring[i] : undefined;
 				const modified = !orig || JSON.stringify(rule) !== JSON.stringify(orig);
+				const isDragging = dragFrom === i;
+				const isDropTarget = dragOver === i && dragFrom !== null && dragFrom !== i;
 				return (
-					<ScoringRuleEditor
-						// biome-ignore lint/suspicious/noArrayIndexKey: rules have no stable ID; only append/delete supported
+					<div
+						// biome-ignore lint/suspicious/noArrayIndexKey: rules have no stable ID
 						key={i}
-						rule={rule}
-						schema={schema}
-						modified={modified}
-						onChange={(updated) => {
-							const next = [...scoring];
-							next[i] = updated;
-							onUpdateScoring(next);
+						class={`scoring-rule-slot${isDragging ? " dragging" : ""}${isDropTarget ? " drop-target" : ""}`}
+						draggable={true}
+						onDragStart={(e) => {
+							setDragFrom(i);
+							const dt = (e as DragEvent).dataTransfer;
+							if (dt) {
+								dt.effectAllowed = "move";
+								dt.setData("text/plain", String(i));
+							}
 						}}
-						onDelete={() => onUpdateScoring(scoring.filter((_, j) => j !== i))}
-					/>
+						onDragOver={(e) => {
+							e.preventDefault();
+							const dt = (e as DragEvent).dataTransfer;
+							if (dt) dt.dropEffect = "move";
+							if (dragFrom !== null && dragFrom !== i) setDragOver(i);
+						}}
+						onDragEnter={(e) => {
+							e.preventDefault();
+						}}
+						onDrop={(e) => {
+							e.preventDefault();
+							handleDrop(i);
+						}}
+						onDragEnd={() => {
+							setDragFrom(null);
+							setDragOver(null);
+						}}
+					>
+						{isStatRule(rule) ? (
+							<CompactStatRow
+								rule={rule}
+								modified={modified}
+								onChange={(updated) => handleChange(i, updated)}
+								onDelete={() => onUpdateScoring(scoring.filter((_, j) => j !== i))}
+							/>
+						) : (
+							<ScoringRuleEditor
+								rule={rule}
+								schema={schema}
+								modified={modified}
+								onChange={(updated) => handleChange(i, updated)}
+								onDelete={() => onUpdateScoring(scoring.filter((_, j) => j !== i))}
+							/>
+						)}
+					</div>
 				);
 			})}
 
 			{scoring.length === 0 && (
-				<div class="setting-description">No scoring rules. Click "+ Add Rule" to create one.</div>
+				<div class="setting-description">
+					No scoring rules. Search for stats above or click "+ Rule" to add one.
+				</div>
 			)}
 		</div>
 	);
@@ -865,6 +921,9 @@ function ScoringRuleEditor({
 	return (
 		<div class={`scoring-rule${modified ? " modified" : ""}`}>
 			<div class="scoring-rule-header">
+				<span class="drag-handle" title="Drag to reorder">
+					{"\u2801\u2801"}
+				</span>
 				<div class="scoring-rule-label">
 					<input
 						type="text"
@@ -873,19 +932,7 @@ function ScoringRuleEditor({
 						placeholder="Rule label..."
 					/>
 				</div>
-				<div class="scoring-rule-weight">
-					<span>pts</span>
-					<input
-						type="number"
-						value={rule.weight}
-						onInput={(e) =>
-							onChange({
-								...rule,
-								weight: Number((e.target as HTMLInputElement).value),
-							})
-						}
-					/>
-				</div>
+				<WeightBar weight={rule.weight} onChange={(w) => onChange({ ...rule, weight: w })} />
 				<button
 					type="button"
 					class="btn btn-small"
@@ -988,15 +1035,126 @@ function summarizeRule(r: Rule, schema: PredicateSchema[]): string {
 	return "?";
 }
 
-// ── Mod Weights ──────────────────────────────────────────────────────────
+// ── Weight Bar (unified bar + click-to-edit numeric) ─────────────────────
 
-/** Mod weight editor — search for stats and assign weight levels. */
-function ModWeightsTab({
-	modWeights,
-	onUpdate,
+/** Bar widget with 4 discrete levels. Click label to toggle numeric input. */
+function WeightBar({
+	weight,
+	onChange,
 }: {
-	modWeights: ModWeight[];
-	onUpdate: (modWeights: ModWeight[]) => void;
+	weight: number;
+	onChange: (weight: number) => void;
+}) {
+	const [editingNumeric, setEditingNumeric] = useState(false);
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	const matchedLevel = weightMatchesLevel(weight);
+	const displayLevel = matchedLevel ?? weightToLevel(weight);
+	const activeIndex = WEIGHT_LEVELS.indexOf(displayLevel);
+
+	// Focus input when switching to numeric mode
+	useEffect(() => {
+		if (editingNumeric && inputRef.current) inputRef.current.focus();
+	}, [editingNumeric]);
+
+	// User toggled → numeric mode (shows actual value)
+	if (editingNumeric) {
+		return (
+			<div class="weight-bar">
+				<input
+					ref={inputRef}
+					type="number"
+					class="weight-bar-numeric"
+					value={weight}
+					min={0}
+					max={999}
+					onInput={(e) => onChange(Number((e.target as HTMLInputElement).value))}
+					onBlur={() => setEditingNumeric(false)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							(e.target as HTMLInputElement).blur();
+						}
+					}}
+				/>
+				<button
+					type="button"
+					class="weight-bar-label"
+					onMouseDown={(e) => {
+						e.preventDefault(); // prevent input blur race
+						setEditingNumeric(false);
+					}}
+					title="Switch to bar"
+				>
+					pts
+				</button>
+			</div>
+		);
+	}
+
+	return (
+		<div class="weight-bar">
+			<div class="weight-bar-blocks">
+				{WEIGHT_LEVELS.map((l, i) => (
+					<button
+						key={l}
+						type="button"
+						class={`weight-bar-block ${i <= activeIndex ? "filled" : ""}`}
+						onClick={() => onChange(WEIGHT_VALUES[l])}
+						title={`${LEVEL_LABELS[l]} (${WEIGHT_VALUES[l]} pts)`}
+					/>
+				))}
+			</div>
+			<button
+				type="button"
+				class="weight-bar-label"
+				onMouseDown={() => setEditingNumeric(true)}
+				title="Click for custom value"
+			>
+				{LEVEL_LABELS[displayLevel]}
+			</button>
+		</div>
+	);
+}
+
+// ── Compact Stat Row (single-line for HasStatId rules) ───────────────────
+
+/** Single-line row for simple stat-weight rules. */
+function CompactStatRow({
+	rule,
+	modified,
+	onChange,
+	onDelete,
+}: {
+	rule: ScoringRule;
+	modified?: boolean;
+	onChange: (updated: ScoringRule) => void;
+	onDelete: () => void;
+}) {
+	return (
+		<div class={`compact-stat-row${modified ? " modified" : ""}`}>
+			<span class="drag-handle" title="Drag to reorder">
+				{"\u2801\u2801"}
+			</span>
+			<span class="compact-stat-label" title={rule.label}>
+				{rule.label}
+			</span>
+			<WeightBar weight={rule.weight} onChange={(w) => onChange({ ...rule, weight: w })} />
+			<button type="button" class="compact-stat-delete" onClick={onDelete} title="Remove">
+				&times;
+			</button>
+		</div>
+	);
+}
+
+// ── Stat Search Bar (autocomplete for adding stat-based rules) ──────────
+
+/** Autocomplete search for adding stat-based scoring rules. */
+function StatSearchBar({
+	onAdd,
+	existingLabels,
+}: {
+	onAdd: (template: string) => void;
+	existingLabels: Set<string>;
 }) {
 	const [suggestions, setSuggestions] = useState<string[]>([]);
 	const [search, setSearch] = useState("");
@@ -1019,30 +1177,17 @@ function ModWeightsTab({
 		return () => document.removeEventListener("mousedown", handler);
 	}, []);
 
-	const existingTemplates = new Set(modWeights.map((mw) => mw.template));
 	const filtered = search
 		? suggestions
-				.filter((s) => !existingTemplates.has(s) && s.toLowerCase().includes(search.toLowerCase()))
+				.filter((s) => !existingLabels.has(s) && s.toLowerCase().includes(search.toLowerCase()))
 				.slice(0, 30)
 		: [];
 
-	const addWeight = async (template: string) => {
-		const statIds = await invoke<string[]>("resolve_stat_template", { template });
-		onUpdate([...modWeights, { template, statIds, level: "medium" }]);
+	const handleSelect = (template: string) => {
+		onAdd(template);
 		setSearch("");
 		setShowDropdown(false);
 		setSelectedIndex(-1);
-	};
-
-	const updateLevel = (index: number, level: WeightLevel) => {
-		const next = [...modWeights];
-		const existing = next[index];
-		if (existing) next[index] = { ...existing, level };
-		onUpdate(next);
-	};
-
-	const removeWeight = (index: number) => {
-		onUpdate(modWeights.filter((_, i) => i !== index));
 	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {
@@ -1056,108 +1201,47 @@ function ModWeightsTab({
 		} else if (e.key === "Enter" && selectedIndex >= 0) {
 			e.preventDefault();
 			const selected = filtered[selectedIndex];
-			if (selected !== undefined) addWeight(selected);
+			if (selected !== undefined) handleSelect(selected);
 		} else if (e.key === "Escape") {
 			setShowDropdown(false);
 		}
 	};
 
 	return (
-		<div class="setting-group">
-			<h3>Mod Weights ({modWeights.length})</h3>
-			<div class="setting-description" style={{ marginBottom: "12px" }}>
-				Add stats you care about. Items with these stats score higher.
-			</div>
-
-			{/* Search to add new stats */}
-			<div class="mod-weight-search" ref={searchRef}>
-				<input
-					type="text"
-					class="pred-input"
-					value={search}
-					onInput={(e) => {
-						setSearch((e.target as HTMLInputElement).value);
-						setShowDropdown(true);
-						setSelectedIndex(-1);
-					}}
-					onFocus={() => {
-						if (search) setShowDropdown(true);
-					}}
-					onKeyDown={handleKeyDown}
-					placeholder="Search stats to add..."
-					style={{ width: "100%" }}
-				/>
-				{showDropdown && filtered.length > 0 && (
-					<div class="pred-dropdown" style={{ position: "absolute", left: 0, right: 0 }}>
-						{filtered.map((item, i) => (
-							<div
-								key={item}
-								class={`pred-dropdown-item ${i === selectedIndex ? "selected" : ""}`}
-								onMouseDown={(e) => {
-									e.preventDefault();
-									addWeight(item);
-								}}
-								onMouseEnter={() => setSelectedIndex(i)}
-							>
-								{item}
-							</div>
-						))}
-					</div>
-				)}
-			</div>
-
-			{/* Weighted stat list */}
-			<div class="mod-weight-list">
-				{modWeights.map((mw, i) => (
-					<div key={mw.template} class="mod-weight-row">
-						<span class="mod-weight-text">{mw.template}</span>
-						<WeightSelector level={mw.level} onChange={(level) => updateLevel(i, level)} />
-						<button
-							type="button"
-							class="btn btn-small"
-							onClick={() => removeWeight(i)}
-							title="Remove"
-							style={{ color: "var(--tier-low)" }}
+		<div class="stat-search" ref={searchRef}>
+			<input
+				type="text"
+				class="pred-input"
+				value={search}
+				onInput={(e) => {
+					setSearch((e.target as HTMLInputElement).value);
+					setShowDropdown(true);
+					setSelectedIndex(-1);
+				}}
+				onFocus={() => {
+					if (search) setShowDropdown(true);
+				}}
+				onKeyDown={handleKeyDown}
+				placeholder="Search stats to add..."
+				style={{ width: "100%" }}
+			/>
+			{showDropdown && filtered.length > 0 && (
+				<div class="pred-dropdown" style={{ position: "absolute", left: 0, right: 0 }}>
+					{filtered.map((item, i) => (
+						<div
+							key={item}
+							class={`pred-dropdown-item ${i === selectedIndex ? "selected" : ""}`}
+							onMouseDown={(e) => {
+								e.preventDefault();
+								handleSelect(item);
+							}}
+							onMouseEnter={() => setSelectedIndex(i)}
 						>
-							&times;
-						</button>
-					</div>
-				))}
-			</div>
-
-			{modWeights.length === 0 && (
-				<div class="setting-description" style={{ marginTop: "8px" }}>
-					No mod weights set. Search above to add stats you care about.
+							{item}
+						</div>
+					))}
 				</div>
 			)}
-		</div>
-	);
-}
-
-/** Clickable weight level selector with filled blocks. */
-function WeightSelector({
-	level,
-	onChange,
-}: {
-	level: WeightLevel;
-	onChange: (level: WeightLevel) => void;
-}) {
-	const activeIndex = WEIGHT_LEVELS.indexOf(level);
-
-	return (
-		<div class="mod-weight-selector">
-			<div class="mod-weight-blocks">
-				{WEIGHT_LEVELS.map((l, i) => (
-					<button
-						key={l}
-						type="button"
-						class={`mod-weight-block ${i <= activeIndex ? "filled" : ""}`}
-						onClick={() => onChange(l)}
-						title={`${LEVEL_LABELS[l]} (${WEIGHT_VALUES[l]} pts)`}
-					/>
-				))}
-			</div>
-			<span class="mod-weight-level-label">{LEVEL_LABELS[level]}</span>
 		</div>
 	);
 }
