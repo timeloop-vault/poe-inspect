@@ -366,6 +366,41 @@
 	font-size: 11px;
 }
 
+/* --- Save button pulse (unsaved changes) --- */
+
+.btn-save-pulse {
+	border-color: var(--poe-accent);
+	color: var(--poe-accent);
+	animation: save-pulse 2s ease-in-out infinite;
+}
+
+@keyframes save-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 4px rgba(175, 96, 37, 0.2);
+	}
+	50% {
+		box-shadow: 0 0 12px rgba(175, 96, 37, 0.5);
+	}
+}
+
+/* --- Unsaved changes action bar --- */
+
+.unsaved-bar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	padding: 8px 16px;
+	margin-top: 16px;
+	background: rgba(175, 96, 37, 0.06);
+	border: 1px solid rgba(175, 96, 37, 0.25);
+	border-radius: 4px;
+	font-size: 11px;
+	color: var(--poe-accent);
+	letter-spacing: 0.3px;
+}
+
 /* --- Scoring rule editor --- */
 
 .scoring-rule {
@@ -374,6 +409,12 @@
 	border-radius: 4px;
 	padding: 10px 12px;
 	margin-bottom: 6px;
+	border-left: 3px solid transparent;
+	transition: border-color 0.2s;
+}
+
+.scoring-rule.modified {
+	border-left-color: var(--poe-accent);
 }
 
 .scoring-rule-header {
@@ -555,19 +596,15 @@
 	outline: none;
 }
 
-/* --- Compound rule editor --- */
+/* --- Compound rule editor (Phase 8c) --- */
 
 .compound-mode-selector {
 	display: flex;
 	gap: 4px;
-	margin-bottom: 10px;
+	margin-bottom: 8px;
 }
 
-.compound-predicates {
-	border-left: 2px solid var(--poe-accent);
-	padding-left: 10px;
-	margin-top: 4px;
-}
+/* --- Compact predicate row (single inline row) --- */
 
 .compound-pred-row {
 	background: rgba(255, 255, 255, 0.02);
@@ -575,32 +612,240 @@
 	padding: 8px;
 }
 
-.compound-separator {
-	text-align: center;
-	font-size: 10px;
-	font-variant: small-caps;
-	letter-spacing: 1px;
-	color: var(--poe-accent);
-	padding: 4px 0;
-	opacity: 0.8;
+.compound-pred-row.compact {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 6px;
+	min-height: 28px;
 }
 
-.compound-nested {
-	margin-top: 4px;
-	border-color: var(--poe-text-dim);
+.compound-pred-row.compact:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.compound-pred-row.compact .pred-type-select {
+	width: auto;
+	min-width: 110px;
+	max-width: 170px;
+	margin-bottom: 0;
+	flex-shrink: 0;
+	font-size: 11px;
+	padding: 2px 6px;
+}
+
+.compound-pred-delete {
+	background: none;
+	border: none;
+	color: var(--tier-low);
+	font-size: 15px;
+	cursor: pointer;
+	padding: 0 3px;
+	line-height: 1;
+	flex-shrink: 0;
+	opacity: 0;
+	transition: opacity 0.15s, color 0.15s;
+}
+
+.compound-pred-row:hover .compound-pred-delete,
+.compound-pred-row .compound-pred-delete:focus {
+	opacity: 0.6;
+}
+
+.compound-pred-delete:hover {
+	opacity: 1;
+	color: var(--poe-text);
+}
+
+/* --- Compact predicate fields (no labels, tighter spacing) --- */
+
+.predicate-fields.compact {
+	flex-wrap: nowrap;
+	gap: 4px;
+}
+
+.predicate-fields.compact .pred-field-label {
+	display: none;
+}
+
+.predicate-fields.compact .pred-select,
+.predicate-fields.compact .pred-input {
+	font-size: 11px;
+	padding: 2px 6px;
+}
+
+.predicate-fields.compact .pred-input-number {
+	width: 52px;
+}
+
+.predicate-fields.compact .pred-text-wrapper .pred-input {
+	width: 120px;
+}
+
+/* --- Compound group (depth-colored container) --- */
+
+.compound-group {
+	border-radius: 3px;
+	padding-left: 10px;
+	margin: 2px 0;
 }
 
 .compound-group-header {
 	display: flex;
-	gap: 4px;
-	margin-bottom: 8px;
 	align-items: center;
+	gap: 4px;
+	padding: 4px 2px;
+	cursor: pointer;
+	user-select: none;
+	font-size: 12px;
+	color: var(--poe-text-dim);
 }
+
+.compound-group-header:hover {
+	color: var(--poe-text);
+}
+
+.cg-chevron {
+	font-size: 8px;
+	width: 12px;
+	text-align: center;
+	flex-shrink: 0;
+	display: inline-block;
+	transition: transform 0.15s;
+}
+
+.cg-chevron.expanded {
+	transform: rotate(90deg);
+}
+
+.cg-mode-dropdown {
+	background: none;
+	border: none;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+	padding: 0 3px;
+	border-radius: 2px;
+	border-bottom: 1px dashed var(--poe-accent);
+	color: var(--poe-accent);
+}
+
+.cg-mode-dropdown:hover {
+	background: rgba(175, 96, 37, 0.12);
+}
+
+.cg-count {
+	font-size: 10px;
+	opacity: 0.5;
+	margin-left: 2px;
+}
+
+.compound-group-delete {
+	background: none;
+	border: none;
+	color: var(--tier-low);
+	font-size: 14px;
+	cursor: pointer;
+	padding: 0 3px;
+	margin-left: auto;
+	opacity: 0;
+	transition: opacity 0.15s;
+}
+
+.compound-group-header:hover .compound-group-delete {
+	opacity: 0.5;
+}
+
+.compound-group-delete:hover {
+	opacity: 1;
+}
+
+.compound-group-body {
+	padding: 2px 0;
+}
+
+.compound-group-summary {
+	font-size: 10px;
+	color: var(--poe-text-dim);
+	padding: 2px 0 4px 18px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* --- Clickable AND/OR pill connector between conditions --- */
+
+.compound-pill-row {
+	display: flex;
+	align-items: center;
+	padding: 2px 0 2px 0;
+}
+
+/* Short connector line from group border to pill */
+.compound-pill-row::before {
+	content: "";
+	width: 6px;
+	height: 1px;
+	background: var(--poe-accent);
+	opacity: 0.2;
+	flex-shrink: 0;
+}
+
+.compound-pill {
+	position: relative;
+	border-radius: 2px;
+	font-size: 9px;
+	font-weight: bold;
+	letter-spacing: 1.5px;
+	padding: 1px 10px;
+	line-height: 14px;
+	cursor: pointer;
+	border: 1px solid rgba(175, 96, 37, 0.5);
+	background: rgba(175, 96, 37, 0.12);
+	color: var(--poe-accent);
+	box-shadow: 0 0 4px -1px rgba(175, 96, 37, 0.4);
+	transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+/* Faint connector line extending right from pill */
+.compound-pill::after {
+	content: "";
+	position: absolute;
+	left: calc(100% + 1px);
+	top: 50%;
+	width: 16px;
+	height: 1px;
+	background: var(--poe-accent);
+	opacity: 0.1;
+}
+
+.compound-pill:hover {
+	box-shadow: 0 0 8px 0 rgba(175, 96, 37, 0.5), 0 0 3px 0 rgba(175, 96, 37, 0.3);
+	transform: scale(1.08);
+}
+
+.compound-pill:active {
+	transform: scale(0.96);
+}
+
+/* --- Compound group actions --- */
 
 .compound-actions {
 	display: flex;
 	gap: 6px;
-	margin-top: 8px;
+	margin-top: 4px;
+	padding-left: 4px;
+}
+
+.compound-actions .compound-add-btn {
+	opacity: 0.6;
+	font-size: 10px;
+	padding: 2px 8px;
+}
+
+.compound-actions .compound-add-btn:hover {
+	opacity: 1;
 }
 
 /* --- Mod weight editor --- */

@@ -92,10 +92,12 @@ export function PredicateEditor({
 	rule,
 	schema,
 	onChange,
+	compact,
 }: {
 	rule: Rule;
 	schema: PredicateSchema;
 	onChange: (rule: Rule) => void;
+	compact?: boolean;
 }) {
 	if (rule.rule_type !== "Pred") return null;
 
@@ -104,7 +106,7 @@ export function PredicateEditor({
 	};
 
 	return (
-		<div class="predicate-fields">
+		<div class={`predicate-fields${compact ? " compact" : ""}`}>
 			{schema.fields.map((field) => (
 				<FieldWidget
 					key={field.name}

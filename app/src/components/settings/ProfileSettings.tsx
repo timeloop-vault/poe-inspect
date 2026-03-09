@@ -295,10 +295,10 @@ function ProfileEditor({
 
 	const save = () => {
 		if (hasChanges) onSave(draft);
-		onBack();
+		setDraft({});
 	};
 
-	const discard = () => {
+	const back = () => {
 		onBack();
 	};
 
@@ -350,8 +350,8 @@ function ProfileEditor({
 					marginBottom: "16px",
 				}}
 			>
-				<button type="button" class="btn btn-small" onClick={discard}>
-					&larr; Cancel
+				<button type="button" class="btn btn-small" onClick={back}>
+					{hasChanges ? "Discard" : "\u2190 Back"}
 				</button>
 				<input
 					type="text"
@@ -368,7 +368,7 @@ function ProfileEditor({
 				/>
 				<button
 					type="button"
-					class={`btn btn-small ${hasChanges ? "btn-primary" : ""}`}
+					class={`btn btn-small ${hasChanges ? "btn-save-pulse" : ""}`}
 					onClick={save}
 					disabled={!hasChanges}
 				>
@@ -406,6 +406,7 @@ function ProfileEditor({
 			{tab === "scoring" && currentEval !== null && (
 				<CustomProfileView
 					scoring={currentEval.scoring}
+					originalScoring={profile.evalProfile?.scoring ?? null}
 					schema={schema}
 					onUpdateScoring={updateEvalScoring}
 					onReset={resetToDefault}
@@ -435,8 +436,14 @@ function ProfileEditor({
 			)}
 
 			{hasChanges && (
-				<div class="setting-description" style={{ marginTop: "12px", color: "var(--poe-accent)" }}>
-					Unsaved changes — click Save to apply
+				<div class="unsaved-bar">
+					<button type="button" class="btn btn-small" onClick={back}>
+						Discard
+					</button>
+					<span>Unsaved changes</span>
+					<button type="button" class="btn btn-small btn-save-pulse" onClick={save}>
+						Save
+					</button>
 				</div>
 			)}
 		</>
@@ -497,11 +504,13 @@ function DefaultProfileView({
 /** Editable scoring rules list */
 function CustomProfileView({
 	scoring,
+	originalScoring,
 	schema,
 	onUpdateScoring,
 	onReset,
 }: {
 	scoring: ScoringRule[];
+	originalScoring: ScoringRule[] | null;
 	schema: PredicateSchema[];
 	onUpdateScoring: (scoring: ScoringRule[]) => void;
 	onReset: () => void;
@@ -555,20 +564,25 @@ function CustomProfileView({
 				</div>
 			</div>
 
-			{scoring.map((rule, i) => (
-				<ScoringRuleEditor
-					// biome-ignore lint/suspicious/noArrayIndexKey: rules have no stable ID; only append/delete supported
-					key={i}
-					rule={rule}
-					schema={schema}
-					onChange={(updated) => {
-						const next = [...scoring];
-						next[i] = updated;
-						onUpdateScoring(next);
-					}}
-					onDelete={() => onUpdateScoring(scoring.filter((_, j) => j !== i))}
-				/>
-			))}
+			{scoring.map((rule, i) => {
+				const orig = originalScoring ? originalScoring[i] : undefined;
+				const modified = !orig || JSON.stringify(rule) !== JSON.stringify(orig);
+				return (
+					<ScoringRuleEditor
+						// biome-ignore lint/suspicious/noArrayIndexKey: rules have no stable ID; only append/delete supported
+						key={i}
+						rule={rule}
+						schema={schema}
+						modified={modified}
+						onChange={(updated) => {
+							const next = [...scoring];
+							next[i] = updated;
+							onUpdateScoring(next);
+						}}
+						onDelete={() => onUpdateScoring(scoring.filter((_, j) => j !== i))}
+					/>
+				);
+			})}
 
 			{scoring.length === 0 && (
 				<div class="setting-description">No scoring rules. Click "+ Add Rule" to create one.</div>
@@ -590,17 +604,19 @@ function groupByCategory(schema: PredicateSchema[]): Record<string, PredicateSch
 	return categories;
 }
 
-/** A single predicate: type selector + fields + optional delete button. */
+/** A single predicate row. Compact mode: single inline row for compound groups. */
 function PredicateRow({
 	rule,
 	schema,
 	onChange,
 	onDelete,
+	compact,
 }: {
 	rule: Rule;
 	schema: PredicateSchema[];
 	onChange: (rule: Rule) => void;
 	onDelete?: () => void;
+	compact?: boolean;
 }) {
 	const predType = isPredRule(rule) ? rule.type : null;
 	const predSchema = predType ? schema.find((s) => s.typeName === predType) : null;
@@ -613,43 +629,49 @@ function PredicateRow({
 	};
 
 	return (
-		<div class="compound-pred-row">
-			<div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-				<select
-					class="pred-type-select"
-					style={{ flex: 1, marginBottom: 0 }}
-					value={predType ?? ""}
-					onChange={(e) => handleTypeChange((e.target as HTMLSelectElement).value)}
-				>
-					{Object.entries(categories).map(([cat, schemas]) => (
-						<optgroup key={cat} label={cat}>
-							{schemas.map((s) => (
-								<option key={s.typeName} value={s.typeName}>
-									{s.label}
-								</option>
-							))}
-						</optgroup>
-					))}
-				</select>
-				{onDelete && (
-					<button
-						type="button"
-						class="btn btn-small"
-						onClick={onDelete}
-						title="Remove condition"
-						style={{ color: "var(--tier-low)", flexShrink: 0 }}
-					>
-						&times;
-					</button>
-				)}
-			</div>
+		<div
+			class={`compound-pred-row${compact ? " compact" : ""}`}
+			{...(compact && predSchema ? { title: predSchema.description } : {})}
+		>
+			<select
+				class="pred-type-select"
+				value={predType ?? ""}
+				onChange={(e) => handleTypeChange((e.target as HTMLSelectElement).value)}
+			>
+				{Object.entries(categories).map(([cat, schemas]) => (
+					<optgroup key={cat} label={cat}>
+						{schemas.map((s) => (
+							<option key={s.typeName} value={s.typeName}>
+								{s.label}
+							</option>
+						))}
+					</optgroup>
+				))}
+			</select>
 			{predSchema && (
 				<>
-					<div class="setting-description" style={{ marginBottom: "8px" }}>
-						{predSchema.description}
-					</div>
-					<PredicateEditor rule={rule} schema={predSchema} onChange={onChange} />
+					{!compact && (
+						<div class="setting-description" style={{ margin: "4px 0" }}>
+							{predSchema.description}
+						</div>
+					)}
+					<PredicateEditor
+						rule={rule}
+						schema={predSchema}
+						onChange={onChange}
+						{...(compact ? { compact: true } : {})}
+					/>
 				</>
+			)}
+			{onDelete && (
+				<button
+					type="button"
+					class="compound-pred-delete"
+					onClick={onDelete}
+					title="Remove condition"
+				>
+					&times;
+				</button>
 			)}
 		</div>
 	);
@@ -657,7 +679,10 @@ function PredicateRow({
 
 // ── Compound Group Editor (recursive) ────────────────────────────────
 
-/** Renders a compound rule (All/Any) with its children. Supports nesting. */
+const DEPTH_COLORS = ["#af6025", "#866040", "#6b4d38"];
+
+/** Renders a compound rule (All/Any) with collapsible groups, depth-colored
+ *  borders, clickable AND/OR pills, and natural-language header. */
 function CompoundGroupEditor({
 	rule,
 	schema,
@@ -671,11 +696,12 @@ function CompoundGroupEditor({
 	onDelete?: () => void;
 	depth: number;
 }) {
+	const [collapsed, setCollapsed] = useState(false);
 	const mode = rule.rule_type;
+	const color = DEPTH_COLORS[depth % DEPTH_COLORS.length] ?? "#af6025";
 
-	const setMode = (newMode: "All" | "Any") => {
-		if (newMode === mode) return;
-		onChange({ ...rule, rule_type: newMode });
+	const toggleMode = () => {
+		onChange({ ...rule, rule_type: mode === "All" ? "Any" : "All" });
 	};
 
 	const updateChild = (index: number, updated: Rule) => {
@@ -687,7 +713,6 @@ function CompoundGroupEditor({
 	const deleteChild = (index: number) => {
 		const next = rule.rules.filter((_: Rule, i: number) => i !== index);
 		if (next.length === 0) {
-			// If nested, remove this group entirely; if top-level, add a default
 			const firstSchema = schema[0];
 			if (firstSchema) onChange({ ...rule, rules: [defaultRule(firstSchema)] });
 		} else {
@@ -712,110 +737,133 @@ function CompoundGroupEditor({
 	};
 
 	return (
-		<div class={`compound-predicates ${depth > 0 ? "compound-nested" : ""}`}>
-			<div class="compound-group-header">
+		<div
+			class="compound-group"
+			style={{
+				borderLeft: `2px solid ${color}`,
+				background: `rgba(255, 255, 255, ${0.015 + depth * 0.015})`,
+			}}
+		>
+			{/* Natural language header: "▼ Match [all ▾] of:" */}
+			{/* biome-ignore lint/a11y/useKeyWithClickEvents: header is mouse-only toggle */}
+			<div class="compound-group-header" onClick={() => setCollapsed(!collapsed)}>
+				<span class={`cg-chevron${collapsed ? "" : " expanded"}`}>{"\u25B6"}</span>
+				<span>Match</span>
 				<button
 					type="button"
-					class={`btn btn-small ${mode === "All" ? "btn-primary" : ""}`}
-					onClick={() => setMode("All")}
+					class="cg-mode-dropdown"
+					onClick={(e) => {
+						e.stopPropagation();
+						toggleMode();
+					}}
 				>
-					All (AND)
+					{mode === "All" ? "all" : "any"}
 				</button>
-				<button
-					type="button"
-					class={`btn btn-small ${mode === "Any" ? "btn-primary" : ""}`}
-					onClick={() => setMode("Any")}
-				>
-					Any (OR)
-				</button>
+				<span>of:</span>
+				<span class="cg-count">{rule.rules.length}</span>
 				{onDelete && (
 					<button
 						type="button"
-						class="btn btn-small"
-						onClick={onDelete}
+						class="compound-group-delete"
+						onClick={(e) => {
+							e.stopPropagation();
+							onDelete();
+						}}
 						title="Remove group"
-						style={{ color: "var(--tier-low)", marginLeft: "auto" }}
 					>
 						&times;
 					</button>
 				)}
 			</div>
-			{rule.rules.map((child: Rule, i: number) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: sub-rules have no stable ID
-				<div key={i}>
-					{i > 0 && <div class="compound-separator">{mode === "All" ? "AND" : "OR"}</div>}
-					{isCompoundRule(child) ? (
-						<CompoundGroupEditor
-							rule={child}
-							schema={schema}
-							onChange={(updated) => updateChild(i, updated)}
-							{...(rule.rules.length > 1 ? { onDelete: () => deleteChild(i) } : {})}
-							depth={depth + 1}
-						/>
-					) : (
-						<PredicateRow
-							rule={child}
-							schema={schema}
-							onChange={(updated) => updateChild(i, updated)}
-							{...(rule.rules.length > 1 ? { onDelete: () => deleteChild(i) } : {})}
-						/>
-					)}
+
+			{/* Collapsed: one-line summary */}
+			{collapsed && <div class="compound-group-summary">{summarizeRule(rule, schema)}</div>}
+
+			{/* Expanded: conditions with AND/OR pills between them */}
+			{!collapsed && (
+				<div class="compound-group-body">
+					{rule.rules.map((child: Rule, i: number) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: sub-rules have no stable ID
+						<div key={i}>
+							{i > 0 && (
+								<div class="compound-pill-row">
+									<button
+										type="button"
+										class="compound-pill"
+										onClick={toggleMode}
+										title={`Click to switch to ${mode === "All" ? "OR" : "AND"}`}
+									>
+										{mode === "All" ? "AND" : "OR"}
+									</button>
+								</div>
+							)}
+							{isCompoundRule(child) ? (
+								<CompoundGroupEditor
+									rule={child}
+									schema={schema}
+									onChange={(updated) => updateChild(i, updated)}
+									{...(rule.rules.length > 1 ? { onDelete: () => deleteChild(i) } : {})}
+									depth={depth + 1}
+								/>
+							) : (
+								<PredicateRow
+									rule={child}
+									schema={schema}
+									onChange={(updated) => updateChild(i, updated)}
+									{...(rule.rules.length > 1 ? { onDelete: () => deleteChild(i) } : {})}
+									compact
+								/>
+							)}
+						</div>
+					))}
+					<div class="compound-actions">
+						<button type="button" class="compound-add-btn btn btn-small" onClick={addCondition}>
+							+ Condition
+						</button>
+						<button type="button" class="compound-add-btn btn btn-small" onClick={addSubGroup}>
+							+ Sub-Group
+						</button>
+					</div>
 				</div>
-			))}
-			<div class="compound-actions">
-				<button type="button" class="compound-add-btn btn btn-small" onClick={addCondition}>
-					+ Condition
-				</button>
-				<button type="button" class="compound-add-btn btn btn-small" onClick={addSubGroup}>
-					+ Sub-Group
-				</button>
-			</div>
+			)}
 		</div>
 	);
 }
 
 // ── Scoring Rule Editor ──────────────────────────────────────────────
 
-type RuleMode = "Simple" | "All" | "Any";
-
-/** Get current mode from a rule. */
-function getRuleMode(r: Rule): RuleMode {
-	return isCompoundRule(r) ? r.rule_type : "Simple";
-}
-
 /** Editor for a single scoring rule: label + weight + predicate(s). */
 function ScoringRuleEditor({
 	rule,
 	schema,
+	modified,
 	onChange,
 	onDelete,
 }: {
 	rule: ScoringRule;
 	schema: PredicateSchema[];
+	modified?: boolean;
 	onChange: (updated: ScoringRule) => void;
 	onDelete: () => void;
 }) {
 	const [expanded, setExpanded] = useState(false);
 
-	const mode = getRuleMode(rule.rule);
-
-	const setMode = (newMode: RuleMode) => {
-		if (newMode === mode) return;
-		if (newMode === "Simple") {
-			// Unwrap: use first leaf predicate or a default
+	const toggleCompound = () => {
+		if (isCompoundRule(rule.rule)) {
 			const firstPred = findFirstPred(rule.rule);
 			const fallbackSchema = schema[0];
 			if (!firstPred && !fallbackSchema) return;
-			onChange({ ...rule, rule: firstPred ?? defaultRule(fallbackSchema as PredicateSchema) });
+			onChange({
+				...rule,
+				rule: firstPred ?? defaultRule(fallbackSchema as PredicateSchema),
+			});
 		} else {
-			// Wrap current rule into compound
-			const inner = isCompoundRule(rule.rule) ? rule.rule.rules : [rule.rule];
-			onChange({ ...rule, rule: { rule_type: newMode, rules: inner } });
+			onChange({ ...rule, rule: { rule_type: "All", rules: [rule.rule] } });
 		}
 	};
 
 	return (
-		<div class="scoring-rule">
+		<div class={`scoring-rule${modified ? " modified" : ""}`}>
 			<div class="scoring-rule-header">
 				<div class="scoring-rule-label">
 					<input
@@ -842,7 +890,7 @@ function ScoringRuleEditor({
 					type="button"
 					class="btn btn-small"
 					onClick={() => setExpanded(!expanded)}
-					title={expanded ? "Collapse" : "Edit predicate"}
+					title={expanded ? "Collapse" : "Edit"}
 				>
 					{expanded ? "\u25B2" : "\u25BC"}
 				</button>
@@ -864,21 +912,29 @@ function ScoringRuleEditor({
 
 			{expanded && (
 				<div class="scoring-rule-body">
-					{/* Mode selector */}
+					{/* Single / Group toggle */}
 					<div class="compound-mode-selector">
-						{(["Simple", "All", "Any"] as const).map((m) => (
-							<button
-								key={m}
-								type="button"
-								class={`btn btn-small ${mode === m ? "btn-primary" : ""}`}
-								onClick={() => setMode(m)}
-							>
-								{m === "All" ? "All (AND)" : m === "Any" ? "Any (OR)" : m}
-							</button>
-						))}
+						<button
+							type="button"
+							class={`btn btn-small ${!isCompoundRule(rule.rule) ? "btn-primary" : ""}`}
+							onClick={() => {
+								if (isCompoundRule(rule.rule)) toggleCompound();
+							}}
+						>
+							Single
+						</button>
+						<button
+							type="button"
+							class={`btn btn-small ${isCompoundRule(rule.rule) ? "btn-primary" : ""}`}
+							onClick={() => {
+								if (!isCompoundRule(rule.rule)) toggleCompound();
+							}}
+						>
+							Group
+						</button>
 					</div>
 
-					{/* Simple mode: single predicate */}
+					{/* Single mode: one predicate with description */}
 					{!isCompoundRule(rule.rule) && (
 						<PredicateRow
 							rule={rule.rule}
@@ -887,7 +943,7 @@ function ScoringRuleEditor({
 						/>
 					)}
 
-					{/* Compound mode: recursive group editor */}
+					{/* Group mode: compound editor with depth coloring */}
 					{isCompoundRule(rule.rule) && (
 						<CompoundGroupEditor
 							rule={rule.rule}
