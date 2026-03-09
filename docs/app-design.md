@@ -535,42 +535,85 @@ Awakened PoE Trade, Last Epoch).
 - Awakened PoE Trade (compact overlay, checkbox + inline range, no nesting)
 - Last Epoch loot filter (card-based vertical list, hover-to-reveal actions)
 
-#### Phase 8d: Multi-Profile Stacking (Friend Wishlists)
+#### Phase 8d: Unified Scoring (DONE)
 
-Support multiple active profiles evaluated simultaneously. Primary profile is the
-user's build. Secondary profiles are imported from friends or the community.
+Merged "Scoring Rules" and "Mod Weights" tabs into a single "Scoring" tab.
+All scoring entries use a bar widget (Low/Med/High/Crit) with click-to-edit
+numeric override. Stat search autocomplete as fast path. Drag-and-drop reordering.
+Data migration converts legacy modWeights into ScoringRule entries.
+See `docs/phase-8d-unified-scoring.md` for design exploration.
 
-**Use case:** "I'm farming maps. My primary profile scores gear for my RF Jugg.
-My friend imported their Cold DoT Occultist profile as secondary. When I find an
-item that matches their wishlist, the overlay shows a secondary indicator so I can
-set it aside for them."
+#### Phase 8e: Watching Profiles
 
-**Design:**
-- One **primary profile** — full overlay scoring, tier colors, the whole treatment
-- Zero or more **secondary profiles** — lightweight indicators on the overlay:
-  - Small colored tag/badge: "Alice's Cold DoT: 85%" or a friend icon
-  - Distinct visual treatment (border, icon, muted color) so it doesn't clutter
-    the primary display
-  - Only shown when the item actually matches the secondary profile's filter
-- Profile list in settings: each profile has a role selector (Primary / Secondary / Off)
-- Import: receive a profile JSON from a friend → import → set as secondary
-- Future: share profiles via a link or code (cloud sync, RQE integration)
+Evaluate items against multiple profiles simultaneously. The primary profile
+gets the full overlay treatment. Additional "watching" profiles run in the
+background and surface subtle indicators when they match.
 
-**Overlay layout with secondaries:**
+**Use case:** "I'm farming maps with my RF Jugg profile active. I also have a
+Cold DoT Occultist profile set to watching. When I Ctrl+I an item, I see my
+normal RF scoring — but if the item also scores well for Cold DoT, a small
+colored indicator appears. I can click it to temporarily view the full Cold DoT
+evaluation, then dismiss to go back to my RF view."
+
+**Profile roles:**
+- **Primary** — one at a time, full overlay scoring with tier colors and all UX
+- **Watching** — zero or more, each assigned a color (small palette, ~6 presets)
+- **Off** — inactive, not evaluated
+
+**Settings UI:**
+- Profile list: role selector per profile (Primary / Watching / Off)
+- Watching profiles show their assigned color dot
+- Color picker: simple preset palette (no custom hex needed)
+
+**Backend:**
+- Send primary profile + array of watching profiles to poe-eval
+- Evaluate item against all profiles, return primary `ScoreInfo` + array of
+  watching results: `{ profileName, color, score: ScoreInfo }[]`
+- poe-eval already supports evaluating against any profile — just call it N times
+- No structural changes to the evaluation engine
+
+**Overlay — primary view (default):**
 ```
 +------------------------------------------+
 |  Brood Thirst — Vaal Regalia             |
 |  ... normal tier-colored mods ...        |
 |------------------------------------------|
 |  ★ RF Juggernaut: 75/100 (75%)           |  <- primary score
-|  👤 Alice (Cold DoT): Match!             |  <- secondary hit
+|  ● Cold DoT  ● Spark Inquis              |  <- watching hits (colored dots)
 +------------------------------------------+
 ```
 
-**Connection to RQE:** Secondary profiles are the local version of what poe-rqe
-does at scale. A friend's profile is their "want list". Locally, we evaluate items
-against imported friend profiles. In the cloud, poe-rqe matches items against
-thousands of registered want lists. The predicate model is shared.
+Watching indicators are subtle — small colored dots/pills with the profile name.
+Only shown when the watching profile's filter passes and score is non-trivial.
+
+**Overlay — click to inspect a watching profile:**
+
+Click a watching indicator → overlay swaps to show that profile's full evaluation.
+Header changes to indicate which profile is being viewed. Click "back" or dismiss
+to return to primary view. This is temporary — doesn't change the active profile.
+
+```
++------------------------------------------+
+|  Viewing: Cold DoT Occultist        [x]  |  <- temporary header
+|  Brood Thirst — Vaal Regalia             |
+|  ... mods scored by Cold DoT rules ...   |
+|------------------------------------------|
+|  Cold DoT: 62/100 (62%)                  |
++------------------------------------------+
+```
+
+**Implementation order:**
+1. Profile role state (`primary | watching | off`) + color in StoredProfile
+2. Settings UI for role selector + color dots
+3. Backend: send watching profiles, return multiple ScoreInfo
+4. Overlay: render watching indicators below primary score
+5. Overlay: click-to-swap interaction
+
+**Future — poe-rqe integration:**
+Watching profiles are the local version of what poe-rqe does at scale. A friend's
+imported profile is their "want list" evaluated locally. In the future, a separate
+"check marketplace" button could fire the item against poe-rqe's cloud want-lists.
+The predicate model is shared, but the integration is independent and on-demand.
 
 ## Future Features (Not Yet Phased)
 
