@@ -185,6 +185,92 @@ pub const TRADE_STAT_SUFFIXES: &[&str] = &[" (Local)", " (Shields)"];
 // - "enchant" — enchantments
 // - "fractured" — fractured mods (overrides explicit)
 
+// ── Trade API item category mapping ──────────────────────────────────────
+//
+// WHY HARDCODED: The trade API at pathofexile.com uses a hierarchical category
+// system for item type filtering (e.g., `"armour.boots"`, `"weapon.bow"`).
+// These category strings don't exist in the GGPK — they're a GGG trade system
+// concept. The mapping from the Ctrl+Alt+C `Item Class:` header text to trade
+// API category strings is stable across leagues.
+//
+// We map the raw item class string (e.g., `"Boots"`, `"Two Hand Axes"`) rather
+// than using an enum, because item classes come directly from Ctrl+Alt+C text
+// and the string set is defined by the GGPK (ItemClasses.datc64).
+//
+// Reference: awakened-poe-trade's CATEGORY_TO_TRADE_ID map.
+
+/// Map an item class string (from Ctrl+Alt+C `Item Class:` header) to the
+/// trade API category filter string.
+///
+/// Returns `None` for item classes that don't have a trade category filter
+/// (currency, gems, quest items, etc.).
+#[must_use]
+pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
+    match item_class {
+        // Armour
+        "Body Armours" => Some("armour.chest"),
+        "Boots" => Some("armour.boots"),
+        "Gloves" => Some("armour.gloves"),
+        "Helmets" => Some("armour.helmet"),
+        "Shields" => Some("armour.shield"),
+        "Quivers" => Some("armour.quiver"),
+
+        // Weapons — one-handed
+        "Claws" => Some("weapon.claw"),
+        "Daggers" => Some("weapon.dagger"),
+        "Rune Daggers" => Some("weapon.runedagger"),
+        "One Hand Axes" => Some("weapon.oneaxe"),
+        "One Hand Maces" => Some("weapon.onemace"),
+        "One Hand Swords" | "Thrusting One Hand Swords" => Some("weapon.onesword"),
+        "Sceptres" => Some("weapon.sceptre"),
+        "Wands" => Some("weapon.wand"),
+
+        // Weapons — two-handed
+        "Bows" => Some("weapon.bow"),
+        "Staves" => Some("weapon.staff"),
+        "Warstaves" => Some("weapon.warstaff"),
+        "Two Hand Axes" => Some("weapon.twoaxe"),
+        "Two Hand Maces" => Some("weapon.twomace"),
+        "Two Hand Swords" => Some("weapon.twosword"),
+
+        // Accessories
+        "Amulets" => Some("accessory.amulet"),
+        "Belts" => Some("accessory.belt"),
+        "Rings" => Some("accessory.ring"),
+        "Trinkets" => Some("accessory.trinket"),
+
+        // Jewels
+        "Jewels" => Some("jewel"),
+        "Abyss Jewels" => Some("jewel.abyss"),
+        "Cluster Jewels" => Some("jewel.cluster"),
+
+        // Flasks
+        "Life Flasks" | "Mana Flasks" | "Hybrid Flasks" | "Utility Flasks" => Some("flask"),
+
+        // Maps
+        "Maps" => Some("map"),
+
+        // Other
+        "Divination Cards" => Some("card"),
+        "Tinctures" => Some("tincture"),
+        "Fishing Rods" => Some("weapon.rod"),
+
+        // Heist
+        "Heist Blueprints" => Some("heistmission.blueprint"),
+        "Heist Contracts" => Some("heistmission.contract"),
+        "Heist Tools" => Some("heistequipment.heisttool"),
+        "Heist Brooches" => Some("heistequipment.heistreward"),
+        "Heist Gear" => Some("heistequipment.heistweapon"),
+        "Heist Cloaks" => Some("heistequipment.heistutility"),
+
+        // Sanctum / misc
+        "Sanctum Relics" => Some("sanctum.relic"),
+
+        // No category filter for: currency, gems, fragments, quest items, etc.
+        _ => None,
+    }
+}
+
 /// Map a mod's display type to the trade API stat category prefix.
 ///
 /// `display_type` is one of: `"prefix"`, `"suffix"`, `"implicit"`, `"crafted"`,
@@ -202,5 +288,48 @@ pub fn mod_trade_category(display_type: &str, is_fractured: bool) -> &'static st
         "enchant" => "enchant",
         // prefix, suffix, unique, and any unknown → explicit
         _ => "explicit",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn item_class_trade_categories() {
+        // Armour
+        assert_eq!(item_class_trade_category("Boots"), Some("armour.boots"));
+        assert_eq!(item_class_trade_category("Body Armours"), Some("armour.chest"));
+        assert_eq!(item_class_trade_category("Shields"), Some("armour.shield"));
+
+        // Weapons
+        assert_eq!(item_class_trade_category("Bows"), Some("weapon.bow"));
+        assert_eq!(item_class_trade_category("Two Hand Axes"), Some("weapon.twoaxe"));
+        assert_eq!(item_class_trade_category("Wands"), Some("weapon.wand"));
+        assert_eq!(
+            item_class_trade_category("Thrusting One Hand Swords"),
+            Some("weapon.onesword"),
+        );
+
+        // Accessories
+        assert_eq!(item_class_trade_category("Rings"), Some("accessory.ring"));
+        assert_eq!(item_class_trade_category("Amulets"), Some("accessory.amulet"));
+
+        // Jewels
+        assert_eq!(item_class_trade_category("Jewels"), Some("jewel"));
+        assert_eq!(item_class_trade_category("Abyss Jewels"), Some("jewel.abyss"));
+
+        // Flasks — all variants map to "flask"
+        assert_eq!(item_class_trade_category("Life Flasks"), Some("flask"));
+        assert_eq!(item_class_trade_category("Utility Flasks"), Some("flask"));
+
+        // Maps
+        assert_eq!(item_class_trade_category("Maps"), Some("map"));
+
+        // No category for currency/gems
+        assert_eq!(item_class_trade_category("Stackable Currency"), None);
+        assert_eq!(item_class_trade_category("Skill Gems"), None);
+        assert_eq!(item_class_trade_category("Support Gems"), None);
+        assert_eq!(item_class_trade_category("Map Fragments"), None);
     }
 }

@@ -353,13 +353,17 @@ fn build_type_filters(item: &ResolvedItem) -> Option<TypeFilters> {
         _ => None,
     };
 
-    rarity.as_ref()?;
+    let category = poe_data::domain::item_class_trade_category(&item.header.item_class)
+        .map(|id| OptionFilter {
+            option: id.to_string(),
+        });
+
+    if rarity.is_none() && category.is_none() {
+        return None;
+    }
 
     Some(TypeFilters {
-        filters: TypeFilterValues {
-            category: None,
-            rarity,
-        },
+        filters: TypeFilterValues { category, rarity },
     })
 }
 
