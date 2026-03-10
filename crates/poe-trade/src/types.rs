@@ -80,6 +80,9 @@ pub struct SearchResult {
 
 /// A price on a listing.
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct Price {
     pub amount: f64,
     pub currency: String,
@@ -87,6 +90,9 @@ pub struct Price {
 
 /// Summary of a price check.
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct PriceCheckResult {
     /// Search ID for constructing trade URL.
     pub search_id: String,
@@ -104,7 +110,10 @@ pub struct PriceCheckResult {
 ///
 /// League is required — there is no default since it changes every ~3 months.
 /// The app must provide this from user settings or auto-detection.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeQueryConfig {
     /// League name (e.g., `"Mirage"`). Required — set by app from user config.
     pub league: String,
