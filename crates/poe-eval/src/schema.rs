@@ -63,13 +63,9 @@ pub enum FieldKind {
         max: Option<i64>,
     },
     /// Fixed set of choices (only == / != comparison makes sense).
-    Enum {
-        options: Vec<EnumOption>,
-    },
+    Enum { options: Vec<EnumOption> },
     /// Ordered set of choices (>=, <= comparisons are meaningful).
-    OrderedEnum {
-        options: Vec<EnumOption>,
-    },
+    OrderedEnum { options: Vec<EnumOption> },
     /// Text input with optional autocomplete from a data source.
     /// `suggestions_from` names a source the app resolves via `get_suggestions`.
     Text {
@@ -77,8 +73,11 @@ pub enum FieldKind {
         suggestions_from: Option<String>,
     },
     /// Mod slot dropdown (Prefix / Suffix / Implicit).
-    Slot {
-        options: Vec<EnumOption>,
+    Slot { options: Vec<EnumOption> },
+    /// Ordered list of text inputs.
+    TextList {
+        #[serde(rename = "suggestionsFrom")]
+        suggestions_from: Option<String>,
     },
 }
 
@@ -164,7 +163,8 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
         PredicateSchema {
             type_name: "BaseTypeContains".into(),
             label: "Base Type Contains".into(),
-            description: "Base type substring match (e.g., \"Regalia\" matches Vaal Regalia)".into(),
+            description: "Base type substring match (e.g., \"Regalia\" matches Vaal Regalia)"
+                .into(),
             category: "Header".into(),
             fields: vec![PredicateField {
                 name: "value".into(),
@@ -268,6 +268,31 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                 },
             ],
         },
+        // ── Hybrid mod predicates ─────────────────────────────────────
+        PredicateSchema {
+            type_name: "HybridMod".into(),
+            label: "Hybrid Mod".into(),
+            description:
+                "A single mod that grants multiple stats (e.g., armour + life from one prefix)"
+                    .into(),
+            category: "Mods".into(),
+            fields: vec![
+                PredicateField {
+                    name: "templates".into(),
+                    label: "Stat Templates".into(),
+                    kind: FieldKind::TextList {
+                        suggestions_from: Some("stat_texts".into()),
+                    },
+                },
+                PredicateField {
+                    name: "stat_ids".into(),
+                    label: "Stat IDs".into(),
+                    kind: FieldKind::TextList {
+                        suggestions_from: Some("stat_ids".into()),
+                    },
+                },
+            ],
+        },
         // ── Stat value predicates ────────────────────────────────────
         PredicateSchema {
             type_name: "StatValue".into(),
@@ -312,8 +337,7 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
         PredicateSchema {
             type_name: "RollPercent".into(),
             label: "Roll Quality %".into(),
-            description:
-                "How close the roll is to max (0-100%). Matches by stat ID.".into(),
+            description: "How close the roll is to max (0-100%). Matches by stat ID.".into(),
             category: "Stats".into(),
             fields: vec![
                 PredicateField {
@@ -453,8 +477,8 @@ mod tests {
     #[test]
     fn schema_has_all_predicates() {
         let schema = predicate_schema();
-        // 14 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
-        assert_eq!(schema.len(), 14, "schema should have exactly 14 predicates");
+        // 15 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
+        assert_eq!(schema.len(), 15, "schema should have exactly 15 predicates");
     }
 
     #[test]
@@ -463,7 +487,7 @@ mod tests {
         let mut names: Vec<&str> = schema.iter().map(|s| s.type_name.as_str()).collect();
         names.sort();
         names.dedup();
-        assert_eq!(names.len(), 14, "all type names should be unique");
+        assert_eq!(names.len(), 15, "all type names should be unique");
     }
 
     #[test]
@@ -482,6 +506,7 @@ mod tests {
             r#"{"type":"OpenMods","slot":"Suffix","op":"Ge","value":1}"#,
             r#"{"type":"HasModNamed","name":"Test"}"#,
             // HasStatText and HasStatId deprecated — still deserialize, just not in schema
+            r#"{"type":"HybridMod","templates":["life","armour"],"stat_ids":["base_maximum_life","local_base_physical_damage_reduction_rating"]}"#,
             r#"{"type":"ModTier","name":"Test","op":"Le","value":3}"#,
             r#"{"type":"StatValue","text":"Life","stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":50}"#,
             r#"{"type":"RollPercent","text":"Life","stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":80}"#,

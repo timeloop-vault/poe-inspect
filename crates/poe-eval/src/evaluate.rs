@@ -53,9 +53,9 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
         Predicate::BaseTypeContains { value } => item.header.base_type.contains(value.as_str()),
 
         // ── Numeric properties ───────────────────────────────────────
-        Predicate::ItemLevel { op, value } => item
-            .item_level
-            .is_some_and(|lvl| op.eval(&lvl, value)),
+        Predicate::ItemLevel { op, value } => {
+            item.item_level.is_some_and(|lvl| op.eval(&lvl, value))
+        }
 
         // ── Mod predicates ───────────────────────────────────────────
         Predicate::ModCount { slot, op, value } => {
@@ -88,12 +88,9 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
 
         Predicate::ModTier { name, op, value } => item.all_mods().any(|m| {
             m.header.name.as_deref() == Some(name.as_str())
-                && m.header
-                    .tier
-                    .as_ref()
-                    .is_some_and(|t| match t {
-                        ModTierKind::Tier(n) | ModTierKind::Rank(n) => op.eval(n, value),
-                    })
+                && m.header.tier.as_ref().is_some_and(|t| match t {
+                    ModTierKind::Tier(n) | ModTierKind::Rank(n) => op.eval(n, value),
+                })
         }),
 
         // ── Stat value predicates ────────────────────────────────────
@@ -103,8 +100,11 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             value_index,
             op,
             value,
-        } => find_matching_stats(item, stat_id.as_deref())
-            .any(|sl| sl.values.get(*value_index).is_some_and(|v| op.eval(&v.current, value))),
+        } => find_matching_stats(item, stat_id.as_deref()).any(|sl| {
+            sl.values
+                .get(*value_index)
+                .is_some_and(|v| op.eval(&v.current, value))
+        }),
 
         Predicate::RollPercent {
             text: _,
@@ -122,6 +122,25 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
                 op.eval(&u32::try_from(pct).unwrap_or(0), value)
             })
         }),
+
+        // ── Hybrid mod ──────────────────────────────────────────────
+        Predicate::HybridMod {
+            templates: _,
+            stat_ids,
+        } => {
+            // Check each mod individually — ALL stat_ids must be on the SAME mod.
+            item.all_mods().any(|m| {
+                stat_ids.iter().all(|required| {
+                    m.stat_lines.iter().any(|sl| {
+                        !sl.is_reminder
+                            && sl
+                                .stat_ids
+                                .as_ref()
+                                .is_some_and(|ids| ids.iter().any(|id| id == required))
+                    })
+                })
+            })
+        }
 
         // ── Influence / status ───────────────────────────────────────
         Predicate::HasInfluence { influence } => {
@@ -183,9 +202,7 @@ pub fn score(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreResu
 
 /// Count mods in a given slot.
 fn count_mods_in_slot(item: &ResolvedItem, slot: ModSlot) -> u32 {
-    item.all_mods()
-        .filter(|m| m.header.slot == slot)
-        .count() as u32
+    item.all_mods().filter(|m| m.header.slot == slot).count() as u32
 }
 
 /// Calculate open mod slots. Returns 0 if we can't determine the max

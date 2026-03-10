@@ -16,4 +16,12 @@ export type Predicate = { "type": "Rarity", op: Cmp, value: RarityValue, } | { "
 /**
  * Which value index (0 for most stats, 0/1 for "Adds X to Y" stats).
  */
-value_index: number, op: Cmp, value: number, } | { "type": "RollPercent", text?: string | null, stat_id?: string | null, value_index: number, op: Cmp, value: number, } | { "type": "HasInfluence", influence: InfluenceValue, } | { "type": "HasStatus", status: StatusValue, } | { "type": "InfluenceCount", op: Cmp, value: number, };
+value_index: number, op: Cmp, value: number, } | { "type": "RollPercent", text?: string | null, stat_id?: string | null, value_index: number, op: Cmp, value: number, } | { "type": "HybridMod", 
+/**
+ * Display templates for each stat (human-readable, for UI).
+ */
+templates: Array<string>, 
+/**
+ * Stat IDs that must ALL appear within a single mod's stat lines.
+ */
+stat_ids: Array<string>, } | { "type": "HasInfluence", influence: InfluenceValue, } | { "type": "HasStatus", status: StatusValue, } | { "type": "InfluenceCount", op: Cmp, value: number, };

@@ -45,7 +45,6 @@ impl Cmp {
 #[cfg_attr(feature = "ts", ts(export))]
 pub enum Predicate {
     // ── Header predicates ────────────────────────────────────────────
-
     /// Rarity comparison (e.g., `rarity == Rare`, `rarity >= Magic`).
     Rarity { op: Cmp, value: RarityValue },
 
@@ -59,18 +58,24 @@ pub enum Predicate {
     BaseTypeContains { value: String },
 
     // ── Numeric item properties ──────────────────────────────────────
-
     /// Item level comparison.
     ItemLevel { op: Cmp, value: u32 },
 
     // ── Mod predicates ───────────────────────────────────────────────
-
     /// Count of mods in a given slot (e.g., `prefix_count >= 2`).
-    ModCount { slot: ModSlotKind, op: Cmp, value: u32 },
+    ModCount {
+        slot: ModSlotKind,
+        op: Cmp,
+        value: u32,
+    },
 
     /// Open (available) mod slots. Requires `GameData` for max affix lookup.
     /// `open_prefixes >= 1` means "has at least one craftable prefix slot".
-    OpenMods { slot: ModSlotKind, op: Cmp, value: u32 },
+    OpenMods {
+        slot: ModSlotKind,
+        op: Cmp,
+        value: u32,
+    },
 
     /// Whether any mod has a specific name (from the `{ }` header).
     HasModNamed { name: String },
@@ -93,7 +98,6 @@ pub enum Predicate {
     ModTier { name: String, op: Cmp, value: u32 },
 
     // ── Stat value predicates ────────────────────────────────────────
-
     /// Rolled value of a stat line (current value comparison).
     /// Matches by `stat_id` if set (language-independent), otherwise falls back
     /// to substring matching on `text`.
@@ -122,8 +126,20 @@ pub enum Predicate {
         value: u32,
     },
 
-    // ── Influence / status predicates ────────────────────────────────
+    // ── Hybrid mod predicates ─────────────────────────────────────────
+    /// Whether a SINGLE mod contains ALL specified stat IDs.
+    ///
+    /// Unlike `Rule::All` with multiple `StatValue` predicates (which matches stats
+    /// across ANY mods), this checks that all stats come from the SAME mod —
+    /// detecting true hybrid mods from GGPK data.
+    HybridMod {
+        /// Display templates for each stat (human-readable, for UI).
+        templates: Vec<String>,
+        /// Stat IDs that must ALL appear within a single mod's stat lines.
+        stat_ids: Vec<String>,
+    },
 
+    // ── Influence / status predicates ────────────────────────────────
     /// Whether the item has a specific influence.
     HasInfluence { influence: InfluenceValue },
 
