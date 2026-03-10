@@ -101,6 +101,7 @@ export interface TradeSettings {
 	league: string;
 	valueRelaxation: number;
 	onlineOnly: boolean;
+	poesessid: string;
 }
 
 // ── Defaults ──────────────────────────────────────────────────────────────
@@ -122,6 +123,7 @@ export const defaultTrade: TradeSettings = {
 	league: "",
 	valueRelaxation: 0.85,
 	onlineOnly: true,
+	poesessid: "",
 };
 
 export const defaultHotkeys: HotkeySettings = {

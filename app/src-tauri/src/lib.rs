@@ -663,6 +663,51 @@ fn open_url(url: String) -> Result<(), String> {
     open::that(&url).map_err(|e| format!("Failed to open URL: {e}"))
 }
 
+/// Set the POESESSID cookie on the trade client.
+///
+/// Enables "online only" filtering. Pass empty string to clear.
+#[tauri::command]
+async fn set_trade_session(
+    poesessid: String,
+    trade: tauri::State<'_, TradeState>,
+) -> Result<(), String> {
+    let mut client = trade.client.lock().await;
+    if poesessid.is_empty() {
+        client.set_session_id(None);
+    } else {
+        client.set_session_id(Some(poesessid));
+    }
+    Ok(())
+}
+
+/// Get the current trade stats index status.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TradeIndexStatus {
+    loaded: bool,
+    stat_count: usize,
+    mapped_count: usize,
+}
+
+#[tauri::command]
+async fn get_trade_index_status(
+    trade: tauri::State<'_, TradeState>,
+) -> Result<TradeIndexStatus, String> {
+    let guard = trade.index.read().await;
+    match guard.as_ref() {
+        Some(index) => Ok(TradeIndexStatus {
+            loaded: true,
+            stat_count: index.len(),
+            mapped_count: index.mapped_stat_count(),
+        }),
+        None => Ok(TradeIndexStatus {
+            loaded: false,
+            stat_count: 0,
+            mapped_count: 0,
+        }),
+    }
+}
+
 /// Fetch the list of active leagues from GGG.
 #[tauri::command]
 async fn fetch_leagues(
@@ -822,6 +867,8 @@ pub fn run() {
             refresh_trade_stats,
             fetch_leagues,
             open_url,
+            set_trade_session,
+            get_trade_index_status,
         ])
         .setup(|app| {
             // --- System tray ---
@@ -890,12 +937,29 @@ pub fn run() {
                 *app.state::<HotkeyState>().0.lock().unwrap() = config;
             }
 
-            // --- Trade state (load cached index if available) ---
+            // --- Trade state (load cached index + POESESSID if available) ---
             {
                 let gd = &app.state::<GameDataState>().0;
                 let cached_index = load_cached_trade_index(app.handle(), gd);
+                let mut client = TradeClient::new();
+
+                // Restore POESESSID from settings store
+                if let Some(sessid) = app
+                    .store("settings.json")
+                    .ok()
+                    .and_then(|store| {
+                        store
+                            .get("trade")
+                            .and_then(|v| v.get("poesessid").and_then(|v| v.as_str().map(String::from)))
+                    })
+                    .filter(|s| !s.is_empty())
+                {
+                    client.set_session_id(Some(sessid));
+                    eprintln!("[trade] POESESSID loaded from settings");
+                }
+
                 app.manage(TradeState {
-                    client: tokio::sync::Mutex::new(TradeClient::new()),
+                    client: tokio::sync::Mutex::new(client),
                     index: tokio::sync::RwLock::new(cached_index),
                 });
             }
