@@ -108,20 +108,23 @@ struct TradeStatsIndex {
 **Files**: `poe-trade/src/client.rs`, `poe-trade/src/rate_limit.rs`
 
 **TradeClient**:
-- Wraps `reqwest::Client` with `User-Agent: poe-inspect-2/0.1`
-- `async fn search(query) → SearchResult` (search ID + listing IDs + total count)
-- `async fn fetch(listing_ids, search_id) → Vec<Listing>` (max 10 per request)
+- Wraps `reqwest::Client` with `User-Agent: poe-inspect-2/0.1`, 30s timeout
+- `async fn search(query, league) → SearchResult` (search ID + listing IDs + total count)
+- `async fn fetch_listings(search_id, listing_ids) → Vec<FetchResultEntry>` (max 10 per request)
 - `async fn fetch_stats() → TradeStatsResponse` (raw API response)
+- `async fn price_check(query, config) → PriceCheckResult` (search + fetch + extract prices)
+- `fn set_session_id(poesessid)` — optional POESESSID cookie for authenticated requests
 
-**Rate limit state machine** (`rate_limit.rs`):
-- Parse `X-Rate-Limit-Ip`: `hits:period:timeout` format
-- Track state from `X-Rate-Limit-Ip-State`: `current:period:penalty`
-- Methods: `can_request() → bool`, `delay_until_available() → Duration`
-- On 429: parse `Retry-After`, wait, retry once
+**Rate limit tracker** (`rate_limit.rs`):
+- Preemptive blocking: wait before sending, don't react to 429
+- Parse `X-Rate-Limit-Ip`: `hits:period:timeout` format (e.g., `12:6:60,16:12:300`)
+- Track request timestamps per endpoint (separate search/fetch limiters)
+- `delay_needed() → Duration`, `wait_for_capacity()` async
+- On 429: parse `Retry-After`, block limiter, return `RateLimited` error to caller
 
-**POESESSID**: Optional cookie for "online only" filtering. Stored securely by app, passed to client as config. Never logged.
+**POESESSID**: Optional cookie for "online only" filtering. Set via `set_session_id()`. Never logged.
 
-**Done when**: Can execute a full search+fetch cycle against the live API with rate limiting.
+**Current status (Phase 3 done)**: 33 tests (17 unit + 8 query builder + 8 stats index). Client, rate limiter, and API response types complete. Live API testing deferred to Phase 4 app integration.
 
 ---
 

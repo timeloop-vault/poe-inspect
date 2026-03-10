@@ -4,7 +4,7 @@ Trade API client for pathofexile.com — fetches trade stats, builds search quer
 
 ## Status
 
-**Phase 2 done** — Query builder: `ResolvedItem` → trade search body with stat filters, value relaxation, item filters. 26 tests (10 unit + 8 query builder + 8 stats index). ts-rs exports for all APP-facing types. See plan for phases 3-5.
+**Phase 3 done** — Rate-limited HTTP client with search → fetch → price check flow. 33 tests (17 unit + 8 query builder + 8 stats index). Preemptive rate limiting, POESESSID support, ts-rs exports. See plan for phases 4-5.
 
 ## Scope
 
