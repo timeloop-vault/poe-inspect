@@ -4,7 +4,9 @@ use std::sync::OnceLock;
 use poe_dat::tables::{BaseItemTypeRow, RarityRow};
 use poe_data::GameData;
 use poe_eval::affix;
-use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatCondition, StatusValue};
+use poe_eval::predicate::{
+    Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatCondition, StatusValue,
+};
 use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
 use poe_eval::tier;
@@ -914,9 +916,7 @@ fn stat_value_empty_conditions_does_not_match() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
-    let rule = Rule::pred(Predicate::StatValue {
-        conditions: vec![],
-    });
+    let rule = Rule::pred(Predicate::StatValue { conditions: vec![] });
     assert!(
         !evaluate(&item, &rule, gd),
         "empty conditions should not match"
@@ -1138,7 +1138,10 @@ fn stat_value_conditions_serialize_roundtrip() {
     match deserialized {
         Predicate::StatValue { conditions } => {
             assert_eq!(conditions.len(), 2);
-            assert_eq!(conditions[0].stat_id.as_deref(), Some("base_physical_damage_reduction_rating"));
+            assert_eq!(
+                conditions[0].stat_id.as_deref(),
+                Some("base_physical_damage_reduction_rating")
+            );
             assert_eq!(conditions[1].value, 20);
         }
         _ => panic!("expected StatValue variant"),

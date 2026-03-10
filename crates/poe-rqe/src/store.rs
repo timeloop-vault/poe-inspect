@@ -107,8 +107,8 @@ mod tests {
             "{}/_reference/rqe/test/data/rq/{filename}",
             concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
         );
-        let data = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
+        let data =
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
         serde_json::from_str(&data).unwrap()
     }
 
@@ -117,8 +117,8 @@ mod tests {
             "{}/_reference/rqe/test/data/entry/{filename}",
             concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
         );
-        let data = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
+        let data =
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
         serde_json::from_str(&data).unwrap()
     }
 

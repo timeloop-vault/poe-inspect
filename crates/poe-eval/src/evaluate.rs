@@ -181,8 +181,11 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
     }
     if conditions.len() == 1 {
         let c = &conditions[0];
-        return find_matching_stats(item, c.stat_id.as_deref())
-            .any(|sl| sl.values.get(c.value_index).is_some_and(|v| c.op.eval(&v.current, &c.value)));
+        return find_matching_stats(item, c.stat_id.as_deref()).any(|sl| {
+            sl.values
+                .get(c.value_index)
+                .is_some_and(|v| c.op.eval(&v.current, &c.value))
+        });
     }
     // 2+ conditions: all must match on the SAME mod.
     item.all_mods().any(|m| {
@@ -193,8 +196,14 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
             }
             m.stat_lines.iter().any(|sl| {
                 !sl.is_reminder
-                    && sl.stat_ids.as_ref().is_some_and(|ids| ids.iter().any(|id| id == sid))
-                    && sl.values.get(c.value_index).is_some_and(|v| c.op.eval(&v.current, &c.value))
+                    && sl
+                        .stat_ids
+                        .as_ref()
+                        .is_some_and(|ids| ids.iter().any(|id| id == sid))
+                    && sl
+                        .values
+                        .get(c.value_index)
+                        .is_some_and(|v| c.op.eval(&v.current, &c.value))
             })
         })
     })

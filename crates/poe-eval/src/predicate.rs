@@ -103,9 +103,7 @@ pub enum Predicate {
     /// - **1 condition**: matches if ANY mod has a stat line satisfying it.
     /// - **2+ conditions**: matches only if a SINGLE mod satisfies ALL conditions
     ///   (same-mod check — used for hybrid mod detection).
-    StatValue {
-        conditions: Vec<StatCondition>,
-    },
+    StatValue { conditions: Vec<StatCondition> },
 
     /// Roll quality: how close the current roll is to the max, as a percentage.
     /// Matches by `stat_id` (language-independent).

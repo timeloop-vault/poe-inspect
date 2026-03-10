@@ -189,11 +189,15 @@ impl GameData {
     }
 
     pub fn item_class(&self, id: &str) -> Option<&ItemClassRow> {
-        self.item_class_by_id.get(id).map(|&i| &self.item_classes[i])
+        self.item_class_by_id
+            .get(id)
+            .map(|&i| &self.item_classes[i])
     }
 
     pub fn base_item_by_name(&self, name: &str) -> Option<&BaseItemTypeRow> {
-        self.base_item_by_name.get(name).map(|&i| &self.base_item_types[i])
+        self.base_item_by_name
+            .get(name)
+            .map(|&i| &self.base_item_types[i])
     }
 
     // ── FK resolution (row index → string) ──────────────────────────────
@@ -228,7 +232,9 @@ impl GameData {
     }
 
     pub fn item_class_category(&self, id: &str) -> Option<&ItemClassCategoryRow> {
-        self.item_class_category_by_id.get(id).map(|&i| &self.item_class_categories[i])
+        self.item_class_category_by_id
+            .get(id)
+            .map(|&i| &self.item_class_categories[i])
     }
 
     /// Resolve an item class category FK (row index) to the category row.
@@ -297,8 +303,7 @@ impl GameData {
             });
 
             // Find hybrid mods containing any of this template's stats.
-            let template_stat_set: HashSet<&str> =
-                stat_ids.iter().map(String::as_str).collect();
+            let template_stat_set: HashSet<&str> = stat_ids.iter().map(String::as_str).collect();
 
             for stat_id in &stat_ids {
                 let Some(mod_indices) = self.stat_to_mods.get(stat_id.as_str()) else {
@@ -399,7 +404,11 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
     let stats = load_table(dat_dir, "stats", tables::extract_stats)?;
     let tags = load_table(dat_dir, "tags", tables::extract_tags)?;
     let item_classes = load_table(dat_dir, "itemclasses", tables::extract_item_classes)?;
-    let item_class_categories = load_table(dat_dir, "itemclasscategories", tables::extract_item_class_categories)?;
+    let item_class_categories = load_table(
+        dat_dir,
+        "itemclasscategories",
+        tables::extract_item_class_categories,
+    )?;
     let base_item_types = load_table(dat_dir, "baseitemtypes", tables::extract_base_item_types)?;
     let mod_families = load_table(dat_dir, "modfamily", tables::extract_mod_families)?;
     let mod_types = load_table(dat_dir, "modtype", tables::extract_mod_types)?;

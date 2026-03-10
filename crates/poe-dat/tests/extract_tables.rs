@@ -35,11 +35,17 @@ fn read_stats() {
     assert!(life.is_some(), "base_maximum_life not found");
     let life = life.unwrap();
     assert!(!life.is_local, "base_maximum_life should not be local");
-    println!("  base_maximum_life: local={}, virtual={}", life.is_local, life.is_virtual);
+    println!(
+        "  base_maximum_life: local={}, virtual={}",
+        life.is_local, life.is_virtual
+    );
 
     // First few
     for s in stats.iter().take(5) {
-        println!("  {:50} local={} weapon_local={} virtual={}", s.id, s.is_local, s.is_weapon_local, s.is_virtual);
+        println!(
+            "  {:50} local={} weapon_local={} virtual={}",
+            s.id, s.is_local, s.is_weapon_local, s.is_virtual
+        );
     }
 }
 
@@ -73,7 +79,10 @@ fn read_item_classes() {
     let body = classes.iter().find(|c| c.id == "Body Armour");
     assert!(body.is_some(), "Body Armour class not found");
     let body = body.unwrap();
-    println!("  Body Armour: name={:?}, category={:?}", body.name, body.category);
+    println!(
+        "  Body Armour: name={:?}, category={:?}",
+        body.name, body.category
+    );
 
     for c in classes.iter().take(5) {
         println!("  {:30} name={:30} cat={:?}", c.id, c.name, c.category);
@@ -93,7 +102,10 @@ fn read_base_item_types() {
     let whetstone = items.iter().find(|i| i.name == "Blacksmith's Whetstone");
     assert!(whetstone.is_some(), "Blacksmith's Whetstone not found");
     let w = whetstone.unwrap();
-    println!("  Blacksmith's Whetstone: class={:?}, drop_level={}, {}x{}", w.item_class, w.drop_level, w.width, w.height);
+    println!(
+        "  Blacksmith's Whetstone: class={:?}, drop_level={}, {}x{}",
+        w.item_class, w.drop_level, w.width, w.height
+    );
     assert_eq!(w.width, 1);
     assert_eq!(w.height, 1);
     assert_eq!(w.drop_level, 1);
@@ -115,7 +127,10 @@ fn read_mods() {
     // Spot check: "Strength1" should exist (basic +Strength prefix)
     let str1 = mods.iter().find(|m| m.id == "Strength1");
     if let Some(m) = str1 {
-        println!("  Strength1: name={:?}, gen_type={}, level={}", m.name, m.generation_type, m.level);
+        println!(
+            "  Strength1: name={:?}, gen_type={}, level={}",
+            m.name, m.generation_type, m.level
+        );
         println!("    stat_keys: {:?}", m.stat_keys);
         println!("    stat_ranges: {:?}", m.stat_ranges);
         println!("    families: {:?}", m.families);
@@ -125,5 +140,9 @@ fn read_mods() {
 
     // Check distribution: most mods should have at least one stat
     let with_stats = mods.iter().filter(|m| m.stat_keys[0].is_some()).count();
-    println!("  Mods with at least one stat: {}/{}", with_stats, mods.len());
+    println!(
+        "  Mods with at least one stat: {}/{}",
+        with_stats,
+        mods.len()
+    );
 }

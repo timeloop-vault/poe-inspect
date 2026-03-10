@@ -26,7 +26,10 @@ fn parse_real_stat_descriptions() {
 
             // Check a few descriptions have stat IDs and variants
             for desc in file.descriptions.iter().take(5) {
-                assert!(!desc.stat_ids.is_empty(), "description should have stat IDs");
+                assert!(
+                    !desc.stat_ids.is_empty(),
+                    "description should have stat IDs"
+                );
                 assert!(
                     !desc.languages.is_empty(),
                     "description should have at least one language block"
@@ -60,10 +63,7 @@ fn parse_real_stat_descriptions() {
             println!("Total variants: {total_variants}");
             println!("Total transforms: {total_transforms}");
             if !other_transforms.is_empty() {
-                println!(
-                    "Unknown transforms ({}):",
-                    other_transforms.len()
-                );
+                println!("Unknown transforms ({}):", other_transforms.len());
                 for t in &other_transforms {
                     println!("  {t}");
                 }

@@ -1,5 +1,5 @@
-use poe_data::GameData;
 use poe_dat::tables::BaseItemTypeRow;
+use poe_data::GameData;
 use poe_item::types::{ModSlot, ModSource, Rarity, ValueRange};
 
 fn fixture(name: &str) -> String {
@@ -23,7 +23,17 @@ fn test_game_data(base_names: &[&str]) -> GameData {
         })
         .collect();
 
-    GameData::new(vec![], vec![], vec![], vec![], base_item_types, vec![], vec![], vec![], vec![])
+    GameData::new(
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+        base_item_types,
+        vec![],
+        vec![],
+        vec![],
+        vec![],
+    )
 }
 
 fn resolve_fixture(name: &str, gd: &GameData) -> poe_item::types::ResolvedItem {
@@ -148,7 +158,11 @@ fn statuses_collected() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("rare-map-city-square-delirium.txt", &gd);
 
-    assert!(item.statuses.iter().any(|s| *s == poe_item::types::StatusKind::Corrupted));
+    assert!(
+        item.statuses
+            .iter()
+            .any(|s| *s == poe_item::types::StatusKind::Corrupted)
+    );
     assert!(item.is_corrupted);
 }
 
@@ -164,29 +178,50 @@ fn rare_belt_mods_resolved() {
     assert!(all_mods.len() >= 5);
 
     // Check implicit mod
-    let implicit = item.implicits.iter().find(|m| m.header.slot == ModSlot::Implicit).unwrap();
+    let implicit = item
+        .implicits
+        .iter()
+        .find(|m| m.header.slot == ModSlot::Implicit)
+        .unwrap();
     assert_eq!(implicit.stat_lines.len(), 1);
     assert_eq!(implicit.stat_lines[0].display_text, "+32 to maximum Life");
     assert_eq!(implicit.stat_lines[0].values.len(), 1);
     assert_eq!(
         implicit.stat_lines[0].values[0],
-        ValueRange { current: 32, min: 25, max: 40 }
+        ValueRange {
+            current: 32,
+            min: 25,
+            max: 40
+        }
     );
 
     // Check a prefix mod
-    let studded = item.explicits.iter().find(|m| {
-        m.header.name.as_deref() == Some("Studded")
-    }).unwrap();
+    let studded = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Studded"))
+        .unwrap();
     assert_eq!(studded.header.slot, ModSlot::Prefix);
     assert_eq!(studded.stat_lines[0].display_text, "+28 to Armour");
     assert_eq!(
         studded.stat_lines[0].values[0],
-        ValueRange { current: 28, min: 11, max: 35 }
+        ValueRange {
+            current: 28,
+            min: 11,
+            max: 35
+        }
     );
 
     // Check master crafted mod
-    let crafted = item.explicits.iter().find(|m| m.header.source == ModSource::MasterCrafted).unwrap();
-    assert_eq!(crafted.stat_lines[0].display_text, "+10% to Cold and Lightning Resistances");
+    let crafted = item
+        .explicits
+        .iter()
+        .find(|m| m.header.source == ModSource::MasterCrafted)
+        .unwrap();
+    assert_eq!(
+        crafted.stat_lines[0].display_text,
+        "+10% to Cold and Lightning Resistances"
+    );
 }
 
 #[test]
@@ -194,7 +229,11 @@ fn unique_mods_negative_ranges() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("unique-ring-ventors-gamble.txt", &gd);
 
-    let unique_mods: Vec<_> = item.explicits.iter().filter(|m| m.header.slot == ModSlot::Unique).collect();
+    let unique_mods: Vec<_> = item
+        .explicits
+        .iter()
+        .filter(|m| m.header.slot == ModSlot::Unique)
+        .collect();
     assert_eq!(unique_mods.len(), 6);
 
     // "+44(0-60) to maximum Life"
@@ -202,23 +241,41 @@ fn unique_mods_negative_ranges() {
     assert_eq!(life_mod.stat_lines[0].display_text, "+44 to maximum Life");
     assert_eq!(
         life_mod.stat_lines[0].values[0],
-        ValueRange { current: 44, min: 0, max: 60 }
+        ValueRange {
+            current: 44,
+            min: 0,
+            max: 60
+        }
     );
 
     // "-9(-25-50)% to Cold Resistance"
     let cold_mod = &unique_mods[2];
-    assert_eq!(cold_mod.stat_lines[0].display_text, "-9% to Cold Resistance");
+    assert_eq!(
+        cold_mod.stat_lines[0].display_text,
+        "-9% to Cold Resistance"
+    );
     assert_eq!(
         cold_mod.stat_lines[0].values[0],
-        ValueRange { current: -9, min: -25, max: 50 }
+        ValueRange {
+            current: -9,
+            min: -25,
+            max: 50
+        }
     );
 
     // "1(10--10)% reduced Quantity of Items found"
     let qty_mod = &unique_mods[4];
-    assert_eq!(qty_mod.stat_lines[0].display_text, "1% reduced Quantity of Items found");
+    assert_eq!(
+        qty_mod.stat_lines[0].display_text,
+        "1% reduced Quantity of Items found"
+    );
     assert_eq!(
         qty_mod.stat_lines[0].values[0],
-        ValueRange { current: 1, min: 10, max: -10 }
+        ValueRange {
+            current: 1,
+            min: 10,
+            max: -10
+        }
     );
 }
 
@@ -240,19 +297,32 @@ fn adds_damage_two_ranges() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("magic-axe-two-handed.txt", &gd);
 
-    let fire_mod = item.explicits.iter().find(|m| {
-        m.header.name.as_deref() == Some("Smouldering")
-    }).unwrap();
+    let fire_mod = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Smouldering"))
+        .unwrap();
 
-    assert_eq!(fire_mod.stat_lines[0].display_text, "Adds 18 to 33 Fire Damage");
+    assert_eq!(
+        fire_mod.stat_lines[0].display_text,
+        "Adds 18 to 33 Fire Damage"
+    );
     assert_eq!(fire_mod.stat_lines[0].values.len(), 2);
     assert_eq!(
         fire_mod.stat_lines[0].values[0],
-        ValueRange { current: 18, min: 14, max: 20 }
+        ValueRange {
+            current: 18,
+            min: 14,
+            max: 20
+        }
     );
     assert_eq!(
         fire_mod.stat_lines[0].values[1],
-        ValueRange { current: 33, min: 29, max: 33 }
+        ValueRange {
+            current: 33,
+            min: 29,
+            max: 33
+        }
     );
 }
 
@@ -262,14 +332,19 @@ fn reminder_text_flagged() {
     let item = resolve_fixture("rare-belt-crafted.txt", &gd);
 
     // "of the Pugilist" has reminder text about Stun Threshold
-    let pugilist = item.explicits.iter().find(|m| {
-        m.header.name.as_deref() == Some("of the Pugilist")
-    }).unwrap();
+    let pugilist = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("of the Pugilist"))
+        .unwrap();
     assert_eq!(pugilist.stat_lines.len(), 2);
 
     // First line is the actual stat
     assert!(!pugilist.stat_lines[0].is_reminder);
-    assert_eq!(pugilist.stat_lines[0].display_text, "6% reduced Enemy Stun Threshold");
+    assert_eq!(
+        pugilist.stat_lines[0].display_text,
+        "6% reduced Enemy Stun Threshold"
+    );
 
     // Second line is reminder text
     assert!(pugilist.stat_lines[1].is_reminder);
@@ -310,9 +385,11 @@ fn multi_line_mod_resolved() {
     let item = resolve_fixture("magic-flask-life.txt", &gd);
 
     // "of Allaying" has two stat lines (immunity to Bleeding + Corrupted Blood)
-    let allaying = item.explicits.iter().find(|m| {
-        m.header.name.as_deref() == Some("of Allaying")
-    }).unwrap();
+    let allaying = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("of Allaying"))
+        .unwrap();
     assert_eq!(allaying.stat_lines.len(), 2);
     assert!(!allaying.stat_lines[0].is_reminder);
     assert!(!allaying.stat_lines[1].is_reminder);
@@ -381,7 +458,9 @@ fn talisman_enchant_detected() {
     let item = resolve_fixture("rare-amulet-talisman-corrupted.txt", &gd);
     assert_eq!(item.enchants.len(), 1, "talisman should have 1 enchant");
     assert!(
-        item.enchants[0].stat_lines[0].display_text.contains("Allocates Entropy"),
+        item.enchants[0].stat_lines[0]
+            .display_text
+            .contains("Allocates Entropy"),
         "enchant should be Allocates Entropy"
     );
     assert_eq!(item.enchants[0].header.slot, ModSlot::Enchant);
@@ -392,21 +471,33 @@ fn flask_enchant_detected() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("magic-flask-utility-enchanted.txt", &gd);
     assert_eq!(item.enchants.len(), 1, "flask should have 1 enchant");
-    assert!(item.enchants[0].stat_lines[0].display_text.contains("Charges reach full"));
+    assert!(
+        item.enchants[0].stat_lines[0]
+            .display_text
+            .contains("Charges reach full")
+    );
 }
 
 #[test]
 fn cluster_jewel_enchants_detected() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("magic-cluster-jewel-large.txt", &gd);
-    assert_eq!(item.enchants.len(), 6, "cluster jewel should have 6 enchant lines");
+    assert_eq!(
+        item.enchants.len(),
+        6,
+        "cluster jewel should have 6 enchant lines"
+    );
 }
 
 #[test]
 fn map_delirium_enchants_detected() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("rare-map-tier5-delirium-enchant.txt", &gd);
-    assert_eq!(item.enchants.len(), 2, "map should have 2 delirium enchants");
+    assert_eq!(
+        item.enchants.len(),
+        2,
+        "map should have 2 delirium enchants"
+    );
 }
 
 // ─── Description field ───────────────────────────────────────────────────────
@@ -415,7 +506,10 @@ fn map_delirium_enchants_detected() {
 fn currency_has_description() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("currency-chaos-orb.txt", &gd);
-    assert!(item.description.is_some(), "currency should have description");
+    assert!(
+        item.description.is_some(),
+        "currency should have description"
+    );
     assert!(item.description.as_ref().unwrap().contains("Reforges"));
 }
 
@@ -423,7 +517,10 @@ fn currency_has_description() {
 fn essence_has_description() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("currency-essence-screaming-greed.txt", &gd);
-    assert!(item.description.is_some(), "essence should have description");
+    assert!(
+        item.description.is_some(),
+        "essence should have description"
+    );
     let desc = item.description.as_ref().unwrap();
     assert!(desc.contains("Upgrades"), "should contain upgrade text");
     assert!(desc.contains("Weapon:"), "should contain slot table");
@@ -442,7 +539,12 @@ fn scarab_has_flavor_text() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("scarab-titanic.txt", &gd);
     assert!(item.flavor_text.is_some(), "scarab should have flavor text");
-    assert!(item.flavor_text.as_ref().unwrap().contains("power lies in a name"));
+    assert!(
+        item.flavor_text
+            .as_ref()
+            .unwrap()
+            .contains("power lies in a name")
+    );
 }
 
 // ─── Note + statuses ─────────────────────────────────────────────────────────
@@ -455,7 +557,10 @@ fn note_and_statuses_coexist() {
     assert_eq!(item.note.as_deref(), Some("~b/o 35 chaos"));
     assert!(item.is_corrupted);
     // Usage instructions should NOT be flavor text
-    assert!(item.flavor_text.is_none(), "jewel usage instructions should not be flavor text");
+    assert!(
+        item.flavor_text.is_none(),
+        "jewel usage instructions should not be flavor text"
+    );
 }
 
 // ─── Unidentified ────────────────────────────────────────────────────────────
@@ -465,7 +570,10 @@ fn unidentified_flag() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("rare-axe-unidentified.txt", &gd);
     assert!(item.is_unidentified);
-    assert!(item.explicits.is_empty(), "unidentified item should have no explicits");
+    assert!(
+        item.explicits.is_empty(),
+        "unidentified item should have no explicits"
+    );
 }
 
 // ─── Divination card ─────────────────────────────────────────────────────────
@@ -485,7 +593,12 @@ fn gem_description_extracted() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("gem-skill-shockwave-totem.txt", &gd);
     let gem = item.gem_data.as_ref().expect("should have gem_data");
-    assert!(gem.description.as_ref().unwrap().contains("shakes the earth"));
+    assert!(
+        gem.description
+            .as_ref()
+            .unwrap()
+            .contains("shakes the earth")
+    );
 }
 
 #[test]
@@ -532,5 +645,8 @@ fn divination_card_resolved() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("divination-card-hunters-resolve.txt", &gd);
     assert_eq!(item.header.rarity, Rarity::DivinationCard);
-    assert!(item.flavor_text.is_some(), "div card should have flavor text");
+    assert!(
+        item.flavor_text.is_some(),
+        "div card should have flavor text"
+    );
 }

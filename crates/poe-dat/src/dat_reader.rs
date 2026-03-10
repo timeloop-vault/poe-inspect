@@ -67,8 +67,7 @@ impl DatFile {
             .map_err(|_| DatError::TooShort)?;
 
         let rows_begin = 4;
-        let data_section = search_for(&bytes, DATA_SECTION_MARKER)
-            .ok_or(DatError::NoMarker)?;
+        let data_section = search_for(&bytes, DATA_SECTION_MARKER).ok_or(DatError::NoMarker)?;
 
         let rows_total_size = data_section - rows_begin;
         let row_size = if row_count == 0 {
@@ -174,9 +173,7 @@ impl DatFile {
         }
         let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
         (0..len)
-            .filter_map(|_| {
-                cursor.read_u64::<LittleEndian>().ok()
-            })
+            .filter_map(|_| cursor.read_u64::<LittleEndian>().ok())
             .collect()
     }
 
@@ -191,9 +188,7 @@ impl DatFile {
         }
         let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
         (0..len)
-            .filter_map(|_| {
-                cursor.read_i32::<LittleEndian>().ok()
-            })
+            .filter_map(|_| cursor.read_i32::<LittleEndian>().ok())
             .collect()
     }
 

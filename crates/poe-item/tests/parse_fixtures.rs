@@ -511,7 +511,11 @@ fn divination_card_header() {
     assert_eq!(item.header.name1, "Hunter's Resolve");
     assert!(item.header.name2.is_none());
     // Stack size, reward hint, and flavor text are all generic sections
-    assert!(item.sections.iter().all(|s| matches!(s, Section::Generic(_))));
+    assert!(
+        item.sections
+            .iter()
+            .all(|s| matches!(s, Section::Generic(_)))
+    );
 }
 
 #[test]
@@ -539,7 +543,10 @@ fn magic_item_has_mods() {
     assert_eq!(mod_sections.len(), 2);
     assert_eq!(mod_sections[0].groups[0].header.slot, ModSlot::Implicit);
     assert_eq!(mod_sections[1].groups[0].header.slot, ModSlot::Prefix);
-    assert_eq!(mod_sections[1].groups[0].header.name.as_deref(), Some("Smouldering"));
+    assert_eq!(
+        mod_sections[1].groups[0].header.name.as_deref(),
+        Some("Smouldering")
+    );
 }
 
 #[test]
@@ -553,7 +560,10 @@ fn magic_flask_properties_and_mods() {
         Section::Generic(lines) => lines.iter().any(|l| l.starts_with("Recovers")),
         _ => false,
     });
-    assert!(has_flask_props, "flask properties should be in generic section");
+    assert!(
+        has_flask_props,
+        "flask properties should be in generic section"
+    );
 
     // Mods are properly parsed with headers
     let mod_sections: Vec<_> = item
@@ -574,7 +584,10 @@ fn normal_flask_no_mods() {
     assert_eq!(item.header.rarity, Rarity::Normal);
     assert_eq!(item.header.name1, "Quicksilver Flask");
     // Normal flask has no mod section
-    let has_mods = item.sections.iter().any(|s| matches!(s, Section::Modifiers(_)));
+    let has_mods = item
+        .sections
+        .iter()
+        .any(|s| matches!(s, Section::Modifiers(_)));
     assert!(!has_mods);
 }
 
@@ -606,7 +619,10 @@ fn cluster_jewel_enchants_and_mods() {
         Section::Generic(lines) => lines.iter().any(|l| l.contains("(enchant)")),
         _ => false,
     });
-    assert!(enchant_section.is_some(), "cluster jewel enchants should be generic");
+    assert!(
+        enchant_section.is_some(),
+        "cluster jewel enchants should be generic"
+    );
 
     // Mods are properly parsed
     let mod_sections: Vec<_> = item
@@ -626,7 +642,10 @@ fn normal_cluster_jewel_enchants_only() {
     let item = parse_fixture("magic-cluster-jewel-normal.txt");
     assert_eq!(item.header.rarity, Rarity::Normal);
     // Normal cluster jewel has enchants but no mods
-    let has_mods = item.sections.iter().any(|s| matches!(s, Section::Modifiers(_)));
+    let has_mods = item
+        .sections
+        .iter()
+        .any(|s| matches!(s, Section::Modifiers(_)));
     assert!(!has_mods);
     let has_enchants = item.sections.iter().any(|s| match s {
         Section::Generic(lines) => lines.iter().any(|l| l.contains("(enchant)")),
@@ -657,7 +676,14 @@ fn support_gem_parsed() {
     // tags+props, requirements, description, stats, experience, usage
     assert_eq!(
         section_kinds,
-        vec!["generic", "requirements", "generic", "generic", "experience", "generic"]
+        vec![
+            "generic",
+            "requirements",
+            "generic",
+            "generic",
+            "experience",
+            "generic"
+        ]
     );
 }
 
