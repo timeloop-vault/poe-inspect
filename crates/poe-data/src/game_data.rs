@@ -354,14 +354,31 @@ impl GameData {
                         })
                         .collect();
 
+                    // Resolve other_stat_ids to canonical reverse index stat_ids.
+                    // The Mods table uses local stat_ids (e.g., local_base_physical_damage_reduction_rating)
+                    // but the reverse index (and item resolver) uses non-local equivalents
+                    // (e.g., base_physical_damage_reduction_rating). Map through templates
+                    // to get the stat_ids that items will actually have after resolution.
+                    let canonical_other_stat_ids: Vec<String> = other_stat_ids
+                        .iter()
+                        .map(|sid| {
+                            self.stat_id_to_templates
+                                .get(sid)
+                                .and_then(|ts| ts.first())
+                                .and_then(|tmpl| ri.stat_ids_for_template(tmpl))
+                                .and_then(|ids| ids.first().cloned())
+                                .unwrap_or_else(|| sid.clone())
+                        })
+                        .collect();
+
                     results.push(StatSuggestion {
                         template: template.clone(),
-                        stat_ids: all_stat_ids,
+                        stat_ids: stat_ids.clone(),
                         kind: StatSuggestionKind::Hybrid {
                             mod_name: m.name.clone(),
                             generation_type: m.generation_type,
                             other_templates,
-                            other_stat_ids,
+                            other_stat_ids: canonical_other_stat_ids,
                         },
                     });
                 }
