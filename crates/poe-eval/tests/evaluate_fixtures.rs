@@ -571,7 +571,7 @@ fn tier_analysis_belt() {
     let gd = test_game_data(&[]);
     let item = resolve("rare-belt-crafted.txt", &gd);
 
-    let summary = tier::analyze_tiers(&item);
+    let summary = tier::analyze_tiers(&item, &gd);
 
     // Belt has 4 explicit mods: T7, T7, T6, T5 — all mid/low
     // Plus 1 implicit (no tier) + 1 crafted (no tier)
@@ -588,7 +588,7 @@ fn tier_analysis_mixed_tiers() {
     let gd = test_game_data(&[]);
     let item = resolve("rare-axe-fractured.txt", &gd);
 
-    let summary = tier::analyze_tiers(&item);
+    let summary = tier::analyze_tiers(&item, &gd);
 
     // Has T1, T1, T2, T4, T5 — best is Best (T1)
     assert_eq!(summary.best_explicit, TierQuality::Best);
@@ -600,7 +600,7 @@ fn tier_analysis_unique_has_no_tiers() {
     let gd = test_game_data(&[]);
     let item = resolve("unique-ring-ventors-gamble.txt", &gd);
 
-    let summary = tier::analyze_tiers(&item);
+    let summary = tier::analyze_tiers(&item, &gd);
 
     // Unique mods have no tiers — all Unknown
     assert_eq!(summary.worst_explicit, TierQuality::Unknown);
