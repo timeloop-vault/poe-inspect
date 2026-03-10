@@ -674,7 +674,7 @@
 .compound-pred-delete {
 	background: none;
 	border: none;
-	color: var(--tier-low);
+	color: var(--quality-low);
 	font-size: 15px;
 	cursor: pointer;
 	padding: 0 3px;
@@ -781,7 +781,7 @@
 .compound-group-delete {
 	background: none;
 	border: none;
-	color: var(--tier-low);
+	color: var(--quality-low);
 	font-size: 14px;
 	cursor: pointer;
 	padding: 0 3px;
@@ -952,7 +952,7 @@
 	border: 1px solid var(--poe-border);
 	border-radius: 3px;
 	padding: 2px 6px;
-	color: var(--tier-2-3);
+	color: var(--quality-good);
 	font-family: "Consolas", monospace;
 	font-size: 11px;
 	text-align: right;
@@ -1000,7 +1000,7 @@
 .compact-stat-delete {
 	background: none;
 	border: none;
-	color: var(--tier-low);
+	color: var(--quality-low);
 	font-size: 15px;
 	cursor: pointer;
 	padding: 0 3px;

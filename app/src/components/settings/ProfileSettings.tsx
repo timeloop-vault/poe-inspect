@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
 	type DisplayPrefs,
 	type ProfileRole,
+	type QualityColors,
 	type StoredProfile,
-	type TierColors,
 	WATCH_COLORS,
 	WEIGHT_VALUES,
 	type WeightLevel,
@@ -981,7 +981,7 @@ function ScoringRuleEditor({
 					class="btn btn-small"
 					onClick={onDelete}
 					title="Delete rule"
-					style={{ color: "var(--tier-low)" }}
+					style={{ color: "var(--quality-low)" }}
 				>
 					&times;
 				</button>
@@ -1291,28 +1291,32 @@ function DisplayTab({
 	display: DisplayPrefs;
 	onUpdate: (display: DisplayPrefs) => void;
 }) {
-	const { tierColors, highlightWeights, dimIgnored } = display;
+	const { qualityColors, highlightWeights, dimIgnored } = display;
 
-	const updateColor = (key: keyof TierColors, value: string) => {
+	const updateColor = (key: keyof QualityColors, value: string) => {
 		onUpdate({
 			...display,
-			tierColors: { ...tierColors, [key]: value },
+			qualityColors: { ...qualityColors, [key]: value },
 		});
 	};
 
 	return (
 		<>
 			<div class="setting-group">
-				<h3>Tier Colors</h3>
+				<h3>Mod Quality Colors</h3>
 
-				<ColorRow label="T1 (best)" color={tierColors.t1} onChange={(v) => updateColor("t1", v)} />
-				<ColorRow label="T2-T3" color={tierColors.t2_3} onChange={(v) => updateColor("t2_3", v)} />
-				<ColorRow label="T4-T5" color={tierColors.t4_5} onChange={(v) => updateColor("t4_5", v)} />
 				<ColorRow
-					label="T6+ (low)"
-					color={tierColors.low}
-					onChange={(v) => updateColor("low", v)}
+					label="Best"
+					color={qualityColors.best}
+					onChange={(v) => updateColor("best", v)}
 				/>
+				<ColorRow
+					label="Great / Good"
+					color={qualityColors.good}
+					onChange={(v) => updateColor("good", v)}
+				/>
+				<ColorRow label="Mid" color={qualityColors.mid} onChange={(v) => updateColor("mid", v)} />
+				<ColorRow label="Low" color={qualityColors.low} onChange={(v) => updateColor("low", v)} />
 			</div>
 
 			<div class="setting-group">
@@ -1330,28 +1334,32 @@ function DisplayTab({
 						label="P"
 						text="+88 to maximum Life"
 						pct={95}
-						color={tierColors.t1}
+						quality="Best"
+						color={qualityColors.best}
 					/>
 					<PreviewLine
 						tier="T3"
 						label="S"
 						text="+31% Cold Resistance"
 						pct={50}
-						color={tierColors.t2_3}
+						quality="Great"
+						color={qualityColors.good}
 					/>
 					<PreviewLine
 						tier="T5"
 						label="P"
 						text="+12% Spell Damage"
 						pct={20}
-						color={tierColors.t4_5}
+						quality="Mid"
+						color={qualityColors.mid}
 					/>
 					<PreviewLine
 						tier="T8"
 						label="S"
 						text="+14 to Dexterity"
 						pct={25}
-						color={tierColors.low}
+						quality="Low"
+						color={qualityColors.low}
 					/>
 				</div>
 			</div>
@@ -1439,12 +1447,14 @@ function PreviewLine({
 	label,
 	text,
 	pct,
+	quality,
 	color,
 }: {
 	tier: string;
 	label: string;
 	text: string;
 	pct: number;
+	quality: string;
 	color: string;
 }) {
 	return (
@@ -1486,6 +1496,9 @@ function PreviewLine({
 				{label}
 			</span>
 			<span style={{ flex: 1, color }}>{text}</span>
+			<span style={{ fontSize: "10px", color: "var(--poe-text-dim)", marginRight: "4px" }}>
+				{quality}
+			</span>
 			<span style={{ fontSize: "10px", color: "var(--poe-text-dim)" }}>{pct}%</span>
 		</div>
 	);

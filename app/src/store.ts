@@ -52,16 +52,19 @@ export interface HotkeySettings {
 	openSettings: string;
 }
 
-export interface TierColors {
-	t1: string;
-	t2_3: string;
-	t4_5: string;
+export interface QualityColors {
+	best: string;
+	good: string;
+	mid: string;
 	low: string;
 }
 
+/** @deprecated Use QualityColors. Kept for migration from old profiles. */
+export type TierColors = QualityColors;
+
 /** App-owned display preferences (per profile). */
 export interface DisplayPrefs {
-	tierColors: TierColors;
+	qualityColors: QualityColors;
 	highlightWeights: boolean;
 	dimIgnored: boolean;
 }
@@ -115,15 +118,15 @@ export const defaultHotkeys: HotkeySettings = {
 	openSettings: "Ctrl+Shift+I",
 };
 
-export const defaultTierColors: TierColors = {
-	t1: "#38d838",
-	t2_3: "#5c98cf",
-	t4_5: "#c8c0b0",
+export const defaultQualityColors: QualityColors = {
+	best: "#38d838",
+	good: "#5c98cf",
+	mid: "#c8c0b0",
 	low: "#8c7060",
 };
 
 export const defaultDisplay: DisplayPrefs = {
-	tierColors: { ...defaultTierColors },
+	qualityColors: { ...defaultQualityColors },
 	highlightWeights: true,
 	dimIgnored: true,
 };
@@ -213,8 +216,27 @@ export function mergeModWeightsIntoScoring(profile: StoredProfile): StoredProfil
 	};
 }
 
+/** Migrate old tierColors keys (t1/t2_3/t4_5/low) → qualityColors (best/good/mid/low). */
+function migrateQualityColors(display: Record<string, unknown>): QualityColors {
+	// New format: display.qualityColors
+	if ("qualityColors" in display && display.qualityColors) {
+		return display.qualityColors as QualityColors;
+	}
+	// Old format: display.tierColors with t1/t2_3/t4_5/low keys
+	if ("tierColors" in display && display.tierColors) {
+		const old = display.tierColors as Record<string, string>;
+		return {
+			best: old.t1 ?? defaultQualityColors.best,
+			good: old.t2_3 ?? defaultQualityColors.good,
+			mid: old.t4_5 ?? defaultQualityColors.mid,
+			low: old.low ?? defaultQualityColors.low,
+		};
+	}
+	return { ...defaultQualityColors };
+}
+
 /** Migrate old profile format to current format.
- *  Handles: modWeights-only (pre-8D), active→role (pre-8e). */
+ *  Handles: modWeights-only (pre-8D), active→role (pre-8e), tierColors→qualityColors. */
 function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 	let result: StoredProfile;
 
@@ -239,13 +261,14 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 			evalProfile: null,
 			modWeights: [],
 			display: {
-				tierColors: (raw.tierColors as TierColors) ?? { ...defaultTierColors },
+				qualityColors: migrateQualityColors(raw),
 				highlightWeights: (raw.highlightWeights as boolean) ?? true,
 				dimIgnored: (raw.dimIgnored as boolean) ?? true,
 			},
 		};
 	} else {
 		// New format — pass through with defaults for missing fields
+		const rawDisplay = (raw.display as Record<string, unknown>) ?? {};
 		result = {
 			id: (raw.id as string) ?? String(Date.now()),
 			name: (raw.name as string) ?? "Profile",
@@ -253,7 +276,11 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 			watchColor,
 			evalProfile: (raw.evalProfile as EvalProfile | null) ?? null,
 			modWeights: (raw.modWeights as ModWeight[] | undefined) ?? [],
-			display: (raw.display as DisplayPrefs) ?? { ...defaultDisplay },
+			display: {
+				qualityColors: migrateQualityColors(rawDisplay),
+				highlightWeights: (rawDisplay.highlightWeights as boolean) ?? true,
+				dimIgnored: (rawDisplay.dimIgnored as boolean) ?? true,
+			},
 		};
 	}
 
@@ -275,11 +302,11 @@ export async function saveProfiles(profiles: StoredProfile[]): Promise<void> {
 	await store.set("profiles", profiles);
 }
 
-/** Load tier colors from the primary profile (or defaults if none). */
-export async function loadActiveTierColors(): Promise<TierColors> {
+/** Load quality colors from the primary profile (or defaults if none). */
+export async function loadActiveQualityColors(): Promise<QualityColors> {
 	const profiles = await loadProfiles();
 	const primary = profiles.find((p) => p.role === "primary");
-	return primary?.display.tierColors ?? { ...defaultTierColors };
+	return primary?.display.qualityColors ?? { ...defaultQualityColors };
 }
 
 // ── Backend profile sync ──────────────────────────────────────────────────
