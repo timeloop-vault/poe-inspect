@@ -48,6 +48,24 @@ app/
 - Game data — that's `poe-data`
 - **Profile evaluation rules** — that's `poe-eval`. The app provides a UI to build/edit profiles, but the profile format (predicates, rules, scoring weights) is defined by and serialized from poe-eval's types.
 
+## Hard Rule: No Domain Logic in the App
+
+The app is an **orchestrator and renderer**. It calls poe-* crate functions and displays their output. It never compensates for missing crate functionality — it updates the upstream crate instead.
+
+**Rust backend (src-tauri):**
+- Calls `poe_item::parse()` + `poe_item::resolve()` → gets structured item
+- Calls `poe_eval::evaluate_item()` → gets display-ready evaluation result
+- Serializes the result and emits it to the frontend
+- Zero parsing, classification, or evaluation logic
+
+**Concrete test — if you're doing any of these in the app, STOP:**
+- `match` on `ModSlot`, `ModSource`, `InfluenceKind`, or `StatusKind` → belongs in poe-item or poe-eval
+- String-parsing anything from `ResolvedItem` → belongs in poe-item
+- Checking tier ranges, quality thresholds, or mod counts → belongs in poe-eval
+- Any `fn extract_*` or `fn build_*` that reshapes crate types → the crate should expose the right type
+
+**When the crates don't expose what the app needs, update the crate.** The extra rebuild/test cycle is the correct cost. Writing workaround code in the app creates domain leakage that compounds over time.
+
 ## Domain Boundary: Display vs Evaluation
 
 The app owns **display settings**, poe-eval owns **evaluation profiles**. These must not be mixed.
@@ -56,10 +74,6 @@ The app owns **display settings**, poe-eval owns **evaluation profiles**. These 
 |---------|-------|---------|
 | What makes an item good | poe-eval `Profile` | Filter rules, scoring predicates, mod weights |
 | How to show results | app display settings | Tier colors, badge visibility, overlay scale, dim/highlight |
-
-**Current state (needs refactor on integration):** `store.ts` has a `Profile` type that mixes both concerns — `modWeights` is evaluation logic (belongs in poe-eval), while `tierColors`/`dimIgnored`/`highlightWeights` are display settings (stays in app). On integration, split into:
-- `EvalProfile` — poe-eval's `Profile` serialized as JSON (stored/loaded via poe-eval types)
-- `DisplaySettings` — app-owned visual preferences (tier colors, toggles)
 
 ## Build
 
