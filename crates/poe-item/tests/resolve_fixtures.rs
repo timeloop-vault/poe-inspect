@@ -470,6 +470,63 @@ fn unidentified_flag() {
 
 // ─── Divination card ─────────────────────────────────────────────────────────
 
+// ─── Gem data ────────────────────────────────────────────────────────────────
+
+#[test]
+fn gem_tags_extracted() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-skill-shockwave-totem.txt", &gd);
+    let gem = item.gem_data.as_ref().expect("should have gem_data");
+    assert_eq!(gem.tags, vec!["Totem", "Spell", "AoE", "Physical", "Nova"]);
+}
+
+#[test]
+fn gem_description_extracted() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-skill-shockwave-totem.txt", &gd);
+    let gem = item.gem_data.as_ref().expect("should have gem_data");
+    assert!(gem.description.as_ref().unwrap().contains("shakes the earth"));
+}
+
+#[test]
+fn gem_stats_and_quality() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-skill-shockwave-totem.txt", &gd);
+    let gem = item.gem_data.as_ref().expect("should have gem_data");
+    assert!(!gem.stats.is_empty(), "should have stat lines");
+    assert!(!gem.quality_stats.is_empty(), "should have quality stats");
+    assert!(gem.stats.iter().any(|s| s.contains("Physical Damage")));
+    assert!(gem.quality_stats.iter().any(|s| s.contains("radius")));
+}
+
+#[test]
+fn vaal_gem_data() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-vaal-ice-nova.txt", &gd);
+    let gem = item.gem_data.as_ref().expect("should have gem_data");
+    assert_eq!(gem.tags, vec!["Spell", "AoE", "Vaal", "Cold", "Nova"]);
+    assert!(gem.description.as_ref().unwrap().contains("circle of ice"));
+
+    let vaal = gem.vaal.as_ref().expect("should have vaal variant");
+    assert_eq!(vaal.name, "Vaal Ice Nova");
+    assert!(vaal.description.as_ref().unwrap().contains("repeating"));
+    assert!(!vaal.stats.is_empty());
+    assert!(!vaal.quality_stats.is_empty());
+    // Vaal properties (Souls Per Use, etc.)
+    assert!(vaal.properties.iter().any(|p| p.name == "Souls Per Use"));
+}
+
+#[test]
+fn gem_no_unclassified() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-skill-shockwave-totem.txt", &gd);
+    assert!(
+        item.unclassified_sections.is_empty(),
+        "gem should have no unclassified sections: {:?}",
+        item.unclassified_sections
+    );
+}
+
 #[test]
 fn divination_card_resolved() {
     let gd = test_game_data(&[]);
