@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 
 use poe_data::GameData;
 use poe_eval::{Profile, WatchingProfileInput};
-use poe_trade::{TradeClient, TradeQueryConfig, TradeStatsIndex, TradeStatsResponse};
+use poe_trade::{LeagueList, TradeClient, TradeQueryConfig, TradeStatsIndex, TradeStatsResponse};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
@@ -641,6 +641,15 @@ async fn refresh_trade_stats(
     Ok(matched)
 }
 
+/// Fetch the list of active leagues from GGG.
+#[tauri::command]
+async fn fetch_leagues(
+    trade: tauri::State<'_, TradeState>,
+) -> Result<LeagueList, String> {
+    let client = trade.client.lock().await;
+    client.fetch_leagues().await.map_err(|e| e.to_string())
+}
+
 /// Return the path for the cached trade stats JSON.
 fn trade_stats_cache_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
     app.path()
@@ -788,6 +797,7 @@ pub fn run() {
             price_check,
             trade_search_url,
             refresh_trade_stats,
+            fetch_leagues,
         ])
         .setup(|app| {
             // --- System tray ---

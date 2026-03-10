@@ -39,6 +39,14 @@ export type { FieldKind } from "./generated/FieldKind";
 export type { EnumOption } from "./generated/EnumOption";
 export type { Cmp } from "./generated/Cmp";
 
+// Trade types (from poe-trade)
+export type { TradeQueryConfig } from "./generated/TradeQueryConfig";
+export type { PriceCheckResult } from "./generated/PriceCheckResult";
+export type { Price } from "./generated/Price";
+export type { League } from "./generated/League";
+export type { LeagueList } from "./generated/LeagueList";
+export type { QueryBuildResult } from "./generated/QueryBuildResult";
+
 // ── App-owned combined payload ──────────────────────────────────────────────
 // Matches the Rust `ItemPayload` struct in app/src-tauri/src/lib.rs.
 
