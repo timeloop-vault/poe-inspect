@@ -14,7 +14,7 @@ total: number,
  */
 maxPossible: number, 
 /**
- * Percentage (total / max_possible * 100), clamped to 0-100.
+ * Percentage (total / `max_possible` * 100), clamped to 0-100.
  */
 percent: number, 
 /**

@@ -179,7 +179,7 @@ export function PredicateEditor({
 			invoke<StatSuggestion[]>("get_stat_suggestions", { query: value }).then((suggestions) => {
 				const single = suggestions.find((s) => s.kind.type === "Single" && s.template === value);
 				if (single && single.stat_ids.length > 0) {
-					onChange({ ...updated, stat_id: single.stat_ids[0] } as Rule);
+					onChange({ ...updated, stat_ids: single.stat_ids } as Rule);
 				} else {
 					onChange(updated);
 				}
@@ -318,7 +318,7 @@ function StatValueEditor({
 	const handleTextInput = (text: string) => {
 		// User is typing — stay in / return to autocomplete phase
 		const newConds = [...conditions];
-		newConds[0] = { ...conditions[0], text };
+		newConds[0] = { ...(conditions[0] ?? defaultCondition()), text };
 		onChange({ ...rule, conditions: newConds } as Rule);
 		setPickedTemplate(null);
 		setHybridOptions([]);
@@ -334,12 +334,12 @@ function StatValueEditor({
 		// and the separate hybrid check.
 		invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((suggestions) => {
 			const single = suggestions.find((s) => s.kind.type === "Single" && s.template === template);
-			const statId = single?.stat_ids[0];
+			const statIds = single?.stat_ids ?? [];
 
-			const cond: StatCondition = { ...defaultCondition(), text: template, stat_id: statId };
+			const cond: StatCondition = { ...defaultCondition(), text: template, stat_ids: statIds };
 			onChange({ ...rule, conditions: [cond] } as Rule);
 
-			if (statId) {
+			if (statIds.length > 0) {
 				const hybrids = suggestions.filter(
 					(s) =>
 						s.kind.type === "Hybrid" &&
@@ -367,14 +367,14 @@ function StatValueEditor({
 		const h = suggestion.kind;
 		const primaryCond: StatCondition = {
 			text: suggestion.template,
-			stat_id: suggestion.stat_ids[0],
+			stat_ids: suggestion.stat_ids,
 			value_index: 0,
 			op: conditions[0]?.op ?? "Ge",
 			value: conditions[0]?.value ?? 0,
 		};
 		const otherConds: StatCondition[] = h.other_templates.map((template, i) => ({
 			text: template,
-			stat_id: h.other_stat_ids[i],
+			stat_ids: h.other_stat_ids[i] ? [h.other_stat_ids[i]] : [],
 			value_index: 0,
 			op: "Ge" as const,
 			value: 0,
@@ -514,8 +514,8 @@ function StatValueEditor({
 				{conditions.map((cond, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: conditions have no stable ID
 					<div key={i} class="stat-value-condition">
-						<span class="stat-value-condition-label" title={cond.stat_id ?? ""}>
-							{cond.text || cond.stat_id || `Condition ${i + 1}`}
+						<span class="stat-value-condition-label" title={cond.stat_ids?.join(", ") ?? ""}>
+							{cond.text || cond.stat_ids?.[0] || `Condition ${i + 1}`}
 						</span>
 						<ComparisonField
 							label=""

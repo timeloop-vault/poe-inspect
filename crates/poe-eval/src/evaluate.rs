@@ -98,11 +98,11 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
 
         Predicate::RollPercent {
             text: _,
-            stat_id,
+            stat_ids,
             value_index,
             op,
             value,
-        } => find_matching_stats(item, stat_id.as_deref()).any(|sl| {
+        } => find_matching_stats(item, stat_ids).any(|sl| {
             sl.values.get(*value_index).is_some_and(|vr| {
                 let span = vr.max - vr.min;
                 if span == 0 {
@@ -181,7 +181,7 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
     }
     if conditions.len() == 1 {
         let c = &conditions[0];
-        return find_matching_stats(item, c.stat_id.as_deref()).any(|sl| {
+        return find_matching_stats(item, &c.stat_ids).any(|sl| {
             sl.values
                 .get(c.value_index)
                 .is_some_and(|v| c.op.eval(&v.current, &c.value))
@@ -190,16 +190,15 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
     // 2+ conditions: all must match on the SAME mod.
     item.all_mods().any(|m| {
         conditions.iter().all(|c| {
-            let sid = c.stat_id.as_deref().unwrap_or("");
-            if sid.is_empty() {
+            if c.stat_ids.is_empty() {
                 return false;
             }
             m.stat_lines.iter().any(|sl| {
                 !sl.is_reminder
-                    && sl
-                        .stat_ids
-                        .as_ref()
-                        .is_some_and(|ids| ids.iter().any(|id| id == sid))
+                    && sl.stat_ids.as_ref().is_some_and(|ids| {
+                        ids.iter()
+                            .any(|id| c.stat_ids.iter().any(|sid| sid == id))
+                    })
                     && sl
                         .values
                         .get(c.value_index)
@@ -235,21 +234,19 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
     max_u32.saturating_sub(current)
 }
 
-/// Iterate all non-reminder stat lines matching by `stat_id`.
-/// Returns no matches if `stat_id` is None (rules must have a resolved `stat_id`).
+/// Iterate all non-reminder stat lines matching any of the given `stat_ids`.
+/// Returns no matches if `stat_ids` is empty.
 fn find_matching_stats<'a>(
     item: &'a ResolvedItem,
-    stat_id: Option<&'a str>,
+    stat_ids: &'a [String],
 ) -> impl Iterator<Item = &'a poe_item::types::ResolvedStatLine> {
-    let sid = stat_id.unwrap_or("");
     item.all_mods()
         .flat_map(|m| &m.stat_lines)
         .filter(move |sl| {
             !sl.is_reminder
-                && !sid.is_empty()
-                && sl
-                    .stat_ids
-                    .as_ref()
-                    .is_some_and(|ids| ids.iter().any(|id| id == sid))
+                && !stat_ids.is_empty()
+                && sl.stat_ids.as_ref().is_some_and(|ids| {
+                    ids.iter().any(|id| stat_ids.iter().any(|sid| sid == id))
+                })
         })
 }
