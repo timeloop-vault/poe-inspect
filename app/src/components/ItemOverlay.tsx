@@ -63,21 +63,20 @@ function rarityColor(rarity: Rarity): string {
 	}
 }
 
-/** CSS class for tier coloring — driven by quality from poe-data, not raw tier number. */
-function tierClass(mod: Modifier): string {
+/** CSS class for mod quality coloring — maps poe-eval quality to CSS class. */
+function qualityClass(mod: Modifier): string {
 	switch (mod.quality) {
 		case "best":
-			return "tier-1";
+			return "quality-best";
 		case "great":
-			return "tier-2-3";
 		case "good":
-			return "tier-2-3";
+			return "quality-good";
 		case "mid":
-			return "tier-4-5";
+			return "quality-mid";
 		case "low":
-			return "tier-low";
+			return "quality-low";
 		default:
-			return "tier-none";
+			return "quality-none";
 	}
 }
 
@@ -172,13 +171,13 @@ export const defaultDisplay: DisplaySettings = {
 function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) {
 	const quality = rollQuality(mod);
 	const typeLabel = modTypeLabel(mod);
-	const tierCls = mod.type === "unique" ? "tier-unique" : tierClass(mod);
+	const qualityCls = mod.type === "unique" ? "quality-unique" : qualityClass(mod);
 
 	return (
-		<div class={`mod-line ${tierCls}`}>
+		<div class={`mod-line ${qualityCls}`}>
 			<div class="mod-badges">
 				{display.showTierBadges && mod.tier != null && (
-					<span class={`tier-badge ${tierCls}`}>{tierBadgeLabel(mod)}</span>
+					<span class={`tier-badge ${qualityCls}`}>{tierBadgeLabel(mod)}</span>
 				)}
 				{display.showTypeBadges && typeLabel !== null && (
 					<span class={`type-badge type-${mod.type}`}>{typeLabel}</span>

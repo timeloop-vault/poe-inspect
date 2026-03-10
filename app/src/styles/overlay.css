@@ -58,12 +58,12 @@
 	--rarity-gem: rgb(27, 162, 155);
 	--rarity-currency: rgb(170, 158, 130);
 
-	/* Tier colors (community-known, not in dat tables) */
-	--tier-1: #38d838;
-	--tier-2-3: #5c98cf;
-	--tier-4-5: #c8c0b0;
-	--tier-low: #8c7060;
-	--tier-unique: rgb(175, 96, 37);
+	/* Mod quality colors (set by user, overridden via JS) */
+	--quality-best: #38d838;
+	--quality-good: #5c98cf;
+	--quality-mid: #c8c0b0;
+	--quality-low: #8c7060;
+	--quality-unique: rgb(175, 96, 37);
 
 	/* Roll quality colors */
 	--roll-high: #38d838;
@@ -414,27 +414,27 @@ body,
 	text-align: center;
 }
 
-.tier-badge.tier-1 {
+.tier-badge.quality-best {
 	background: rgba(56, 216, 56, 0.2);
-	color: var(--tier-1);
+	color: var(--quality-best);
 	border: 1px solid rgba(56, 216, 56, 0.4);
 }
 
-.tier-badge.tier-2-3 {
+.tier-badge.quality-good {
 	background: rgba(92, 152, 207, 0.15);
-	color: var(--tier-2-3);
+	color: var(--quality-good);
 	border: 1px solid rgba(92, 152, 207, 0.3);
 }
 
-.tier-badge.tier-4-5 {
+.tier-badge.quality-mid {
 	background: rgba(200, 192, 176, 0.1);
-	color: var(--tier-4-5);
+	color: var(--quality-mid);
 	border: 1px solid rgba(200, 192, 176, 0.2);
 }
 
-.tier-badge.tier-low {
+.tier-badge.quality-low {
 	background: rgba(140, 112, 96, 0.15);
-	color: var(--tier-low);
+	color: var(--quality-low);
 	border: 1px solid rgba(140, 112, 96, 0.3);
 }
 
@@ -470,27 +470,27 @@ body,
 
 /* Mod text coloring by tier */
 
-.mod-line.tier-1 .mod-content {
-	color: var(--tier-1);
+.mod-line.quality-best .mod-content {
+	color: var(--quality-best);
 }
 
-.mod-line.tier-2-3 .mod-content {
-	color: var(--tier-2-3);
+.mod-line.quality-good .mod-content {
+	color: var(--quality-good);
 }
 
-.mod-line.tier-4-5 .mod-content {
-	color: var(--tier-4-5);
+.mod-line.quality-mid .mod-content {
+	color: var(--quality-mid);
 }
 
-.mod-line.tier-low .mod-content {
-	color: var(--tier-low);
+.mod-line.quality-low .mod-content {
+	color: var(--quality-low);
 }
 
-.mod-line.tier-unique .mod-content {
-	color: var(--tier-unique);
+.mod-line.quality-unique .mod-content {
+	color: var(--quality-unique);
 }
 
-.mod-line.tier-none .mod-content {
+.mod-line.quality-none .mod-content {
 	color: var(--poe-text);
 }
 
@@ -631,13 +631,13 @@ body,
 }
 
 .score-value.score-high {
-	color: var(--tier-1);
+	color: var(--quality-best);
 }
 .score-value.score-mid {
-	color: var(--tier-2-3);
+	color: var(--quality-good);
 }
 .score-value.score-low {
-	color: var(--tier-low);
+	color: var(--quality-low);
 }
 
 .score-bar {
@@ -655,13 +655,13 @@ body,
 }
 
 .score-fill.score-high {
-	background: var(--tier-1);
+	background: var(--quality-best);
 }
 .score-fill.score-mid {
-	background: var(--tier-2-3);
+	background: var(--quality-good);
 }
 .score-fill.score-low {
-	background: var(--tier-low);
+	background: var(--quality-low);
 }
 
 .score-details {
@@ -675,10 +675,10 @@ body,
 }
 
 .score-rule.matched .rule-check {
-	color: var(--tier-1);
+	color: var(--quality-best);
 }
 .score-rule.unmatched .rule-check {
-	color: var(--tier-low);
+	color: var(--quality-low);
 	opacity: 0.6;
 }
 .score-rule.unmatched .rule-label {

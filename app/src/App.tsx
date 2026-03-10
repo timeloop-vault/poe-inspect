@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
 import { mockItems } from "./mock-data";
 import {
-	type TierColors,
-	loadActiveTierColors,
+	type QualityColors,
+	loadActiveQualityColors,
 	loadGeneral,
 	loadHotkeys,
 	syncActiveProfile,
@@ -99,7 +99,7 @@ export function App() {
 		showTypeBadges: true,
 		showOpenAffixes: true,
 	});
-	const [tierColors, setTierColors] = useState<TierColors | null>(null);
+	const [qualityColors, setQualityColors] = useState<QualityColors | null>(null);
 	const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({
 		x: 200,
 		y: 100,
@@ -131,7 +131,7 @@ export function App() {
 			loadHotkeys().then((h) => {
 				dismissKeyRef.current = h.dismissOverlay;
 			});
-			loadActiveTierColors().then(setTierColors);
+			loadActiveQualityColors().then(setQualityColors);
 			syncActiveProfile();
 		};
 		reloadSettings();
@@ -224,11 +224,11 @@ export function App() {
 		panelStyle.transform = `scale(${zoom})`;
 		panelStyle.transformOrigin = pos.anchor === "right" ? "top right" : "top left";
 	}
-	if (tierColors) {
-		panelStyle["--tier-1"] = tierColors.t1;
-		panelStyle["--tier-2-3"] = tierColors.t2_3;
-		panelStyle["--tier-4-5"] = tierColors.t4_5;
-		panelStyle["--tier-low"] = tierColors.low;
+	if (qualityColors) {
+		panelStyle["--quality-best"] = qualityColors.best;
+		panelStyle["--quality-good"] = qualityColors.good;
+		panelStyle["--quality-mid"] = qualityColors.mid;
+		panelStyle["--quality-low"] = qualityColors.low;
 	}
 
 	// Determine content to display
