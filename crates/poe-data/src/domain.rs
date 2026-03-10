@@ -149,3 +149,21 @@ pub fn rarity_to_ggpk_id(rarity: &str) -> Option<&'static str> {
         _ => None,
     }
 }
+
+// ── Trade API stat suffixes ─────────────────────────────────────────────────
+//
+// WHY HARDCODED: The trade API at pathofexile.com appends classification
+// suffixes to certain stat descriptions to distinguish local mods from global
+// ones. These suffixes don't exist in the GGPK's stat_descriptions.txt format
+// strings — they're added by GGG's trade system. When matching trade API stat
+// text against our ReverseIndex templates, these suffixes must be stripped.
+//
+// Known suffixes (verified against 3.28 Mirage trade API):
+// - "(Local)" — weapon/armour local mods (e.g., "+# to Armour (Local)")
+// - "(Shields)" — shield-specific mods (e.g., "+#% Chance to Block (Shields)")
+
+/// Suffixes that GGG's trade API appends to stat descriptions.
+///
+/// These are not part of the GGPK stat_descriptions.txt format strings.
+/// Used by `poe-trade` when matching trade API text against the reverse index.
+pub const TRADE_STAT_SUFFIXES: &[&str] = &[" (Local)", " (Shields)"];
