@@ -66,14 +66,15 @@ fn analyze_mod(m: &ResolvedMod) -> ModTierInfo {
 
 /// Analyze all mods on an item.
 pub fn analyze_tiers(item: &ResolvedItem) -> ItemTierSummary {
-    let mods: Vec<ModTierInfo> = item.mods.iter().map(analyze_mod).collect();
+    let all_mods: Vec<&ResolvedMod> = item.all_mods().collect();
+    let mods: Vec<ModTierInfo> = all_mods.iter().map(|m| analyze_mod(m)).collect();
 
     let mut worst_explicit = TierQuality::Best;
     let mut best_explicit = TierQuality::Low;
     let mut counts = QualityCounts::default();
     let mut has_explicit = false;
 
-    for (info, resolved_mod) in mods.iter().zip(&item.mods) {
+    for (info, resolved_mod) in mods.iter().zip(&all_mods) {
         // Only count natural prefix/suffix for explicit tier summary
         // (skip implicits, crafted mods, influence mods, uniques)
         if !matches!(info.slot, ModSlot::Prefix | ModSlot::Suffix) {

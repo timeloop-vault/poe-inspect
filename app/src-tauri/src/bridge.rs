@@ -10,7 +10,7 @@ use poe_eval::affix::{self, Modifiability};
 use poe_eval::profile::Profile;
 use poe_eval::tier;
 use poe_item::types::{
-    InfluenceKind, ModSlot, ModSource, ModTierKind, Rarity, ResolvedItem, ResolvedMod, StatusKind,
+    InfluenceKind, ModSource, Rarity, ResolvedItem, ResolvedMod,
 };
 use serde::Serialize;
 use ts_rs::TS;
@@ -146,31 +146,16 @@ pub fn build_evaluated_item(
     let tier_summary = tier::analyze_tiers(item);
     let affix_summary = affix::analyze_affixes(item, gd);
 
-    let corrupted = item
-        .statuses
-        .iter()
-        .any(|s| matches!(s, StatusKind::Corrupted));
-    let fractured = item
-        .influences
-        .iter()
-        .any(|i| matches!(i, InfluenceKind::Fractured));
-
-    // Split mods into implicits and explicits
+    // Build display mods from pre-split implicits/explicits with tier info
+    let all_mods: Vec<_> = item.all_mods().collect();
     let mut implicits = Vec::new();
     let mut explicits = Vec::new();
 
-    for (resolved_mod, tier_info) in item.mods.iter().zip(&tier_summary.mods) {
+    for (resolved_mod, tier_info) in all_mods.iter().zip(&tier_summary.mods) {
         let modifier = build_modifier(resolved_mod, tier_info.tier, tier_info.quality);
-
-        match resolved_mod.header.slot {
-            ModSlot::Implicit
-            | ModSlot::SearingExarchImplicit
-            | ModSlot::EaterOfWorldsImplicit => {
-                implicits.push(modifier);
-            }
-            ModSlot::Prefix | ModSlot::Suffix | ModSlot::Unique => {
-                explicits.push(modifier);
-            }
+        match resolved_mod.display_type() {
+            poe_item::types::ModDisplayType::Implicit => implicits.push(modifier),
+            _ => explicits.push(modifier),
         }
     }
 
@@ -192,18 +177,22 @@ pub fn build_evaluated_item(
         .map(|i| i.to_string())
         .collect();
 
-    // Properties from generic sections (simplified — first generic section as properties)
-    let properties = extract_properties(item);
-
-    // Flavor text: last generic section if it looks like flavor text (no colon lines)
-    let flavor_text = extract_flavor_text(item);
+    // Properties from poe-item (already parsed)
+    let properties = item
+        .properties
+        .iter()
+        .map(|p| ItemProperty {
+            name: p.name.clone(),
+            value: p.value.clone(),
+            augmented: p.augmented,
+        })
+        .collect();
 
     // Evaluate watching profiles
     let watching_scores = watching
         .iter()
         .filter_map(|w| {
             let score = build_score_info(item, &w.profile, gd);
-            // Only include if the filter passes and at least one rule matched
             if score.applicable && score.total > 0.0 {
                 Some(WatchingScoreInfo {
                     profile_name: w.name.clone(),
@@ -229,13 +218,13 @@ pub fn build_evaluated_item(
         properties,
         requirements,
         sockets: item.sockets.clone(),
-        enchants: vec![], // TODO: enchants need section classification in poe-item
+        enchants: vec![],
         implicits,
         explicits,
         influences,
-        corrupted: if corrupted { Some(true) } else { None },
-        fractured: if fractured { Some(true) } else { None },
-        flavor_text,
+        corrupted: if item.is_corrupted { Some(true) } else { None },
+        fractured: if item.is_fractured { Some(true) } else { None },
+        flavor_text: item.flavor_text.clone(),
         open_prefixes: affix_summary.prefixes.open.unwrap_or(0),
         open_suffixes: affix_summary.suffixes.open.unwrap_or(0),
         max_prefixes: affix_summary.prefixes.max.unwrap_or(0),
@@ -280,20 +269,19 @@ fn build_score_info(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> Sc
 }
 
 fn build_modifier(m: &ResolvedMod, tier_num: Option<u32>, quality: TierQuality) -> Modifier {
-    let mod_type = match (m.header.slot, m.header.source) {
-        (_, ModSource::MasterCrafted) => BridgeModType::Crafted,
-        (ModSlot::Prefix, _) => BridgeModType::Prefix,
-        (ModSlot::Suffix, _) => BridgeModType::Suffix,
-        (ModSlot::Implicit | ModSlot::SearingExarchImplicit | ModSlot::EaterOfWorldsImplicit, _) => {
-            BridgeModType::Implicit
-        }
-        (ModSlot::Unique, _) => BridgeModType::Unique,
+    let mod_type = match m.display_type() {
+        poe_item::types::ModDisplayType::Prefix => BridgeModType::Prefix,
+        poe_item::types::ModDisplayType::Suffix => BridgeModType::Suffix,
+        poe_item::types::ModDisplayType::Implicit => BridgeModType::Implicit,
+        poe_item::types::ModDisplayType::Enchant => BridgeModType::Enchant,
+        poe_item::types::ModDisplayType::Unique => BridgeModType::Unique,
+        poe_item::types::ModDisplayType::Crafted => BridgeModType::Crafted,
     };
 
-    // Tier kind: tier for regular mods, rank for bench crafts
-    let tier_kind = m.header.tier.as_ref().map(|t| match t {
-        ModTierKind::Tier(_) => BridgeTierKind::Tier,
-        ModTierKind::Rank(_) => BridgeTierKind::Rank,
+    // Tier kind from poe-item's method
+    let tier_kind = m.header.tier.as_ref().map(|t| match t.display_kind() {
+        poe_item::types::TierDisplayKind::Tier => BridgeTierKind::Tier,
+        poe_item::types::TierDisplayKind::Rank => BridgeTierKind::Rank,
     });
 
     // Quality from poe-data classification (None for Unknown)
@@ -327,11 +315,6 @@ fn build_modifier(m: &ResolvedMod, tier_num: Option<u32>, quality: TierQuality) 
         None => (None, None, None),
     };
 
-    let is_fractured = m
-        .stat_lines
-        .iter()
-        .any(|sl| sl.raw_text.ends_with("(fractured)"));
-
     Modifier {
         mod_name: m.header.name.clone(),
         mod_type,
@@ -348,32 +331,8 @@ fn build_modifier(m: &ResolvedMod, tier_num: Option<u32>, quality: TierQuality) 
         } else {
             None
         },
-        fractured: if is_fractured { Some(true) } else { None },
+        fractured: if m.is_fractured { Some(true) } else { None },
     }
-}
-
-/// Extract property lines from generic sections.
-/// Properties are lines containing `: ` (e.g., "Armour: 890 (augmented)").
-fn extract_properties(item: &ResolvedItem) -> Vec<ItemProperty> {
-    let mut props = Vec::new();
-    for section in &item.properties {
-        for line in section {
-            if let Some((name, rest)) = line.split_once(": ") {
-                let augmented = rest.contains("(augmented)");
-                let value = rest
-                    .replace(" (augmented)", "")
-                    .replace("(augmented)", "")
-                    .trim()
-                    .to_string();
-                props.push(ItemProperty {
-                    name: name.to_string(),
-                    value,
-                    augmented,
-                });
-            }
-        }
-    }
-    props
 }
 
 // ── Bridge-specific enums ────────────────────────────────────────────────────
@@ -404,13 +363,3 @@ pub enum BridgeTierKind {
     Rank,
 }
 
-/// Extract flavor text — last generic section that has no colon-lines.
-fn extract_flavor_text(item: &ResolvedItem) -> Option<String> {
-    if let Some(last) = item.properties.last() {
-        let has_colon = last.iter().any(|l| l.contains(": "));
-        if !has_colon && !last.is_empty() {
-            return Some(last.join("\n"));
-        }
-    }
-    None
-}
