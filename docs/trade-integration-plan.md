@@ -79,22 +79,25 @@ struct TradeStatsIndex {
 2. **Stat filters**: For each `ResolvedMod`:
    - Get `stat_ids` from each `ResolvedStatLine`
    - Look up trade stat number in `TradeStatsIndex`
-   - Determine category prefix from `ModDisplayType` / `ModSlot`:
-     - `Prefix`/`Suffix` → `"explicit."`
+   - Determine category prefix from `ModDisplayType` + `is_fractured`:
+     - `Prefix`/`Suffix`/`Unique` → `"explicit."` (unless fractured)
      - `Implicit` → `"implicit."`
      - `Enchant` → `"enchant."`
      - `Crafted` → `"crafted."`
-     - Fractured → `"fractured."` (overrides explicit)
+     - `is_fractured` → `"fractured."` (overrides explicit)
    - Combine: `"explicit.stat_3299347043"`
-3. **Value relaxation**: Default `min = floor(value × 0.85)`, no max. Configurable.
-4. **Item filters**: Rarity, item class (via `poe-data` domain mapping), ilvl, corrupted, influences
+3. **Value relaxation**: `min = floor(value × factor)`, no max. Handles negative values correctly (relaxation widens in the appropriate direction). Multi-value stats (e.g., "Adds # to #") use the average.
+4. **Item filters**: Rarity (`nonunique` for rare/magic/normal), corrupted, fractured, unidentified
 5. **Output**: Serializable `TradeSearchBody` ready for POST
+6. **Diagnostics**: `QueryBuildResult` reports mapped/total/unmapped stats
 
-**Item class → trade category**: `poe-data/src/domain.rs` owns this mapping (e.g., `"Body Armours"` → `"armour.body"`). It's PoE domain knowledge.
+**Item class → trade category**: TODO for Phase 5 — `poe-data/src/domain.rs` will own this mapping (e.g., `"Body Armours"` → `"armour.body"`). Currently searches by base type alone.
 
-**Trade URL**: `https://www.pathofexile.com/trade/search/{league}/{search_id}`
+**Trade URL**: `https://www.pathofexile.com/trade/search/{league}/{search_id}` — `trade_url()` helper.
 
-**Done when**: Can construct a valid trade query JSON from a parsed item fixture.
+**ts-rs**: All APP-facing types export to TypeScript (`TradeQueryConfig`, `Price`, `PriceCheckResult`, `QueryBuildResult`, `TradeSearchBody`, etc.)
+
+**Current status (Phase 2 done)**: 26 tests. Tested against 4 real item fixtures (rare body armour, rare weapon, fractured axe, corrupted amulet). Produces valid trade API JSON. ~85% stat mapping rate per item (remainder are stats not yet in our reverse index).
 
 ---
 

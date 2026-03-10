@@ -4,7 +4,7 @@ Trade API client for pathofexile.com — fetches trade stats, builds search quer
 
 ## Status
 
-**Phase 1 done** — Trade stats index: 87.4% match rate, 7,037 GGPK stat IDs mapped. 11 tests. Remaining 12.6% gap is from unparsed stat description files in poe-dat (atlas, map, sanctum, heist — see `docs/trade-integration-plan.md` gap analysis). See plan for phases 2-5.
+**Phase 2 done** — Query builder: `ResolvedItem` → trade search body with stat filters, value relaxation, item filters. 26 tests (10 unit + 8 query builder + 8 stats index). ts-rs exports for all APP-facing types. See plan for phases 3-5.
 
 ## Scope
 
@@ -73,6 +73,7 @@ poe-eval  poe-trade
 - `serde` / `serde_json` — API response parsing, query serialization
 - `thiserror` — error types
 - `tracing` — logging
+- `ts-rs` — TypeScript type generation (feature-gated `ts`)
 
 ## Plan
 

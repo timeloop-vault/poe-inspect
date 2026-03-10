@@ -167,3 +167,40 @@ pub fn rarity_to_ggpk_id(rarity: &str) -> Option<&'static str> {
 /// These are not part of the GGPK stat_descriptions.txt format strings.
 /// Used by `poe-trade` when matching trade API text against the reverse index.
 pub const TRADE_STAT_SUFFIXES: &[&str] = &[" (Local)", " (Shields)"];
+
+// ── Trade API mod category prefixes ─────────────────────────────────────────
+//
+// WHY HARDCODED: The trade API at pathofexile.com categorizes stat filters
+// by mod source (explicit, implicit, crafted, enchant, fractured). This
+// mapping from mod display types to trade API category prefix strings is
+// GGG trade system knowledge — it determines which stat pool a filter
+// searches against. Fractured mods override the normal prefix even though
+// the underlying mod is a prefix/suffix. Unique-item mods use "explicit"
+// because the trade API has no dedicated unique category.
+//
+// Known categories (verified against 3.28 Mirage trade API):
+// - "explicit" — prefix, suffix, and unique-item mods
+// - "implicit" — all implicit mods (standard, Searing Exarch, Eater of Worlds)
+// - "crafted" — bench-crafted mods
+// - "enchant" — enchantments
+// - "fractured" — fractured mods (overrides explicit)
+
+/// Map a mod's display type to the trade API stat category prefix.
+///
+/// `display_type` is one of: `"prefix"`, `"suffix"`, `"implicit"`, `"crafted"`,
+/// `"enchant"`, `"unique"` (matching `poe-item`'s `ModDisplayType` serialization).
+///
+/// Returns `"explicit"` for unknown display types.
+#[must_use]
+pub fn mod_trade_category(display_type: &str, is_fractured: bool) -> &'static str {
+    if is_fractured {
+        return "fractured";
+    }
+    match display_type {
+        "implicit" => "implicit",
+        "crafted" => "crafted",
+        "enchant" => "enchant",
+        // prefix, suffix, unique, and any unknown → explicit
+        _ => "explicit",
+    }
+}
