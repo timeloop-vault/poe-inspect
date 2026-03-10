@@ -466,7 +466,7 @@ Also consider "wrap in group" right-click action for restructuring existing cond
 
 #### Phase 8c: Rule Builder UX Redesign
 
-**Status: PLANNED**
+**Status: DONE**
 
 The 8b tree editor works functionally but the UX is poor — compound rules are
 verbose, hard to scan, and awkward to edit. Redesign based on UX research across

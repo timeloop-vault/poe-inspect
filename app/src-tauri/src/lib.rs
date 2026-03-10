@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 
 use poe_data::GameData;
 use poe_eval::{Profile, WatchingProfileInput};
+use poe_trade::{TradeClient, TradeQueryConfig, TradeStatsIndex, TradeStatsResponse};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
@@ -28,6 +29,16 @@ struct ProfileSet {
 
 /// Active evaluation profiles, loaded from JSON data files.
 struct ProfileState(Mutex<ProfileSet>);
+
+/// Trade API client + stats index, managed as Tauri state.
+///
+/// Uses `tokio::sync::Mutex` because `TradeClient` methods take `&mut self`
+/// and are async (held across `.await` points). The `RwLock` lets multiple
+/// commands read the index concurrently while only `refresh` writes it.
+struct TradeState {
+    client: tokio::sync::Mutex<TradeClient>,
+    index: tokio::sync::RwLock<Option<TradeStatsIndex>>,
+}
 
 /// Combined frontend payload: item display data + evaluation results.
 /// Owned by the app — this is orchestration, not domain logic.
@@ -529,6 +540,129 @@ fn resolve_stat_template(template: &str, gd: tauri::State<'_, GameDataState>) ->
         .unwrap_or_default()
 }
 
+// ── Trade commands (async) ──────────────────────────────────────────────────
+
+/// Full price check: parse item → build query → search → fetch prices.
+///
+/// Returns prices from the cheapest listings, or an error string.
+#[tauri::command]
+async fn price_check(
+    item_text: String,
+    config: TradeQueryConfig,
+    gd: tauri::State<'_, GameDataState>,
+    trade: tauri::State<'_, TradeState>,
+) -> Result<poe_trade::PriceCheckResult, String> {
+    let gd = &gd.0;
+
+    let raw = poe_item::parse(&item_text).map_err(|e| format!("Parse error: {e}"))?;
+    let resolved = poe_item::resolve(&raw, gd);
+
+    let index_guard = trade.index.read().await;
+    let index = index_guard
+        .as_ref()
+        .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
+
+    let query_result = poe_trade::build_query(&resolved, index, &config);
+    // Release the read lock before acquiring the client mutex.
+    drop(index_guard);
+
+    let mut client = trade.client.lock().await;
+    client
+        .price_check(&query_result.body, &config)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Build a trade query and return the trade site URL (no fetch).
+///
+/// Useful for "open on trade site" without waiting for price results.
+#[tauri::command]
+async fn trade_search_url(
+    item_text: String,
+    config: TradeQueryConfig,
+    gd: tauri::State<'_, GameDataState>,
+    trade: tauri::State<'_, TradeState>,
+) -> Result<String, String> {
+    let gd = &gd.0;
+
+    let raw = poe_item::parse(&item_text).map_err(|e| format!("Parse error: {e}"))?;
+    let resolved = poe_item::resolve(&raw, gd);
+
+    let index_guard = trade.index.read().await;
+    let index = index_guard
+        .as_ref()
+        .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
+
+    let query_result = poe_trade::build_query(&resolved, index, &config);
+    drop(index_guard);
+
+    let mut client = trade.client.lock().await;
+    let search = client
+        .search(&query_result.body, &config.league)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(poe_trade::query::trade_url(&config.league, &search.id))
+}
+
+/// Fetch live trade stats from the API, rebuild the index, and cache to disk.
+///
+/// Returns the number of stats mapped (GGPK → trade).
+#[tauri::command]
+async fn refresh_trade_stats(
+    app: tauri::AppHandle,
+    gd: tauri::State<'_, GameDataState>,
+    trade: tauri::State<'_, TradeState>,
+) -> Result<u32, String> {
+    let client = trade.client.lock().await;
+    let response = client.fetch_stats().await.map_err(|e| e.to_string())?;
+    drop(client);
+
+    // Cache raw response to disk.
+    if let Some(cache_path) = trade_stats_cache_path(&app) {
+        if let Ok(json) = serde_json::to_string(&response) {
+            let _ = std::fs::create_dir_all(cache_path.parent().unwrap());
+            if let Err(e) = std::fs::write(&cache_path, json) {
+                eprintln!("Failed to cache trade stats: {e}");
+            }
+        }
+    }
+
+    let result = TradeStatsIndex::from_response(&response, &gd.0);
+    let matched = result.matched;
+
+    eprintln!(
+        "[trade] Refreshed index: {}/{} matched",
+        result.matched,
+        result.matched + result.unmatched,
+    );
+
+    *trade.index.write().await = Some(result.index);
+    Ok(matched)
+}
+
+/// Return the path for the cached trade stats JSON.
+fn trade_stats_cache_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    app.path()
+        .app_data_dir()
+        .ok()
+        .map(|dir| dir.join("trade_stats.json"))
+}
+
+/// Try to load the trade stats index from disk cache.
+fn load_cached_trade_index(app: &tauri::AppHandle, gd: &GameData) -> Option<TradeStatsIndex> {
+    let path = trade_stats_cache_path(app)?;
+    let data = std::fs::read_to_string(&path).ok()?;
+    let response: TradeStatsResponse = serde_json::from_str(&data).ok()?;
+    let result = TradeStatsIndex::from_response(&response, gd);
+    eprintln!(
+        "[trade] Loaded cached index: {}/{} matched",
+        result.matched,
+        result.matched + result.unmatched,
+    );
+    Some(result.index)
+}
+
 /// Load game data from extracted datc64 files.
 ///
 /// Looks for data in these locations (first match wins):
@@ -651,6 +785,9 @@ pub fn run() {
             get_predicate_schema,
             get_suggestions,
             resolve_stat_template,
+            price_check,
+            trade_search_url,
+            refresh_trade_stats,
         ])
         .setup(|app| {
             // --- System tray ---
@@ -717,6 +854,16 @@ pub fn run() {
                 let config = load_hotkey_config(app.handle());
                 register_hotkeys(app.handle(), &config);
                 *app.state::<HotkeyState>().0.lock().unwrap() = config;
+            }
+
+            // --- Trade state (load cached index if available) ---
+            {
+                let gd = &app.state::<GameDataState>().0;
+                let cached_index = load_cached_trade_index(app.handle(), gd);
+                app.manage(TradeState {
+                    client: tokio::sync::Mutex::new(TradeClient::new()),
+                    index: tokio::sync::RwLock::new(cached_index),
+                });
             }
 
             // --- Start minimized check ---
