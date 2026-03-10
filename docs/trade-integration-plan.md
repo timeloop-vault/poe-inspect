@@ -128,29 +128,41 @@ struct TradeStatsIndex {
 
 ---
 
-## Phase 4: App Integration
+## Phase 4: Backend Wiring
+
+**Goal**: Tauri commands for trade operations. No frontend changes.
+
+**Files**: `app/src-tauri/src/lib.rs`, `app/src-tauri/Cargo.toml`
+
+**Managed state**: `TradeState` — `Mutex<TradeClient>` + `RwLock<Option<TradeStatsIndex>>`
+
+**Tauri commands** (async):
+- `price_check(item_text, league) → PriceCheckResult` — parse → build query → search → fetch
+- `trade_search_url(item_text, league) → String` — parse → build query → search → return trade URL
+- `refresh_trade_stats() → stats count` — fetch live API, build index, cache to disk
+
+**Index lifecycle**: Loaded from disk cache on startup (if available). User triggers `refresh_trade_stats` to fetch/update. Cached to `{app_data_dir}/trade_stats.json`.
+
+**Done when**: Commands are callable from frontend JS / MCP dev tools.
+
+---
+
+## Phase 5: Trade UI/UX
 
 **Goal**: Price check UX in the Tauri overlay.
 
-**Backend** (`app/src-tauri`):
-- Managed state: `TradeClient`, `TradeStatsIndex`
-- Load stats index on startup (disk cache, background refresh)
-- Tauri commands:
-  - `price_check(item_text) → PriceCheckResult`
-  - `open_trade_search(item_text)` → opens browser
-  - `refresh_trade_stats()` → force refresh
-
 **Frontend** (`app/src`):
-- Price check button on overlay (or hotkey, e.g., Ctrl+P)
+- Price check button on overlay (or hotkey)
 - Results panel: price range (cheapest N listings), total count, "Open on trade" link
 - Loading/error states (rate limit cooldown display)
 - Per-stat toggle: checkboxes to include/exclude stats from search
+- Trade stats refresh button in settings
 
 **Done when**: User can inspect an item and get a price estimate in the overlay.
 
 ---
 
-## Phase 5: Advanced Features
+## Phase 6: Advanced Features
 
 - **Pseudo stats**: Aggregate explicit stats into pseudo equivalents (`pseudo.pseudo_total_life`). User toggle.
 - **Weight-based search**: Map poe-eval scoring profiles to trade API weight filters.
