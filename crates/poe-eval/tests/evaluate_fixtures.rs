@@ -290,7 +290,7 @@ fn stat_value_check() {
     let rule = Rule::pred(Predicate::StatValue {
         conditions: vec![StatCondition {
             text: None,
-            stat_id: Some("base_maximum_life".into()),
+            stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
             op: Cmp::Ge,
             value: 30,
@@ -302,7 +302,7 @@ fn stat_value_check() {
     let rule = Rule::pred(Predicate::StatValue {
         conditions: vec![StatCondition {
             text: None,
-            stat_id: Some("base_maximum_life".into()),
+            stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
             op: Cmp::Ge,
             value: 40,
@@ -314,7 +314,7 @@ fn stat_value_check() {
     let rule = Rule::pred(Predicate::StatValue {
         conditions: vec![StatCondition {
             text: None,
-            stat_id: Some("base_maximum_life".into()),
+            stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
             op: Cmp::Ge,
             value: 55,
@@ -335,7 +335,7 @@ fn stat_value_checks_all_matching_mods() {
     let rule = Rule::pred(Predicate::StatValue {
         conditions: vec![StatCondition {
             text: None,
-            stat_id: Some("base_maximum_life".into()),
+            stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
             op: Cmp::Gt,
             value: 100,
@@ -347,7 +347,7 @@ fn stat_value_checks_all_matching_mods() {
     let rule_high = Rule::pred(Predicate::StatValue {
         conditions: vec![StatCondition {
             text: None,
-            stat_id: Some("base_maximum_life".into()),
+            stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
             op: Cmp::Gt,
             value: 150,
@@ -367,7 +367,7 @@ fn roll_percent_check() {
     // Any match: >= 40 should pass (both exceed 40%).
     let rule = Rule::pred(Predicate::RollPercent {
         text: None,
-        stat_id: Some("base_maximum_life".to_string()),
+        stat_ids: vec!["base_maximum_life".to_string()],
         value_index: 0,
         op: Cmp::Ge,
         value: 40,
@@ -377,7 +377,7 @@ fn roll_percent_check() {
     // >= 90 should fail — neither roll is that high
     let rule = Rule::pred(Predicate::RollPercent {
         text: None,
-        stat_id: Some("base_maximum_life".to_string()),
+        stat_ids: vec!["base_maximum_life".to_string()],
         value_index: 0,
         op: Cmp::Ge,
         value: 90,
@@ -770,14 +770,14 @@ fn stat_value_multi_matches_same_mod() {
         conditions: vec![
             StatCondition {
                 text: Some("+# to Armour".into()),
-                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
+                stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
             },
             StatCondition {
                 text: Some("+# to maximum Life".into()),
-                stat_id: Some("base_maximum_life".into()),
+                stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -801,14 +801,14 @@ fn stat_value_multi_does_not_match_across_mods() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
+                stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
             },
             StatCondition {
                 text: None,
-                stat_id: Some("base_maximum_life".into()),
+                stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -833,14 +833,14 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
+                stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
             },
             StatCondition {
                 text: None,
-                stat_id: Some("base_maximum_life".into()),
+                stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -857,7 +857,7 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
         Rule::pred(Predicate::StatValue {
             conditions: vec![StatCondition {
                 text: None,
-                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
+                stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -866,7 +866,7 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
         Rule::pred(Predicate::StatValue {
             conditions: vec![StatCondition {
                 text: None,
-                stat_id: Some("base_maximum_life".into()),
+                stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -890,14 +890,14 @@ fn stat_value_multi_fails_when_stat_missing() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some("base_maximum_life".into()),
+                stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
             },
             StatCondition {
                 text: None,
-                stat_id: Some("base_lightning_damage_resistance_%".into()),
+                stat_ids: vec!["base_lightning_damage_resistance_%".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -938,14 +938,14 @@ fn stat_value_multi_with_value_thresholds() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some(armour_id.into()),
+                stat_ids: vec![armour_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 1,
             },
             StatCondition {
                 text: None,
-                stat_id: Some(life_id.into()),
+                stat_ids: vec![life_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 1,
@@ -959,14 +959,14 @@ fn stat_value_multi_with_value_thresholds() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some(armour_id.into()),
+                stat_ids: vec![armour_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 1,
             },
             StatCondition {
                 text: None,
-                stat_id: Some(life_id.into()),
+                stat_ids: vec![life_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 200,
@@ -991,14 +991,14 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some(armour_id.into()),
+                stat_ids: vec![armour_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
             },
             StatCondition {
                 text: None,
-                stat_id: Some(life_id.into()),
+                stat_ids: vec![life_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -1012,14 +1012,14 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some(life_id.into()),
+                stat_ids: vec![life_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
             },
             StatCondition {
                 text: None,
-                stat_id: Some(cold_res_id.into()),
+                stat_ids: vec![cold_res_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -1033,7 +1033,7 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
         Rule::pred(Predicate::StatValue {
             conditions: vec![StatCondition {
                 text: None,
-                stat_id: Some(life_id.into()),
+                stat_ids: vec![life_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -1042,7 +1042,7 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
         Rule::pred(Predicate::StatValue {
             conditions: vec![StatCondition {
                 text: None,
-                stat_id: Some(cold_res_id.into()),
+                stat_ids: vec![cold_res_id.into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -1070,14 +1070,14 @@ fn stat_value_multi_in_scoring_profile() {
                 conditions: vec![
                     StatCondition {
                         text: Some("+# to Armour".into()),
-                        stat_id: Some("local_base_physical_damage_reduction_rating".into()),
+                        stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                         value_index: 0,
                         op: Cmp::Ge,
                         value: 0,
                     },
                     StatCondition {
                         text: Some("+# to maximum Life".into()),
-                        stat_id: Some("base_maximum_life".into()),
+                        stat_ids: vec!["base_maximum_life".into()],
                         value_index: 0,
                         op: Cmp::Ge,
                         value: 0,
@@ -1113,14 +1113,14 @@ fn stat_value_conditions_serialize_roundtrip() {
         conditions: vec![
             StatCondition {
                 text: Some("+# to Armour".into()),
-                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
+                stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 50,
             },
             StatCondition {
                 text: Some("+# to maximum Life".into()),
-                stat_id: Some("base_maximum_life".into()),
+                stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 20,
@@ -1131,6 +1131,7 @@ fn stat_value_conditions_serialize_roundtrip() {
     let json = serde_json::to_string(&pred).unwrap();
     assert!(json.contains("\"StatValue\""));
     assert!(json.contains("\"conditions\""));
+    assert!(json.contains("\"stat_ids\""));
     assert!(json.contains("local_base_physical_damage_reduction_rating"));
     assert!(json.contains("base_maximum_life"));
 
@@ -1139,8 +1140,8 @@ fn stat_value_conditions_serialize_roundtrip() {
         Predicate::StatValue { conditions } => {
             assert_eq!(conditions.len(), 2);
             assert_eq!(
-                conditions[0].stat_id.as_deref(),
-                Some("local_base_physical_damage_reduction_rating")
+                conditions[0].stat_ids,
+                vec!["local_base_physical_damage_reduction_rating"]
             );
             assert_eq!(conditions[1].value, 20);
         }

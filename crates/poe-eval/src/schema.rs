@@ -449,8 +449,8 @@ mod tests {
             r#"{"type":"HasModNamed","name":"Test"}"#,
             // HasStatText and HasStatId deprecated — still deserialize, just not in schema
             r#"{"type":"ModTier","name":"Test","op":"Le","value":3}"#,
-            r#"{"type":"StatValue","conditions":[{"stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":50}]}"#,
-            r#"{"type":"RollPercent","text":"Life","stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":80}"#,
+            r#"{"type":"StatValue","conditions":[{"stat_ids":["base_maximum_life"],"value_index":0,"op":"Ge","value":50}]}"#,
+            r#"{"type":"RollPercent","text":"Life","stat_ids":["base_maximum_life"],"value_index":0,"op":"Ge","value":80}"#,
             r#"{"type":"HasInfluence","influence":"Shaper"}"#,
             r#"{"type":"HasStatus","status":"Corrupted"}"#,
             r#"{"type":"InfluenceCount","op":"Ge","value":1}"#,

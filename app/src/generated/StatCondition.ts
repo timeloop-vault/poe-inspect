@@ -5,7 +5,8 @@ import type { Cmp } from "./Cmp";
  * A single stat condition: identifies a stat and checks its rolled value.
  *
  * Used as the building block for `StatValue` predicates. The `text` field
- * is a display label (the stat template text); `stat_id` is the resolved
- * language-independent identifier used for matching.
+ * is a display label (the stat template text); `stat_ids` contains one or
+ * more equivalent stat IDs (e.g., both the local and non-local variants)
+ * so the condition matches items regardless of item slot context.
  */
-export type StatCondition = { text?: string | null, stat_id?: string | null, value_index: number, op: Cmp, value: number, };
+export type StatCondition = { text?: string | null, stat_ids?: Array<string>, value_index: number, op: Cmp, value: number, };

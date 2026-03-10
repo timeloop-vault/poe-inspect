@@ -54,6 +54,11 @@ pub struct GameData {
     // Reverse mapping: stat_id → display templates (built from reverse_index).
     stat_id_to_templates: HashMap<String, Vec<String>>,
 
+    // Reverse mapping: template → all stat_ids (including local equivalents).
+    // Built as the inverse of stat_id_to_templates, so it includes local
+    // stat_ids that share templates with their non-local counterparts.
+    template_to_all_stat_ids: HashMap<String, Vec<String>>,
+
     // Stat description reverse index (display text → stat IDs + values).
     // Optional because loading it requires the raw stat_descriptions.txt.
     pub reverse_index: Option<ReverseIndex>,
@@ -140,6 +145,7 @@ impl GameData {
             mods_by_name,
             stat_to_mods,
             stat_id_to_templates: HashMap::new(),
+            template_to_all_stat_ids: HashMap::new(),
             reverse_index: None,
         }
     }
@@ -184,6 +190,18 @@ impl GameData {
                 }
             }
         }
+
+        // Build inverse: template → all stat_ids (including local equivalents).
+        let mut tmpl_to_ids: HashMap<String, Vec<String>> = HashMap::new();
+        for (stat_id, templates) in &map {
+            for tmpl in templates {
+                let entry = tmpl_to_ids.entry(tmpl.clone()).or_default();
+                if !entry.contains(stat_id) {
+                    entry.push(stat_id.clone());
+                }
+            }
+        }
+        self.template_to_all_stat_ids = tmpl_to_ids;
 
         self.stat_id_to_templates = map;
         self.reverse_index = Some(ri);
@@ -343,7 +361,13 @@ impl GameData {
                 continue;
             }
 
-            let stat_ids = ri.stat_ids_for_template(&template).unwrap_or_default();
+            // Use template_to_all_stat_ids which includes local equivalents,
+            // falling back to the reverse index if the template map is empty.
+            let stat_ids = self
+                .template_to_all_stat_ids
+                .get(&template)
+                .cloned()
+                .unwrap_or_else(|| ri.stat_ids_for_template(&template).unwrap_or_default());
 
             // Single-stat suggestion (always included).
             results.push(StatSuggestion {

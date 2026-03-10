@@ -106,12 +106,12 @@ pub enum Predicate {
     StatValue { conditions: Vec<StatCondition> },
 
     /// Roll quality: how close the current roll is to the max, as a percentage.
-    /// Matches by `stat_id` (language-independent).
+    /// Matches by `stat_ids` (language-independent).
     RollPercent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         text: Option<String>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        stat_id: Option<String>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        stat_ids: Vec<String>,
         value_index: usize,
         op: Cmp,
         value: u32,
@@ -131,16 +131,17 @@ pub enum Predicate {
 /// A single stat condition: identifies a stat and checks its rolled value.
 ///
 /// Used as the building block for `StatValue` predicates. The `text` field
-/// is a display label (the stat template text); `stat_id` is the resolved
-/// language-independent identifier used for matching.
+/// is a display label (the stat template text); `stat_ids` contains one or
+/// more equivalent stat IDs (e.g., both the local and non-local variants)
+/// so the condition matches items regardless of item slot context.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
 pub struct StatCondition {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub stat_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub stat_ids: Vec<String>,
     pub value_index: usize,
     pub op: Cmp,
     #[cfg_attr(feature = "ts", ts(type = "number"))]

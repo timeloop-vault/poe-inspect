@@ -240,4 +240,38 @@ fn local_stat_template_fallback() {
             );
         }
     }
+
+    // Single suggestions for stats with local equivalents should include both
+    // non-local and local stat_ids (so rules match items regardless of context).
+    let armour_singles: Vec<_> = gd
+        .stat_suggestions_for_query("to Armour")
+        .into_iter()
+        .filter(|s| {
+            matches!(s.kind, StatSuggestionKind::Single)
+                && s.stat_ids
+                    .iter()
+                    .any(|id| id == "base_physical_damage_reduction_rating")
+        })
+        .collect();
+    assert!(
+        !armour_singles.is_empty(),
+        "should find a Single suggestion for armour stat"
+    );
+    let single = &armour_singles[0];
+    assert!(
+        single
+            .stat_ids
+            .iter()
+            .any(|id| id == "base_physical_damage_reduction_rating"),
+        "Single suggestion should include non-local stat_id, got: {:?}",
+        single.stat_ids
+    );
+    assert!(
+        single
+            .stat_ids
+            .iter()
+            .any(|id| id == "local_base_physical_damage_reduction_rating"),
+        "Single suggestion should include local stat_id, got: {:?}",
+        single.stat_ids
+    );
 }
