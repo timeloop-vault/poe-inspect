@@ -10,39 +10,83 @@ use poe_data::GameData;
 
 use crate::types::{TradeStatEntry, TradeStatsIndex, TradeStatsResponse};
 
+/// Result of building the trade stats index, with match statistics.
+#[derive(Debug)]
+pub struct IndexBuildResult {
+    pub index: TradeStatsIndex,
+    /// Number of trade entries with `stat_` IDs that matched a reverse index template.
+    pub matched: u32,
+    /// Number of trade entries with `stat_` IDs that did NOT match.
+    pub unmatched: u32,
+    /// Total trade entries (including pseudo/named stats that aren't cross-referenced).
+    pub total: u32,
+    /// Templates from trade API that didn't match any reverse index entry.
+    pub unmatched_templates: Vec<String>,
+}
+
 impl TradeStatsIndex {
     /// Build an index from a raw trade API response.
     ///
     /// Cross-references with `GameData.reverse_index` to build the bidirectional
     /// GGPK stat ID ↔ trade stat number mapping.
-    pub fn from_response(response: &TradeStatsResponse, game_data: &GameData) -> Self {
+    pub fn from_response(response: &TradeStatsResponse, game_data: &GameData) -> IndexBuildResult {
         let mut by_template: HashMap<String, Vec<TradeStatEntry>> = HashMap::new();
         let mut by_trade_id: HashMap<String, TradeStatEntry> = HashMap::new();
         let mut ggpk_to_trade: HashMap<String, u64> = HashMap::new();
         let mut trade_to_ggpk: HashMap<u64, Vec<String>> = HashMap::new();
 
-        let mut total_entries = 0u32;
+        // Build a case-insensitive lookup from reverse index template keys.
+        //
+        // Two issues to handle:
+        // 1. Case: ReverseIndex uses casing from stat_descriptions.txt, trade API
+        //    uses its own casing. Normalize both to lowercase.
+        // 2. Signed placeholders: stat_descriptions.txt uses `{0:+d}` format specifier
+        //    which means "display with sign". The `+` is NOT part of the template key
+        //    (it becomes just `#`), but the trade API text INCLUDES the `+` sign
+        //    (showing `+#`). So we must try matching with `+#` → `#` fallback.
+        let ri_case_map: HashMap<String, String> = game_data
+            .reverse_index
+            .as_ref()
+            .map(|ri| {
+                ri.template_keys()
+                    .into_iter()
+                    .map(|k| (k.to_lowercase(), k))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let mut total = 0u32;
         let mut matched = 0u32;
         let mut unmatched_templates: Vec<String> = Vec::new();
 
         for category in &response.result {
             for entry in &category.entries {
-                total_entries += 1;
+                total += 1;
 
                 // Index by full trade ID
                 by_trade_id.insert(entry.id.clone(), entry.clone());
 
-                // Index by normalized template text
-                let normalized = normalize_template(&entry.text);
+                // Index by normalized template text (lowercase)
+                let normalized = entry.text.to_lowercase().trim().to_string();
                 by_template
                     .entry(normalized.clone())
                     .or_default()
                     .push(entry.clone());
 
-                // Cross-reference with GGPK stat IDs via ReverseIndex
+                // Cross-reference: only for stat_ entries (not pseudo/named)
                 if let Some(trade_num) = extract_stat_number(&entry.id) {
                     if let Some(ri) = &game_data.reverse_index {
-                        if let Some(stat_ids) = ri.stat_ids_for_template(&normalized) {
+                        // Try exact match first, then fallback with +# → # substitution.
+                        // stat_descriptions.txt uses `{0:+d}` format specifier for signed
+                        // values. The `+` is NOT literal text, so our template key has
+                        // just `#`, while the trade API shows `+#`.
+                        let stat_ids = resolve_template(
+                            &normalized,
+                            &ri_case_map,
+                            ri,
+                        );
+
+                        if let Some(stat_ids) = stat_ids {
                             matched += 1;
                             for stat_id in &stat_ids {
                                 ggpk_to_trade.insert(stat_id.clone(), trade_num);
@@ -56,35 +100,46 @@ impl TradeStatsIndex {
                         }
                     }
                 }
-                // Skip pseudo/named stats for cross-referencing (they don't have stat_ numbers)
             }
         }
 
+        let unmatched = unmatched_templates.len() as u32;
+
         tracing::info!(
-            total_entries,
+            total,
             matched,
-            unmatched = unmatched_templates.len(),
+            unmatched,
+            ggpk_mapped = ggpk_to_trade.len(),
             "Trade stats index built"
         );
 
-        if !unmatched_templates.is_empty() && unmatched_templates.len() <= 20 {
+        if !unmatched_templates.is_empty() && unmatched_templates.len() <= 30 {
             tracing::debug!(
                 ?unmatched_templates,
                 "Trade stats without reverse index match"
             );
         }
 
-        Self {
+        let index = Self {
             by_template,
             by_trade_id,
             ggpk_to_trade,
             trade_to_ggpk,
+        };
+
+        IndexBuildResult {
+            index,
+            matched,
+            unmatched,
+            total,
+            unmatched_templates,
         }
     }
 
-    /// Look up trade stat entries by normalized template text.
+    /// Look up trade stat entries by template text.
     pub fn entries_for_template(&self, template: &str) -> Option<&Vec<TradeStatEntry>> {
-        self.by_template.get(&normalize_template(template))
+        let normalized = template.to_lowercase().trim().to_string();
+        self.by_template.get(&normalized)
     }
 
     /// Look up a trade stat entry by its full trade ID.
@@ -127,14 +182,81 @@ impl TradeStatsIndex {
     pub fn mapped_stat_count(&self) -> usize {
         self.ggpk_to_trade.len()
     }
+
+    /// Save the trade stats response to disk for caching.
+    pub fn save_response(response: &TradeStatsResponse, path: &std::path::Path) -> std::io::Result<()> {
+        let file = std::fs::File::create(path)?;
+        let writer = std::io::BufWriter::new(file);
+        serde_json::to_writer(writer, response)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+    }
+
+    /// Load a cached trade stats response from disk.
+    pub fn load_response(path: &std::path::Path) -> std::io::Result<TradeStatsResponse> {
+        let file = std::fs::File::open(path)?;
+        let reader = std::io::BufReader::new(file);
+        serde_json::from_reader(reader)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+    }
 }
 
-/// Normalize template text for matching.
+/// Try to resolve a trade API template against the reverse index.
 ///
-/// Both our `ReverseIndex` and the trade API use `#` as value placeholders.
-/// Normalize by lowercasing and trimming whitespace.
-fn normalize_template(text: &str) -> String {
-    text.to_lowercase().trim().to_string()
+/// Tries multiple normalizations in order:
+/// 1. Exact (lowercased) match
+/// 2. Strip `+` before `#` (handles `:+d` signed format specifiers)
+/// 3. Strip ` (Local)` suffix (trade API appends this to local weapon/armour mods)
+/// 4. Both `+#` → `#` AND strip ` (Local)`
+fn resolve_template(
+    normalized: &str,
+    ri_case_map: &HashMap<String, String>,
+    ri: &poe_dat::stat_desc::ReverseIndex,
+) -> Option<Vec<String>> {
+    // 1. Exact
+    if let Some(ids) = ri_case_map
+        .get(normalized)
+        .and_then(|orig| ri.stat_ids_for_template(orig))
+    {
+        return Some(ids);
+    }
+
+    // 2. Strip +# → #
+    let without_plus = normalized.replace("+#", "#");
+    if without_plus != *normalized {
+        if let Some(ids) = ri_case_map
+            .get(&without_plus)
+            .and_then(|orig| ri.stat_ids_for_template(orig))
+        {
+            return Some(ids);
+        }
+    }
+
+    // 3. Strip " (local)" suffix (trade API marks local mods this way)
+    let without_local = normalized
+        .strip_suffix(" (local)")
+        .or_else(|| normalized.strip_suffix(" (shields)"));
+    if let Some(stripped) = without_local {
+        let stripped = stripped.to_string();
+        if let Some(ids) = ri_case_map
+            .get(&stripped)
+            .and_then(|orig| ri.stat_ids_for_template(orig))
+        {
+            return Some(ids);
+        }
+
+        // 4. Both: strip +# AND (local)
+        let both = stripped.replace("+#", "#");
+        if both != stripped {
+            if let Some(ids) = ri_case_map
+                .get(&both)
+                .and_then(|orig| ri.stat_ids_for_template(orig))
+            {
+                return Some(ids);
+            }
+        }
+    }
+
+    None
 }
 
 /// Extract the numeric stat ID from a trade stat ID.
@@ -165,10 +287,11 @@ mod tests {
     }
 
     #[test]
-    fn normalize_template_case_insensitive() {
+    fn extract_stat_number_pipe_id() {
+        // Imbued entries use pipe format: "imbued.pseudo_built_in_support|3092222470"
         assert_eq!(
-            normalize_template("+# to Maximum Life"),
-            normalize_template("+# to maximum Life")
+            extract_stat_number("imbued.pseudo_built_in_support|3092222470"),
+            None
         );
     }
 }
