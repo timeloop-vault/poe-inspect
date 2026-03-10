@@ -39,6 +39,10 @@ export type { FieldKind } from "./generated/FieldKind";
 export type { EnumOption } from "./generated/EnumOption";
 export type { Cmp } from "./generated/Cmp";
 
+// Stat suggestion types (from poe-data, hybrid mod picker)
+export type { StatSuggestion } from "./generated/StatSuggestion";
+export type { StatSuggestionKind } from "./generated/StatSuggestionKind";
+
 // Trade types (from poe-trade)
 export type { TradeQueryConfig } from "./generated/TradeQueryConfig";
 export type { PriceCheckResult } from "./generated/PriceCheckResult";

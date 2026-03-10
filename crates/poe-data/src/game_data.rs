@@ -4,7 +4,7 @@
 //! indexes for fast access. FK row indices can be resolved to strings
 //! via helper methods.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use poe_dat::dat_reader::DatFile;
@@ -42,6 +42,12 @@ pub struct GameData {
 
     // Pre-computed tier counts: (family_fk, generation_type) → number of tiers
     family_tier_counts: HashMap<(u64, u32), u32>,
+
+    // Reverse index: stat_id → indices into self.mods that contain this stat.
+    stat_to_mods: HashMap<String, Vec<usize>>,
+
+    // Reverse mapping: stat_id → display templates (built from reverse_index).
+    stat_id_to_templates: HashMap<String, Vec<String>>,
 
     // Stat description reverse index (display text → stat IDs + values).
     // Optional because loading it requires the raw stat_descriptions.txt.
@@ -84,6 +90,19 @@ impl GameData {
             }
         }
 
+        // Reverse index: stat_id → mod indices containing that stat.
+        let mut stat_to_mods: HashMap<String, Vec<usize>> = HashMap::new();
+        for (mod_idx, m) in mods.iter().enumerate() {
+            for stat_fk in m.stat_keys.iter().flatten() {
+                if let Some(stat_row) = stats.get(*stat_fk as usize) {
+                    stat_to_mods
+                        .entry(stat_row.id.clone())
+                        .or_default()
+                        .push(mod_idx);
+                }
+            }
+        }
+
         Self {
             stats,
             tags,
@@ -102,12 +121,27 @@ impl GameData {
             rarity_by_id,
             item_class_category_by_id,
             family_tier_counts,
+            stat_to_mods,
+            stat_id_to_templates: HashMap::new(),
             reverse_index: None,
         }
     }
 
     /// Set the stat description reverse index.
+    ///
+    /// Also builds the `stat_id → templates` reverse mapping used by
+    /// `stat_suggestions_for_query()`.
     pub fn set_reverse_index(&mut self, ri: ReverseIndex) {
+        // Build stat_id → display templates mapping.
+        let mut map: HashMap<String, Vec<String>> = HashMap::new();
+        for template in ri.template_keys() {
+            if let Some(stat_ids) = ri.stat_ids_for_template(&template) {
+                for sid in stat_ids {
+                    map.entry(sid).or_default().push(template.clone());
+                }
+            }
+        }
+        self.stat_id_to_templates = map;
         self.reverse_index = Some(ri);
     }
 
@@ -194,6 +228,118 @@ impl GameData {
     pub fn max_suffixes(&self, rarity_id: &str) -> Option<i32> {
         self.rarity(rarity_id).map(|r| r.max_suffix)
     }
+
+    /// Get display templates for a stat ID (e.g., `"base_maximum_life"` → `["+# to maximum Life"]`).
+    ///
+    /// Requires `set_reverse_index()` to have been called.
+    pub fn templates_for_stat(&self, stat_id: &str) -> Option<&[String]> {
+        self.stat_id_to_templates.get(stat_id).map(Vec::as_slice)
+    }
+
+    /// Return stat suggestions matching a text query, including hybrid mod combos.
+    ///
+    /// For each matching template, returns a `Single` suggestion. For each stat
+    /// in those templates, also returns `Hybrid` suggestions for prefix/suffix
+    /// mods that combine that stat with other stats.
+    ///
+    /// Requires `set_reverse_index()` to have been called.
+    pub fn stat_suggestions_for_query(&self, query: &str) -> Vec<StatSuggestion> {
+        let Some(ri) = &self.reverse_index else {
+            return Vec::new();
+        };
+
+        let query_lower = query.to_lowercase();
+        let mut results = Vec::new();
+        // Dedup hybrids by (sorted stat_id combo, generation_type).
+        let mut seen_hybrids: HashSet<(String, u32)> = HashSet::new();
+
+        for template in ri.template_keys() {
+            if !template.to_lowercase().contains(&query_lower) {
+                continue;
+            }
+
+            let stat_ids = ri.stat_ids_for_template(&template).unwrap_or_default();
+
+            // Single-stat suggestion (always included).
+            results.push(StatSuggestion {
+                template: template.clone(),
+                stat_ids: stat_ids.clone(),
+                kind: StatSuggestionKind::Single,
+            });
+
+            // Find hybrid mods containing any of this template's stats.
+            let template_stat_set: HashSet<&str> =
+                stat_ids.iter().map(String::as_str).collect();
+
+            for stat_id in &stat_ids {
+                let Some(mod_indices) = self.stat_to_mods.get(stat_id.as_str()) else {
+                    continue;
+                };
+
+                for &mod_idx in mod_indices {
+                    let m = &self.mods[mod_idx];
+
+                    // Only rollable affixes with a display name.
+                    if m.name.is_empty() {
+                        continue;
+                    }
+                    if m.generation_type != 1 && m.generation_type != 2 {
+                        continue;
+                    }
+
+                    // Resolve all stat IDs for this mod.
+                    let all_stat_ids: Vec<String> = m
+                        .stat_keys
+                        .iter()
+                        .flatten()
+                        .filter_map(|&fk| self.stat_id(fk).map(String::from))
+                        .collect();
+
+                    // "Other" stats = those not covered by the searched template.
+                    let other_stat_ids: Vec<String> = all_stat_ids
+                        .iter()
+                        .filter(|s| !template_stat_set.contains(s.as_str()))
+                        .cloned()
+                        .collect();
+
+                    // Not a hybrid if all stats are already in the template.
+                    if other_stat_ids.is_empty() {
+                        continue;
+                    }
+
+                    // Dedup: same stat combo + affix type = same hybrid option.
+                    let mut dedup_ids = all_stat_ids.clone();
+                    dedup_ids.sort();
+                    let dedup_key = (dedup_ids.join(","), m.generation_type);
+                    if !seen_hybrids.insert(dedup_key) {
+                        continue;
+                    }
+
+                    let other_templates: Vec<String> = other_stat_ids
+                        .iter()
+                        .filter_map(|sid| {
+                            self.stat_id_to_templates
+                                .get(sid)
+                                .and_then(|ts| ts.first().cloned())
+                        })
+                        .collect();
+
+                    results.push(StatSuggestion {
+                        template: template.clone(),
+                        stat_ids: all_stat_ids,
+                        kind: StatSuggestionKind::Hybrid {
+                            mod_name: m.name.clone(),
+                            generation_type: m.generation_type,
+                            other_templates,
+                            other_stat_ids,
+                        },
+                    });
+                }
+            }
+        }
+
+        results
+    }
 }
 
 // ── Loading ─────────────────────────────────────────────────────────────────
@@ -276,6 +422,44 @@ fn index_by<T, F: Fn(&T) -> String>(items: &[T], key_fn: F) -> HashMap<String, u
         .enumerate()
         .map(|(i, item)| (key_fn(item), i))
         .collect()
+}
+
+// ── Stat suggestion types ────────────────────────────────────────────────────
+
+/// A stat suggestion for the stat picker, either a single stat or a hybrid mod combo.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct StatSuggestion {
+    /// The display template that matched the query (e.g., `"+# to maximum Life"`).
+    pub template: String,
+    /// All stat IDs for this suggestion.
+    pub stat_ids: Vec<String>,
+    /// Whether this is a single stat or a hybrid mod combo.
+    pub kind: StatSuggestionKind,
+}
+
+/// Distinguishes single-stat suggestions from hybrid mod combos.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub enum StatSuggestionKind {
+    /// A single stat template (the current behavior).
+    Single,
+    /// A hybrid mod that combines the searched stat with other stats.
+    Hybrid {
+        /// Mod display name (e.g., "Urchin's").
+        mod_name: String,
+        /// Generation type: 1 = prefix, 2 = suffix.
+        generation_type: u32,
+        /// Display templates for the other stats in the hybrid.
+        other_templates: Vec<String>,
+        /// Stat IDs for the other stats in the hybrid.
+        other_stat_ids: Vec<String>,
+    },
 }
 
 // ── Errors ──────────────────────────────────────────────────────────────────
