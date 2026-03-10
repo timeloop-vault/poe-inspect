@@ -1,0 +1,31 @@
+Item Class: Body Armours
+Rarity: Unique
+Lightning Coil
+Desert Brigandine
+--------
+Armour: 888 (augmented)
+Evasion Rating: 888 (augmented)
+--------
+Requirements:
+Level: 60
+Str: 96
+Dex: 96 (unmet)
+--------
+Sockets: B-G
+--------
+Item Level: 75
+--------
+{ Unique Modifier — Defences, Armour, Evasion }
+114(90-120)% increased Armour and Evasion
+{ Unique Modifier — Life }
++78(60-80) to maximum Life
+{ Unique Modifier — Damage, Elemental, Lightning, Attack }
+Adds 1 to 24(20-30) Lightning Damage to Attacks
+{ Unique Modifier — Elemental, Lightning, Resistance }
+-60% to Lightning Resistance
+{ Unique Modifier — Physical, Elemental, Lightning }
+50% of Physical Damage from Hits taken as Lightning Damage
+--------
+"There's nothing like imminent death
+to galvanize one's purpose in life."
+- Malachai the Soulless.
