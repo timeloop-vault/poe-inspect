@@ -132,6 +132,7 @@ function TradeResults({ result }: { result: PriceCheckResult }) {
 			</div>
 			<div class="trade-price-list">
 				{result.prices.map((p, i) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: static price snapshot, never reordered
 					<div class="trade-price-row" key={i}>
 						<span class="trade-price-amount">{formatPrice(p.amount)}</span>
 						<span class="trade-price-currency">{p.currency}</span>

@@ -177,3 +177,79 @@ impl TradeQueryConfig {
         }
     }
 }
+
+// ── Trade Filter Config (Edit Search mode) ─────────────────────────────────
+
+/// User's filter overrides for a trade search.
+///
+/// Sent from the frontend when in "Edit Search" mode. When `None`, the query
+/// builder uses default behavior (all stats included, exact base type, etc.).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct TradeFilterConfig {
+    /// How specific the type filter should be (base type / item class / any).
+    pub type_scope: TypeSearchScope,
+    /// Per-stat overrides, indexed by flat stat position
+    /// (order: enchants → implicits → explicits, skipping reminder text).
+    pub stat_overrides: Vec<StatFilterOverride>,
+}
+
+/// How specific the type filter should be in a trade search.
+///
+/// Matches the GGPK hierarchy: `BaseItemTypes` (e.g., "Demon's Horn")
+/// → `ItemClasses` (e.g., "Wands") → no restriction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub enum TypeSearchScope {
+    /// Filter by exact base item type (GGPK `BaseItemTypes`, e.g., "Demon's Horn").
+    /// Sets `query.type` to the base type string.
+    BaseType,
+    /// Filter by item class only (GGPK `ItemClasses`, e.g., "Wands" → trade category `"weapon.wand"`).
+    /// Omits `query.type`, sets `filters.type_filters.filters.category`.
+    ItemClass,
+    /// No type restriction — search across all item types.
+    Any,
+}
+
+/// Override for a single stat line in the trade search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct StatFilterOverride {
+    /// Flat index into the item's non-reminder stat lines.
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
+    pub stat_index: u32,
+    /// Whether this stat is included in the search.
+    pub enabled: bool,
+    /// Min value override. `None` = use relaxation-computed default.
+    pub min_override: Option<f64>,
+}
+
+// ── Mapped Stat Info (returned from query builder) ─────────────────────────
+
+/// Info about a stat that was considered during query building.
+///
+/// Returned in `QueryBuildResult` so the frontend can populate
+/// the "Edit Search" UI with checkboxes and value inputs.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct MappedStat {
+    /// Flat index (position in enchants → implicits → explicits, skipping reminders).
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
+    pub stat_index: u32,
+    /// Trade stat ID if mapped (e.g., `"explicit.stat_3299347043"`).
+    pub trade_id: Option<String>,
+    /// Display text for UI label.
+    pub display_text: String,
+    /// Relaxation-computed min value (default for the input field).
+    pub computed_min: Option<f64>,
+    /// Whether this stat was included in the final query.
+    pub included: bool,
+}

@@ -7,7 +7,9 @@
 use poe_item::types::{ModDisplayType, Rarity, ResolvedItem, ResolvedMod, ResolvedStatLine};
 use serde::Serialize;
 
-use crate::types::{TradeQueryConfig, TradeStatsIndex};
+use crate::types::{
+    MappedStat, TradeFilterConfig, TradeQueryConfig, TradeStatsIndex, TypeSearchScope,
+};
 
 // ── Result ──────────────────────────────────────────────────────────────────
 
@@ -25,6 +27,13 @@ pub struct QueryBuildResult {
     pub stats_total: u32,
     /// Display text of stat lines that couldn't be mapped.
     pub unmapped_stats: Vec<String>,
+    /// Per-stat mapping info for the "Edit Search" UI.
+    ///
+    /// One entry per non-reminder stat line (flat index order:
+    /// enchants → implicits → explicits). Tells the frontend which
+    /// stats are mappable, their default min values, and whether
+    /// they were included in the final query.
+    pub mapped_stats: Vec<MappedStat>,
 }
 
 // ── Trade search body ───────────────────────────────────────────────────────
@@ -171,15 +180,22 @@ pub struct MiscFilterValues {
 ///
 /// Maps item mods to trade stat filters using the stats index,
 /// applies value relaxation, and sets appropriate item filters.
+///
+/// When `filter_config` is `None`, uses default behavior (all stats included,
+/// exact base type). When `Some`, respects per-stat overrides and base type
+/// specificity from the "Edit Search" UI.
 pub fn build_query(
     item: &ResolvedItem,
     index: &TradeStatsIndex,
     config: &TradeQueryConfig,
+    filter_config: Option<&TradeFilterConfig>,
 ) -> QueryBuildResult {
     let mut filters = Vec::new();
     let mut stats_mapped = 0u32;
     let mut stats_total = 0u32;
     let mut unmapped_stats = Vec::new();
+    let mut mapped_stats = Vec::new();
+    let mut flat_index = 0u32;
 
     // Process all mods (enchants → implicits → explicits).
     for resolved_mod in item.all_mods() {
@@ -191,12 +207,50 @@ pub fn build_query(
             }
             stats_total += 1;
 
-            if let Some(filter) = build_stat_filter(stat_line, category, index, config) {
-                filters.push(filter);
-                stats_mapped += 1;
-            } else {
+            // Try to map this stat to a trade ID.
+            let trade_id = resolve_trade_id(stat_line, category, index);
+            let computed_min = compute_filter_value(stat_line, config).and_then(|fv| fv.min);
+
+            // Check user overrides for this stat.
+            let user_override = filter_config.and_then(|fc| {
+                fc.stat_overrides
+                    .iter()
+                    .find(|o| o.stat_index == flat_index)
+            });
+
+            let enabled = user_override.map_or(true, |o| o.enabled);
+            let included = enabled && trade_id.is_some();
+
+            if included {
+                if let Some(ref tid) = trade_id {
+                    // Use override min if provided, otherwise relaxation-computed.
+                    let min_value = user_override.and_then(|o| o.min_override).or(computed_min);
+
+                    let value = min_value.map(|min| FilterValue {
+                        min: Some(min),
+                        max: None,
+                    });
+
+                    filters.push(StatFilter {
+                        id: tid.clone(),
+                        value,
+                        disabled: None,
+                    });
+                    stats_mapped += 1;
+                }
+            } else if trade_id.is_none() {
                 unmapped_stats.push(stat_line.display_text.clone());
             }
+
+            mapped_stats.push(MappedStat {
+                stat_index: flat_index,
+                trade_id,
+                display_text: stat_line.display_text.clone(),
+                computed_min,
+                included,
+            });
+
+            flat_index += 1;
         }
     }
 
@@ -211,7 +265,8 @@ pub fn build_query(
         }]
     };
 
-    let query_filters = build_item_filters(item, config);
+    let type_scope = filter_config.map_or(TypeSearchScope::BaseType, |fc| fc.type_scope);
+    let query_filters = build_item_filters(item, config, type_scope);
 
     let body = TradeSearchBody {
         query: TradeQuery {
@@ -226,7 +281,10 @@ pub fn build_query(
                 Rarity::Unique => item.header.name.clone(),
                 _ => None,
             },
-            base_type: Some(item.header.base_type.clone()),
+            base_type: match type_scope {
+                TypeSearchScope::BaseType => Some(item.header.base_type.clone()),
+                TypeSearchScope::ItemClass | TypeSearchScope::Any => None,
+            },
             stats,
             filters: query_filters,
         },
@@ -240,6 +298,7 @@ pub fn build_query(
         stats_mapped,
         stats_total,
         unmapped_stats,
+        mapped_stats,
     }
 }
 
@@ -267,30 +326,19 @@ fn mod_trade_category(m: &ResolvedMod) -> &'static str {
     poe_data::domain::mod_trade_category(display_type, m.is_fractured)
 }
 
-/// Build a trade stat filter from a resolved stat line.
+/// Resolve a stat line to its full trade stat ID (e.g., `"explicit.stat_3299347043"`).
 ///
-/// Returns `None` if the stat can't be mapped to a trade stat ID.
-fn build_stat_filter(
+/// Returns `None` if the stat can't be mapped.
+fn resolve_trade_id(
     stat_line: &ResolvedStatLine,
     category: &str,
     index: &TradeStatsIndex,
-    config: &TradeQueryConfig,
-) -> Option<StatFilter> {
+) -> Option<String> {
     let stat_ids = stat_line.stat_ids.as_ref()?;
-
-    // Find first stat_id that maps to a trade stat number.
     let trade_num = stat_ids
         .iter()
         .find_map(|sid| index.trade_stat_number(sid))?;
-
-    let trade_id = format!("{category}.stat_{trade_num}");
-    let value = compute_filter_value(stat_line, config);
-
-    Some(StatFilter {
-        id: trade_id,
-        value,
-        disabled: None,
-    })
+    Some(format!("{category}.stat_{trade_num}"))
 }
 
 /// Compute the filter value with relaxation applied.
@@ -331,8 +379,12 @@ fn compute_filter_value(
 }
 
 /// Build item-level filters (type, misc).
-fn build_item_filters(item: &ResolvedItem, config: &TradeQueryConfig) -> Option<QueryFilters> {
-    let type_filters = build_type_filters(item);
+fn build_item_filters(
+    item: &ResolvedItem,
+    config: &TradeQueryConfig,
+    type_scope: TypeSearchScope,
+) -> Option<QueryFilters> {
+    let type_filters = build_type_filters(item, type_scope);
     let misc_filters = build_misc_filters(item, config);
 
     if type_filters.is_none() && misc_filters.is_none() {
@@ -345,7 +397,7 @@ fn build_item_filters(item: &ResolvedItem, config: &TradeQueryConfig) -> Option<
     })
 }
 
-fn build_type_filters(item: &ResolvedItem) -> Option<TypeFilters> {
+fn build_type_filters(item: &ResolvedItem, type_scope: TypeSearchScope) -> Option<TypeFilters> {
     let rarity = match item.header.rarity {
         Rarity::Rare | Rarity::Magic | Rarity::Normal => Some(OptionFilter {
             option: "nonunique".to_string(),
@@ -353,10 +405,17 @@ fn build_type_filters(item: &ResolvedItem) -> Option<TypeFilters> {
         _ => None,
     };
 
-    let category = poe_data::domain::item_class_trade_category(&item.header.item_class)
-        .map(|id| OptionFilter {
-            option: id.to_string(),
-        });
+    // Category filter: always set for Exact/Category modes, omitted for Any.
+    let category = match type_scope {
+        TypeSearchScope::Any => None,
+        TypeSearchScope::BaseType | TypeSearchScope::ItemClass => {
+            poe_data::domain::item_class_trade_category(&item.header.item_class).map(|id| {
+                OptionFilter {
+                    option: id.to_string(),
+                }
+            })
+        }
+    };
 
     if rarity.is_none() && category.is_none() {
         return None;
@@ -544,5 +603,254 @@ mod tests {
             is_reminder: false,
         };
         assert!(compute_filter_value(&stat_line, &config).is_none());
+    }
+
+    // ── Filter override tests ──────────────────────────────────────────────
+
+    use crate::types::{StatFilterOverride, TradeFilterConfig};
+
+    /// Build a minimal item for filter tests.
+    fn test_item() -> ResolvedItem {
+        use poe_item::types::*;
+        ResolvedItem {
+            header: ResolvedHeader {
+                rarity: Rarity::Rare,
+                name: Some("Test Item".to_string()),
+                base_type: "Demon's Horn".to_string(),
+                item_class: "Wands".to_string(),
+            },
+            properties: vec![],
+            requirements: vec![],
+            sockets: None,
+            item_level: Some(83),
+            enchants: vec![],
+            implicits: vec![],
+            explicits: vec![
+                ResolvedMod {
+                    header: ModHeader {
+                        source: ModSource::Regular,
+                        slot: ModSlot::Prefix,
+                        influence_tier: None,
+                        name: None,
+                        tier: None,
+                        tags: vec![],
+                    },
+                    stat_lines: vec![ResolvedStatLine {
+                        raw_text: "+100 to maximum Life".to_string(),
+                        display_text: "+100 to maximum Life".to_string(),
+                        values: vec![ValueRange {
+                            current: 100,
+                            min: 80,
+                            max: 109,
+                        }],
+                        stat_ids: Some(vec!["base_maximum_life".to_string()]),
+                        stat_values: None,
+                        is_reminder: false,
+                    }],
+                    is_fractured: false,
+                    display_type: ModDisplayType::Prefix,
+                },
+                ResolvedMod {
+                    header: ModHeader {
+                        source: ModSource::Regular,
+                        slot: ModSlot::Suffix,
+                        influence_tier: None,
+                        name: None,
+                        tier: None,
+                        tags: vec![],
+                    },
+                    stat_lines: vec![ResolvedStatLine {
+                        raw_text: "+40% to Cold Resistance".to_string(),
+                        display_text: "+40% to Cold Resistance".to_string(),
+                        values: vec![ValueRange {
+                            current: 40,
+                            min: 36,
+                            max: 41,
+                        }],
+                        stat_ids: Some(vec!["base_cold_damage_resistance_pct".to_string()]),
+                        stat_values: None,
+                        is_reminder: false,
+                    }],
+                    is_fractured: false,
+                    display_type: ModDisplayType::Suffix,
+                },
+            ],
+            gem_data: None,
+            influences: vec![],
+            statuses: vec![],
+            description: None,
+            flavor_text: None,
+            is_corrupted: false,
+            is_unidentified: false,
+            is_fractured: false,
+            monster_level: None,
+            talisman_tier: None,
+            experience: None,
+            note: None,
+            unclassified_sections: vec![],
+        }
+    }
+
+    /// Build a minimal trade stats index that maps our test stat IDs.
+    fn test_index() -> TradeStatsIndex {
+        use std::collections::HashMap;
+        let mut ggpk_to_trade = HashMap::new();
+        ggpk_to_trade.insert("base_maximum_life".to_string(), 3299347043u64);
+        ggpk_to_trade.insert("base_cold_damage_resistance_pct".to_string(), 4220027924u64);
+        TradeStatsIndex {
+            by_template: HashMap::new(),
+            by_trade_id: HashMap::new(),
+            ggpk_to_trade,
+            trade_to_ggpk: HashMap::new(),
+        }
+    }
+
+    #[test]
+    fn none_filter_config_includes_all_stats() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        assert_eq!(result.stats_mapped, 2);
+        assert_eq!(result.mapped_stats.len(), 2);
+        assert!(result.mapped_stats[0].included);
+        assert!(result.mapped_stats[1].included);
+        assert!(result.mapped_stats[0].trade_id.is_some());
+        assert!(result.mapped_stats[1].trade_id.is_some());
+    }
+
+    #[test]
+    fn filter_disables_stat() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![
+                StatFilterOverride {
+                    stat_index: 0,
+                    enabled: true,
+                    min_override: None,
+                },
+                StatFilterOverride {
+                    stat_index: 1,
+                    enabled: false,
+                    min_override: None,
+                },
+            ],
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        assert_eq!(
+            result.stats_mapped, 1,
+            "only one stat should be in the query"
+        );
+        assert!(result.mapped_stats[0].included);
+        assert!(!result.mapped_stats[1].included);
+        // The query should have 1 stat filter
+        assert_eq!(result.body.query.stats[0].filters.len(), 1);
+    }
+
+    #[test]
+    fn filter_overrides_min_value() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![StatFilterOverride {
+                stat_index: 0,
+                enabled: true,
+                min_override: Some(50.0),
+            }],
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        let filter = &result.body.query.stats[0].filters[0];
+        assert_eq!(filter.value.as_ref().unwrap().min, Some(50.0));
+    }
+
+    #[test]
+    fn type_scope_base_type() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![],
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        assert_eq!(result.body.query.base_type.as_deref(), Some("Demon's Horn"));
+        let cat = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.type_filters.as_ref())
+            .and_then(|tf| tf.filters.category.as_ref());
+        assert_eq!(cat.unwrap().option, "weapon.wand");
+    }
+
+    #[test]
+    fn type_scope_item_class_omits_base() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::ItemClass,
+            stat_overrides: vec![],
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        // Base type should be omitted
+        assert!(result.body.query.base_type.is_none());
+        // But category filter should still be set
+        let cat = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.type_filters.as_ref())
+            .and_then(|tf| tf.filters.category.as_ref());
+        assert_eq!(cat.unwrap().option, "weapon.wand");
+    }
+
+    #[test]
+    fn type_scope_any_omits_both() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::Any,
+            stat_overrides: vec![],
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        assert!(result.body.query.base_type.is_none());
+        // Category should be None, but rarity still set → type_filters exists
+        let type_filters = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.type_filters.as_ref());
+        assert!(type_filters.is_some());
+        assert!(type_filters.unwrap().filters.category.is_none());
+    }
+
+    #[test]
+    fn mapped_stats_have_computed_min() {
+        let item = test_item();
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        // Life stat: 100 * 0.85 = 85.0
+        assert_eq!(result.mapped_stats[0].computed_min, Some(85.0));
+        assert_eq!(result.mapped_stats[0].display_text, "+100 to maximum Life");
+        // Cold res: 40 * 0.85 = 34.0
+        assert_eq!(result.mapped_stats[1].computed_min, Some(34.0));
     }
 }

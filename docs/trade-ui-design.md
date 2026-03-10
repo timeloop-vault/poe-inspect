@@ -276,19 +276,11 @@ Prices come in mixed currencies (chaos, divine, exalted, etc.). Should we normal
 
 ### Interactive overlay as trade query builder
 
-The overlay itself becomes the search configuration UI. Instead of a separate filter
-panel, the existing mod lines grow interactive controls when in "trade mode":
+**Full design**: See `docs/trade-query-builder-design.md`.
 
-- **Checkboxes** on each mod line to include/exclude from search
-- **Value sliders/inputs** to adjust min values per stat (pre-filled from relaxation %)
-- **Roll bars become editable** — drag to set the search minimum
-- **Base type / item level** become toggleable filters
-- **"Search" button** updates live as you toggle stats
-
-The item display *is* the query builder. No context switching — the user reads the
-item, tweaks what matters, and searches. This leverages the fact that we already render
-tier badges, type badges, and roll quality bars on every mod line. Adding a checkbox
-and a value adjuster is the same visual language.
+The overlay itself becomes the search configuration UI ("Edit Search" mode).
+Covers: per-stat checkboxes + value sliders, base type specificity toggle
+(exact → category → any), item level filters, tier/rank sliders, and more.
 
 ### Bulk item exchange
 
@@ -341,5 +333,4 @@ The API has been reverse-engineered — reference implementation in `poe-agents`
 ### Other future features
 
 - Pseudo stat aggregation (total life, total res)
-- Per-stat filter toggles (checkboxes on mod lines)
 - Hotkey for instant price check (skip button click)

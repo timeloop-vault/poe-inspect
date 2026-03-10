@@ -27,10 +27,11 @@ pub mod rate_limit;
 pub mod stats_index;
 pub mod types;
 
-pub use client::{fetch_trade_stats, TradeApiError, TradeClient};
-pub use query::{build_query, QueryBuildResult, TradeSearchBody};
+pub use client::{TradeApiError, TradeClient, fetch_trade_stats};
+pub use query::{QueryBuildResult, TradeSearchBody, build_query};
 pub use stats_index::IndexBuildResult;
 pub use types::{
-    League, LeagueList, Price, PriceCheckResult, SearchResult, TradeQueryConfig,
-    TradeStatCategory, TradeStatEntry, TradeStatsIndex, TradeStatsResponse,
+    League, LeagueList, MappedStat, Price, PriceCheckResult, SearchResult, StatFilterOverride,
+    TradeFilterConfig, TradeQueryConfig, TradeStatCategory, TradeStatEntry, TradeStatsIndex,
+    TradeStatsResponse, TypeSearchScope,
 };

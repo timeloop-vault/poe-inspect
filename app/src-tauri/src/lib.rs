@@ -578,7 +578,7 @@ async fn price_check(
         .as_ref()
         .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
 
-    let query_result = poe_trade::build_query(&resolved, index, &config);
+    let query_result = poe_trade::build_query(&resolved, index, &config, None);
     // Release the read lock before acquiring the client mutex.
     drop(index_guard);
 
@@ -609,7 +609,7 @@ async fn trade_search_url(
         .as_ref()
         .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
 
-    let query_result = poe_trade::build_query(&resolved, index, &config);
+    let query_result = poe_trade::build_query(&resolved, index, &config, None);
     drop(index_guard);
 
     let mut client = trade.client.lock().await;
