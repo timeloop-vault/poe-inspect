@@ -4,8 +4,8 @@
 //! serializable struct. The app combines this with `ResolvedItem` (poe-item)
 //! into a frontend payload.
 
-use poe_data::domain::TierQuality;
 use poe_data::GameData;
+use poe_data::domain::TierQuality;
 use poe_item::types::ResolvedItem;
 use serde::Serialize;
 

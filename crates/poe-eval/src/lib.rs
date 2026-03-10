@@ -13,12 +13,12 @@ pub mod rule;
 pub mod schema;
 pub mod tier;
 
-pub use affix::{analyze_affixes, AffixSummary, Modifiability};
+pub use affix::{AffixSummary, Modifiability, analyze_affixes};
 pub use evaluate::{evaluate, score};
-pub use item_result::{evaluate_item, ItemEvaluation, WatchingProfileInput};
+pub use item_result::{ItemEvaluation, WatchingProfileInput, evaluate_item};
+pub use poe_data::domain::TierQuality;
 pub use predicate::Predicate;
 pub use profile::{Profile, ScoreResult};
 pub use rule::Rule;
-pub use schema::{predicate_schema, PredicateSchema};
-pub use poe_data::domain::TierQuality;
-pub use tier::{analyze_tiers, ItemTierSummary};
+pub use schema::{PredicateSchema, predicate_schema};
+pub use tier::{ItemTierSummary, analyze_tiers};
