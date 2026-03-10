@@ -11,6 +11,8 @@ use crate::predicate::Cmp;
 /// Describes one predicate type for the UI.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct PredicateSchema {
     /// Predicate type name (matches serde `"type"` tag in `Predicate`).
     pub type_name: String,
@@ -27,6 +29,8 @@ pub struct PredicateSchema {
 /// A single input field within a predicate.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct PredicateField {
     /// JSON key name (matches serde field name in `Predicate`).
     pub name: String,
@@ -42,6 +46,8 @@ pub struct PredicateField {
 /// use existing field kinds get UI for free.
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum FieldKind {
     /// Comparison operator dropdown.
     /// `allowed_ops` restricts which operators are valid.
@@ -51,7 +57,9 @@ pub enum FieldKind {
     },
     /// Numeric input.
     Number {
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
         min: Option<i64>,
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
         max: Option<i64>,
     },
     /// Fixed set of choices (only == / != comparison makes sense).
@@ -76,6 +84,8 @@ pub enum FieldKind {
 
 /// A selectable option in an enum/ordered-enum field.
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct EnumOption {
     /// Serialized value (matches serde representation).
     pub value: String,

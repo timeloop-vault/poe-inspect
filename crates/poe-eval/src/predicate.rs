@@ -9,6 +9,8 @@ use poe_item::types::{InfluenceKind, Rarity, StatusKind};
 
 /// A comparison operator for numeric and string fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum Cmp {
     Eq,
     Ne,
@@ -39,6 +41,8 @@ impl Cmp {
 /// `GameData` as needed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum Predicate {
     // ── Header predicates ────────────────────────────────────────────
 
@@ -94,6 +98,7 @@ pub enum Predicate {
         /// Which value index (0 for most stats, 0/1 for "Adds X to Y" stats).
         value_index: usize,
         op: Cmp,
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
         value: i64,
     },
 
@@ -124,6 +129,8 @@ pub enum Predicate {
 
 /// Mod slot kind for counting and open-mod queries.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSlotKind {
     Prefix,
     Suffix,
@@ -132,6 +139,8 @@ pub enum ModSlotKind {
 
 /// Serializable rarity value (maps to `poe_item::types::Rarity`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum RarityValue {
     Normal = 0,
     Magic = 1,
@@ -157,6 +166,8 @@ impl RarityValue {
 
 /// Serializable influence kind (maps to `poe_item::types::InfluenceKind`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum InfluenceValue {
     Shaper,
     Elder,
@@ -191,6 +202,8 @@ impl InfluenceValue {
 
 /// Serializable status kind (maps to `poe_item::types::StatusKind`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum StatusValue {
     Corrupted,
     Mirrored,

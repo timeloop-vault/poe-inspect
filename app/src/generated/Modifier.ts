@@ -3,6 +3,9 @@ import type { ModType } from "./ModType";
 import type { TierKind } from "./TierKind";
 import type { TierQuality } from "./TierQuality";
 
+/**
+ * Display-ready modifier for the frontend.
+ */
 export type Modifier = { modName: string | null, type: ModType, 
 /**
  * Raw tier/rank number (for badge display).

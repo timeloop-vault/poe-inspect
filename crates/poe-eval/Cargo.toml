@@ -9,10 +9,14 @@ license.workspace = true
 [lints]
 workspace = true
 
+[features]
+ts = ["dep:ts-rs", "poe-item/ts", "poe-data/ts"]
+
 [dependencies]
-poe-item = { path = "../poe-item" }
-poe-data = { path = "../poe-data" }
+poe-item = { path = "../poe-item", features = ["serde"] }
+poe-data = { path = "../poe-data", features = ["serde"] }
 serde.workspace = true
+ts-rs = { version = "12", optional = true }
 thiserror.workspace = true
 tracing.workspace = true
 

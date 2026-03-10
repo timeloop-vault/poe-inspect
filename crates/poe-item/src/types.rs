@@ -65,7 +65,11 @@ pub enum Section {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct Requirement {
+    #[cfg_attr(feature = "serde", serde(rename = "name"))]
     pub key: String,
     pub value: String,
 }
@@ -142,7 +146,7 @@ impl ModTierKind {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
+#[cfg_attr(feature = "ts", ts(export, rename = "ModType"))]
 pub enum ModDisplayType {
     Prefix,
     Suffix,
@@ -157,7 +161,7 @@ pub enum ModDisplayType {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
+#[cfg_attr(feature = "ts", ts(export, rename = "TierKind"))]
 pub enum TierDisplayKind {
     Tier,
     Rank,

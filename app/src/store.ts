@@ -7,7 +7,7 @@
  */
 import { invoke } from "@tauri-apps/api/core";
 import { load } from "@tauri-apps/plugin-store";
-import type { EvalProfile } from "./types";
+import type { EvalProfile, ScoringRule } from "./types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -196,11 +196,11 @@ export async function saveHotkeys(hotkeys: HotkeySettings): Promise<void> {
 /** Merge legacy modWeights into evalProfile.scoring as HasStatId rules. */
 export function mergeModWeightsIntoScoring(profile: StoredProfile): StoredProfile {
 	if (profile.modWeights.length === 0 || profile.evalProfile === null) return profile;
-	const weightRules = profile.modWeights.flatMap((mw) =>
+	const weightRules: ScoringRule[] = profile.modWeights.flatMap((mw) =>
 		(mw.statIds ?? []).map((statId) => ({
 			label: mw.template,
 			weight: WEIGHT_VALUES[mw.level],
-			rule: { rule_type: "Pred" as const, type: "HasStatId", stat_id: statId },
+			rule: { rule_type: "Pred" as const, type: "HasStatId" as const, stat_id: statId },
 		})),
 	);
 	return {

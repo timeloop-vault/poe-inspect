@@ -4,7 +4,7 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ## Status
 
-**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis. 26 fixture tests.
+**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 32 fixture tests.
 
 ## Scope
 
@@ -33,15 +33,17 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ```
 src/
-  lib.rs         — public API
-  affix.rs       — open affix analysis (used/max/open slots, modifiability, crafted detection)
-  predicate.rs   — atomic conditions (Rarity, ItemClass, ModCount, StatValue, etc.)
-  rule.rs        — combinators (All, Any, Not) over predicates
-  profile.rs     — scoring profiles (weighted rule sets)
-  evaluate.rs    — evaluate(item, rule, game_data) -> bool, score(item, profile, game_data)
-  tier.rs        — tier quality analysis (mod tier → Best/Great/Good/Mid/Low)
+  lib.rs          — public API
+  affix.rs        — open affix analysis (used/max/open slots, modifiability, crafted detection)
+  evaluate.rs     — evaluate(item, rule, game_data) -> bool, score(item, profile, game_data)
+  item_result.rs  — evaluate_item() + display types (EvaluatedItem, Modifier, ScoreInfo, etc.)
+  predicate.rs    — atomic conditions (Rarity, ItemClass, ModCount, StatValue, etc.)
+  profile.rs      — scoring profiles (weighted rule sets)
+  rule.rs         — combinators (All, Any, Not) over predicates
+  schema.rs       — predicate schema for dynamic UI building
+  tier.rs         — tier quality analysis (mod tier → Best/Great/Good/Mid/Low)
 tests/
-  evaluate_fixtures.rs — tests against real item fixtures (31 tests)
+  evaluate_fixtures.rs — tests against real item fixtures (32 tests)
 ```
 
 ### Predicate types
@@ -98,4 +100,6 @@ tests/
 5. ~~Profile JSON serialization round-trip~~ ✓
 6. ~~Tier quality analysis: `analyze_tiers(item) -> ItemTierSummary`~~ ✓
 7. ~~Open affix detection: `analyze_affixes(item, game_data) -> AffixSummary`~~ ✓
-8. Deterministic craft suggestions (needs `CraftingBenchOptions` in poe-data — see `docs/crafting-tiers.md`)
+8. ~~Display-ready evaluation: `evaluate_item(item, gd, profile, watching) -> EvaluatedItem`~~ ✓
+9. ~~ts-rs exports for all public types (feature-gated `ts` feature)~~ ✓
+10. Deterministic craft suggestions (needs `CraftingBenchOptions` in poe-data — see `docs/crafting-tiers.md`)
