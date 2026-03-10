@@ -543,13 +543,25 @@ function CustomProfileView({
 	};
 
 	const addStatRule = (suggestion: StatSuggestion) => {
+		// Build StatValue predicates (value threshold, not just presence).
+		// Default: op "Gte", value 0 — matches any value, user adjusts threshold.
+		const makeStatValue = (statId: string, template: string): Rule => ({
+			rule_type: "Pred" as const,
+			type: "StatValue" as const,
+			text: template,
+			stat_id: statId,
+			value_index: 0,
+			op: "Ge" as const,
+			value: 0,
+		});
+
 		if (suggestion.kind.type === "Hybrid") {
-			// Compound rule: HasStatId for each stat in the hybrid mod.
-			const rules: Rule[] = suggestion.stat_ids.map((sid) => ({
-				rule_type: "Pred" as const,
-				type: "HasStatId" as const,
-				stat_id: sid,
-			}));
+			// Compound rule: StatValue for each stat in the hybrid mod.
+			const allTemplates = [suggestion.template, ...suggestion.kind.other_templates];
+			const rules: Rule[] = suggestion.stat_ids.map((sid, i) => {
+				const tmpl = allTemplates[i] ?? suggestion.template;
+				return makeStatValue(sid, tmpl);
+			});
 			const label = `${suggestion.template} / ${suggestion.kind.other_templates.join(" / ")}`;
 			onUpdateScoring([
 				...scoring,
@@ -565,7 +577,7 @@ function CustomProfileView({
 			if (!firstId) return;
 			const exists = scoring.some((sr) => {
 				const rd = sr.rule as Record<string, unknown>;
-				return sr.rule.rule_type === "Pred" && rd.type === "HasStatId" && rd.stat_id === firstId;
+				return sr.rule.rule_type === "Pred" && rd.type === "StatValue" && rd.stat_id === firstId;
 			});
 			if (exists) return;
 			onUpdateScoring([
@@ -573,7 +585,7 @@ function CustomProfileView({
 				{
 					label: suggestion.template,
 					weight: WEIGHT_VALUES.medium,
-					rule: { rule_type: "Pred", type: "HasStatId", stat_id: firstId },
+					rule: makeStatValue(firstId, suggestion.template),
 				},
 			]);
 		}
