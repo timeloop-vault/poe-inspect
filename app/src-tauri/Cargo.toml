@@ -33,6 +33,9 @@ poe-trade = { path = "../../crates/poe-trade", features = ["ts"] }
 # Async primitives for trade client state (held across .await points)
 tokio = { version = "1", features = ["sync"] }
 
+# Open URLs in the default browser
+open = "5"
+
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
 tauri-plugin-window-state = "2"

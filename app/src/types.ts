@@ -56,6 +56,7 @@ import type { ResolvedItem } from "./generated/ResolvedItem";
 export interface ItemPayload {
 	item: ResolvedItem;
 	eval: ItemEvaluation;
+	rawText: string;
 }
 
 // ── Type guards ─────────────────────────────────────────────────────────────

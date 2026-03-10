@@ -290,10 +290,56 @@ item, tweaks what matters, and searches. This leverages the fact that we already
 tier badges, type badges, and roll quality bars on every mod line. Adding a checkbox
 and a value adjuster is the same visual language.
 
+### Bulk item exchange
+
+The trade API has two distinct endpoints:
+
+| | Standard search | Bulk exchange |
+|--|-----------------|---------------|
+| **Endpoint** | `POST /api/trade/search/{league}` | `POST /api/trade/exchange/{league}` |
+| **Use case** | Items with mods (gear, maps, gems) | Currency, fragments, div cards, oils, scarabs |
+| **Query format** | `stats[]` (stat filters + values) | `{have: ["chaos"], want: ["divine"]}` (trade tags) |
+| **Response** | Fixed prices (50 chaos, 1 divine) | Exchange ratios (1:180 rate, with stock) |
+
+**Routing logic** (how APT does it):
+1. If any stat filters are enabled → standard search
+2. Else if the item has a bulk `tradeTag` → bulk exchange
+3. Else → standard search
+
+**What we need**:
+- Item class → trade tag mapping in `poe-data/domain.rs` (e.g., `"Currency"` → `"currency"`,
+  `"DivinationCard"` → `"card"`, fragments → `"fragment"`, etc.)
+- Bulk query builder: `ResolvedItem` → `{have, want}` format
+- Bulk client: POST to `/api/trade/exchange/`, parse ratio responses
+- UI: exchange ratios displayed differently from fixed prices ("1 = 180c" vs "listed at 50c")
+
+### In-game exchange (no API)
+
+PoE's in-game currency exchange (added ~3.25) has no public API. Items traded through it
+are invisible to both `/trade/search/` and `/trade/exchange/` endpoints. This affects:
+- Currency (chaos, divine, exalted, etc.)
+- Fragments
+- Other bulk-tradeable items
+
+**UX handling**: When showing price results for currency/fragment items, display a note:
+"Currency is often traded via in-game exchange — prices there may differ from trade site listings."
+This sets expectations without requiring any API integration.
+
+### poe.ninja integration
+
+poe.ninja provides historical price data, economy trends, and currency exchange rates.
+The API has been reverse-engineered — reference implementation in `poe-agents` repo
+(`_reference/poe-agents/` on the Linux disk, see its poe.ninja module).
+
+**Use cases**:
+- **Currency normalization**: Convert mixed-currency listings to a common base (chaos/divine)
+  using live exchange rates, so "50 chaos" and "0.3 divine" are directly comparable
+- **Price history**: Show price trend over time for uniques, div cards, etc.
+- **Sanity check**: Compare trade listings against poe.ninja aggregate pricing
+- **Rate limit**: 12 requests / 5 minutes (documented in CLAUDE.md Key Data Sources)
+
 ### Other future features
 
 - Pseudo stat aggregation (total life, total res)
-- Currency normalization via poe.ninja
-- Price history / comparison
-- Bulk exchange for currency items
+- Per-stat filter toggles (checkboxes on mod lines)
 - Hotkey for instant price check (skip button click)

@@ -96,6 +96,10 @@ poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
 - Strict mode, no `any` without justification
 - Biome or similar for formatting/linting
 
+### Git / CLI
+- **Never `cd <path> && git <command>`** — the working directory is the repo root. Use git commands directly without `cd`. This applies to all git operations (status, add, commit, diff, log, etc.)
+- **Commit all Cargo.lock files** when dependencies change — both `app/src-tauri/Cargo.lock` and workspace `Cargo.lock` are tracked
+
 ### Documentation
 - Decisions and research go in `docs/`
 - Keep docs concise and actionable — avoid over-planning (lesson from poe-inspect v1)
