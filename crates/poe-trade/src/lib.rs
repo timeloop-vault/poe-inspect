@@ -23,10 +23,11 @@
 
 pub mod client;
 pub mod query;
+pub mod rate_limit;
 pub mod stats_index;
 pub mod types;
 
-pub use client::{fetch_trade_stats, TradeApiError};
+pub use client::{fetch_trade_stats, TradeApiError, TradeClient};
 pub use query::{build_query, QueryBuildResult, TradeSearchBody};
 pub use stats_index::IndexBuildResult;
 pub use types::{

@@ -17,7 +17,7 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
 | poe-item | **Done** | PEST grammar + resolver, 98 tests, 68 fixtures |
 | poe-eval | **Foundation** | Predicates, rules, evaluate, scoring profiles, tier analysis (32 tests) |
-| poe-trade | **Phase 1** | Trade API client — stats index, query builder, price lookup |
+| poe-trade | **Phase 3** | Trade API client — stats index, query builder, rate-limited HTTP, price check |
 | app | **Phase 8c** | Tauri v2 overlay — Phases 1-8b done, 8c next (rule builder UX redesign) |
 
 **Side track:** poe-rqe (reverse query engine / demand marketplace) — working, independent of main pipeline.
