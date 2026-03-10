@@ -1,0 +1,13 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Coin of Restoration
+--------
+Stack Size: 8/10
+--------
+Restores an Afarud Unique item to its past Maraketh form
+--------
+"Drain away the sands of Time,
+restore that which is now mine!"
+--------
+Right click this item then left click a valid Afarud Unique item to restore it to its Maraketh form.
+Shift click to unstack.

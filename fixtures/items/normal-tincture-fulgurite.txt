@@ -1,0 +1,19 @@
+Item Class: Tinctures
+Rarity: Normal
+Fulgurite Tincture
+--------
+Inflicts Mana Burn every 0,60 Seconds
+7 Second Cooldown when Deactivated
+--------
+Requirements:
+Level: 32
+--------
+Item Level: 70
+--------
+{ Implicit Modifier — Damage, Elemental, Lightning, Attack, Ailment }
+25% chance to Shock with Melee Weapons
+(Shock increases Damage taken by up to 50%, depending on the amount of Lightning Damage in the hit, for 2 seconds)
+28(25-35)% increased Effect of Shock from Melee Weapons
+(Shock increases Damage taken by up to 50%)
+--------
+Right click to activate. Only one Tincture in your belt can be active at a time. Mana Burn causes you to lose 1% of your maximum Mana per stack per second. Can be deactivated manually, or will automatically deactivate when you reach 0 Mana.

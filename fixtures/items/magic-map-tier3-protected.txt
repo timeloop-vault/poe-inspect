@@ -1,0 +1,24 @@
+Item Class: Maps
+Rarity: Magic
+Protected Map of Decaying (Tier 3)
+--------
+Item Quantity: +29% (augmented)
+Item Rarity: +19% (augmented)
+Monster Pack Size: +25% (augmented)
+More Maps: +35% (augmented)
+--------
+Item Level: 70
+--------
+Monster Level: 70
+--------
+{ Implicit Modifier }
+Area is Influenced by the Originator's Memories — Unscalable Value
+--------
+{ Prefix Modifier "Protected" (Tier: 1) }
++50% Monster Physical Damage Reduction
++35% Monster Chaos Resistance
++55% Monster Elemental Resistances
+{ Suffix Modifier "of Decaying" (Tier: 1) }
+Area contains Unstable Tentacle Fiends
+--------
+Travel to a Map by using this in a personal Map Device. Maps can only be used once.

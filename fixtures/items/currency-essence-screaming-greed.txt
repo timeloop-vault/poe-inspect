@@ -1,0 +1,19 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Screaming Essence of Greed
+--------
+Stack Size: 1/10
+--------
+Upgrades a normal item to rare or reforges a rare item, guaranteeing one property
+
+Weapon: (3.3-3.6)% of Physical Attack Damage Leeched as Life
+Gloves: (61-75) to maximum Life
+Boots: (61-75) to maximum Life
+Helmet: (61-75) to maximum Life
+Shield: (100-114) to maximum Life
+Other Armour: (130-144) to maximum Life
+Quiver: (0.9-1.1)% of Physical Attack Damage Leeched as Life
+Belt: (24-27)% increased Flask Life Recovery rate
+Other Jewellery: Regenerate (24.1-32) Life per second
+--------
+Right click this item then left click a normal or rare item to apply it.

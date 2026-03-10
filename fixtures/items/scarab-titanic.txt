@@ -1,0 +1,12 @@
+Item Class: Map Fragments
+Rarity: Normal
+Titanic Scarab
+--------
+Stack Size: 3/20
+Limit: 1
+--------
+Unique Monsters have 1% increased Toughness, Damage, Rarity and Quantity of items dropped per 1% increased Pack Size of Area
+--------
+What power lies in a name?
+--------
+Can be used in a personal Map Device to add modifiers to a Map.

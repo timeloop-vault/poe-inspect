@@ -1,0 +1,8 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Vivid Crystallised Lifeforce
+--------
+Stack Size: 613/50 000
+--------
+Can be used at the Horticrafting bench in your hideout.
+Shift click to unstack.

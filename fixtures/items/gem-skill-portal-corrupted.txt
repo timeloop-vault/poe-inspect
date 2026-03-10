@@ -1,0 +1,21 @@
+Item Class: Skill Gems
+Rarity: Gem
+Portal
+--------
+Spell
+Level: 1 (Max)
+Cast Time: 2.50 sec
+Quality: +2% (augmented)
+--------
+Requirements:
+Level: 10
+--------
+Creates a portal to the current area's town.
+--------
+
+Additional Effects From Quality:
+6(0-60)% increased Cast Speed
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.
+--------
+Corrupted

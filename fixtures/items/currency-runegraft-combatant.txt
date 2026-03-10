@@ -1,0 +1,13 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Runegraft of the Combatant
+--------
+Stack Size: 1/10
+Replaces a Mastery Passive Skill
+--------
+50% increased Attack Damage against Enemies with a higher percentage of their Life remaining than you
+--------
+Right click this item then left click
+an allocated Passive Mastery Skill.
+Only one Runegraft of any given
+type can be in use at a time.

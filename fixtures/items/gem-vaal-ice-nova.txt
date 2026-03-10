@@ -1,0 +1,47 @@
+Item Class: Skill Gems
+Rarity: Gem
+Ice Nova
+--------
+Spell, AoE, Vaal, Cold, Nova
+Level: 1
+Cost: 8 Mana
+Cast Time: 0.70 sec
+Critical Strike Chance: 6.00%
+Effectiveness of Added Damage: 200%
+--------
+Requirements:
+Level: 12
+Int: 33
+--------
+A circle of ice expands from the caster.
+--------
+Deals 23 to 34 Cold Damage
+Base radius is 2.6 metres
+
+Additional Effects From Quality:
+Base radius is 0(0-0.3) metres
+--------
+Vaal Ice Nova
+--------
+Souls Per Use: 25
+Can Store 2 Uses
+Soul Gain Prevention: 2 sec
+Cast Time: 0.70 sec
+Critical Strike Chance: 6.00%
+Effectiveness of Added Damage: 120%
+--------
+A chilling circle of ice expands from the caster, repeating from every enemy it hits.
+--------
+Deals 18 to 26 Cold Damage
+Causes smaller novas up to 5 times on enemies hit
+20% reduced Area of Effect each repeat
+Base radius is 2.6 metres
+
+Additional Effects From Quality:
+Base radius is 0(0-0.3) metres
+--------
+Experience: 1/15 249
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.
+--------
+Corrupted

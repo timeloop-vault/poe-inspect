@@ -1,0 +1,12 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Lesser Eldritch Ember
+--------
+Stack Size: 2/10
+--------
+Adds a Lesser Searing Exarch implicit modifier to
+a Body Armour, Boots, Gloves or Helmet
+This replaces any existing implicit modifiers other than Eater of Worlds implicit modifiers
+--------
+Right click this item then left click a normal, magic or rare item to apply it. Cannot be used on Shaper, Elder or Elderslayer influenced items.
+Shift click to unstack.

@@ -1,0 +1,22 @@
+Item Class: Utility Flasks
+Rarity: Magic
+Flagellant's Granite Flask of Craft
+--------
+Lasts 6 Seconds
+Consumes 30 of 60 Charges on use
+Currently has 60 Charges
++1500 to Armour
+--------
+Requirements:
+Level: 64
+--------
+Item Level: 85
+--------
+Used when Charges reach full (enchant)
+--------
+{ Prefix Modifier "Flagellant's" (Tier: 1) }
+Gain 3 Charges when you are Hit by an Enemy
+{ Master Crafted Suffix Modifier "of Craft" — Life }
+Regenerate 3% of Life per second during Effect
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

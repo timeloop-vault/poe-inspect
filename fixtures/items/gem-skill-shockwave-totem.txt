@@ -1,0 +1,30 @@
+Item Class: Skill Gems
+Rarity: Gem
+Shockwave Totem
+--------
+Totem, Spell, AoE, Physical, Nova
+Level: 3
+Cost: 24 Mana
+Cast Time: 0.60 sec
+Critical Strike Chance: 5.00%
+Effectiveness of Added Damage: 110%
+--------
+Requirements:
+Level: 34
+Str: 79
+--------
+Summons a totem that shakes the earth around it, knocking back and damaging nearby enemies
+--------
+Deals 49 to 90 Physical Damage
+Totem lasts 8 seconds
+25% chance to Knock Enemies Back on hit
+(Knockback pushes Enemies away when Hit)
+Summons a Totem which uses this Skill
+Base radius is 2.4 metres
+
+Additional Effects From Quality:
++0(0-0.2) metres to radius
+--------
+Experience: 341 537/401 344
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.
