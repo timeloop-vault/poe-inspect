@@ -21,7 +21,6 @@ import {
 	type PredicateSchema,
 	type Rule,
 	type ScoringRule,
-	type StatSuggestion,
 	isCompoundRule,
 	isPredRule,
 } from "../../types";
@@ -542,55 +541,6 @@ function CustomProfileView({
 		]);
 	};
 
-	const addStatRule = (suggestion: StatSuggestion) => {
-		// Build StatValue predicates (value threshold, not just presence).
-		// Default: op "Gte", value 0 — matches any value, user adjusts threshold.
-		const makeStatValue = (statId: string, template: string): Rule => ({
-			rule_type: "Pred" as const,
-			type: "StatValue" as const,
-			text: template,
-			stat_id: statId,
-			value_index: 0,
-			op: "Ge" as const,
-			value: 0,
-		});
-
-		if (suggestion.kind.type === "Hybrid") {
-			// Compound rule: StatValue for each stat in the hybrid mod.
-			const allTemplates = [suggestion.template, ...suggestion.kind.other_templates];
-			const rules: Rule[] = suggestion.stat_ids.map((sid, i) => {
-				const tmpl = allTemplates[i] ?? suggestion.template;
-				return makeStatValue(sid, tmpl);
-			});
-			const label = `${suggestion.template} / ${suggestion.kind.other_templates.join(" / ")}`;
-			onUpdateScoring([
-				...scoring,
-				{
-					label,
-					weight: WEIGHT_VALUES.medium,
-					rule: { rule_type: "All", rules },
-				},
-			]);
-		} else {
-			// Single stat rule.
-			const firstId = suggestion.stat_ids[0];
-			if (!firstId) return;
-			const exists = scoring.some((sr) => {
-				const rd = sr.rule as Record<string, unknown>;
-				return sr.rule.rule_type === "Pred" && rd.type === "StatValue" && rd.stat_id === firstId;
-			});
-			if (exists) return;
-			onUpdateScoring([
-				...scoring,
-				{
-					label: suggestion.template,
-					weight: WEIGHT_VALUES.medium,
-					rule: makeStatValue(firstId, suggestion.template),
-				},
-			]);
-		}
-	};
-
 	const handleDrop = (targetIndex: number) => {
 		if (dragFrom === null || dragFrom === targetIndex) return;
 		const next = [...scoring];
@@ -635,9 +585,6 @@ function CustomProfileView({
 					</button>
 				</div>
 			</div>
-
-			{/* Stat search — fast path for adding stat-based scoring rules */}
-			<StatSearchBar onAdd={addStatRule} existingLabels={new Set(scoring.map((r) => r.label))} />
 
 			{/* Scoring rules with drag-and-drop reordering */}
 			{scoring.map((rule, i) => {
@@ -1203,138 +1150,6 @@ function CompactStatRow({
 			</button>
 		</div>
 	);
-}
-
-// ── Stat Search Bar (autocomplete for adding stat-based rules) ──────────
-
-/** Autocomplete search for adding stat-based scoring rules.
- *  Uses server-side search to return both single-stat and hybrid mod suggestions. */
-function StatSearchBar({
-	onAdd,
-	existingLabels,
-}: {
-	onAdd: (suggestion: StatSuggestion) => void;
-	existingLabels: Set<string>;
-}) {
-	const [results, setResults] = useState<StatSuggestion[]>([]);
-	const [search, setSearch] = useState("");
-	const [showDropdown, setShowDropdown] = useState(false);
-	const [selectedIndex, setSelectedIndex] = useState(-1);
-	const searchRef = useRef<HTMLDivElement>(null);
-	const debounceRef = useRef<number>(0);
-
-	// Server-side search with debounce.
-	useEffect(() => {
-		if (!search || search.length < 2) {
-			setResults([]);
-			return;
-		}
-		clearTimeout(debounceRef.current);
-		debounceRef.current = window.setTimeout(() => {
-			invoke<StatSuggestion[]>("get_stat_suggestions", { query: search }).then((r) => {
-				// Filter out already-added templates, limit results.
-				const filtered = r.filter((s) => !existingLabels.has(suggestionLabel(s))).slice(0, 40);
-				setResults(filtered);
-			});
-		}, 150);
-		return () => clearTimeout(debounceRef.current);
-	}, [search, existingLabels]);
-
-	// Close dropdown on outside click.
-	useEffect(() => {
-		const handler = (e: MouseEvent) => {
-			if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-				setShowDropdown(false);
-			}
-		};
-		document.addEventListener("mousedown", handler);
-		return () => document.removeEventListener("mousedown", handler);
-	}, []);
-
-	const handleSelect = (suggestion: StatSuggestion) => {
-		onAdd(suggestion);
-		setSearch("");
-		setShowDropdown(false);
-		setSelectedIndex(-1);
-	};
-
-	const handleKeyDown = (e: KeyboardEvent) => {
-		if (!showDropdown || results.length === 0) return;
-		if (e.key === "ArrowDown") {
-			e.preventDefault();
-			setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
-		} else if (e.key === "ArrowUp") {
-			e.preventDefault();
-			setSelectedIndex((i) => Math.max(i - 1, 0));
-		} else if (e.key === "Enter" && selectedIndex >= 0) {
-			e.preventDefault();
-			const selected = results[selectedIndex];
-			if (selected !== undefined) handleSelect(selected);
-		} else if (e.key === "Escape") {
-			setShowDropdown(false);
-		}
-	};
-
-	return (
-		<div class="stat-search" ref={searchRef}>
-			<input
-				type="text"
-				class="pred-input"
-				value={search}
-				onInput={(e) => {
-					setSearch((e.target as HTMLInputElement).value);
-					setShowDropdown(true);
-					setSelectedIndex(-1);
-				}}
-				onFocus={() => {
-					if (search) setShowDropdown(true);
-				}}
-				onKeyDown={handleKeyDown}
-				placeholder="Search stats to add..."
-				style={{ width: "100%" }}
-			/>
-			{showDropdown && results.length > 0 && (
-				<div class="pred-dropdown" style={{ position: "absolute", left: 0, right: 0 }}>
-					{results.map((item, i) => {
-						const isHybrid = item.kind.type === "Hybrid";
-						return (
-							<div
-								key={`${item.template}-${item.kind.type}-${i}`}
-								class={`pred-dropdown-item ${i === selectedIndex ? "selected" : ""}${isHybrid ? " hybrid-item" : ""}`}
-								onMouseDown={(e) => {
-									e.preventDefault();
-									handleSelect(item);
-								}}
-								onMouseEnter={() => setSelectedIndex(i)}
-							>
-								{isHybrid && item.kind.type === "Hybrid" ? (
-									<>
-										<span class="hybrid-affix">{item.kind.generation_type === 1 ? "P" : "S"}</span>
-										<span class="hybrid-stats">
-											{item.template}
-											{" / "}
-											{item.kind.other_templates.join(" / ")}
-										</span>
-										<span class="hybrid-mod-name">{item.kind.mod_name}</span>
-									</>
-								) : (
-									item.template
-								)}
-							</div>
-						);
-					})}
-				</div>
-			)}
-		</div>
-	);
-}
-
-/** Build a display label for a stat suggestion (used for dedup). */
-function suggestionLabel(s: StatSuggestion): string {
-	if (s.kind.type === "Hybrid") {
-		return `${s.template} / ${s.kind.other_templates.join(" / ")}`;
-	}
-	return s.template;
 }
 
 // ── Display Tab ──────────────────────────────────────────────────────────
