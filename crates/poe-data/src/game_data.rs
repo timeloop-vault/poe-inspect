@@ -14,6 +14,8 @@ use poe_dat::tables::{
     RarityRow, StatRow, TagRow,
 };
 
+use crate::domain::LOCAL_STAT_NONLOCAL_FALLBACKS;
+
 // ── GameData ────────────────────────────────────────────────────────────────
 
 /// All game data tables with pre-built indexes.
@@ -141,6 +143,33 @@ impl GameData {
                 }
             }
         }
+
+        // Fallback for local stats: local stats on armour/weapons (flat
+        // armour, evasion, energy shield) don't have entries in
+        // stat_descriptions.txt — PoE renders them as base properties.
+        // For hybrid suggestion display, reuse the non-local template.
+        for stat in &self.stats {
+            if !stat.is_local || map.contains_key(&stat.id) {
+                continue;
+            }
+            // Try 1: strip "local_" prefix → look up non-local equivalent.
+            if let Some(stripped) = stat.id.strip_prefix("local_") {
+                if let Some(templates) = map.get(stripped).cloned() {
+                    map.insert(stat.id.clone(), templates);
+                    continue;
+                }
+            }
+            // Try 2: hardcoded fallbacks for non-obvious mappings.
+            for &(local_id, nonlocal_id) in LOCAL_STAT_NONLOCAL_FALLBACKS {
+                if stat.id == local_id {
+                    if let Some(templates) = map.get(nonlocal_id).cloned() {
+                        map.insert(stat.id.clone(), templates);
+                    }
+                    break;
+                }
+            }
+        }
+
         self.stat_id_to_templates = map;
         self.reverse_index = Some(ri);
     }
@@ -317,10 +346,11 @@ impl GameData {
 
                     let other_templates: Vec<String> = other_stat_ids
                         .iter()
-                        .filter_map(|sid| {
+                        .map(|sid| {
                             self.stat_id_to_templates
                                 .get(sid)
                                 .and_then(|ts| ts.first().cloned())
+                                .unwrap_or_else(|| format_stat_id_as_display(sid))
                         })
                         .collect();
 
@@ -460,6 +490,37 @@ pub enum StatSuggestionKind {
         /// Stat IDs for the other stats in the hybrid.
         other_stat_ids: Vec<String>,
     },
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/// Format a stat_id as a human-readable display string (last-resort fallback).
+///
+/// Strips common prefixes (`local_`, `base_`), replaces underscores with
+/// spaces, and title-cases words. Example:
+/// `"local_minimum_added_physical_damage"` → `"Minimum Added Physical Damage"`
+fn format_stat_id_as_display(stat_id: &str) -> String {
+    let stripped = stat_id
+        .strip_prefix("local_")
+        .unwrap_or(stat_id)
+        .strip_prefix("base_")
+        .unwrap_or(stat_id);
+    stripped
+        .split('_')
+        .filter(|w| !w.is_empty() && *w != "+" && *w != "%")
+        .map(|w| {
+            let mut chars = w.chars();
+            match chars.next() {
+                Some(c) => {
+                    let mut s = c.to_uppercase().to_string();
+                    s.extend(chars);
+                    s
+                }
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 // ── Errors ──────────────────────────────────────────────────────────────────

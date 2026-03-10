@@ -612,6 +612,23 @@
 	color: var(--poe-header);
 }
 
+.pred-dropdown-item.hybrid {
+	color: var(--poe-text-dim);
+	font-size: 10px;
+}
+
+.pred-dropdown-separator {
+	padding: 4px 8px;
+	font-size: 9px;
+	color: var(--poe-accent);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	border-top: 1px solid var(--poe-border);
+	margin-top: 2px;
+	cursor: default;
+	user-select: none;
+}
+
 /* --- Predicate type selector --- */
 
 .pred-type-select {
@@ -1139,4 +1156,53 @@
 .trade-input::placeholder {
 	color: var(--poe-text-dim);
 	opacity: 0.6;
+}
+
+/* --- Hybrid Mod Fields --- */
+
+/* --- StatValue condition editor --- */
+
+.stat-value-mode {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.stat-value-mode-label {
+	font-size: 10px;
+	color: var(--poe-accent);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.stat-value-condition {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.stat-value-condition.multi {
+	padding-left: 8px;
+	border-left: 2px solid var(--poe-accent);
+	margin-top: 2px;
+}
+
+.stat-value-condition-label {
+	flex: 1;
+	font-size: 12px;
+	color: var(--poe-text-dim);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: default;
+}
+
+.stat-value-picked {
+	font-size: 10px;
+	color: var(--poe-accent);
+	padding: 2px 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }

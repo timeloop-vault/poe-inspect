@@ -18,7 +18,7 @@ label: string,
  */
 description: string, 
 /**
- * Category for grouping in UI (e.g., "Header", "Mods", "Stats").
+ * Category for grouping in UI (e.g., "Header", "Mods", "Influence").
  */
 category: string, 
 /**

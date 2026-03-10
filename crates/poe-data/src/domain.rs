@@ -271,6 +271,26 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
     }
 }
 
+// ── Local stat display fallbacks ──────────────────────────────────────────
+//
+// WHY HARDCODED: Local stats used in armour mods (flat armour, evasion,
+// energy shield) don't have entries in stat_descriptions.txt. PoE renders
+// them using the base defence property display, not the stat description
+// system. When building `stat_id_to_templates`, we first try stripping the
+// `local_` prefix to find the non-local equivalent. This table covers
+// remaining cases where the naming convention doesn't match.
+//
+// Known case: `local_energy_shield` → non-local is `base_maximum_energy_shield`,
+// not `energy_shield` (which doesn't exist in the stats table).
+
+/// Fallback mapping from local stat IDs to their non-local equivalents,
+/// for cases where stripping the `local_` prefix doesn't find a match.
+///
+/// Used by `set_reverse_index()` to populate `stat_id_to_templates`.
+pub const LOCAL_STAT_NONLOCAL_FALLBACKS: &[(&str, &str)] = &[
+    ("local_energy_shield", "base_maximum_energy_shield"),
+];
+
 /// Map a mod's display type to the trade API stat category prefix.
 ///
 /// `display_type` is one of: `"prefix"`, `"suffix"`, `"implicit"`, `"crafted"`,
