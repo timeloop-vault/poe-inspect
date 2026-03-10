@@ -51,6 +51,10 @@ export type { Price } from "./generated/Price";
 export type { League } from "./generated/League";
 export type { LeagueList } from "./generated/LeagueList";
 export type { QueryBuildResult } from "./generated/QueryBuildResult";
+export type { TradeFilterConfig } from "./generated/TradeFilterConfig";
+export type { TypeSearchScope } from "./generated/TypeSearchScope";
+export type { StatFilterOverride } from "./generated/StatFilterOverride";
+export type { MappedStat } from "./generated/MappedStat";
 
 // ── App-owned combined payload ──────────────────────────────────────────────
 // Matches the Rust `ItemPayload` struct in app/src-tauri/src/lib.rs.
