@@ -115,11 +115,7 @@ impl RateLimitTracker {
 
             if hits_in_window >= rule.max_hits {
                 // Need to wait until the oldest request in this window expires.
-                if let Some(&oldest) = self
-                    .request_times
-                    .iter()
-                    .find(|&&t| t > window_start)
-                {
+                if let Some(&oldest) = self.request_times.iter().find(|&&t| t > window_start) {
                     let expires_at = oldest + rule.period;
                     if expires_at > now {
                         max_delay = max_delay.max(expires_at - now);
@@ -143,11 +139,7 @@ impl RateLimitTracker {
     /// Prune request timestamps older than 5 minutes.
     fn prune_old_entries(&mut self, now: Instant) {
         let cutoff = now.checked_sub(Duration::from_secs(300)).unwrap_or(now);
-        while self
-            .request_times
-            .front()
-            .is_some_and(|&t| t < cutoff)
-        {
+        while self.request_times.front().is_some_and(|&t| t < cutoff) {
             self.request_times.pop_front();
         }
     }
