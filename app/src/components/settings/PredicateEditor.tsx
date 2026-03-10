@@ -176,9 +176,10 @@ export function PredicateEditor({
 	const updateField = (name: string, value: unknown) => {
 		const updated = { ...rule, [name]: value } as Rule;
 		if (name === "text" && typeof value === "string" && isRollPercent) {
-			invoke<string[]>("resolve_stat_template", { template: value }).then((ids) => {
-				if (ids.length > 0) {
-					onChange({ ...updated, stat_id: ids[0] } as Rule);
+			invoke<StatSuggestion[]>("get_stat_suggestions", { query: value }).then((suggestions) => {
+				const single = suggestions.find((s) => s.kind.type === "Single" && s.template === value);
+				if (single && single.stat_ids.length > 0) {
+					onChange({ ...updated, stat_id: single.stat_ids[0] } as Rule);
 				} else {
 					onChange(updated);
 				}
@@ -328,34 +329,33 @@ function StatValueEditor({
 
 	const handleStatPick = (template: string) => {
 		// User selected a stat template — always reset to single condition,
-		// then resolve stat_id and check for hybrids.
-		let cond: StatCondition = { ...defaultCondition(), text: template };
+		// get stat_id from the suggestion, and check for hybrids.
+		// Single call to get_stat_suggestions replaces both resolve_stat_template
+		// and the separate hybrid check.
+		invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((suggestions) => {
+			const single = suggestions.find((s) => s.kind.type === "Single" && s.template === template);
+			const statId = single?.stat_ids[0];
 
-		invoke<string[]>("resolve_stat_template", { template }).then((ids) => {
-			if (ids.length > 0) {
-				cond = { ...cond, stat_id: ids[0] };
-			}
+			const cond: StatCondition = { ...defaultCondition(), text: template, stat_id: statId };
 			onChange({ ...rule, conditions: [cond] } as Rule);
 
-			// Check for hybrids
-			if (ids.length > 0) {
-				invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((sug) => {
-					const hybrids = sug.filter(
-						(s) =>
-							s.kind.type === "Hybrid" &&
-							s.kind.other_templates.length > 0 &&
-							s.kind.other_templates.some((t) => t.length > 0),
-					);
-					if (hybrids.length > 0) {
-						setPickedTemplate(template);
-						setHybridOptions(hybrids);
-						setFilterText("");
-						setShowDropdown(true);
-						setSelectedIndex(-1);
-					} else {
-						setShowDropdown(false);
-					}
-				});
+			if (statId) {
+				const hybrids = suggestions.filter(
+					(s) =>
+						s.kind.type === "Hybrid" &&
+						s.template === template &&
+						s.kind.other_templates.length > 0 &&
+						s.kind.other_templates.some((t) => t.length > 0),
+				);
+				if (hybrids.length > 0) {
+					setPickedTemplate(template);
+					setHybridOptions(hybrids);
+					setFilterText("");
+					setShowDropdown(true);
+					setSelectedIndex(-1);
+				} else {
+					setShowDropdown(false);
+				}
 			} else {
 				setShowDropdown(false);
 			}

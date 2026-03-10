@@ -534,16 +534,6 @@ fn get_suggestions(source: String, state: tauri::State<'_, GameDataState>) -> Ve
     }
 }
 
-/// Resolve a stat template key (e.g. "+# to maximum Life") to its internal stat IDs.
-#[tauri::command]
-fn resolve_stat_template(template: &str, gd: tauri::State<'_, GameDataState>) -> Vec<String> {
-    let gd = &gd.0;
-    gd.reverse_index
-        .as_ref()
-        .and_then(|ri| ri.stat_ids_for_template(template))
-        .unwrap_or_default()
-}
-
 /// Return enriched stat suggestions matching a text query.
 ///
 /// Returns both single-stat suggestions and hybrid mod combos that include
@@ -892,7 +882,6 @@ pub fn run() {
             get_default_profile,
             get_predicate_schema,
             get_suggestions,
-            resolve_stat_template,
             get_stat_suggestions,
             preview_trade_query,
             price_check,
