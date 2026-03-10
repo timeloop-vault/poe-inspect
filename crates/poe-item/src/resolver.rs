@@ -13,9 +13,9 @@ use poe_data::GameData;
 use regex::Regex;
 
 use crate::types::{
-    GemData, Header, ItemProperty, ModGroup, ModHeader, ModSlot, ModSource, Rarity, RawItem,
-    ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine, Section, StatusKind, ValueRange,
-    VaalGemData, InfluenceKind,
+    GemData, Header, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot, ModSource, Rarity,
+    RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine, Section, StatusKind,
+    ValueRange, VaalGemData, InfluenceKind,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -216,10 +216,13 @@ fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
         .iter()
         .any(|line| line.ends_with("(fractured)"));
 
+    let display_type =
+        ResolvedMod::compute_display_type(group.header.slot, group.header.source);
     ResolvedMod {
         header: group.header.clone(),
         stat_lines,
         is_fractured,
+        display_type,
     }
 }
 
@@ -519,6 +522,7 @@ fn build_enchant_mod(line: &str, game_data: &GameData) -> ResolvedMod {
         },
         stat_lines: vec![stat_line],
         is_fractured: false,
+        display_type: ModDisplayType::Enchant,
     }
 }
 

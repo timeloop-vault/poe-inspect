@@ -93,22 +93,37 @@ pub struct ModGroup {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModHeader {
     pub source: ModSource,
     pub slot: ModSlot,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub influence_tier: Option<String>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub name: Option<String>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub tier: Option<ModTierKind>,
     pub tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSource {
     Regular,
     MasterCrafted,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSlot {
     Implicit,
     Prefix,
@@ -120,6 +135,9 @@ pub enum ModSlot {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModTierKind {
     Tier(u32),
     Rank(u32),
@@ -184,6 +202,9 @@ pub struct ItemProperty {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum InfluenceKind {
     Shaper,
     Elder,
@@ -237,6 +258,9 @@ impl InfluenceKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub enum StatusKind {
     Corrupted,
     Mirrored,
@@ -270,13 +294,22 @@ impl StatusKind {
 /// stat IDs resolved. Properties are parsed, mods are pre-split into
 /// implicits/explicits, and convenience booleans are pre-computed.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedItem {
     pub header: ResolvedHeader,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub item_level: Option<u32>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub monster_level: Option<u32>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub talisman_tier: Option<u32>,
     pub requirements: Vec<Requirement>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub sockets: Option<String>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub experience: Option<String>,
     /// Parsed property lines (e.g., "Armour: 890 (augmented)").
     pub properties: Vec<ItemProperty>,
@@ -284,7 +317,7 @@ pub struct ResolvedItem {
     pub implicits: Vec<ResolvedMod>,
     /// Explicit mods (prefixes, suffixes, unique mods).
     pub explicits: Vec<ResolvedMod>,
-    /// Enchant mods (currently always empty — needs section classification in parser).
+    /// Enchant mods.
     pub enchants: Vec<ResolvedMod>,
     pub influences: Vec<InfluenceKind>,
     pub statuses: Vec<StatusKind>,
@@ -295,19 +328,28 @@ pub struct ResolvedItem {
     /// Whether the item is unidentified (no explicit mods visible).
     pub is_unidentified: bool,
     /// GGG trade pricing annotation (e.g., "~b/o 35 chaos").
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub note: Option<String>,
     /// Item effect/description text (currency effects, scarab effects, gem descriptions, etc.)
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub description: Option<String>,
     /// Flavor text (poetic/lore text on uniques, div cards, scarabs).
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub flavor_text: Option<String>,
     /// Gem-specific data (tags, stats, quality effects, Vaal variant).
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub gem_data: Option<GemData>,
     /// Remaining unclassified generic sections.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
     pub unclassified_sections: Vec<Vec<String>>,
 }
 
 /// Gem-specific structured data extracted from generic sections.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct GemData {
     /// Gem tags (e.g., ["Spell", "AoE", "Cold", "Nova"]).
     pub tags: Vec<String>,
@@ -323,6 +365,10 @@ pub struct GemData {
 
 /// Vaal variant data within a Vaal gem.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct VaalGemData {
     /// Vaal skill name (e.g., "Vaal Ice Nova").
     pub name: String,
@@ -348,6 +394,10 @@ impl ResolvedItem {
 
 /// Resolved header with base type always extracted.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedHeader {
     pub item_class: String,
     pub rarity: Rarity,
@@ -360,18 +410,24 @@ pub struct ResolvedHeader {
 
 /// A modifier with resolved stat lines.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedMod {
     pub header: ModHeader,
     pub stat_lines: Vec<ResolvedStatLine>,
     /// Whether this mod has the `(fractured)` suffix on any stat line.
     pub is_fractured: bool,
+    /// Pre-computed display type for the frontend (prefix/suffix/implicit/crafted/unique/enchant).
+    pub display_type: ModDisplayType,
 }
 
 impl ResolvedMod {
-    /// Flat display type for the frontend (prefix/suffix/implicit/crafted/unique).
+    /// Compute display type from slot + source.
     #[must_use]
-    pub fn display_type(&self) -> ModDisplayType {
-        match (self.header.slot, self.header.source) {
+    pub fn compute_display_type(slot: ModSlot, source: ModSource) -> ModDisplayType {
+        match (slot, source) {
             (_, ModSource::MasterCrafted) => ModDisplayType::Crafted,
             (ModSlot::Prefix, _) => ModDisplayType::Prefix,
             (ModSlot::Suffix, _) => ModDisplayType::Suffix,
@@ -387,6 +443,10 @@ impl ResolvedMod {
 
 /// A single stat line with parsed values and optional stat ID resolution.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedStatLine {
     /// Original text from Ctrl+Alt+C output.
     pub raw_text: String,
@@ -398,6 +458,7 @@ pub struct ResolvedStatLine {
     /// Resolved stat IDs from `ReverseIndex` lookup. `None` if lookup unavailable or failed.
     pub stat_ids: Option<Vec<String>>,
     /// Raw stat values from `ReverseIndex` (transforms reversed). `None` if lookup failed.
+    #[cfg_attr(feature = "ts", ts(type = "Array<number> | null"))]
     pub stat_values: Option<Vec<i64>>,
     /// Whether this line is reminder text (parenthesized).
     pub is_reminder: bool,
@@ -405,11 +466,17 @@ pub struct ResolvedStatLine {
 
 /// A rolled value with its possible range.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
 pub struct ValueRange {
     /// The actual rolled value on this item.
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub current: i64,
     /// Lower bound of the roll range.
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub min: i64,
     /// Upper bound of the roll range.
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub max: i64,
 }

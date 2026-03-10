@@ -4,7 +4,7 @@ Parses PoE's Ctrl+Alt+C item clipboard text into structured, type-safe item repr
 
 ## Status
 
-**Core complete** — PEST grammar (Pass 1) + Resolver (Pass 2). 75 tests, 41 fixtures.
+**Core complete** — PEST grammar (Pass 1) + Resolver (Pass 2). 98 tests, 68 fixtures.
 
 ## Scope
 
@@ -45,16 +45,18 @@ property formats, stat lines. PEST parses the text into a typed parse tree.
 What PEST handles:
 - Section structure (separator-delimited blocks)
 - Header section (Item Class, Rarity, name/base lines)
+- Divination Card rarity (`Rarity::DivinationCard`)
 - Property lines (Key: Value with optional augmented marker)
 - Requirements section
 - Sockets section
 - Item Level section
+- Note section (`Note: ~b/o 35 chaos` — GGG trade pricing annotation)
 - Modifier headers (`{ Prefix Modifier "Name" (Tier: N) — Tags }`)
 - Stat lines with value ranges (`+68(65-68) to maximum Mana`)
 - Reminder text (`(parenthesized text)`)
 - Enchant lines (ending with `(enchant)`)
 - Influence markers (`Shaper Item`, etc.)
-- Special properties (`Corrupted`, `Fractured Item`, etc.)
+- Status keywords (`Corrupted`, `Mirrored`, `Unidentified`, `Split`, `Transfigured`)
 - Unknown sections (preserved, not dropped)
 
 ### Pass 2: Rust Resolver (data-dependent disambiguation)
@@ -62,6 +64,13 @@ What PEST handles:
 Uses `GameData` for things the grammar can't know:
 - **Magic item base type extraction**: Magic items embed base in name ("Seething Divine Life Flask of Staunching"). Need base item lookup to split.
 - **Stat line → stat ID**: Feed display text into `ReverseIndex.lookup()` to get stat IDs + values.
+- **Generic section classification**: Content-based analysis to classify unstructured sections:
+  - Enchants (lines ending with `(enchant)` suffix → synthetic `ResolvedMod` with `ModSlot::Enchant`)
+  - Properties (lines with `": "` pattern)
+  - Descriptions (currency effects, item instructions)
+  - Flavor text (unique/div card lore)
+  - Usage instructions (dropped — "Right click to use", etc.)
+- **Gem data extraction**: Dedicated path for gems — tags, description, stats, quality effects, Vaal variant
 - **Flask property vs modifier**: Flask base properties look like mods. Need game data to tell apart.
 - **Tier verification**: Verify extracted tier against mod database ranges.
 
@@ -154,10 +163,10 @@ Test fixtures from these projects: `_reference/poe-item-rust/test/data/`,
 3. ~~Write PEST grammar (`src/grammar.pest`)~~ ✓
 4. ~~Write tree walker (`parser.rs`) — PEST parse tree → RawItem types~~ ✓
 5. ~~Write output types (`types.rs`) — RawItem, section enums~~ ✓
-6. ~~Test structural parsing against all fixtures (no game data needed)~~ ✓ (28 tests, 26 fixtures)
-7. ~~Expand fixture coverage~~ ✓ (41 fixtures) — see `fixtures/items/COVERAGE.md` for gaps
+6. ~~Test structural parsing against all fixtures (no game data needed)~~ ✓ (47 parse tests, 68 fixtures)
+7. ~~Expand fixture coverage~~ ✓ (68 fixtures) — see `fixtures/items/COVERAGE.md` for gaps
 8. ~~Write resolver (`resolver.rs`) — GameData-dependent disambiguation~~ ✓
-9. ~~Test full pipeline: text → RawItem → ResolvedItem~~ ✓ (21 resolver tests)
+9. ~~Test full pipeline: text → RawItem → ResolvedItem~~ ✓ (40 resolver tests + 11 unit tests)
 
 ## Fixture-Driven Development
 
@@ -170,4 +179,4 @@ by item type, league mechanics, and GGG patches. When something fails:
 4. Fix the grammar/resolver/types until the test passes
 
 See `fixtures/items/COVERAGE.md` for the full coverage matrix and gap analysis.
-Critical missing fixtures: **Magic items** (B.1), **Flasks** (B.7), **Jewels**, **Divination cards**.
+Remaining gaps: unique jewel (Watcher's Eye), veiled items, dagger/claw, heist contracts.

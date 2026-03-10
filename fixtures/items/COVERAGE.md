@@ -116,10 +116,9 @@ Priority ordered by impact on the parser/resolver:
 ### P1 — Important item types with no coverage
 - [ ] **Unique jewel** — e.g., Watcher's Eye (multi-mod with no tier)
 - [x] ~~**Unique armour**~~ — unique-body-armour-lightning-coil.txt
-- [ ] **Unidentified item** — no mod section at all, "Unidentified" status
+- [x] ~~**Unidentified item**~~ — rare-axe-unidentified.txt
 - [x] ~~**Vaal gem**~~ — gem-vaal-ice-nova.txt
 - [x] ~~**Abyssal jewel**~~ — rare-abyss-jewel-ghastly-eye.txt
-- [x] ~~**Unidentified item**~~ — rare-axe-unidentified.txt
 
 ### P2 — Coverage gaps in existing categories
 - [ ] **Dagger/claw** — no dagger or claw

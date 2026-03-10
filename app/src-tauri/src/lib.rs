@@ -29,6 +29,17 @@ struct ProfileSet {
 /// Active evaluation profiles, loaded from JSON data files.
 struct ProfileState(Mutex<ProfileSet>);
 
+/// Combined frontend payload: item display data + evaluation results.
+/// Owned by the app — this is orchestration, not domain logic.
+#[derive(Debug, serde::Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ItemPayload {
+    /// The parsed and resolved item (display data from poe-item).
+    pub item: poe_item::types::ResolvedItem,
+    /// Evaluation results (tier quality, affix analysis, scores from poe-eval).
+    pub eval: poe_eval::ItemEvaluation,
+}
+
 /// Cursor position in CSS pixels, emitted to the frontend for panel positioning.
 #[derive(serde::Serialize, Clone)]
 struct OverlayPosition {
@@ -122,13 +133,17 @@ fn handle_inspect(app: &tauri::AppHandle) {
         match poe_item::parse(&clipboard_text) {
             Ok(raw) => {
                 let resolved = poe_item::resolve(&raw, gd);
-                let evaluated = poe_eval::evaluate_item(
+                let evaluation = poe_eval::evaluate_item(
                     &resolved,
                     gd,
                     profiles.primary.as_ref(),
                     &profiles.watching,
                 );
-                let _ = app.emit("item-evaluated", &evaluated);
+                let payload = ItemPayload {
+                    item: resolved,
+                    eval: evaluation,
+                };
+                let _ = app.emit("item-evaluated", &payload);
             }
             Err(e) => {
                 eprintln!("Item parse failed: {e}");
@@ -386,12 +401,12 @@ fn set_autostart(app: tauri::AppHandle, enabled: bool) {
 }
 
 /// Parse and evaluate item text from clipboard.
-/// Returns a structured `EvaluatedItem` for the overlay, or an error string.
+/// Returns item display data + evaluation results, or an error string.
 #[tauri::command]
 fn evaluate_item(
     item_text: String,
     state: tauri::State<'_, GameDataState>,
-) -> Result<poe_eval::EvaluatedItem, String> {
+) -> Result<ItemPayload, String> {
     let gd = &state.0;
 
     // Pass 1: structural parse
@@ -401,7 +416,11 @@ fn evaluate_item(
     let resolved = poe_item::resolve(&raw, gd);
 
     // Evaluate (no profile for direct command calls)
-    Ok(poe_eval::evaluate_item(&resolved, gd, None, &[]))
+    let evaluation = poe_eval::evaluate_item(&resolved, gd, None, &[]);
+    Ok(ItemPayload {
+        item: resolved,
+        eval: evaluation,
+    })
 }
 
 /// Set primary + watching profiles from the frontend.

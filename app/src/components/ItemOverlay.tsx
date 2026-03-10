@@ -1,5 +1,15 @@
 import { useState } from "preact/hooks";
-import type { Modifier, ParsedItem, Rarity, ScoreInfo, WatchingScore } from "../types";
+import type {
+	ItemEvaluation,
+	ModTierResult,
+	ModType,
+	Rarity,
+	ResolvedItem,
+	ResolvedMod,
+	ScoreInfo,
+	TierQuality,
+	WatchingScore,
+} from "../types";
 
 import headerMagicLeft from "../assets/tooltip/header-magic-left.webp";
 import headerMagicMiddle from "../assets/tooltip/header-magic-middle.webp";
@@ -23,25 +33,22 @@ import separatorUnique from "../assets/tooltip/separator-unique.webp";
 
 type HeaderSprites = { left: string; middle: string; right: string };
 
-const headerSprites: Record<Rarity, HeaderSprites> = {
+const headerSprites: Partial<Record<Rarity, HeaderSprites>> = {
 	Normal: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
 	Magic: { left: headerMagicLeft, middle: headerMagicMiddle, right: headerMagicRight },
 	Rare: { left: headerRareLeft, middle: headerRareMiddle, right: headerRareRight },
 	Unique: { left: headerUniqueLeft, middle: headerUniqueMiddle, right: headerUniqueRight },
-	Gem: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
-	Currency: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
-	Unknown: { left: headerNormalLeft, middle: headerNormalMiddle, right: headerNormalRight },
 };
+// biome-ignore lint/style/noNonNullAssertion: Normal is always present in the literal above
+const defaultHeader: HeaderSprites = headerSprites.Normal!;
 
-const separatorSprites: Record<Rarity, string> = {
+const separatorSprites: Partial<Record<Rarity, string>> = {
 	Normal: separatorNormal,
 	Magic: separatorMagic,
 	Rare: separatorRare,
 	Unique: separatorUnique,
-	Gem: separatorNormal,
-	Currency: separatorNormal,
-	Unknown: separatorNormal,
 };
+const defaultSeparator = separatorNormal;
 
 /** Color for item name based on rarity */
 function rarityColor(rarity: Rarity): string {
@@ -58,14 +65,24 @@ function rarityColor(rarity: Rarity): string {
 			return "var(--rarity-gem, #1ba29b)";
 		case "Currency":
 			return "var(--rarity-currency, #aa9e82)";
-		case "Unknown":
+		default:
 			return "var(--rarity-normal)";
 	}
 }
 
-/** CSS class for mod quality coloring — maps poe-eval quality to CSS class. */
-function qualityClass(mod: Modifier): string {
-	switch (mod.quality) {
+// ── Mod display helpers ─────────────────────────────────────────────────────
+
+/** Build display text from stat lines (filter out reminder text). */
+function modText(mod: ResolvedMod): string {
+	return mod.statLines
+		.filter((sl) => !sl.isReminder)
+		.map((sl) => sl.displayText)
+		.join("\n");
+}
+
+/** CSS class for mod quality coloring. */
+function qualityClass(quality: TierQuality | null | undefined): string {
+	switch (quality) {
 		case "best":
 			return "quality-best";
 		case "great":
@@ -81,23 +98,24 @@ function qualityClass(mod: Modifier): string {
 }
 
 /** Badge label: "T1" for tiers, "R1" for ranks */
-function tierBadgeLabel(mod: Modifier): string {
-	if (mod.tier == null) return "";
-	const prefix = mod.tierKind === "rank" ? "R" : "T";
-	return `${prefix}${mod.tier}`;
+function tierBadgeLabel(tier: ModTierResult): string {
+	if (tier.tier == null) return "";
+	const prefix = tier.tierKind === "rank" ? "R" : "T";
+	return `${prefix}${tier.tier}`;
 }
 
-/** Calculate roll quality as 0-100 percentage */
-function rollQuality(mod: Modifier): number | null {
-	if (mod.value == null || mod.min == null || mod.max == null) return null;
-	const range = mod.max - mod.min;
+/** Calculate roll quality as 0-100 percentage from the first stat line's value range. */
+function rollQuality(mod: ResolvedMod): number | null {
+	const vr = mod.statLines.find((sl) => !sl.isReminder && sl.values.length > 0)?.values[0];
+	if (!vr) return null;
+	const range = vr.max - vr.min;
 	if (range === 0) return 100;
-	return Math.round(((mod.value - mod.min) / range) * 100);
+	return Math.round(((vr.current - vr.min) / range) * 100);
 }
 
 /** Short label for mod type */
-function modTypeLabel(mod: Modifier): string | null {
-	switch (mod.type) {
+function modTypeLabel(displayType: ModType): string | null {
+	switch (displayType) {
 		case "prefix":
 			return "P";
 		case "suffix":
@@ -109,10 +127,24 @@ function modTypeLabel(mod: Modifier): string | null {
 	}
 }
 
+/** Display name for influence kind */
+function influenceDisplay(kind: string): string {
+	switch (kind) {
+		case "SearingExarch":
+			return "Searing Exarch";
+		case "EaterOfWorlds":
+			return "Eater of Worlds";
+		case "RelicUnique":
+			return "Relic";
+		default:
+			return kind;
+	}
+}
+
 function Separator({ rarity }: { rarity: Rarity }) {
 	return (
 		<div class="item-separator">
-			<img src={separatorSprites[rarity]} alt="" class="separator-img" />
+			<img src={separatorSprites[rarity] ?? defaultSeparator} alt="" class="separator-img" />
 		</div>
 	);
 }
@@ -129,7 +161,7 @@ function ItemHeader({
 	baseType: string;
 	doubleLine: boolean;
 }) {
-	const sprites = headerSprites[rarity] ?? headerSprites.Normal;
+	const sprites = headerSprites[rarity] ?? defaultHeader;
 	return (
 		<div class={`item-header ${doubleLine ? "header-double" : "header-single"}`}>
 			<div class="header-bg">
@@ -168,27 +200,34 @@ export const defaultDisplay: DisplaySettings = {
 	showOpenAffixes: true,
 };
 
-function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) {
+function ModLine({
+	mod,
+	tier,
+	display,
+}: { mod: ResolvedMod; tier: ModTierResult; display: DisplaySettings }) {
 	const quality = rollQuality(mod);
-	const typeLabel = modTypeLabel(mod);
-	const qualityCls = mod.type === "unique" ? "quality-unique" : qualityClass(mod);
+	const typeLabel = modTypeLabel(mod.displayType);
+	const qualityCls = mod.displayType === "unique" ? "quality-unique" : qualityClass(tier.quality);
+	const isCrafted = mod.header.source === "masterCrafted";
 
 	return (
 		<div class={`mod-line ${qualityCls}`}>
 			<div class="mod-badges">
-				{display.showTierBadges && mod.tier != null && (
-					<span class={`tier-badge ${qualityCls}`}>{tierBadgeLabel(mod)}</span>
+				{display.showTierBadges && tier.tier != null && (
+					<span class={`tier-badge ${qualityCls}`}>{tierBadgeLabel(tier)}</span>
 				)}
 				{display.showTypeBadges && typeLabel !== null && (
-					<span class={`type-badge type-${mod.type}`}>{typeLabel}</span>
+					<span class={`type-badge type-${mod.displayType}`}>{typeLabel}</span>
 				)}
 			</div>
 			<div class="mod-content">
-				{mod.text.split("\n").map((line) => (
-					<div key={line}>{line}</div>
-				))}
-				{mod.crafted && <span class="crafted-tag">(crafted)</span>}
-				{mod.fractured && <span class="fractured-tag">(fractured)</span>}
+				{modText(mod)
+					.split("\n")
+					.map((line) => (
+						<div key={line}>{line}</div>
+					))}
+				{isCrafted && <span class="crafted-tag">(crafted)</span>}
+				{mod.isFractured && <span class="fractured-tag">(fractured)</span>}
 			</div>
 			{display.showRollBars && quality !== null && (
 				<div class="roll-quality" title={`Roll: ${quality}%`}>
@@ -205,16 +244,50 @@ function ModLine({ mod, display }: { mod: Modifier; display: DisplaySettings }) 
 	);
 }
 
+// ── Default empty evaluation for mock data / no-eval mode ───────────────────
+
+const emptyEval: ItemEvaluation = {
+	modTiers: [],
+	affixSummary: {
+		openPrefixes: 0,
+		openSuffixes: 0,
+		maxPrefixes: 0,
+		maxSuffixes: 0,
+		modifiable: false,
+	},
+	score: null,
+	watchingScores: [],
+};
+
+const emptyTier: ModTierResult = { tier: null, tierKind: null, quality: null };
+
 export function ItemOverlay({
 	item,
+	eval: evaluation = emptyEval,
 	display = defaultDisplay,
-}: { item: ParsedItem; display?: DisplaySettings }) {
-	const doubleLine = item.rarity === "Rare" || item.rarity === "Unique";
+}: { item: ResolvedItem; eval?: ItemEvaluation; display?: DisplaySettings }) {
+	const rarity = item.header.rarity;
+	const name = item.header.name ?? item.header.baseType;
+	const baseType = item.header.baseType;
+	const doubleLine = rarity === "Rare" || rarity === "Unique";
 	const [swapView, setSwapView] = useState<WatchingScore | null>(null);
 
+	// Split mod tiers to match enchants / implicits / explicits
+	const nEnchants = item.enchants.length;
+	const nImplicits = item.implicits.length;
+	const implicitTiers = evaluation.modTiers.slice(nEnchants, nEnchants + nImplicits);
+	const explicitTiers = evaluation.modTiers.slice(nEnchants + nImplicits);
+
+	const affix = evaluation.affixSummary;
+
 	// The active score to display (swapped watching profile or primary)
-	const activeScore = swapView?.score ?? item.score;
-	const watchingScores = item.watchingScores ?? [];
+	const activeScore = swapView?.score ?? evaluation.score;
+	const watchingScores = evaluation.watchingScores ?? [];
+
+	// Influence display names (filter out Fractured — it's a separate flag)
+	const influences = item.influences
+		.filter((i) => i !== "Fractured")
+		.map((i) => influenceDisplay(i));
 
 	return (
 		<div class="item-card">
@@ -231,14 +304,9 @@ export function ItemOverlay({
 			)}
 
 			{/* Header with PoE art */}
-			<ItemHeader
-				rarity={item.rarity}
-				name={item.name}
-				baseType={item.baseType}
-				doubleLine={doubleLine}
-			/>
+			<ItemHeader rarity={rarity} name={name} baseType={baseType} doubleLine={doubleLine} />
 
-			<Separator rarity={item.rarity} />
+			<Separator rarity={rarity} />
 
 			{/* Properties */}
 			{item.properties.length > 0 && (
@@ -250,7 +318,7 @@ export function ItemOverlay({
 							</div>
 						))}
 					</div>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 				</>
 			)}
 
@@ -266,29 +334,29 @@ export function ItemOverlay({
 							</span>
 						))}
 					</div>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 				</>
 			)}
 
 			{/* Sockets & Item Level */}
 			<div class="item-meta">
 				{item.sockets && <div class="item-sockets">Sockets: {item.sockets}</div>}
-				<div class="item-level">Item Level: {item.itemLevel}</div>
+				{item.itemLevel != null && <div class="item-level">Item Level: {item.itemLevel}</div>}
 			</div>
 
-			<Separator rarity={item.rarity} />
+			<Separator rarity={rarity} />
 
 			{/* Enchants */}
 			{item.enchants.length > 0 && (
 				<>
 					<div class="mod-section enchant-section">
 						{item.enchants.map((mod) => (
-							<div key={mod.text} class="mod-line enchant-line">
-								<div class="mod-content">{mod.text}</div>
+							<div key={modText(mod)} class="mod-line enchant-line">
+								<div class="mod-content">{modText(mod)}</div>
 							</div>
 						))}
 					</div>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 				</>
 			)}
 
@@ -296,39 +364,49 @@ export function ItemOverlay({
 			{item.implicits.length > 0 && (
 				<>
 					<div class="mod-section implicit-section">
-						{item.implicits.map((mod) => (
-							<ModLine key={mod.text} mod={mod} display={display} />
+						{item.implicits.map((mod, i) => (
+							<ModLine
+								key={modText(mod)}
+								mod={mod}
+								tier={implicitTiers[i] ?? emptyTier}
+								display={display}
+							/>
 						))}
 					</div>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 				</>
 			)}
 
 			{/* Explicit mods */}
 			{item.explicits.length > 0 && (
 				<div class="mod-section explicit-section">
-					{item.explicits.map((mod) => (
-						<ModLine key={mod.text} mod={mod} display={display} />
+					{item.explicits.map((mod, i) => (
+						<ModLine
+							key={modText(mod)}
+							mod={mod}
+							tier={explicitTiers[i] ?? emptyTier}
+							display={display}
+						/>
 					))}
 				</div>
 			)}
 
 			{/* Open affixes */}
-			{display.showOpenAffixes && (item.openPrefixes > 0 || item.openSuffixes > 0) && (
+			{display.showOpenAffixes && (affix.openPrefixes > 0 || affix.openSuffixes > 0) && (
 				<>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 					<div class="open-affixes">
-						{item.openPrefixes > 0 && (
+						{affix.openPrefixes > 0 && (
 							<span class="open-prefix">
-								{item.openPrefixes} open prefix
-								{item.openPrefixes > 1 ? "es" : ""}
+								{affix.openPrefixes} open prefix
+								{affix.openPrefixes > 1 ? "es" : ""}
 							</span>
 						)}
-						{item.openPrefixes > 0 && item.openSuffixes > 0 && " · "}
-						{item.openSuffixes > 0 && (
+						{affix.openPrefixes > 0 && affix.openSuffixes > 0 && " · "}
+						{affix.openSuffixes > 0 && (
 							<span class="open-suffix">
-								{item.openSuffixes} open suffix
-								{item.openSuffixes > 1 ? "es" : ""}
+								{affix.openSuffixes} open suffix
+								{affix.openSuffixes > 1 ? "es" : ""}
 							</span>
 						)}
 					</div>
@@ -336,19 +414,19 @@ export function ItemOverlay({
 			)}
 
 			{/* Affix count summary */}
-			{item.maxPrefixes > 0 && (
+			{affix.maxPrefixes > 0 && (
 				<div class="affix-summary">
-					Prefixes: {item.maxPrefixes - item.openPrefixes}/{item.maxPrefixes} · Suffixes:{" "}
-					{item.maxSuffixes - item.openSuffixes}/{item.maxSuffixes}
+					Prefixes: {affix.maxPrefixes - affix.openPrefixes}/{affix.maxPrefixes} · Suffixes:{" "}
+					{affix.maxSuffixes - affix.openSuffixes}/{affix.maxSuffixes}
 				</div>
 			)}
 
 			{/* Influence tags */}
-			{item.influences.length > 0 && (
+			{influences.length > 0 && (
 				<>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 					<div class="influence-tags">
-						{item.influences.map((inf) => (
+						{influences.map((inf) => (
 							<span key={inf} class="influence-tag">
 								{inf}
 							</span>
@@ -360,7 +438,7 @@ export function ItemOverlay({
 			{/* Flavor text (uniques) */}
 			{item.flavorText && (
 				<>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 					<div class="flavor-text">{item.flavorText}</div>
 				</>
 			)}
@@ -368,7 +446,7 @@ export function ItemOverlay({
 			{/* Profile score (primary or swapped watching) */}
 			{activeScore?.applicable && (
 				<>
-					<Separator rarity={item.rarity} />
+					<Separator rarity={rarity} />
 					<ScoreDisplay
 						score={activeScore}
 						{...(swapView ? { label: swapView.profileName, color: swapView.color } : {})}
