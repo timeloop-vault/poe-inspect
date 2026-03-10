@@ -300,8 +300,40 @@ pub struct ResolvedItem {
     pub description: Option<String>,
     /// Flavor text (poetic/lore text on uniques, div cards, scarabs).
     pub flavor_text: Option<String>,
+    /// Gem-specific data (tags, stats, quality effects, Vaal variant).
+    pub gem_data: Option<GemData>,
     /// Remaining unclassified generic sections.
     pub unclassified_sections: Vec<Vec<String>>,
+}
+
+/// Gem-specific structured data extracted from generic sections.
+#[derive(Debug, Clone)]
+pub struct GemData {
+    /// Gem tags (e.g., ["Spell", "AoE", "Cold", "Nova"]).
+    pub tags: Vec<String>,
+    /// Gem description text.
+    pub description: Option<String>,
+    /// Gem stat lines (mechanical effects, not property lines).
+    pub stats: Vec<String>,
+    /// Lines from "Additional Effects From Quality:" section.
+    pub quality_stats: Vec<String>,
+    /// Vaal variant data (if this is a Vaal gem).
+    pub vaal: Option<Box<VaalGemData>>,
+}
+
+/// Vaal variant data within a Vaal gem.
+#[derive(Debug, Clone)]
+pub struct VaalGemData {
+    /// Vaal skill name (e.g., "Vaal Ice Nova").
+    pub name: String,
+    /// Vaal-specific properties (Souls Per Use, Can Store, etc.).
+    pub properties: Vec<ItemProperty>,
+    /// Vaal skill description.
+    pub description: Option<String>,
+    /// Vaal stat lines.
+    pub stats: Vec<String>,
+    /// Vaal quality effect lines.
+    pub quality_stats: Vec<String>,
 }
 
 impl ResolvedItem {

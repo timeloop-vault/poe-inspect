@@ -13,9 +13,9 @@ use poe_data::GameData;
 use regex::Regex;
 
 use crate::types::{
-    Header, ItemProperty, ModGroup, ModHeader, ModSlot, ModSource, Rarity, RawItem,
+    GemData, Header, ItemProperty, ModGroup, ModHeader, ModSlot, ModSource, Rarity, RawItem,
     ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine, Section, StatusKind, ValueRange,
-    InfluenceKind,
+    VaalGemData, InfluenceKind,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -93,8 +93,22 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         }
     }
 
+    // For gems, extract structured data from generic sections before classification
+    let gem_data = if header.rarity == Rarity::Gem {
+        Some(extract_gem_data(&generic_sections))
+    } else {
+        None
+    };
+
+    // For gems, generic sections are consumed by extract_gem_data — pass empty
+    let sections_to_classify = if gem_data.is_some() {
+        &[][..]
+    } else {
+        &generic_sections[..]
+    };
+
     // Classify generic sections into properties, enchants, description, flavor text, etc.
-    let classified = classify_generic_sections(&generic_sections, header.rarity);
+    let classified = classify_generic_sections(sections_to_classify, header.rarity);
 
     // Build enchant mods from detected enchant lines
     let enchants: Vec<ResolvedMod> = classified
@@ -128,6 +142,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         note,
         description: classified.description,
         flavor_text: classified.flavor_text,
+        gem_data,
         unclassified_sections: classified.unclassified,
     }
 }
@@ -368,6 +383,126 @@ fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {
         }
     }
     props
+}
+
+// ── Gem data extraction ──────────────────────────────────────────────────────
+
+/// Extract structured gem data from generic sections.
+///
+/// Gem section order:
+/// 1. Tags + properties (first line = comma tags, rest = Key: Value)
+/// 2. Description (single paragraph, no colons)
+/// 3. Stats + quality effects (stat lines, blank, "Additional Effects From Quality:", quality lines)
+/// 4. [Vaal only] Vaal name separator → repeats 1,3 for Vaal variant
+fn extract_gem_data(sections: &[Vec<String>]) -> GemData {
+    let mut iter = sections.iter();
+
+    // Section 1: Tags + gem properties
+    let (tags, _gem_props) = iter
+        .next()
+        .map(|s| split_gem_tags_and_props(s))
+        .unwrap_or_default();
+
+    // Section 2: Description
+    let description = iter.next().map(|s| s.join("\n")).filter(|s| !s.is_empty());
+
+    // Section 3: Stats + quality effects
+    let (stats, quality_stats) = iter
+        .next()
+        .map(|s| split_stats_and_quality(s))
+        .unwrap_or_default();
+
+    // Check if there's a Vaal variant (next section is a single-line name)
+    let vaal = extract_vaal_data(&mut iter);
+
+    GemData {
+        tags,
+        description,
+        stats,
+        quality_stats,
+        vaal,
+    }
+}
+
+/// Split the first gem section into tags (first line) and properties (remaining lines).
+fn split_gem_tags_and_props(lines: &[String]) -> (Vec<String>, Vec<ItemProperty>) {
+    if lines.is_empty() {
+        return (vec![], vec![]);
+    }
+
+    // First line is comma-separated tags (no colon)
+    let tags: Vec<String> = lines[0]
+        .split(", ")
+        .map(|s| s.trim().to_string())
+        .collect();
+
+    // Remaining lines are gem properties (Key: Value)
+    let props = parse_property_lines(&lines[1..]);
+
+    (tags, props)
+}
+
+/// Split a stats section at "Additional Effects From Quality:" marker.
+fn split_stats_and_quality(lines: &[String]) -> (Vec<String>, Vec<String>) {
+    let quality_marker = lines
+        .iter()
+        .position(|l| l.starts_with("Additional Effects From Quality"));
+
+    match quality_marker {
+        Some(pos) => {
+            // Stats are before the marker (skip trailing blank lines)
+            let stats: Vec<String> = lines[..pos]
+                .iter()
+                .filter(|l| !l.is_empty())
+                .cloned()
+                .collect();
+            // Quality effects are after the marker
+            let quality: Vec<String> = lines[pos + 1..]
+                .iter()
+                .filter(|l| !l.is_empty())
+                .cloned()
+                .collect();
+            (stats, quality)
+        }
+        None => {
+            let stats: Vec<String> = lines.iter().filter(|l| !l.is_empty()).cloned().collect();
+            (stats, vec![])
+        }
+    }
+}
+
+/// Try to extract Vaal variant data from remaining sections.
+fn extract_vaal_data<'a>(iter: &mut impl Iterator<Item = &'a Vec<String>>) -> Option<Box<VaalGemData>> {
+    // Peek at the next section — if it's a single line (Vaal skill name), consume it
+    let name_section = iter.next()?;
+    if name_section.len() != 1 || name_section[0].is_empty() {
+        return None; // Not a Vaal separator
+    }
+
+    let name = name_section[0].clone();
+
+    // Vaal properties (Souls Per Use, etc.)
+    let vaal_props = iter
+        .next()
+        .map(|s| parse_property_lines(s))
+        .unwrap_or_default();
+
+    // Vaal description
+    let vaal_desc = iter.next().map(|s| s.join("\n")).filter(|s| !s.is_empty());
+
+    // Vaal stats + quality effects
+    let (vaal_stats, vaal_quality) = iter
+        .next()
+        .map(|s| split_stats_and_quality(s))
+        .unwrap_or_default();
+
+    Some(Box::new(VaalGemData {
+        name,
+        properties: vaal_props,
+        description: vaal_desc,
+        stats: vaal_stats,
+        quality_stats: vaal_quality,
+    }))
 }
 
 /// Build a synthetic `ResolvedMod` from an enchant line.
