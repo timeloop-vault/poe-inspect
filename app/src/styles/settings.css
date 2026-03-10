@@ -1158,46 +1158,44 @@
 	opacity: 0.6;
 }
 
-/* --- Hybrid Mod Fields --- */
-
 /* --- StatValue condition editor --- */
 
-.stat-value-mode {
+/* Multi mode: stack input above condition rows */
+.stat-value-editor.multi {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+}
+
+/* Condition rows container — indented with accent border */
+.stat-value-conditions {
 	display: flex;
-	align-items: center;
-	gap: 8px;
-	margin-bottom: 4px;
+	flex-direction: column;
+	gap: 2px;
+	padding-left: 10px;
+	border-left: 2px solid var(--poe-accent);
+	margin-left: 4px;
 }
 
-.stat-value-mode-label {
-	font-size: 10px;
-	color: var(--poe-accent);
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-}
-
+/* Individual condition row */
 .stat-value-condition {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 }
 
-.stat-value-condition.multi {
-	padding-left: 8px;
-	border-left: 2px solid var(--poe-accent);
-	margin-top: 2px;
-}
-
+/* Read-only stat template label in condition rows */
 .stat-value-condition-label {
-	flex: 1;
 	font-size: 12px;
 	color: var(--poe-text-dim);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	cursor: default;
+	min-width: 120px;
 }
 
+/* Shows the picked template below the input during hybrid filtering */
 .stat-value-picked {
 	font-size: 10px;
 	color: var(--poe-accent);

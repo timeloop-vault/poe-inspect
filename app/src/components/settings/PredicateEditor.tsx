@@ -6,8 +6,47 @@ import { invoke } from "@tauri-apps/api/core";
  * Each FieldKind maps to a specific widget. New predicates that use
  * existing field kinds get UI automatically.
  *
- * StatValue has a custom editor: single condition (any mod) or multi-condition
- * (same-mod / hybrid check), with hybrid detection from GGPK data.
+ * ## StatValue Editor — Design
+ *
+ * StatValue uses `conditions: Vec<StatCondition>`. 1 condition = "any mod
+ * with this stat satisfies the check". 2+ conditions = "all must match on
+ * the SAME mod" (hybrid/multi-stat mod detection).
+ *
+ * ### Flow
+ *
+ * 1. User types in the stat template input (autocomplete against GGPK
+ *    stat descriptions).
+ * 2. User picks a template (e.g., "# to maximum Life").
+ * 3. Backend resolves the stat_id and checks for hybrid mods containing
+ *    that stat. If hybrids exist, a second dropdown appears:
+ *      - First option: the single stat (confirms single mode)
+ *      - Separator: "Hybrid Mods"
+ *      - Hybrid options: "# to Armour (Prefix)", etc.
+ *    If no hybrids, goes straight to single mode.
+ * 4. Single pick → single mode. Hybrid pick → multi mode.
+ *
+ * ### Single mode layout
+ *
+ *   [stat template input] [op] [value]
+ *
+ * Compact, inline. The input IS the stat label — no redundancy.
+ *
+ * ### Multi (hybrid) mode layout
+ *
+ *   [stat template input]           ← re-editable to change selection
+ *     [# to maximum Life]  [op] [value]    ← condition row (read-only label)
+ *     [# to Armour]        [op] [value]    ← condition row (read-only label)
+ *
+ * The input keeps the original search text and serves as "change my mind"
+ * entry point — typing re-triggers autocomplete and regenerates conditions.
+ * Each condition row shows the template text as a read-only label (with
+ * stat_id visible on hover/toggle). Op and value are editable per condition.
+ *
+ * ### No mode buttons
+ *
+ * Single vs multi is determined entirely by what the user picks from the
+ * dropdown. To switch from multi back to single: type in the input, pick
+ * a single stat or a different hybrid.
  */
 import { useEffect, useRef, useState } from "preact/hooks";
 import type {
@@ -193,11 +232,27 @@ function StatValueEditor({
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [filterText, setFilterText] = useState("");
 	const wrapperRef = useRef<HTMLLabelElement>(null);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+	const editorRef = useRef<HTMLDivElement>(null);
 
 	// Load stat suggestions on mount
 	useEffect(() => {
 		getSuggestions("stat_texts").then(setSuggestions);
 	}, []);
+
+	// Scroll dropdown into view when it appears
+	useEffect(() => {
+		if (showDropdown && dropdownRef.current) {
+			dropdownRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+		}
+	}, [showDropdown]);
+
+	// Scroll editor into view when switching to multi mode
+	useEffect(() => {
+		if (isMulti && editorRef.current) {
+			editorRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+		}
+	}, [isMulti]);
 
 	// Close dropdown on outside click
 	useEffect(() => {
@@ -272,18 +327,18 @@ function StatValueEditor({
 	};
 
 	const handleStatPick = (template: string) => {
-		// User selected a stat template — resolve stat_id, then check hybrids
-		const newConds = [...conditions];
-		newConds[0] = { ...conditions[0], text: template };
+		// User selected a stat template — always reset to single condition,
+		// then resolve stat_id and check for hybrids.
+		let cond: StatCondition = { ...defaultCondition(), text: template };
 
 		invoke<string[]>("resolve_stat_template", { template }).then((ids) => {
 			if (ids.length > 0) {
-				newConds[0] = { ...newConds[0], stat_id: ids[0] };
+				cond = { ...cond, stat_id: ids[0] };
 			}
-			onChange({ ...rule, conditions: newConds } as Rule);
+			onChange({ ...rule, conditions: [cond] } as Rule);
 
-			// Check for hybrids (only in single mode)
-			if (ids.length > 0 && !isMulti) {
+			// Check for hybrids
+			if (ids.length > 0) {
 				invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((sug) => {
 					const hybrids = sug.filter(
 						(s) =>
@@ -366,103 +421,118 @@ function StatValueEditor({
 		}
 	};
 
-	const switchToSingle = () => {
-		onChange({ ...rule, conditions: [conditions[0] ?? defaultCondition()] } as Rule);
-		setPickedTemplate(null);
-		setHybridOptions([]);
-	};
-
 	// Track clickable index for highlighting
 	let clickableIndex = -1;
 
-	return (
-		<div class={`predicate-fields stat-value-editor${compact ? " compact" : ""}`}>
-			{isMulti && (
-				<div class="stat-value-mode">
-					<span class="stat-value-mode-label">Same-mod check</span>
-					<button type="button" class="btn btn-small" onClick={switchToSingle}>
-						Single stat
-					</button>
-				</div>
-			)}
-			{conditions.map((cond, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: conditions have no stable ID
-				<div key={i} class={`stat-value-condition${isMulti ? " multi" : ""}`}>
-					{isMulti && i > 0 ? (
-						<span class="stat-value-condition-label" title={cond.stat_id ?? ""}>
-							{cond.text || cond.stat_id || `Stat ${i + 1}`}
-						</span>
-					) : (
-						<label class="pred-field" ref={wrapperRef}>
-							<span class="pred-field-label">{isMulti ? "Stat 1" : "Stat"}</span>
-							<div class="pred-text-wrapper">
-								<input
-									type="text"
-									class="pred-input"
-									value={pickedTemplate ? filterText : (cond.text ?? "")}
-									onInput={(e) => {
-										const v = (e.target as HTMLInputElement).value;
-										if (pickedTemplate) {
-											setFilterText(v);
-											setSelectedIndex(-1);
-										} else {
-											handleTextInput(v);
-										}
-									}}
-									onFocus={() => {
-										if (dropdownItems.length > 0 || cond.text) setShowDropdown(true);
-									}}
-									onKeyDown={handleKeyDown}
-									placeholder={pickedTemplate ? "Filter hybrids..." : "Type to search..."}
-								/>
-								{pickedTemplate && <div class="stat-value-picked">{pickedTemplate}</div>}
-								{showDropdown && dropdownItems.length > 0 && (
-									<div class="pred-dropdown">
-										{dropdownItems.map((item) => {
-											if (item.kind === "separator") {
-												return (
-													<div key={item.text} class="pred-dropdown-separator">
-														{item.text}
-													</div>
-												);
-											}
-											clickableIndex++;
-											const idx = clickableIndex;
-											const label = item.kind === "stat" ? item.text : item.label;
-											return (
-												<div
-													key={label}
-													class={`pred-dropdown-item${item.kind === "hybrid" ? " hybrid" : ""}${idx === selectedIndex ? " selected" : ""}`}
-													onMouseDown={(e) => {
-														e.preventDefault();
-														handleDropdownSelect(item);
-													}}
-													onMouseEnter={() => setSelectedIndex(idx)}
-												>
-													{label}
-												</div>
-											);
-										})}
+	// Shared stat template input with autocomplete + hybrid dropdown
+	const statInput = (
+		<label class="pred-field" ref={wrapperRef}>
+			<div class="pred-text-wrapper">
+				<input
+					type="text"
+					class="pred-input"
+					value={pickedTemplate ? filterText : (conditions[0]?.text ?? "")}
+					onInput={(e) => {
+						const v = (e.target as HTMLInputElement).value;
+						if (pickedTemplate) {
+							setFilterText(v);
+							setSelectedIndex(-1);
+						} else {
+							handleTextInput(v);
+						}
+					}}
+					onFocus={() => {
+						if (dropdownItems.length > 0 || conditions[0]?.text) setShowDropdown(true);
+					}}
+					onKeyDown={handleKeyDown}
+					placeholder={pickedTemplate ? "Filter hybrids..." : "Type to search..."}
+				/>
+				{pickedTemplate && <div class="stat-value-picked">{pickedTemplate}</div>}
+				{showDropdown && dropdownItems.length > 0 && (
+					<div class="pred-dropdown" ref={dropdownRef}>
+						{dropdownItems.map((item) => {
+							if (item.kind === "separator") {
+								return (
+									<div key={item.text} class="pred-dropdown-separator">
+										{item.text}
 									</div>
-								)}
-							</div>
-						</label>
-					)}
-					<ComparisonField
-						label=""
-						allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
-						value={cond.op}
-						onChange={(v) => updateCondition(i, { op: v as StatCondition["op"] })}
-					/>
-					<NumberField
-						label=""
-						min={null}
-						max={null}
-						value={cond.value}
-						onChange={(v) => updateCondition(i, { value: Number(v) })}
-					/>
-				</div>
-			))}
+								);
+							}
+							clickableIndex++;
+							const idx = clickableIndex;
+							const label = item.kind === "stat" ? item.text : item.label;
+							return (
+								<div
+									key={label}
+									class={`pred-dropdown-item${item.kind === "hybrid" ? " hybrid" : ""}${idx === selectedIndex ? " selected" : ""}`}
+									onMouseDown={(e) => {
+										e.preventDefault();
+										handleDropdownSelect(item);
+									}}
+									onMouseEnter={() => setSelectedIndex(idx)}
+								>
+									{label}
+								</div>
+							);
+						})}
+					</div>
+				)}
+			</div>
+		</label>
+	);
+
+	// Single mode: input + op + value all inline
+	if (!isMulti) {
+		return (
+			<div class={`predicate-fields stat-value-editor${compact ? " compact" : ""}`}>
+				{statInput}
+				<ComparisonField
+					label=""
+					allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
+					value={conditions[0]?.op ?? "Ge"}
+					onChange={(v) => updateCondition(0, { op: v as StatCondition["op"] })}
+				/>
+				<NumberField
+					label=""
+					min={null}
+					max={null}
+					value={conditions[0]?.value ?? 0}
+					onChange={(v) => updateCondition(0, { value: Number(v) })}
+				/>
+			</div>
+		);
+	}
+
+	// Multi (hybrid) mode: input on top, condition rows below with indent
+	return (
+		<div
+			ref={editorRef}
+			class={`predicate-fields stat-value-editor multi${compact ? " compact" : ""}`}
+		>
+			{statInput}
+			<div class="stat-value-conditions">
+				{conditions.map((cond, i) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: conditions have no stable ID
+					<div key={i} class="stat-value-condition">
+						<span class="stat-value-condition-label" title={cond.stat_id ?? ""}>
+							{cond.text || cond.stat_id || `Condition ${i + 1}`}
+						</span>
+						<ComparisonField
+							label=""
+							allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
+							value={cond.op}
+							onChange={(v) => updateCondition(i, { op: v as StatCondition["op"] })}
+						/>
+						<NumberField
+							label=""
+							min={null}
+							max={null}
+							value={cond.value}
+							onChange={(v) => updateCondition(i, { value: Number(v) })}
+						/>
+					</div>
+				))}
+			</div>
 		</div>
 	);
 }
