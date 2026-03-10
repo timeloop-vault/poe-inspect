@@ -1,0 +1,23 @@
+Item Class: Jewels
+Rarity: Rare
+Dusk Shard
+Cobalt Jewel
+--------
+Item Level: 75
+--------
+{ Prefix Modifier "Humming" (Tier: 1) — Damage, Elemental, Lightning }
+15(14-16)% increased Lightning Damage
+{ Prefix Modifier "Shimmering" (Tier: 1) — Defences, Energy Shield }
+6(6-8)% increased maximum Energy Shield
+{ Suffix Modifier "of Mysticism" (Tier: 1) — Damage, Caster }
+11(10-12)% increased Spell Damage
+{ Suffix Modifier "of Spirit" (Tier: 1) — Attribute }
++9(8-10) to Strength and Intelligence
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.
+--------
+Mirrored
+--------
+Corrupted
+--------
+Note: ~b/o 35 chaos

@@ -1,0 +1,23 @@
+Item Class: Abyss Jewels
+Rarity: Rare
+Ancient Globe
+Ghastly Eye Jewel
+--------
+Abyss
+--------
+Requirements:
+Level: 52
+--------
+Item Level: 69
+--------
+{ Prefix Modifier "Sparking" (Tier: 5) — Damage, Elemental, Lightning, Minion }
+Minions deal 2(1-2) to 27(26-32) additional Lightning Damage
+{ Prefix Modifier "Healthy" (Tier: 3) — Life }
++29(26-30) to maximum Life
+{ Suffix Modifier "of Tolerance" (Tier: 2) — Chaos, Ailment }
+34(31-40)% chance to Avoid being Poisoned
+{ Suffix Modifier "of Stifling" (Tier: 1) — Attack, Minion }
+Minions have 5(5-6)% chance to Blind on Hit with Attacks
+(Being Blinded causes 20% less Accuracy Rating and Evasion Rating, for 4 seconds)
+--------
+Place into an Abyssal Socket on an Item or into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

@@ -1,0 +1,11 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Abrasive Catalyst
+--------
+Stack Size: 3/10
+--------
+Adds quality that enhances Attack modifiers on a ring, amulet or belt
+Replaces other quality types
+--------
+Right click this item then left click a ring, amulet or belt to apply it. Has greater effect on lower item level, non-unique jewellery. The maximum quality is 20%.
+Shift click to unstack.

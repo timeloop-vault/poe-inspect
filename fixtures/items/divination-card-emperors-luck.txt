@@ -1,0 +1,11 @@
+Item Class: Divination Cards
+Rarity: Divination Card
+Emperor's Luck
+--------
+Stack Size: 5/5
+--------
+5x Currency
+--------
+The house always wins.
+--------
+Shift click to unstack.

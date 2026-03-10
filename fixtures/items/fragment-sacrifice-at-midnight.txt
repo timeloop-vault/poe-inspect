@@ -1,0 +1,12 @@
+Item Class: Map Fragments
+Rarity: Normal
+Sacrifice at Midnight
+--------
+Stack Size: 1/10
+--------
+Area contains a Vaal Side Area
+5% increased Quantity of Items found in Area
+--------
+Look to our Queen, for she will lead us into the light.
+--------
+Can be used in a personal Map Device to add modifiers to a Map.

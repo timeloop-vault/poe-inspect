@@ -13,9 +13,9 @@ but to any stage of the pipeline that processes item text.
 4. `all_fixtures_parse` auto-discovers all `.txt` files — no list to update
 5. If the fixture exposes a new section type or edge case, add targeted assertions
 
-## Current coverage (41 fixtures)
+## Current coverage (66 fixtures)
 
-### Equipment — Rare (15)
+### Equipment — Rare (16)
 - battered-foil-rare-ess-craft.txt (1H sword, essence craft, master craft)
 - rare-axe-fractured.txt (2H axe, fractured mod)
 - rare-axe-shaper.txt (2H axe, Shaper influence)
@@ -31,6 +31,7 @@ but to any stage of the pipeline that processes item text.
 - rare-sword-essence-crafted.txt (1H sword, essence craft)
 - rare-wand-standard.txt (wand, no influence)
 - rare-amulet-talisman-corrupted.txt (amulet, talisman, corrupted, enchant, flavor text)
+- rare-body-armour-craft-hybrid-and-normal-life-mod.txt (body armour, hybrid + pure life mods)
 
 ### Equipment — Unique (4)
 - unique-bow-short-bow.txt (bow, weapon sub-header, 7 unique mods, flavor text)
@@ -45,17 +46,14 @@ but to any stage of the pipeline that processes item text.
 - magic-axe-two-handed.txt (warstaff, implicit + prefix, B.1 ambiguity test)
 - magic-jewel-cobalt.txt (cobalt jewel, prefix + suffix)
 
-### Flasks (4)
-- magic-flask-life.txt (life flask, prefix + suffix, locale decimal 3,50)
-- magic-flask-mana.txt (mana flask, prefix + suffix, multi-line reminder)
-- magic-flask-utility.txt (Normal quicksilver flask, no mods, properties only)
-- unique-flask-doedres-flask.txt (unique mana flask, flask props + unique mods)
-
-### Jewels (2)
+### Jewels (5)
 - magic-cluster-jewel-large.txt (large cluster, multi-line enchants + prefix + suffix)
 - magic-cluster-jewel-normal.txt (Normal medium cluster, enchants only, no mods)
+- rare-jewel-cobalt-mirrored-corrupted.txt (cobalt jewel, mirrored + corrupted + Note: line)
+- rare-abyss-jewel-ghastly-eye.txt (Ghastly Eye Jewel, Abyss item class)
+- magic-jewel-cobalt.txt (cobalt jewel, prefix + suffix)
 
-### Maps (9)
+### Maps (11)
 - normal-map-alleyways.txt (T1, minimal)
 - rare-map-shore.txt (T6)
 - rare-map-city-square-currency.txt (T16)
@@ -65,17 +63,49 @@ but to any stage of the pipeline that processes item text.
 - rare-map-residence-reward.txt (T17)
 - rare-map-abomination-t17.txt (T17, many mods)
 - unique-map-actons-nightmare.txt (unique map, flavor text)
+- magic-map-tier3-protected.txt (T3 magic map)
+- rare-map-tier5-delirium-enchant.txt (T5 rare map, delirium enchants)
 
-### Gems (3)
+### Gems (6)
 - leap-slam.txt (attack gem, blank line in section, experience)
 - gem-support-faster-casting.txt (support gem, Cost & Reservation Multiplier)
 - gem-skill-transfigured-consecrated-path-of-endurance.txt (transfigured gem, cooldown, Transfigured status)
+- gem-skill-shockwave-totem.txt (skill gem, Additional Effects From Quality section)
+- gem-vaal-ice-nova.txt (Vaal gem, dual skill sections + Corrupted)
+- gem-skill-portal-corrupted.txt (gem with blank-only section between separators)
 
-### Currency (1)
+### Flasks (5)
+- magic-flask-life.txt (life flask, prefix + suffix, locale decimal 3,50)
+- magic-flask-mana.txt (mana flask, prefix + suffix, multi-line reminder)
+- magic-flask-utility.txt (Normal quicksilver flask, no mods, properties only)
+- magic-flask-utility-enchanted.txt (utility flask, enchant section)
+- unique-flask-doedres-flask.txt (unique mana flask, flask props + unique mods)
+
+### Currency (14)
 - coffin.txt (Filled Coffin, Necropolis-specific)
+- currency-chaos-orb.txt (basic currency)
+- currency-lesser-eldritch-ember.txt (currency, multi-line description)
+- currency-vivid-lifeforce.txt (currency, stack size with space separator)
+- currency-essence-screaming-greed.txt (essence, blank line + slot descriptions)
+- currency-coin-of-restoration.txt (Coin of Restoration, 3.28 league)
+- currency-runegraft-combatant.txt (Runegraft, 3.28 league)
+- currency-tattoo-tukohama-shaman.txt (Tattoo, passive skill modifier)
+- currency-black-oil.txt (Oil)
+- currency-abrasive-catalyst.txt (Catalyst, quality type)
+- currency-simulacrum-splinter.txt (Simulacrum Splinter)
+- currency-delirium-orb-jewellers.txt (Delirium Orb)
+- currency-timeless-karui-splinter.txt (Timeless Splinter)
+- fragment-sacrifice-at-midnight.txt (Map Fragment)
 
-### Divination Cards (1)
+### Scarabs (1)
+- scarab-titanic.txt (Scarab with Limit: line)
+
+### Tinctures (1)
+- normal-tincture-fulgurite.txt (Tincture, new item class)
+
+### Divination Cards (2)
 - divination-card-hunters-resolve.txt (stack size, reward hint, flavor text)
+- divination-card-emperors-luck.txt (div card, random reward)
 
 ## MISSING — Remaining gaps
 
@@ -84,19 +114,19 @@ Priority ordered by impact on the parser/resolver:
 ### P1 — Important item types with no coverage
 - [ ] **Unique jewel** — e.g., Watcher's Eye (multi-mod with no tier)
 - [ ] **Unique armour** — e.g., Shavronne's Wrappings (armour + unique mods)
-- [ ] **Vaal gem** — has both base and Vaal skill sections
 - [ ] **Unidentified item** — no mod section at all, "Unidentified" status
-- [ ] **Abyssal jewel** — different Item Class ("Abyss Jewel")
+- [x] ~~**Vaal gem**~~ — gem-vaal-ice-nova.txt
+- [x] ~~**Abyssal jewel**~~ — rare-abyss-jewel-ghastly-eye.txt
 
 ### P2 — Coverage gaps in existing categories
 - [ ] **Dagger/claw** — no dagger or claw
 - [ ] **Veiled item** — veiled mods display differently
-- [ ] **Mirrored item** — Mirrored status marker
+- [x] ~~**Mirrored item**~~ — rare-jewel-cobalt-mirrored-corrupted.txt
 - [ ] **Crusader/Hunter influence** — in grammar but untested
 
 ### P3 — Niche / league-specific
-- [ ] **Regular currency** (Chaos Orb, Divine, etc.) — simpler than coffin
-- [ ] **Fragment/Scarab** — different Item Class
+- [x] ~~**Regular currency**~~ — currency-chaos-orb.txt + 12 more
+- [x] ~~**Fragment/Scarab**~~ — fragment-sacrifice-at-midnight.txt, scarab-titanic.txt
 - [ ] **Heist contract/blueprint** — unique section structure
 - [ ] **Awakened support gem** — different level/quality display?
 - [ ] **Split item** — Split status marker (in grammar, untested)

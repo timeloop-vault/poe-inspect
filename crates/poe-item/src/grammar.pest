@@ -201,7 +201,7 @@ status_keyword = { "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transf
 //
 // The tree walker classifies these further using content analysis.
 
-generic_section = { generic_line ~ (generic_line | blank_line)* }
+generic_section = { (generic_line | blank_line) ~ (generic_line | blank_line)* }
 
 generic_line = { !"--------" ~ rest_of_line ~ NEWLINE }
 blank_line   = { NEWLINE }

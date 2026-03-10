@@ -1,0 +1,10 @@
+Item Class: Stackable Currency
+Rarity: Currency
+Tattoo of the Tukohama Shaman
+--------
+Stack Size: 1/10
+Replaces a Small Strength Passive Skill
+--------
+Regenerate 0.3% of Life per second
+--------
+Right click this item then left click an allocated Passive Skill. Maximum 50 Tattoos.

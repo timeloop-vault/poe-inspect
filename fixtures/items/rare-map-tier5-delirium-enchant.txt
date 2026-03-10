@@ -1,0 +1,28 @@
+Item Class: Maps
+Rarity: Rare
+Desolate Inscription
+Map (Tier 5)
+--------
+Item Quantity: +49% (augmented)
+Item Rarity: +30% (augmented)
+Monster Pack Size: +19% (augmented)
+--------
+Item Level: 69
+--------
+Monster Level: 72
+--------
+Delirium Reward Type: Jewellery (enchant)
+Players in Area are 20% Delirious (enchant)
+--------
+{ Prefix Modifier "Antagonist's" (Tier: 1) }
+20(20-30)% increased number of Rare Monsters
+{ Prefix Modifier "Titan's" (Tier: 1) — Life }
+Unique Boss has 25% increased Life
+Unique Boss has 45% increased Area of Effect
+{ Suffix Modifier "of Rust" (Tier: 1) — Defences, Armour }
+Players have 20% less Armour
+Players have 20% reduced Chance to Block
+{ Suffix Modifier "of Balance" (Tier: 1) — Damage, Elemental }
+Players cannot inflict Exposure — Unscalable Value
+--------
+Travel to a Map by using this in a personal Map Device. Maps can only be used once.
