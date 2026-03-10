@@ -153,7 +153,7 @@ pub fn evaluate_item(
     profile: Option<&Profile>,
     watching: &[WatchingProfileInput],
 ) -> EvaluatedItem {
-    let tier_summary = tier::analyze_tiers(item);
+    let tier_summary = tier::analyze_tiers(item, gd);
     let affix_summary = affix::analyze_affixes(item, gd);
 
     // Build display mods with tier info

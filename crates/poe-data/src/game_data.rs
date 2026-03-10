@@ -40,6 +40,9 @@ pub struct GameData {
     rarity_by_id: HashMap<String, usize>,
     item_class_category_by_id: HashMap<String, usize>,
 
+    // Pre-computed tier counts: (family_fk, generation_type) → number of tiers
+    family_tier_counts: HashMap<(u64, u32), u32>,
+
     // Stat description reverse index (display text → stat IDs + values).
     // Optional because loading it requires the raw stat_descriptions.txt.
     pub reverse_index: Option<ReverseIndex>,
@@ -70,6 +73,17 @@ impl GameData {
         let rarity_by_id = index_by(&rarities, |r| r.id.clone());
         let item_class_category_by_id = index_by(&item_class_categories, |c| c.id.clone());
 
+        // Pre-compute tier counts per (family, generation_type) group.
+        // Mods sharing the same primary family + gen type form a tier chain.
+        let mut family_tier_counts: HashMap<(u64, u32), u32> = HashMap::new();
+        for m in &mods {
+            if let Some(&family_fk) = m.families.first() {
+                *family_tier_counts
+                    .entry((family_fk, m.generation_type))
+                    .or_insert(0) += 1;
+            }
+        }
+
         Self {
             stats,
             tags,
@@ -87,6 +101,7 @@ impl GameData {
             base_item_by_name,
             rarity_by_id,
             item_class_category_by_id,
+            family_tier_counts,
             reverse_index: None,
         }
     }
@@ -156,6 +171,18 @@ impl GameData {
     /// Resolve an item class category FK (row index) to the category row.
     pub fn item_class_category_by_index(&self, fk: u64) -> Option<&ItemClassCategoryRow> {
         self.item_class_categories.get(fk as usize)
+    }
+
+    /// Get the total number of tiers for a mod (by display name).
+    ///
+    /// Looks up the mod in the Mods table, finds its family + generation type,
+    /// then returns how many mods share that family/gen combo (= tier count).
+    pub fn tier_count_for_mod(&self, mod_name: &str) -> Option<u32> {
+        let mod_row = self.mods.iter().find(|m| m.name == mod_name)?;
+        let family_fk = *mod_row.families.first()?;
+        self.family_tier_counts
+            .get(&(family_fk, mod_row.generation_type))
+            .copied()
     }
 
     /// Get the max prefix count for a given rarity ID (e.g., "Rare" → 3).

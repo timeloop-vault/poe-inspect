@@ -4,7 +4,8 @@
 //! for visual feedback in the overlay. Uses `poe-data`'s domain knowledge
 //! for tier classification — this module is pure evaluation logic.
 
-use poe_data::domain::{classify_rank, classify_tier, TierQuality};
+use poe_data::domain::{classify_rank, classify_tier, classify_tier_relative, TierQuality};
+use poe_data::GameData;
 use poe_item::types::{ModSlot, ModSource, ModTierKind, ResolvedItem, ResolvedMod};
 
 /// Tier analysis for a single mod.
@@ -43,15 +44,26 @@ pub struct QualityCounts {
     pub low: u32,
 }
 
-/// Analyze a single mod's tier.
-fn analyze_mod(m: &ResolvedMod) -> ModTierInfo {
+/// Analyze a single mod's tier, using per-mod tier counts when available.
+fn analyze_mod(m: &ResolvedMod, gd: &GameData) -> ModTierInfo {
     let tier = match &m.header.tier {
         Some(ModTierKind::Tier(n)) | Some(ModTierKind::Rank(n)) => Some(*n),
         None => None,
     };
 
     let quality = match &m.header.tier {
-        Some(ModTierKind::Tier(n)) => classify_tier(*n),
+        Some(ModTierKind::Tier(n)) => {
+            // Try relative classification using actual tier count from GGPK
+            let total = m
+                .header
+                .name
+                .as_deref()
+                .and_then(|name| gd.tier_count_for_mod(name));
+            match total {
+                Some(total) => classify_tier_relative(*n, total),
+                None => classify_tier(*n),
+            }
+        }
         Some(ModTierKind::Rank(n)) => classify_rank(*n),
         None => TierQuality::Unknown,
     };
@@ -65,9 +77,9 @@ fn analyze_mod(m: &ResolvedMod) -> ModTierInfo {
 }
 
 /// Analyze all mods on an item.
-pub fn analyze_tiers(item: &ResolvedItem) -> ItemTierSummary {
+pub fn analyze_tiers(item: &ResolvedItem, gd: &GameData) -> ItemTierSummary {
     let all_mods: Vec<&ResolvedMod> = item.all_mods().collect();
-    let mods: Vec<ModTierInfo> = all_mods.iter().map(|m| analyze_mod(m)).collect();
+    let mods: Vec<ModTierInfo> = all_mods.iter().map(|m| analyze_mod(m, gd)).collect();
 
     let mut worst_explicit = TierQuality::Best;
     let mut best_explicit = TierQuality::Low;

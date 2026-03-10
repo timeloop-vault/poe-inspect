@@ -47,10 +47,10 @@ pub enum TierQuality {
     Unknown,
 }
 
-/// Classify a mod tier number into a quality level.
+/// Classify a mod tier number into a quality level (absolute fallback).
 ///
 /// For regular mods: lower tier = better (T1 = best, T7+ = low).
-/// This is hardcoded `PoE` domain knowledge. See module docs for rationale.
+/// Prefer `classify_tier_relative()` when the total tier count is known.
 #[must_use]
 pub fn classify_tier(tier: u32) -> TierQuality {
     match tier {
@@ -59,6 +59,41 @@ pub fn classify_tier(tier: u32) -> TierQuality {
         3 | 4 => TierQuality::Good,
         5 | 6 => TierQuality::Mid,
         _ => TierQuality::Low,
+    }
+}
+
+/// Classify a mod tier relative to the total number of tiers for that mod.
+///
+/// A 3-tier mod's T3 is "Low" (worst for that mod), even though the absolute
+/// `classify_tier(3)` would call it "Good". This gives accurate coloring
+/// by considering each mod's actual tier range from the GGPK Mods table.
+#[must_use]
+pub fn classify_tier_relative(tier: u32, total_tiers: u32) -> TierQuality {
+    if tier == 0 || total_tiers == 0 || tier > total_tiers {
+        return TierQuality::Unknown;
+    }
+    if total_tiers == 1 {
+        return TierQuality::Best;
+    }
+    if total_tiers == 2 {
+        return if tier == 1 {
+            TierQuality::Best
+        } else {
+            TierQuality::Low
+        };
+    }
+    // 3+ tiers: position as fraction (0.0 = best, 1.0 = worst)
+    let position = (tier - 1) as f64 / (total_tiers - 1) as f64;
+    if position < 0.01 {
+        TierQuality::Best // T1
+    } else if position < 0.25 {
+        TierQuality::Great // top 25%
+    } else if position < 0.50 {
+        TierQuality::Good // 25-50%
+    } else if position < 0.75 {
+        TierQuality::Mid // 50-75%
+    } else {
+        TierQuality::Low // bottom 25%
     }
 }
 
