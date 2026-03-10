@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use poe_data::GameData;
+use poe_data::{GameData, ReverseIndex};
 
 use crate::types::{TradeStatEntry, TradeStatsIndex, TradeStatsResponse};
 
@@ -210,7 +210,7 @@ impl TradeStatsIndex {
 fn resolve_template(
     normalized: &str,
     ri_case_map: &HashMap<String, String>,
-    ri: &poe_dat::stat_desc::ReverseIndex,
+    ri: &ReverseIndex,
 ) -> Option<Vec<String>> {
     // 1. Exact
     if let Some(ids) = ri_case_map
@@ -231,11 +231,12 @@ fn resolve_template(
         }
     }
 
-    // 3. Strip " (local)" suffix (trade API marks local mods this way)
-    let without_local = normalized
-        .strip_suffix(" (local)")
-        .or_else(|| normalized.strip_suffix(" (shields)"));
-    if let Some(stripped) = without_local {
+    // 3. Strip trade API stat suffixes (e.g., "(Local)", "(Shields)")
+    //    These suffixes are PoE domain knowledge defined in poe-data::domain.
+    let without_suffix = poe_data::domain::TRADE_STAT_SUFFIXES
+        .iter()
+        .find_map(|suffix| normalized.strip_suffix(&suffix.to_lowercase()));
+    if let Some(stripped) = without_suffix {
         let stripped = stripped.to_string();
         if let Some(ids) = ri_case_map
             .get(&stripped)

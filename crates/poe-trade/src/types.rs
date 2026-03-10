@@ -101,9 +101,12 @@ pub struct PriceCheckResult {
 // ── Query Config ────────────────────────────────────────────────────────────
 
 /// Configuration for trade query construction.
+///
+/// League is required — there is no default since it changes every ~3 months.
+/// The app must provide this from user settings or auto-detection.
 #[derive(Debug, Clone)]
 pub struct TradeQueryConfig {
-    /// League name (e.g., `"Mirage"`).
+    /// League name (e.g., `"Mirage"`). Required — set by app from user config.
     pub league: String,
     /// Value relaxation factor (0.0–1.0). Default: 0.85 (search for 85%+ of actual value).
     pub value_relaxation: f64,
@@ -113,10 +116,12 @@ pub struct TradeQueryConfig {
     pub online_only: bool,
 }
 
-impl Default for TradeQueryConfig {
-    fn default() -> Self {
+impl TradeQueryConfig {
+    /// Create a new config for the given league with sensible defaults.
+    #[must_use]
+    pub fn new(league: impl Into<String>) -> Self {
         Self {
-            league: "Mirage".to_string(),
+            league: league.into(),
             value_relaxation: 0.85,
             use_pseudo_stats: false,
             online_only: true,
