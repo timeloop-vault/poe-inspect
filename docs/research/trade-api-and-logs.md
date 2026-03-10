@@ -2,7 +2,7 @@
 
 > Research output for poe-inspect-2. Based on community documentation, existing tool source code analysis, and GGG's developer docs.
 >
-> **Caveat**: This document was written from training-data knowledge (cutoff ~early 2025) without live web verification. Some details may have changed — verify endpoints and rate limits against current GGG docs before implementing.
+> **Caveat**: Originally written from training-data knowledge (cutoff ~early 2025). Stats endpoint and categories **verified against live API** on 2026-03-10 — see `trade-integration.md` for live-verified details and integration strategy.
 
 ---
 
@@ -44,15 +44,22 @@ GET https://www.pathofexile.com/api/trade/fetch/{id1,id2,...}?query={searchId}
 GET https://www.pathofexile.com/api/trade/data/stats
 ```
 
-Returns all searchable stats/mods with their IDs, text patterns, and categories. This is essential for building mod search queries. Categories include:
-- `explicit` — explicit mods
-- `implicit` — implicit mods
-- `crafted` — bench crafted mods
-- `fractured` — fractured mods
-- `enchant` — enchantments
-- `pseudo` — pseudo stats (e.g., "+# total to Maximum Life" combining multiple sources)
-- `monster` — map monster mods
-- `veiled` — veiled mods
+Returns all searchable stats/mods with their IDs, text patterns, and categories. This is essential for building mod search queries. **Requires `User-Agent` header** (returns 403 without one).
+
+**Verified categories (3.28 Mirage, 15,452 total entries)**:
+- `pseudo` (296) — aggregated sums (e.g., "+# total to Maximum Life" combining multiple sources)
+- `explicit` (6,729) — explicit mods
+- `implicit` (1,428) — implicit mods
+- `imbued` (161) — imbued mods (3.28+)
+- `fractured` (1,786) — fractured mods
+- `enchant` (1,464) — enchantments
+- `scourge` (409) — scourge mods (legacy)
+- `crafted` (286) — bench crafted mods
+- `crucible` (2,492) — crucible mods (legacy)
+- `veiled` (20) — veiled mods
+- `delve` (80) — delve mods
+- `ultimatum` (63) — ultimatum mods (legacy)
+- `sanctum` (238) — sanctum mods
 
 #### Static Data Endpoints
 
