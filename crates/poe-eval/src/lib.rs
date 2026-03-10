@@ -6,6 +6,7 @@
 
 pub mod affix;
 pub mod evaluate;
+pub mod item_result;
 pub mod predicate;
 pub mod profile;
 pub mod rule;
@@ -14,6 +15,7 @@ pub mod tier;
 
 pub use affix::{analyze_affixes, AffixSummary, Modifiability};
 pub use evaluate::{evaluate, score};
+pub use item_result::{evaluate_item, EvaluatedItem, WatchingProfileInput};
 pub use predicate::Predicate;
 pub use profile::{Profile, ScoreResult};
 pub use rule::Rule;

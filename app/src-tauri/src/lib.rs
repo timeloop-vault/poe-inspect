@@ -1,4 +1,3 @@
-mod bridge;
 #[cfg(target_os = "linux")]
 mod clipboard;
 #[cfg(target_os = "linux")]
@@ -7,7 +6,7 @@ mod wayland;
 use std::sync::{Arc, Mutex};
 
 use poe_data::GameData;
-use poe_eval::Profile;
+use poe_eval::{Profile, WatchingProfileInput};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
@@ -20,19 +19,11 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 /// Shared game data, loaded once at startup.
 struct GameDataState(Arc<GameData>);
 
-/// A watching profile entry sent from the frontend.
-#[derive(Clone, serde::Deserialize)]
-pub(crate) struct WatchingProfileEntry {
-    pub name: String,
-    pub color: String,
-    pub profile: Profile,
-}
-
 /// Primary + watching profiles, synced from the frontend.
 #[derive(Clone)]
 struct ProfileSet {
     primary: Option<Profile>,
-    watching: Vec<WatchingProfileEntry>,
+    watching: Vec<WatchingProfileInput>,
 }
 
 /// Active evaluation profiles, loaded from JSON data files.
@@ -131,7 +122,7 @@ fn handle_inspect(app: &tauri::AppHandle) {
         match poe_item::parse(&clipboard_text) {
             Ok(raw) => {
                 let resolved = poe_item::resolve(&raw, gd);
-                let evaluated = bridge::build_evaluated_item(
+                let evaluated = poe_eval::evaluate_item(
                     &resolved,
                     gd,
                     profiles.primary.as_ref(),
@@ -400,7 +391,7 @@ fn set_autostart(app: tauri::AppHandle, enabled: bool) {
 fn evaluate_item(
     item_text: String,
     state: tauri::State<'_, GameDataState>,
-) -> Result<bridge::EvaluatedItem, String> {
+) -> Result<poe_eval::EvaluatedItem, String> {
     let gd = &state.0;
 
     // Pass 1: structural parse
@@ -409,8 +400,8 @@ fn evaluate_item(
     // Pass 2: resolve against game data
     let resolved = poe_item::resolve(&raw, gd);
 
-    // Build frontend-compatible response (no profile for direct command calls)
-    Ok(bridge::build_evaluated_item(&resolved, gd, None, &[]))
+    // Evaluate (no profile for direct command calls)
+    Ok(poe_eval::evaluate_item(&resolved, gd, None, &[]))
 }
 
 /// Set primary + watching profiles from the frontend.
@@ -439,7 +430,7 @@ fn set_active_profile(
         }
     };
 
-    let watching: Vec<WatchingProfileEntry> =
+    let watching: Vec<WatchingProfileInput> =
         serde_json::from_str(&watching_json).unwrap_or_default();
 
     eprintln!(

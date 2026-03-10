@@ -105,8 +105,6 @@ function modTypeLabel(mod: Modifier): string | null {
 			return "S";
 		case "crafted":
 			return "C";
-		case "fractured":
-			return "Fr";
 		default:
 			return null;
 	}

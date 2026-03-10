@@ -2,6 +2,6 @@
 import type { ScoreInfo } from "./ScoreInfo";
 
 /**
- * Score result from a watching profile, sent alongside the primary evaluation.
+ * Score result from a watching profile.
  */
 export type WatchingScoreInfo = { profileName: string, color: string, score: ScoreInfo, };

@@ -193,11 +193,11 @@ will be more specific. Type guards bridge this. Test after generation.
 
 ## Implementation Order
 
-1. Phase 1: poe-item (breaking change to ResolvedItem → must update poe-eval callers)
-2. Phase 2: poe-eval (additive — new function, new derives)
-3. Phase 3: app (deletion — remove bridge.rs, thin lib.rs)
+1. ~~Phase 1: poe-item (breaking change to ResolvedItem → must update poe-eval callers)~~ ✓ DONE
+2. ~~Phase 2: poe-eval (additive — new function, new derives)~~ ✓ DONE
+3. ~~Phase 3: app (deletion — remove bridge.rs, thin lib.rs)~~ ✓ DONE
 
-Each phase is a separate commit. Run full `cargo test` after each phase.
+All three phases completed in a single session. bridge.rs deleted, types.ts is 100% generated re-exports.
 
 ## What This Eliminates
 

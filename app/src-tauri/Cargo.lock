@@ -2826,6 +2826,7 @@ dependencies = [
  "serde",
  "thiserror 2.0.18",
  "tracing",
+ "ts-rs",
 ]
 
 [[package]]
@@ -2852,7 +2853,6 @@ dependencies = [
  "tauri-plugin-mcp",
  "tauri-plugin-store",
  "tauri-plugin-window-state",
- "ts-rs",
  "wayland-client",
  "wayland-protocols-wlr 0.3.11",
  "x11rb",

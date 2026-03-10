@@ -7,7 +7,7 @@ import type { ScoreInfo } from "./ScoreInfo";
 import type { WatchingScoreInfo } from "./WatchingScoreInfo";
 
 /**
- * Serializable item for the frontend overlay.
+ * Complete evaluation result for the frontend overlay.
  */
 export type EvaluatedItem = { itemClass: string, rarity: Rarity, name: string, baseType: string, itemLevel: number, properties: Array<ItemProperty>, requirements: Array<Requirement>, sockets: string | null, enchants: Array<Modifier>, implicits: Array<Modifier>, explicits: Array<Modifier>, influences: Array<string>, corrupted: boolean | null, fractured: boolean | null, flavorText: string | null, openPrefixes: number, openSuffixes: number, maxPrefixes: number, maxSuffixes: number, modifiable: boolean, 
 /**
