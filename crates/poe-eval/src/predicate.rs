@@ -98,24 +98,17 @@ pub enum Predicate {
     ModTier { name: String, op: Cmp, value: u32 },
 
     // ── Stat value predicates ────────────────────────────────────────
-    /// Rolled value of a stat line (current value comparison).
-    /// Matches by `stat_id` if set (language-independent), otherwise falls back
-    /// to substring matching on `text`.
+    /// Rolled value of a mod's stat line(s).
+    ///
+    /// - **1 condition**: matches if ANY mod has a stat line satisfying it.
+    /// - **2+ conditions**: matches only if a SINGLE mod satisfies ALL conditions
+    ///   (same-mod check — used for hybrid mod detection).
     StatValue {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        text: Option<String>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        stat_id: Option<String>,
-        /// Which value index (0 for most stats, 0/1 for "Adds X to Y" stats).
-        value_index: usize,
-        op: Cmp,
-        #[cfg_attr(feature = "ts", ts(type = "number"))]
-        value: i64,
+        conditions: Vec<StatCondition>,
     },
 
     /// Roll quality: how close the current roll is to the max, as a percentage.
-    /// Matches by `stat_id` if set (language-independent), otherwise falls back
-    /// to substring matching on `text`.
+    /// Matches by `stat_id` (language-independent).
     RollPercent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         text: Option<String>,
@@ -124,19 +117,6 @@ pub enum Predicate {
         value_index: usize,
         op: Cmp,
         value: u32,
-    },
-
-    // ── Hybrid mod predicates ─────────────────────────────────────────
-    /// Whether a SINGLE mod contains ALL specified stat IDs.
-    ///
-    /// Unlike `Rule::All` with multiple `StatValue` predicates (which matches stats
-    /// across ANY mods), this checks that all stats come from the SAME mod —
-    /// detecting true hybrid mods from GGPK data.
-    HybridMod {
-        /// Display templates for each stat (human-readable, for UI).
-        templates: Vec<String>,
-        /// Stat IDs that must ALL appear within a single mod's stat lines.
-        stat_ids: Vec<String>,
     },
 
     // ── Influence / status predicates ────────────────────────────────
@@ -148,6 +128,25 @@ pub enum Predicate {
 
     /// Total number of influences.
     InfluenceCount { op: Cmp, value: u32 },
+}
+
+/// A single stat condition: identifies a stat and checks its rolled value.
+///
+/// Used as the building block for `StatValue` predicates. The `text` field
+/// is a display label (the stat template text); `stat_id` is the resolved
+/// language-independent identifier used for matching.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct StatCondition {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stat_id: Option<String>,
+    pub value_index: usize,
+    pub op: Cmp,
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
+    pub value: i64,
 }
 
 /// Mod slot kind for counting and open-mod queries.

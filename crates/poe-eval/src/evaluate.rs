@@ -6,7 +6,7 @@
 use poe_data::GameData;
 use poe_item::types::{ModSlot, ModTierKind, ResolvedItem};
 
-use crate::predicate::{Cmp, ModSlotKind, Predicate, RarityValue};
+use crate::predicate::{Cmp, ModSlotKind, Predicate, RarityValue, StatCondition};
 use crate::profile::{MatchedRule, Profile, ScoreResult, UnmatchedRule};
 use crate::rule::Rule;
 
@@ -94,17 +94,7 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
         }),
 
         // ── Stat value predicates ────────────────────────────────────
-        Predicate::StatValue {
-            text: _,
-            stat_id,
-            value_index,
-            op,
-            value,
-        } => find_matching_stats(item, stat_id.as_deref()).any(|sl| {
-            sl.values
-                .get(*value_index)
-                .is_some_and(|v| op.eval(&v.current, value))
-        }),
+        Predicate::StatValue { conditions } => eval_stat_value(item, conditions),
 
         Predicate::RollPercent {
             text: _,
@@ -122,25 +112,6 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
                 op.eval(&u32::try_from(pct).unwrap_or(0), value)
             })
         }),
-
-        // ── Hybrid mod ──────────────────────────────────────────────
-        Predicate::HybridMod {
-            templates: _,
-            stat_ids,
-        } => {
-            // Check each mod individually — ALL stat_ids must be on the SAME mod.
-            item.all_mods().any(|m| {
-                stat_ids.iter().all(|required| {
-                    m.stat_lines.iter().any(|sl| {
-                        !sl.is_reminder
-                            && sl
-                                .stat_ids
-                                .as_ref()
-                                .is_some_and(|ids| ids.iter().any(|id| id == required))
-                    })
-                })
-            })
-        }
 
         // ── Influence / status ───────────────────────────────────────
         Predicate::HasInfluence { influence } => {
@@ -199,6 +170,35 @@ pub fn score(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreResu
 }
 
 // ── Helper functions ────────────────────────────────────────────────────────
+
+/// Evaluate a `StatValue` predicate.
+///
+/// - 1 condition: any stat line on any mod that matches.
+/// - 2+ conditions: ALL conditions must be satisfied on the SAME mod.
+fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
+    if conditions.is_empty() {
+        return false;
+    }
+    if conditions.len() == 1 {
+        let c = &conditions[0];
+        return find_matching_stats(item, c.stat_id.as_deref())
+            .any(|sl| sl.values.get(c.value_index).is_some_and(|v| c.op.eval(&v.current, &c.value)));
+    }
+    // 2+ conditions: all must match on the SAME mod.
+    item.all_mods().any(|m| {
+        conditions.iter().all(|c| {
+            let sid = c.stat_id.as_deref().unwrap_or("");
+            if sid.is_empty() {
+                return false;
+            }
+            m.stat_lines.iter().any(|sl| {
+                !sl.is_reminder
+                    && sl.stat_ids.as_ref().is_some_and(|ids| ids.iter().any(|id| id == sid))
+                    && sl.values.get(c.value_index).is_some_and(|v| c.op.eval(&v.current, &c.value))
+            })
+        })
+    })
+}
 
 /// Count mods in a given slot.
 fn count_mods_in_slot(item: &ResolvedItem, slot: ModSlot) -> u32 {

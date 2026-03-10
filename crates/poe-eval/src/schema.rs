@@ -20,7 +20,7 @@ pub struct PredicateSchema {
     pub label: String,
     /// Tooltip description.
     pub description: String,
-    /// Category for grouping in UI (e.g., "Header", "Mods", "Stats").
+    /// Category for grouping in UI (e.g., "Header", "Mods", "Influence").
     pub category: String,
     /// Ordered list of input fields the user fills in.
     pub fields: Vec<PredicateField>,
@@ -74,11 +74,6 @@ pub enum FieldKind {
     },
     /// Mod slot dropdown (Prefix / Suffix / Implicit).
     Slot { options: Vec<EnumOption> },
-    /// Ordered list of text inputs.
-    TextList {
-        #[serde(rename = "suggestionsFrom")]
-        suggestions_from: Option<String>,
-    },
 }
 
 /// A selectable option in an enum/ordered-enum field.
@@ -268,61 +263,22 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                 },
             ],
         },
-        // ── Hybrid mod predicates ─────────────────────────────────────
-        PredicateSchema {
-            type_name: "HybridMod".into(),
-            label: "Hybrid Mod".into(),
-            description:
-                "A single mod that grants multiple stats (e.g., armour + life from one prefix)"
-                    .into(),
-            category: "Mods".into(),
-            fields: vec![
-                PredicateField {
-                    name: "templates".into(),
-                    label: "Stat Templates".into(),
-                    kind: FieldKind::TextList {
-                        suggestions_from: Some("stat_texts".into()),
-                    },
-                },
-                PredicateField {
-                    name: "stat_ids".into(),
-                    label: "Stat IDs".into(),
-                    kind: FieldKind::TextList {
-                        suggestions_from: Some("stat_ids".into()),
-                    },
-                },
-            ],
-        },
         // ── Stat value predicates ────────────────────────────────────
         PredicateSchema {
             type_name: "StatValue".into(),
-            label: "Stat Value".into(),
-            description: "Rolled value of a stat (e.g., life roll >= 90). Matches by stat ID."
-                .into(),
-            category: "Stats".into(),
+            label: "Mod Stat Value".into(),
+            description:
+                "Rolled value of a mod's stat. 1 condition = any mod; 2+ = all on same mod (hybrid).".into(),
+            category: "Mods".into(),
             fields: vec![
                 PredicateField {
                     name: "text".into(),
-                    label: "Stat Template".into(),
+                    label: "Stat".into(),
                     kind: FieldKind::Text {
                         suggestions_from: Some("stat_texts".into()),
                     },
                 },
-                PredicateField {
-                    name: "stat_id".into(),
-                    label: "Stat ID".into(),
-                    kind: FieldKind::Text {
-                        suggestions_from: Some("stat_ids".into()),
-                    },
-                },
-                PredicateField {
-                    name: "value_index".into(),
-                    label: "Value Index".into(),
-                    kind: FieldKind::Number {
-                        min: Some(0),
-                        max: Some(3),
-                    },
-                },
+                // stat_id and value_index are auto-resolved (hidden from UI).
                 comparison_field(&NUM_CMP),
                 PredicateField {
                     name: "value".into(),
@@ -337,31 +293,17 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
         PredicateSchema {
             type_name: "RollPercent".into(),
             label: "Roll Quality %".into(),
-            description: "How close the roll is to max (0-100%). Matches by stat ID.".into(),
-            category: "Stats".into(),
+            description: "How close a mod's roll is to max (0-100%). Matches by stat ID.".into(),
+            category: "Mods".into(),
             fields: vec![
                 PredicateField {
                     name: "text".into(),
-                    label: "Stat Template".into(),
+                    label: "Stat".into(),
                     kind: FieldKind::Text {
                         suggestions_from: Some("stat_texts".into()),
                     },
                 },
-                PredicateField {
-                    name: "stat_id".into(),
-                    label: "Stat ID".into(),
-                    kind: FieldKind::Text {
-                        suggestions_from: Some("stat_ids".into()),
-                    },
-                },
-                PredicateField {
-                    name: "value_index".into(),
-                    label: "Value Index".into(),
-                    kind: FieldKind::Number {
-                        min: Some(0),
-                        max: Some(3),
-                    },
-                },
+                // stat_id and value_index are auto-resolved (hidden from UI).
                 comparison_field(&NUM_CMP),
                 PredicateField {
                     name: "value".into(),
@@ -477,8 +419,8 @@ mod tests {
     #[test]
     fn schema_has_all_predicates() {
         let schema = predicate_schema();
-        // 15 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
-        assert_eq!(schema.len(), 15, "schema should have exactly 15 predicates");
+        // 14 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
+        assert_eq!(schema.len(), 14, "schema should have exactly 14 predicates");
     }
 
     #[test]
@@ -487,7 +429,7 @@ mod tests {
         let mut names: Vec<&str> = schema.iter().map(|s| s.type_name.as_str()).collect();
         names.sort();
         names.dedup();
-        assert_eq!(names.len(), 15, "all type names should be unique");
+        assert_eq!(names.len(), 14, "all type names should be unique");
     }
 
     #[test]
@@ -506,9 +448,8 @@ mod tests {
             r#"{"type":"OpenMods","slot":"Suffix","op":"Ge","value":1}"#,
             r#"{"type":"HasModNamed","name":"Test"}"#,
             // HasStatText and HasStatId deprecated — still deserialize, just not in schema
-            r#"{"type":"HybridMod","templates":["life","armour"],"stat_ids":["base_maximum_life","local_base_physical_damage_reduction_rating"]}"#,
             r#"{"type":"ModTier","name":"Test","op":"Le","value":3}"#,
-            r#"{"type":"StatValue","text":"Life","stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":50}"#,
+            r#"{"type":"StatValue","conditions":[{"stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":50}]}"#,
             r#"{"type":"RollPercent","text":"Life","stat_id":"base_maximum_life","value_index":0,"op":"Ge","value":80}"#,
             r#"{"type":"HasInfluence","influence":"Shaper"}"#,
             r#"{"type":"HasStatus","status":"Corrupted"}"#,
@@ -516,6 +457,7 @@ mod tests {
         ];
 
         let schema = predicate_schema();
+        // test_cases covers all schema entries plus deprecated HasStatText/HasStatId
         assert_eq!(
             test_cases.len(),
             schema.len(),

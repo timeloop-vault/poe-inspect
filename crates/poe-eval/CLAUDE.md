@@ -4,7 +4,7 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ## Status
 
-**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 41 fixture tests. Supports DivinationCard rarity, Unidentified status, HybridMod predicate.
+**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 41 fixture tests. StatValue supports single-stat and multi-condition (same-mod/hybrid) checks.
 
 ## Scope
 
@@ -61,8 +61,7 @@ tests/
 | `HasStatText` | ~~Whether any stat line contains text~~ **Deprecated** — use `StatValue` |
 | `HasStatId` | ~~Whether any stat has a resolved stat ID~~ **Deprecated** — use `StatValue` |
 | `ModTier` | Mod tier comparison by name |
-| `HybridMod` | All stat IDs present on a SINGLE mod (same-mod check) |
-| `StatValue` | Rolled value of a matching stat |
+| `StatValue` | Rolled value of a matching stat (1 condition = any mod; 2+ = same mod) |
 | `RollPercent` | How close a roll is to max (0-100%) |
 | `HasInfluence` | Specific influence check |
 | `HasStatus` | Specific status check (Corrupted, etc.) |

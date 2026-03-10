@@ -3,6 +3,7 @@ import type { Cmp } from "./Cmp";
 import type { InfluenceValue } from "./InfluenceValue";
 import type { ModSlotKind } from "./ModSlotKind";
 import type { RarityValue } from "./RarityValue";
+import type { StatCondition } from "./StatCondition";
 import type { StatusValue } from "./StatusValue";
 
 /**
@@ -12,16 +13,4 @@ import type { StatusValue } from "./StatusValue";
  * all PoE-specific logic lives in the evaluation layer which queries
  * `GameData` as needed.
  */
-export type Predicate = { "type": "Rarity", op: Cmp, value: RarityValue, } | { "type": "ItemClass", op: Cmp, value: string, } | { "type": "BaseType", op: Cmp, value: string, } | { "type": "BaseTypeContains", value: string, } | { "type": "ItemLevel", op: Cmp, value: number, } | { "type": "ModCount", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "OpenMods", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "HasModNamed", name: string, } | { "type": "HasStatText", text: string, } | { "type": "HasStatId", stat_id: string, } | { "type": "ModTier", name: string, op: Cmp, value: number, } | { "type": "StatValue", text?: string | null, stat_id?: string | null, 
-/**
- * Which value index (0 for most stats, 0/1 for "Adds X to Y" stats).
- */
-value_index: number, op: Cmp, value: number, } | { "type": "RollPercent", text?: string | null, stat_id?: string | null, value_index: number, op: Cmp, value: number, } | { "type": "HybridMod", 
-/**
- * Display templates for each stat (human-readable, for UI).
- */
-templates: Array<string>, 
-/**
- * Stat IDs that must ALL appear within a single mod's stat lines.
- */
-stat_ids: Array<string>, } | { "type": "HasInfluence", influence: InfluenceValue, } | { "type": "HasStatus", status: StatusValue, } | { "type": "InfluenceCount", op: Cmp, value: number, };
+export type Predicate = { "type": "Rarity", op: Cmp, value: RarityValue, } | { "type": "ItemClass", op: Cmp, value: string, } | { "type": "BaseType", op: Cmp, value: string, } | { "type": "BaseTypeContains", value: string, } | { "type": "ItemLevel", op: Cmp, value: number, } | { "type": "ModCount", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "OpenMods", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "HasModNamed", name: string, } | { "type": "HasStatText", text: string, } | { "type": "HasStatId", stat_id: string, } | { "type": "ModTier", name: string, op: Cmp, value: number, } | { "type": "StatValue", conditions: Array<StatCondition>, } | { "type": "RollPercent", text?: string | null, stat_id?: string | null, value_index: number, op: Cmp, value: number, } | { "type": "HasInfluence", influence: InfluenceValue, } | { "type": "HasStatus", status: StatusValue, } | { "type": "InfluenceCount", op: Cmp, value: number, };

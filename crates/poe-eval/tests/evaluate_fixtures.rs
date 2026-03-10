@@ -4,7 +4,7 @@ use std::sync::OnceLock;
 use poe_dat::tables::{BaseItemTypeRow, RarityRow};
 use poe_data::GameData;
 use poe_eval::affix;
-use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatusValue};
+use poe_eval::predicate::{Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatCondition, StatusValue};
 use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
 use poe_eval::tier;
@@ -284,33 +284,39 @@ fn stat_value_check() {
     let item = resolve_full("rare-belt-crafted.txt");
 
     // Belt has two life mods: implicit +32 and prefix +49.
-    // StatValue checks all matching stats — any match satisfies the predicate.
+    // Single condition checks all matching stats — any match satisfies the predicate.
     let rule = Rule::pred(Predicate::StatValue {
-        text: None,
-        stat_id: Some("base_maximum_life".to_string()),
-        value_index: 0,
-        op: Cmp::Ge,
-        value: 30,
+        conditions: vec![StatCondition {
+            text: None,
+            stat_id: Some("base_maximum_life".into()),
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 30,
+        }],
     });
     assert!(evaluate(&item, &rule, gd));
 
     // >= 40 should pass because the prefix has +49
     let rule = Rule::pred(Predicate::StatValue {
-        text: None,
-        stat_id: Some("base_maximum_life".to_string()),
-        value_index: 0,
-        op: Cmp::Ge,
-        value: 40,
+        conditions: vec![StatCondition {
+            text: None,
+            stat_id: Some("base_maximum_life".into()),
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 40,
+        }],
     });
     assert!(evaluate(&item, &rule, gd));
 
     // >= 55 should fail — neither 32 nor 49 reaches 55
     let rule = Rule::pred(Predicate::StatValue {
-        text: None,
-        stat_id: Some("base_maximum_life".to_string()),
-        value_index: 0,
-        op: Cmp::Ge,
-        value: 55,
+        conditions: vec![StatCondition {
+            text: None,
+            stat_id: Some("base_maximum_life".into()),
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 55,
+        }],
     });
     assert!(!evaluate(&item, &rule, gd));
 }
@@ -325,21 +331,25 @@ fn stat_value_checks_all_matching_mods() {
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
     let rule = Rule::pred(Predicate::StatValue {
-        text: None,
-        stat_id: Some("base_maximum_life".to_string()),
-        value_index: 0,
-        op: Cmp::Gt,
-        value: 100,
+        conditions: vec![StatCondition {
+            text: None,
+            stat_id: Some("base_maximum_life".into()),
+            value_index: 0,
+            op: Cmp::Gt,
+            value: 100,
+        }],
     });
     assert!(evaluate(&item, &rule, gd));
 
     // Neither +24 nor +139 exceeds 150
     let rule_high = Rule::pred(Predicate::StatValue {
-        text: None,
-        stat_id: Some("base_maximum_life".to_string()),
-        value_index: 0,
-        op: Cmp::Gt,
-        value: 150,
+        conditions: vec![StatCondition {
+            text: None,
+            stat_id: Some("base_maximum_life".into()),
+            value_index: 0,
+            op: Cmp::Gt,
+            value: 150,
+        }],
     });
     assert!(!evaluate(&item, &rule_high, gd));
 }
@@ -738,7 +748,7 @@ fn affix_crafted_suffix_detected() {
     assert!(!summary.prefixes.has_crafted);
 }
 
-// ─── HybridMod predicate ────────────────────────────────────────────────────
+// ─── StatValue multi-condition (same-mod check) ─────────────────────────────
 
 // Body armour fixture mod layout (used by many tests below):
 // - "Urchin's" (hybrid): base_physical_damage_reduction_rating + base_maximum_life
@@ -747,98 +757,118 @@ fn affix_crafted_suffix_detected() {
 // - "of the Ice": base_cold_damage_resistance_%
 // - "of the Volcano": base_fire_damage_resistance_%
 
-/// HybridMod matches when ALL stat_ids appear on a single mod.
+/// Multi-condition StatValue matches when ALL conditions are on a SINGLE mod.
 #[test]
-fn hybrid_mod_matches_same_mod() {
+fn stat_value_multi_matches_same_mod() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
-    // HybridMod: armour + life on the SAME mod → should match Urchin's
-    let rule = Rule::pred(Predicate::HybridMod {
-        templates: vec!["+# to Armour".into(), "+# to maximum Life".into()],
-        stat_ids: vec![
-            "base_physical_damage_reduction_rating".into(),
-            "base_maximum_life".into(),
+    // armour + life on the SAME mod → should match Urchin's
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: Some("+# to Armour".into()),
+                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+            StatCondition {
+                text: Some("+# to maximum Life".into()),
+                stat_id: Some("base_maximum_life".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
         ],
     });
     assert!(
         evaluate(&item, &rule, gd),
-        "HybridMod should match Urchin's (armour + life on same mod)"
+        "multi-condition should match Urchin's (armour + life on same mod)"
     );
 }
 
-/// HybridMod must NOT match when the required stats exist on the item
-/// but on DIFFERENT mods. This is the key distinction from Rule::All.
-///
-/// The helmet fixture has:
-/// - "Rotund" (pure life): base_maximum_life
-/// - "Spiny" (phys reflect): base_reflect_physical_damage_to_melee_attackers (or similar)
-/// - No hybrid armour+life mod
-///
-/// The belt fixture has life stats but no armour+life hybrid.
+/// Multi-condition must NOT match when stats exist on DIFFERENT mods.
 #[test]
-fn hybrid_mod_does_not_match_across_mods() {
+fn stat_value_multi_does_not_match_across_mods() {
     let gd = full_game_data();
     let item = resolve_full("rare-helmet-crafted.txt");
 
-    // Helmet has life (Rotund) but no armour mod. HybridMod(armour + life) → false.
-    let rule = Rule::pred(Predicate::HybridMod {
-        templates: vec!["+# to Armour".into(), "+# to maximum Life".into()],
-        stat_ids: vec![
-            "base_physical_damage_reduction_rating".into(),
-            "base_maximum_life".into(),
+    // Helmet has life (Rotund) but no armour mod. Multi(armour + life) → false.
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some("base_maximum_life".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
         ],
     });
     assert!(
         !evaluate(&item, &rule, gd),
-        "HybridMod should not match when stats are on different mods"
+        "multi-condition should not match when stats are on different mods"
     );
 }
 
-/// Crucially test that an item with BOTH stats present (armour AND life) but on
-/// SEPARATE mods does NOT trigger HybridMod, even though Rule::All would match.
-///
-/// The shield fixture has:
-/// - "Virile": +109 to maximum Life (pure life prefix)
-/// - "Carapaced": +102 to Armour (pure armour prefix)
-/// - "Beetle's": 12% increased Armour + 6% Stun and Block Recovery (hybrid, but NOT armour+life)
-///
-/// Both base_physical_damage_reduction_rating and base_maximum_life exist on the item,
-/// but on DIFFERENT mods. HybridMod must return false.
+/// Item with BOTH stats on SEPARATE mods does NOT trigger multi-condition,
+/// even though separate single-condition checks (via Rule::All) would match.
 #[test]
-fn hybrid_mod_rejects_cross_mod_stats_on_shield() {
+fn stat_value_multi_rejects_cross_mod_on_shield() {
     let gd = full_game_data();
     let item = resolve_full("rare-shield-crafted.txt");
 
     // Shield has armour (Carapaced) and life (Virile) on SEPARATE mods.
-    // HybridMod(armour + life) must NOT match.
-    let rule = Rule::pred(Predicate::HybridMod {
-        templates: vec!["+# to Armour".into(), "+# to maximum Life".into()],
-        stat_ids: vec![
-            "base_physical_damage_reduction_rating".into(),
-            "base_maximum_life".into(),
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some("base_maximum_life".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
         ],
     });
     assert!(
         !evaluate(&item, &rule, gd),
-        "HybridMod must not match when armour and life are on separate mods"
+        "multi-condition must not match when armour and life are on separate mods"
     );
 
-    // Contrast: Rule::All with two StatValues WOULD match (both stats exist on the item).
+    // Contrast: Rule::All with two single-condition StatValues WOULD match.
     let rule_all = Rule::all(vec![
         Rule::pred(Predicate::StatValue {
-            text: None,
-            stat_id: Some("base_physical_damage_reduction_rating".into()),
-            value_index: 0,
-            op: Cmp::Ge,
-            value: 0,
+            conditions: vec![StatCondition {
+                text: None,
+                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            }],
         }),
         Rule::pred(Predicate::StatValue {
-            text: None,
-            stat_id: Some("base_maximum_life".into()),
-            value_index: 0,
-            op: Cmp::Ge,
-            value: 0,
+            conditions: vec![StatCondition {
+                text: None,
+                stat_id: Some("base_maximum_life".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            }],
         }),
     ]);
     assert!(
@@ -847,67 +877,108 @@ fn hybrid_mod_rejects_cross_mod_stats_on_shield() {
     );
 }
 
-/// Verify HybridMod fails when one of the required stat_ids is completely absent.
+/// Multi-condition fails when one stat is completely absent from the item.
 #[test]
-fn hybrid_mod_fails_when_stat_missing() {
+fn stat_value_multi_fails_when_stat_missing() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
-    // body armour has no lightning resistance → hybrid(life + lightning res) should fail
-    let rule = Rule::pred(Predicate::HybridMod {
-        templates: vec![
-            "+# to maximum Life".into(),
-            "+#% to Lightning Resistance".into(),
-        ],
-        stat_ids: vec![
-            "base_maximum_life".into(),
-            "base_lightning_damage_resistance_%".into(),
+    // body armour has no lightning resistance
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some("base_maximum_life".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some("base_lightning_damage_resistance_%".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
         ],
     });
     assert!(
         !evaluate(&item, &rule, gd),
-        "HybridMod should fail when one stat_id is absent from item"
+        "multi-condition should fail when one stat is absent"
     );
 }
 
-/// Verify HybridMod with a single stat_id works (degenerates to stat presence check).
+/// Empty conditions returns false (no vacuous truth).
 #[test]
-fn hybrid_mod_single_stat_matches() {
+fn stat_value_empty_conditions_does_not_match() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
-    // Single stat_id: life exists on multiple mods → should match
-    let rule = Rule::pred(Predicate::HybridMod {
-        templates: vec!["+# to maximum Life".into()],
-        stat_ids: vec!["base_maximum_life".into()],
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![],
+    });
+    assert!(
+        !evaluate(&item, &rule, gd),
+        "empty conditions should not match"
+    );
+}
+
+/// Multi-condition with value thresholds on the same mod.
+#[test]
+fn stat_value_multi_with_value_thresholds() {
+    let gd = full_game_data();
+    let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
+
+    let armour_id = "base_physical_damage_reduction_rating";
+    let life_id = "base_maximum_life";
+
+    // Urchin's has armour + life on same mod.
+    // With low thresholds → should match
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some(armour_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 1,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some(life_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 1,
+            },
+        ],
     });
     assert!(evaluate(&item, &rule, gd));
-}
 
-/// Verify HybridMod does not match empty stat_ids (vacuous truth protection).
-#[test]
-fn hybrid_mod_empty_stat_ids_does_not_match() {
-    let gd = full_game_data();
-    let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
-
-    let rule = Rule::pred(Predicate::HybridMod {
-        templates: vec![],
-        stat_ids: vec![],
+    // With impossibly high threshold on life → should fail (Urchin's life is low)
+    let rule_high = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some(armour_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 1,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some(life_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 200,
+            },
+        ],
     });
-    // Empty stat_ids: .all() on empty iter is vacuously true, which means any mod
-    // would match. This is technically correct but potentially surprising.
-    // We accept this since users won't create empty hybrid rules through the UI.
-    // Just document the behavior.
-    assert!(
-        evaluate(&item, &rule, gd),
-        "empty stat_ids is vacuously true (matches any mod)"
-    );
+    assert!(!evaluate(&item, &rule_high, gd));
 }
 
-/// Contrast test: Rule::All matches cross-mod, HybridMod does not.
-/// Both are tested on the same item to make the distinction crystal clear.
+/// Contrast: multi-condition vs Rule::All on same item.
 #[test]
-fn hybrid_vs_rule_all_on_body_armour() {
+fn stat_value_multi_vs_rule_all_on_body_armour() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
@@ -915,43 +986,75 @@ fn hybrid_vs_rule_all_on_body_armour() {
     let life_id = "base_maximum_life";
     let cold_res_id = "base_cold_damage_resistance_%";
 
-    // HybridMod: armour + life → matches Urchin's (same mod)
-    let hybrid_armour_life = Rule::pred(Predicate::HybridMod {
-        templates: vec!["+# to Armour".into(), "+# to maximum Life".into()],
-        stat_ids: vec![armour_id.into(), life_id.into()],
+    // Multi-condition: armour + life → matches Urchin's (same mod)
+    let multi_armour_life = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some(armour_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some(life_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+        ],
     });
-    assert!(evaluate(&item, &hybrid_armour_life, gd));
+    assert!(evaluate(&item, &multi_armour_life, gd));
 
-    // HybridMod: life + cold res → NO mod has both
-    let hybrid_life_cold = Rule::pred(Predicate::HybridMod {
-        templates: vec!["+# to maximum Life".into(), "+#% to Cold Resistance".into()],
-        stat_ids: vec![life_id.into(), cold_res_id.into()],
+    // Multi-condition: life + cold res → NO mod has both
+    let multi_life_cold = Rule::pred(Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: None,
+                stat_id: Some(life_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+            StatCondition {
+                text: None,
+                stat_id: Some(cold_res_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            },
+        ],
     });
-    assert!(!evaluate(&item, &hybrid_life_cold, gd));
+    assert!(!evaluate(&item, &multi_life_cold, gd));
 
-    // Rule::All: life + cold res → matches because life (Fecund) and cold res (of the Ice) both exist
+    // Rule::All: life + cold res → matches across mods
     let all_life_cold = Rule::all(vec![
         Rule::pred(Predicate::StatValue {
-            text: None,
-            stat_id: Some(life_id.into()),
-            value_index: 0,
-            op: Cmp::Ge,
-            value: 0,
+            conditions: vec![StatCondition {
+                text: None,
+                stat_id: Some(life_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            }],
         }),
         Rule::pred(Predicate::StatValue {
-            text: None,
-            stat_id: Some(cold_res_id.into()),
-            value_index: 0,
-            op: Cmp::Ge,
-            value: 0,
+            conditions: vec![StatCondition {
+                text: None,
+                stat_id: Some(cold_res_id.into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            }],
         }),
     ]);
     assert!(evaluate(&item, &all_life_cold, gd));
 }
 
-/// HybridMod in scoring profile — weighted contribution.
+/// Multi-condition in scoring profile — weighted contribution.
 #[test]
-fn hybrid_mod_in_scoring_profile() {
+fn stat_value_multi_in_scoring_profile() {
     let gd = full_game_data();
     let body_armour = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
     let shield = resolve_full("rare-shield-crafted.txt");
@@ -963,11 +1066,22 @@ fn hybrid_mod_in_scoring_profile() {
         scoring: vec![ScoringRule {
             label: "Hybrid armour + life".into(),
             weight: 20.0,
-            rule: Rule::pred(Predicate::HybridMod {
-                templates: vec!["+# to Armour".into(), "+# to maximum Life".into()],
-                stat_ids: vec![
-                    "base_physical_damage_reduction_rating".into(),
-                    "base_maximum_life".into(),
+            rule: Rule::pred(Predicate::StatValue {
+                conditions: vec![
+                    StatCondition {
+                        text: Some("+# to Armour".into()),
+                        stat_id: Some("base_physical_damage_reduction_rating".into()),
+                        value_index: 0,
+                        op: Cmp::Ge,
+                        value: 0,
+                    },
+                    StatCondition {
+                        text: Some("+# to maximum Life".into()),
+                        stat_id: Some("base_maximum_life".into()),
+                        value_index: 0,
+                        op: Cmp::Ge,
+                        value: 0,
+                    },
                 ],
             }),
         }],
@@ -992,31 +1106,41 @@ fn hybrid_mod_in_scoring_profile() {
     assert_eq!(result.matched.len(), 0);
 }
 
-/// HybridMod serialization round-trip.
+/// StatValue serialization round-trip with conditions.
 #[test]
-fn hybrid_mod_serializes_roundtrip() {
-    let pred = Predicate::HybridMod {
-        templates: vec!["+# to Armour".into(), "+# to maximum Life".into()],
-        stat_ids: vec![
-            "base_physical_damage_reduction_rating".into(),
-            "base_maximum_life".into(),
+fn stat_value_conditions_serialize_roundtrip() {
+    let pred = Predicate::StatValue {
+        conditions: vec![
+            StatCondition {
+                text: Some("+# to Armour".into()),
+                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 50,
+            },
+            StatCondition {
+                text: Some("+# to maximum Life".into()),
+                stat_id: Some("base_maximum_life".into()),
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 20,
+            },
         ],
     };
 
     let json = serde_json::to_string(&pred).unwrap();
-    assert!(json.contains("\"HybridMod\""));
+    assert!(json.contains("\"StatValue\""));
+    assert!(json.contains("\"conditions\""));
     assert!(json.contains("base_physical_damage_reduction_rating"));
     assert!(json.contains("base_maximum_life"));
 
     let deserialized: Predicate = serde_json::from_str(&json).unwrap();
     match deserialized {
-        Predicate::HybridMod {
-            templates,
-            stat_ids,
-        } => {
-            assert_eq!(stat_ids.len(), 2);
-            assert_eq!(templates.len(), 2);
+        Predicate::StatValue { conditions } => {
+            assert_eq!(conditions.len(), 2);
+            assert_eq!(conditions[0].stat_id.as_deref(), Some("base_physical_damage_reduction_rating"));
+            assert_eq!(conditions[1].value, 20);
         }
-        _ => panic!("expected HybridMod variant"),
+        _ => panic!("expected StatValue variant"),
     }
 }
