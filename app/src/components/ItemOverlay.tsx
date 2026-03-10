@@ -339,12 +339,18 @@ export function ItemOverlay({
 			)}
 
 			{/* Sockets & Item Level */}
-			<div class="item-meta">
-				{item.sockets && <div class="item-sockets">Sockets: {item.sockets}</div>}
-				{item.itemLevel != null && <div class="item-level">Item Level: {item.itemLevel}</div>}
-			</div>
+			{(item.sockets || item.itemLevel != null) && (
+				<>
+					<div class="item-meta">
+						{item.sockets && <div class="item-sockets">Sockets: {item.sockets}</div>}
+						{item.itemLevel != null && <div class="item-level">Item Level: {item.itemLevel}</div>}
+					</div>
+					<Separator rarity={rarity} />
+				</>
+			)}
 
-			<Separator rarity={rarity} />
+			{/* Description (currency effects, item instructions, etc.) */}
+			{item.description && <div class="item-description">{item.description}</div>}
 
 			{/* Enchants */}
 			{item.enchants.length > 0 && (
