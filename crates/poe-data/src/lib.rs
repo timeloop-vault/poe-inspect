@@ -6,7 +6,7 @@
 pub mod domain;
 mod game_data;
 
-pub use game_data::{load, GameData, LoadError};
+pub use game_data::{load, GameData, LoadError, StatSuggestion, StatSuggestionKind};
 
 // Re-export ReverseIndex so downstream crates don't need a direct poe-dat dependency.
 pub use poe_dat::stat_desc::ReverseIndex;

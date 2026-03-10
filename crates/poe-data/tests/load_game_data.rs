@@ -1,4 +1,4 @@
-use poe_data::{load, GameData};
+use poe_data::{load, GameData, StatSuggestionKind};
 
 fn load_test_data() -> Option<GameData> {
     let dir = std::env::temp_dir().join("poe-dat");
@@ -102,5 +102,38 @@ fn fk_resolution_works() {
             .collect();
         println!("Iron Greaves tags: {:?}", tag_names);
         assert!(!tag_names.is_empty(), "should have tags");
+    }
+}
+
+#[test]
+fn stat_to_mod_index_works() {
+    let Some(gd) = load_test_data() else { return };
+
+    // base_maximum_life should appear in many mods (pure life + hybrid combos).
+    let templates = gd.templates_for_stat("base_maximum_life");
+    assert!(templates.is_some(), "base_maximum_life should have templates");
+    let templates = templates.unwrap();
+    assert!(!templates.is_empty());
+    println!("base_maximum_life templates: {:?}", &templates[..templates.len().min(3)]);
+
+    // Query "maximum Life" — should return single suggestions AND hybrid combos.
+    let suggestions = gd.stat_suggestions_for_query("maximum Life");
+    let singles: Vec<_> = suggestions.iter()
+        .filter(|s| matches!(s.kind, StatSuggestionKind::Single))
+        .collect();
+    let hybrids: Vec<_> = suggestions.iter()
+        .filter(|s| matches!(s.kind, StatSuggestionKind::Hybrid { .. }))
+        .collect();
+
+    println!("Query 'maximum Life': {} singles, {} hybrids", singles.len(), hybrids.len());
+    assert!(!singles.is_empty(), "should have single suggestions for 'maximum Life'");
+    assert!(!hybrids.is_empty(), "should have hybrid suggestions for 'maximum Life'");
+
+    // Print first few hybrids for inspection.
+    for h in hybrids.iter().take(5) {
+        if let StatSuggestionKind::Hybrid { mod_name, generation_type, other_templates, .. } = &h.kind {
+            let affix = if *generation_type == 1 { "prefix" } else { "suffix" };
+            println!("  Hybrid ({affix}) \"{mod_name}\": {} + {:?}", h.template, other_templates);
+        }
     }
 }
