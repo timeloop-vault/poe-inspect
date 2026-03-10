@@ -148,6 +148,7 @@ pub enum RarityValue {
     Unique = 3,
     Gem = 4,
     Currency = 5,
+    DivinationCard = 6,
 }
 
 impl RarityValue {
@@ -159,6 +160,7 @@ impl RarityValue {
             Rarity::Unique => Self::Unique,
             Rarity::Gem => Self::Gem,
             Rarity::Currency => Self::Currency,
+            Rarity::DivinationCard => Self::DivinationCard,
             Rarity::Normal | Rarity::Unknown => Self::Normal,
         }
     }
@@ -210,6 +212,7 @@ pub enum StatusValue {
     Unmodifiable,
     Split,
     Transfigured,
+    Unidentified,
 }
 
 impl StatusValue {
@@ -222,6 +225,7 @@ impl StatusValue {
                 | (Self::Unmodifiable, StatusKind::Unmodifiable)
                 | (Self::Split, StatusKind::Split)
                 | (Self::Transfigured, StatusKind::Transfigured)
+                | (Self::Unidentified, StatusKind::Unidentified)
         )
     }
 }

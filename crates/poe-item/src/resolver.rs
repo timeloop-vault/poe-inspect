@@ -45,6 +45,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let mut explicits = Vec::new();
     let mut influences = Vec::new();
     let mut statuses = Vec::new();
+    let mut note = None;
     let mut generic_sections = Vec::new();
 
     for section in &raw.sections {
@@ -83,6 +84,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                 }
             }
             Section::Status(s) => statuses.push(*s),
+            Section::Note(n) => note = Some(n.clone()),
             Section::Generic(lines) => generic_sections.push(lines.clone()),
         }
     }
@@ -94,6 +96,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     // Convenience booleans
     let is_corrupted = statuses.iter().any(|s| matches!(s, StatusKind::Corrupted));
     let is_fractured = influences.iter().any(|i| matches!(i, InfluenceKind::Fractured));
+    let is_unidentified = statuses.iter().any(|s| matches!(s, StatusKind::Unidentified));
 
     ResolvedItem {
         header,
@@ -111,6 +114,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         statuses,
         is_corrupted,
         is_fractured,
+        is_unidentified,
+        note,
         flavor_text,
         unclassified_sections,
     }
