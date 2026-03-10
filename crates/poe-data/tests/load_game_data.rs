@@ -204,18 +204,18 @@ fn local_stat_template_fallback() {
     );
 
     // Hybrid suggestions for "maximum Life" should include armour+life hybrids
-    // with resolved other_templates and canonical (non-local) stat_ids.
+    // with resolved other_templates and real stat_ids from the Mods table.
     let suggestions = gd.stat_suggestions_for_query("# to maximum Life");
     let armour_life_hybrids: Vec<_> = suggestions
         .iter()
         .filter(|s| {
             matches!(&s.kind, StatSuggestionKind::Hybrid { other_stat_ids, .. }
-            if other_stat_ids.iter().any(|id| id == "base_physical_damage_reduction_rating"))
+            if other_stat_ids.iter().any(|id| id == "local_base_physical_damage_reduction_rating"))
         })
         .collect();
     assert!(
         !armour_life_hybrids.is_empty(),
-        "should find armour+life hybrid mods"
+        "should find armour+life hybrid mods (with real local stat_ids)"
     );
     for h in &armour_life_hybrids {
         if let StatSuggestionKind::Hybrid {
@@ -232,10 +232,10 @@ fn local_stat_template_fallback() {
                 other_templates.iter().any(|t| t.contains("Armour")),
                 "other_templates should contain Armour template"
             );
-            // Stat IDs should be canonical (non-local) for matching against resolved items
+            // Stat IDs come directly from the Mods table — should be real (local) IDs
             assert!(
-                !other_stat_ids.iter().any(|id| id.starts_with("local_")),
-                "other_stat_ids should use canonical (non-local) stat IDs, got: {:?}",
+                other_stat_ids.iter().any(|id| id.starts_with("local_")),
+                "other_stat_ids should use real stat IDs from Mods table, got: {:?}",
                 other_stat_ids
             );
         }

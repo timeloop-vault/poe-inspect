@@ -753,8 +753,8 @@ fn affix_crafted_suffix_detected() {
 // ─── StatValue multi-condition (same-mod check) ─────────────────────────────
 
 // Body armour fixture mod layout (used by many tests below):
-// - "Urchin's" (hybrid): base_physical_damage_reduction_rating + base_maximum_life
-// - "Carapaced" (pure armour): base_physical_damage_reduction_rating
+// - "Urchin's" (hybrid): local_base_physical_damage_reduction_rating + base_maximum_life
+// - "Carapaced" (pure armour): local_base_physical_damage_reduction_rating
 // - "Fecund" (pure life): base_maximum_life
 // - "of the Ice": base_cold_damage_resistance_%
 // - "of the Volcano": base_fire_damage_resistance_%
@@ -770,7 +770,7 @@ fn stat_value_multi_matches_same_mod() {
         conditions: vec![
             StatCondition {
                 text: Some("+# to Armour".into()),
-                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -801,7 +801,7 @@ fn stat_value_multi_does_not_match_across_mods() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -833,7 +833,7 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
         conditions: vec![
             StatCondition {
                 text: None,
-                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -857,7 +857,7 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
         Rule::pred(Predicate::StatValue {
             conditions: vec![StatCondition {
                 text: None,
-                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 0,
@@ -929,7 +929,7 @@ fn stat_value_multi_with_value_thresholds() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
-    let armour_id = "base_physical_damage_reduction_rating";
+    let armour_id = "local_base_physical_damage_reduction_rating";
     let life_id = "base_maximum_life";
 
     // Urchin's has armour + life on same mod.
@@ -982,7 +982,7 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
     let gd = full_game_data();
     let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
 
-    let armour_id = "base_physical_damage_reduction_rating";
+    let armour_id = "local_base_physical_damage_reduction_rating";
     let life_id = "base_maximum_life";
     let cold_res_id = "base_cold_damage_resistance_%";
 
@@ -1070,7 +1070,7 @@ fn stat_value_multi_in_scoring_profile() {
                 conditions: vec![
                     StatCondition {
                         text: Some("+# to Armour".into()),
-                        stat_id: Some("base_physical_damage_reduction_rating".into()),
+                        stat_id: Some("local_base_physical_damage_reduction_rating".into()),
                         value_index: 0,
                         op: Cmp::Ge,
                         value: 0,
@@ -1113,7 +1113,7 @@ fn stat_value_conditions_serialize_roundtrip() {
         conditions: vec![
             StatCondition {
                 text: Some("+# to Armour".into()),
-                stat_id: Some("base_physical_damage_reduction_rating".into()),
+                stat_id: Some("local_base_physical_damage_reduction_rating".into()),
                 value_index: 0,
                 op: Cmp::Ge,
                 value: 50,
@@ -1131,7 +1131,7 @@ fn stat_value_conditions_serialize_roundtrip() {
     let json = serde_json::to_string(&pred).unwrap();
     assert!(json.contains("\"StatValue\""));
     assert!(json.contains("\"conditions\""));
-    assert!(json.contains("base_physical_damage_reduction_rating"));
+    assert!(json.contains("local_base_physical_damage_reduction_rating"));
     assert!(json.contains("base_maximum_life"));
 
     let deserialized: Predicate = serde_json::from_str(&json).unwrap();
@@ -1140,7 +1140,7 @@ fn stat_value_conditions_serialize_roundtrip() {
             assert_eq!(conditions.len(), 2);
             assert_eq!(
                 conditions[0].stat_id.as_deref(),
-                Some("base_physical_damage_reduction_rating")
+                Some("local_base_physical_damage_reduction_rating")
             );
             assert_eq!(conditions[1].value, 20);
         }
