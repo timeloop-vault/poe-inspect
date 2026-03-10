@@ -773,3 +773,139 @@ body,
 .swap-view-back:hover {
 	color: var(--poe-text);
 }
+
+/* --- Trade panel (price check + open trade) --- */
+
+.trade-panel {
+	margin-top: 4px;
+}
+
+.trade-actions {
+	display: flex;
+	gap: 6px;
+	padding: 4px 0;
+}
+
+.trade-action-btn {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 5px 10px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.trade-action-btn:hover:not(:disabled) {
+	background: rgba(175, 96, 37, 0.15);
+	border-color: var(--poe-accent);
+	color: var(--poe-header);
+}
+
+.trade-action-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.trade-action-secondary {
+	background: transparent;
+	border-color: rgba(70, 59, 43, 0.6);
+	color: var(--poe-text-dim);
+}
+
+.trade-spinner {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border: 1.5px solid var(--poe-text-dim);
+	border-top-color: var(--poe-accent);
+	border-radius: 50%;
+	animation: trade-spin 0.8s linear infinite;
+}
+
+@keyframes trade-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Trade results */
+
+.trade-results {
+	padding: 4px 0;
+}
+
+.trade-results-header {
+	font-size: 11px;
+	color: var(--poe-text-dim);
+	padding: 2px 0 4px;
+}
+
+.trade-price-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.trade-price-row {
+	display: flex;
+	gap: 6px;
+	padding: 2px 8px;
+	font-size: 13px;
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.trade-price-row:nth-child(odd) {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.trade-price-amount {
+	color: var(--poe-header);
+	min-width: 48px;
+	text-align: right;
+}
+
+.trade-price-currency {
+	color: var(--poe-text-dim);
+}
+
+/* Trade messages (empty, error, rate limit) */
+
+.trade-message {
+	font-size: 12px;
+	color: var(--poe-text-dim);
+	padding: 6px 4px;
+	text-align: center;
+}
+
+.trade-message-error {
+	color: #e05040;
+}
+
+.trade-message-warn {
+	color: #c8b040;
+}
+
+.trade-retry-btn {
+	margin-left: 8px;
+	padding: 2px 8px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 2px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.trade-retry-btn:hover {
+	background: rgba(175, 96, 37, 0.15);
+	border-color: var(--poe-accent);
+}

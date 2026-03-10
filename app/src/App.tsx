@@ -3,15 +3,19 @@ import { listen } from "@tauri-apps/api/event";
 import { Component } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
+import { TradePanel } from "./components/TradePanel";
 import { mockItems } from "./mock-data";
 import {
 	type QualityColors,
+	type TradeSettings,
+	defaultTrade,
 	loadActiveQualityColors,
 	loadGeneral,
 	loadHotkeys,
+	loadTrade,
 	syncActiveProfile,
 } from "./store";
-import type { ItemPayload } from "./types";
+import type { ItemPayload, TradeQueryConfig } from "./types";
 
 /** Panel position — either left-anchored or right-anchored. */
 type PanelPosition =
@@ -104,6 +108,7 @@ export function App() {
 		x: 200,
 		y: 100,
 	});
+	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
@@ -132,6 +137,7 @@ export function App() {
 				dismissKeyRef.current = h.dismissOverlay;
 			});
 			loadActiveQualityColors().then(setQualityColors);
+			loadTrade().then(setTradeSettings);
 			syncActiveProfile();
 		};
 		reloadSettings();
@@ -235,9 +241,23 @@ export function App() {
 	let content: preact.ComponentChildren = null;
 	let showDismiss = true;
 
+	const tradeConfig: TradeQueryConfig = {
+		league: tradeSettings.league,
+		valueRelaxation: tradeSettings.valueRelaxation,
+		usePseudoStats: false,
+		onlineOnly: tradeSettings.onlineOnly,
+	};
+
 	if (evaluatedItem && !showMock) {
 		content = (
-			<ItemOverlay item={evaluatedItem.item} eval={evaluatedItem.eval} display={displaySettings} />
+			<>
+				<ItemOverlay
+					item={evaluatedItem.item}
+					eval={evaluatedItem.eval}
+					display={displaySettings}
+				/>
+				<TradePanel itemText={evaluatedItem.rawText} config={tradeConfig} />
+			</>
 		);
 	} else if (parseError && !showMock) {
 		content = (

@@ -7,6 +7,7 @@ import type { ItemPayload } from "./types";
 
 /** Rare boots with Eater/Exarch implicits, mixed tiers, and a crafted mod */
 export const rareBoots: ItemPayload = {
+	rawText: "",
 	item: {
 		header: {
 			itemClass: "Boots",
@@ -258,6 +259,7 @@ export const rareBoots: ItemPayload = {
 
 /** Rare body armour with enchant, Redeemer influence, open suffix */
 export const rareBodyArmour: ItemPayload = {
+	rawText: "",
 	item: {
 		header: {
 			itemClass: "Body Armours",
@@ -480,6 +482,7 @@ export const rareBodyArmour: ItemPayload = {
 
 /** Unique ring with variable rolls (Ventor's Gamble) */
 export const uniqueRing: ItemPayload = {
+	rawText: "",
 	item: {
 		header: {
 			itemClass: "Rings",

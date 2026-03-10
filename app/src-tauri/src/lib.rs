@@ -49,6 +49,8 @@ pub struct ItemPayload {
     pub item: poe_item::types::ResolvedItem,
     /// Evaluation results (tier quality, affix analysis, scores from poe-eval).
     pub eval: poe_eval::ItemEvaluation,
+    /// Raw clipboard text (needed for trade commands).
+    pub raw_text: String,
 }
 
 /// Cursor position in CSS pixels, emitted to the frontend for panel positioning.
@@ -153,6 +155,7 @@ fn handle_inspect(app: &tauri::AppHandle) {
                 let payload = ItemPayload {
                     item: resolved,
                     eval: evaluation,
+                    raw_text: clipboard_text.clone(),
                 };
                 let _ = app.emit("item-evaluated", &payload);
             }
@@ -431,6 +434,7 @@ fn evaluate_item(
     Ok(ItemPayload {
         item: resolved,
         eval: evaluation,
+        raw_text: item_text,
     })
 }
 
@@ -540,6 +544,18 @@ fn resolve_stat_template(template: &str, gd: tauri::State<'_, GameDataState>) ->
         .unwrap_or_default()
 }
 
+/// Return enriched stat suggestions matching a text query.
+///
+/// Returns both single-stat suggestions and hybrid mod combos that include
+/// the matching stat. Used by the stat picker to show hybrid options.
+#[tauri::command]
+fn get_stat_suggestions(
+    query: String,
+    state: tauri::State<'_, GameDataState>,
+) -> Vec<poe_data::StatSuggestion> {
+    state.0.stat_suggestions_for_query(&query)
+}
+
 // ── Trade commands (async) ──────────────────────────────────────────────────
 
 /// Full price check: parse item → build query → search → fetch prices.
@@ -639,6 +655,12 @@ async fn refresh_trade_stats(
 
     *trade.index.write().await = Some(result.index);
     Ok(matched)
+}
+
+/// Open a URL in the user's default browser.
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    open::that(&url).map_err(|e| format!("Failed to open URL: {e}"))
 }
 
 /// Fetch the list of active leagues from GGG.
@@ -794,10 +816,12 @@ pub fn run() {
             get_predicate_schema,
             get_suggestions,
             resolve_stat_template,
+            get_stat_suggestions,
             price_check,
             trade_search_url,
             refresh_trade_stats,
             fetch_leagues,
+            open_url,
         ])
         .setup(|app| {
             // --- System tray ---

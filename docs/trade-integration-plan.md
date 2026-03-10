@@ -162,13 +162,32 @@ struct TradeStatsIndex {
 
 ---
 
-## Phase 6: Advanced Features
+## Phase 6: Bulk Exchange & Advanced
+
+### Bulk exchange (`/api/trade/exchange/`)
+
+Standard search doesn't cover currency, fragments, div cards, etc. — those use the
+bulk exchange endpoint with `{have, want}` trade tags instead of stat filters.
+
+**Steps**:
+1. Add item class → trade tag mapping in `poe-data/domain.rs` (PoE domain knowledge)
+2. Add endpoint routing in `poe-trade/query.rs`: detect bulk-tradeable items, build exchange query
+3. Add `exchange()` method to `TradeClient` — POST to `/api/trade/exchange/{league}`
+4. Parse exchange-style responses (ratios + stock, not fixed prices)
+5. UI: show exchange ratios differently ("1 = 180c" vs "listed at 50c")
+6. In-game exchange warning for currency items (no API exists for in-game exchange)
+
+**Reference**: APT's routing in `renderer/src/web/price-check/trade/common.ts` —
+`apiToSatisfySearch()` checks if stats are enabled, falls back to bulk if `tradeTag` exists.
+
+### Other features
 
 - **Pseudo stats**: Aggregate explicit stats into pseudo equivalents (`pseudo.pseudo_total_life`). User toggle.
 - **Weight-based search**: Map poe-eval scoring profiles to trade API weight filters.
-- **Bulk exchange**: `/api/trade/exchange/` for currency/fragments. Detect by item class.
 - **Search history**: Cache recent price checks by item fingerprint.
 - **Comparable listings**: Show what similar items sold for, not just current listings.
+- **poe.ninja integration**: Currency normalization (exchange rates), price history/trends,
+  sanity-check against aggregate pricing. API reversed in `poe-agents` repo. Rate limit: 12 req / 5 min.
 
 ---
 
