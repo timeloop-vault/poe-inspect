@@ -8,24 +8,23 @@ use std::sync::OnceLock;
 
 use poe_data::GameData;
 use poe_item::resolve;
-use poe_trade::query::{build_query, StatGroupType};
-use poe_trade::types::{TradeQueryConfig, TradeStatsIndex, TradeStatsResponse};
 use poe_trade::QueryBuildResult;
+use poe_trade::query::{StatGroupType, build_query};
+use poe_trade::types::{TradeQueryConfig, TradeStatsIndex, TradeStatsResponse};
 
 /// Load full game data (with reverse index). Cached per test run.
 fn game_data() -> &'static GameData {
     static GD: OnceLock<GameData> = OnceLock::new();
     GD.get_or_init(|| {
         let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../poe-data/data");
-        poe_data::load(&data_dir)
-            .expect("game data required — run poe-data extraction first")
+        poe_data::load(&data_dir).expect("game data required — run poe-data extraction first")
     })
 }
 
 /// Load the trade stats fixture.
 fn trade_stats_fixture() -> TradeStatsResponse {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/trade_stats_3.28.json");
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/trade_stats_3.28.json");
     let file = std::fs::File::open(&path)
         .unwrap_or_else(|e| panic!("fixture not found at {}: {e}", path.display()));
     serde_json::from_reader(std::io::BufReader::new(file)).expect("valid JSON fixture")
@@ -61,15 +60,25 @@ fn default_config() -> TradeQueryConfig {
 #[test]
 fn rare_body_armour_builds_valid_query() {
     let item = parse_fixture("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
-    let result = build_query(&item, trade_index(), &default_config());
+    let result = build_query(&item, trade_index(), &default_config(), None);
 
     // Should have base type set
     assert_eq!(result.body.query.base_type.as_deref(), Some("Titan Plate"));
     // Rares are nonunique
-    let type_filters = result.body.query.filters.as_ref()
+    let type_filters = result
+        .body
+        .query
+        .filters
+        .as_ref()
         .and_then(|f| f.type_filters.as_ref());
     assert_eq!(
-        type_filters.unwrap().filters.rarity.as_ref().unwrap().option,
+        type_filters
+            .unwrap()
+            .filters
+            .rarity
+            .as_ref()
+            .unwrap()
+            .option,
         "nonunique"
     );
     // No name for rares
@@ -85,9 +94,12 @@ fn rare_body_armour_builds_valid_query() {
 #[test]
 fn rare_weapon_builds_stat_filters() {
     let item = parse_fixture("battered-foil-rare-ess-craft.txt");
-    let result = build_query(&item, trade_index(), &default_config());
+    let result = build_query(&item, trade_index(), &default_config(), None);
 
-    assert_eq!(result.body.query.base_type.as_deref(), Some("Battered Foil"));
+    assert_eq!(
+        result.body.query.base_type.as_deref(),
+        Some("Battered Foil")
+    );
 
     // Should have stat filters in an AND group
     assert_eq!(result.body.query.stats.len(), 1);
@@ -107,7 +119,9 @@ fn rare_weapon_builds_stat_filters() {
     }
 
     // Crafted mod "Hits can't be Evaded" should have no value (boolean stat)
-    let crafted_filters: Vec<_> = group.filters.iter()
+    let crafted_filters: Vec<_> = group
+        .filters
+        .iter()
         .filter(|f| f.id.starts_with("crafted."))
         .collect();
     // May or may not map depending on trade stats coverage
@@ -124,24 +138,40 @@ fn rare_weapon_builds_stat_filters() {
 #[test]
 fn fractured_item_uses_fractured_prefix() {
     let item = parse_fixture("rare-axe-fractured.txt");
-    let result = build_query(&item, trade_index(), &default_config());
+    let result = build_query(&item, trade_index(), &default_config(), None);
 
     // Should have fractured_item misc filter
-    let misc = result.body.query.filters.as_ref()
+    let misc = result
+        .body
+        .query
+        .filters
+        .as_ref()
         .and_then(|f| f.misc_filters.as_ref());
     assert!(misc.is_some(), "fractured items should have misc filters");
     assert_eq!(
-        misc.unwrap().filters.fractured_item.as_ref().unwrap().option,
+        misc.unwrap()
+            .filters
+            .fractured_item
+            .as_ref()
+            .unwrap()
+            .option,
         "true"
     );
 
     // The fractured mod should use "fractured." prefix
-    let all_filter_ids: Vec<&str> = result.body.query.stats.iter()
+    let all_filter_ids: Vec<&str> = result
+        .body
+        .query
+        .stats
+        .iter()
         .flat_map(|g| g.filters.iter())
         .map(|f| f.id.as_str())
         .collect();
     let has_fractured = all_filter_ids.iter().any(|id| id.starts_with("fractured."));
-    assert!(has_fractured, "expected at least one fractured.stat_ filter, got: {all_filter_ids:?}");
+    assert!(
+        has_fractured,
+        "expected at least one fractured.stat_ filter, got: {all_filter_ids:?}"
+    );
 
     print_result_summary("fractured axe", &result);
 }
@@ -149,9 +179,13 @@ fn fractured_item_uses_fractured_prefix() {
 #[test]
 fn corrupted_item_sets_corrupted_filter() {
     let item = parse_fixture("rare-amulet-talisman-corrupted.txt");
-    let result = build_query(&item, trade_index(), &default_config());
+    let result = build_query(&item, trade_index(), &default_config(), None);
 
-    let misc = result.body.query.filters.as_ref()
+    let misc = result
+        .body
+        .query
+        .filters
+        .as_ref()
         .and_then(|f| f.misc_filters.as_ref());
     assert!(misc.is_some());
     assert_eq!(
@@ -166,14 +200,17 @@ fn corrupted_item_sets_corrupted_filter() {
 fn value_relaxation_applied() {
     let item = parse_fixture("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
     let config = TradeQueryConfig::new("Mirage");
-    let result = build_query(&item, trade_index(), &config);
+    let result = build_query(&item, trade_index(), &config, None);
 
     // All numeric filters should have min values that are ~85% of actual
     for group in &result.body.query.stats {
         for filter in &group.filters {
             if let Some(ref value) = filter.value {
                 assert!(value.min.is_some(), "numeric filter should have min");
-                assert!(value.max.is_none(), "should not set max (open-ended search)");
+                assert!(
+                    value.max.is_none(),
+                    "should not set max (open-ended search)"
+                );
             }
         }
     }
@@ -184,20 +221,20 @@ fn online_only_sets_status() {
     let item = parse_fixture("rare-belt-crafted.txt");
 
     // Online only (default)
-    let result = build_query(&item, trade_index(), &default_config());
+    let result = build_query(&item, trade_index(), &default_config(), None);
     assert_eq!(result.body.query.status.as_ref().unwrap().option, "online");
 
     // Offline mode
     let mut config = default_config();
     config.online_only = false;
-    let result = build_query(&item, trade_index(), &config);
+    let result = build_query(&item, trade_index(), &config, None);
     assert!(result.body.query.status.is_none());
 }
 
 #[test]
 fn query_serializes_to_valid_json() {
     let item = parse_fixture("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
-    let result = build_query(&item, trade_index(), &default_config());
+    let result = build_query(&item, trade_index(), &default_config(), None);
 
     let json = serde_json::to_string_pretty(&result.body).expect("should serialize");
 
@@ -221,7 +258,10 @@ fn query_serializes_to_valid_json() {
 #[test]
 fn trade_url_format() {
     let url = poe_trade::query::trade_url("Mirage", "abc123");
-    assert_eq!(url, "https://www.pathofexile.com/trade/search/Mirage/abc123");
+    assert_eq!(
+        url,
+        "https://www.pathofexile.com/trade/search/Mirage/abc123"
+    );
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -234,7 +274,11 @@ fn print_result_summary(label: &str, result: &QueryBuildResult) {
         result.unmapped_stats.len(),
         result.unmapped_stats,
     );
-    let filter_count: usize = result.body.query.stats.iter()
+    let filter_count: usize = result
+        .body
+        .query
+        .stats
+        .iter()
         .map(|g| g.filters.len())
         .sum();
     println!("[{label}] {filter_count} stat filters in query");

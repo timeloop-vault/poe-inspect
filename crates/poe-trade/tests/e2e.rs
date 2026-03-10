@@ -27,8 +27,8 @@ fn game_data() -> &'static GameData {
 fn trade_index() -> &'static TradeStatsIndex {
     static IDX: OnceLock<TradeStatsIndex> = OnceLock::new();
     IDX.get_or_init(|| {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/fixtures/trade_stats_3.28.json");
+        let path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/trade_stats_3.28.json");
         let file = std::fs::File::open(&path).expect("fixture not found");
         let response: TradeStatsResponse =
             serde_json::from_reader(std::io::BufReader::new(file)).expect("valid JSON");
@@ -51,7 +51,7 @@ fn parse_fixture(name: &str) -> poe_item::types::ResolvedItem {
 async fn search_rare_body_armour() {
     let item = parse_fixture("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
     let config = TradeQueryConfig::new("Mirage");
-    let query_result = build_query(&item, trade_index(), &config);
+    let query_result = build_query(&item, trade_index(), &config, None);
 
     println!(
         "Query: {}/{} stats mapped, {} unmapped: {:?}",
@@ -87,7 +87,7 @@ async fn search_rare_body_armour() {
 async fn search_rare_weapon() {
     let item = parse_fixture("battered-foil-rare-ess-craft.txt");
     let config = TradeQueryConfig::new("Mirage");
-    let query_result = build_query(&item, trade_index(), &config);
+    let query_result = build_query(&item, trade_index(), &config, None);
 
     println!(
         "Battered Foil: {}/{} stats mapped",
