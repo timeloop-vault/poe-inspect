@@ -15,8 +15,9 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-dat (stat_desc) | **Done** | PEST parser + reverse index (15.5k patterns, 100% hit rate) |
 | poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
-| poe-item | **Done** | PEST grammar + resolver, 75 tests, 41 fixtures |
-| poe-eval | **Foundation** | Predicates, rules, evaluate, scoring profiles, tier analysis (26 tests) |
+| poe-item | **Done** | PEST grammar + resolver, 98 tests, 68 fixtures |
+| poe-eval | **Foundation** | Predicates, rules, evaluate, scoring profiles, tier analysis (32 tests) |
+| poe-trade | **Phase 1** | Trade API client — stats index, query builder, price lookup |
 | app | **Phase 8c** | Tauri v2 overlay — Phases 1-8b done, 8c next (rule builder UX redesign) |
 
 **Side track:** poe-rqe (reverse query engine / demand marketplace) — working, independent of main pipeline.
@@ -37,6 +38,7 @@ crates/
   poe-data/        — Game data types and lookup tables (depends on poe-dat)
   poe-item/        — Parse Ctrl+Alt+C item text into structured types (depends on poe-data)
   poe-eval/        — Evaluate parsed items against user-defined filter rules (depends on poe-item, poe-data)
+  poe-trade/       — Trade API client: stats index, query builder, price lookup (depends on poe-item, poe-data)
   poe-bundle/      — (owned) ex-nihil/poe-bundle — Rust library for reading PoE GGPK bundles (Oodle FFI)
   poe-query/       — (owned) ex-nihil/poe-query — Query tool for .dat files using PQL + dat-schema
 app/               — Tauri v2 overlay application (future)
@@ -74,10 +76,12 @@ poe-bundle (GGPK extraction, Oodle FFI)
 poe-dat (datc64 binary reader + typed table extraction + stat descriptions)
     ↑ depends on             ↓
 poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
-  reader, PQL queries)            ↓
-                              poe-item (Ctrl+Alt+C parser)    poe-eval (rules + scoring)
-                                  ↓                               ↓
-                                  └──────── app (Tauri overlay) ──┘
+  reader, PQL queries)       /     \
+                        poe-item    |
+                         /    \     |
+                   poe-eval  poe-trade (trade API client)
+                        \       /
+                         app (Tauri overlay)
 ```
 
 ## Conventions

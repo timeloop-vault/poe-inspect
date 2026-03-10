@@ -1,0 +1,23 @@
+[package]
+name = "poe-trade"
+version = "0.1.0"
+description = "Trade API client for pathofexile.com — stats index, query builder, price lookup"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+poe-item = { path = "../poe-item", features = ["serde"] }
+poe-data = { path = "../poe-data" }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+poe-dat = { path = "../poe-dat" }
