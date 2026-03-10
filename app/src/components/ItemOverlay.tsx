@@ -11,13 +11,19 @@ import type {
 	WatchingScore,
 } from "../types";
 
+// Tooltip header sprites (left, middle, right) per rarity/item type
+import headerCurrencyLeft from "../assets/tooltip/header-currency-left.webp";
+import headerCurrencyMiddle from "../assets/tooltip/header-currency-middle.webp";
+import headerCurrencyRight from "../assets/tooltip/header-currency-right.webp";
+import headerGemLeft from "../assets/tooltip/header-gem-left.webp";
+import headerGemMiddle from "../assets/tooltip/header-gem-middle.webp";
+import headerGemRight from "../assets/tooltip/header-gem-right.webp";
 import headerMagicLeft from "../assets/tooltip/header-magic-left.webp";
 import headerMagicMiddle from "../assets/tooltip/header-magic-middle.webp";
 import headerMagicRight from "../assets/tooltip/header-magic-right.webp";
 import headerNormalLeft from "../assets/tooltip/header-normal-left.webp";
 import headerNormalMiddle from "../assets/tooltip/header-normal-middle.webp";
 import headerNormalRight from "../assets/tooltip/header-normal-right.webp";
-// Tooltip header sprites (left, middle, right) per rarity
 import headerRareLeft from "../assets/tooltip/header-rare-left.webp";
 import headerRareMiddle from "../assets/tooltip/header-rare-middle.webp";
 import headerRareRight from "../assets/tooltip/header-rare-right.webp";
@@ -25,9 +31,11 @@ import headerUniqueLeft from "../assets/tooltip/header-unique-left.webp";
 import headerUniqueMiddle from "../assets/tooltip/header-unique-middle.webp";
 import headerUniqueRight from "../assets/tooltip/header-unique-right.webp";
 
+// Tooltip separator sprites per rarity/item type
+import separatorCurrency from "../assets/tooltip/separator-currency.webp";
+import separatorGem from "../assets/tooltip/separator-gem.webp";
 import separatorMagic from "../assets/tooltip/separator-magic.webp";
 import separatorNormal from "../assets/tooltip/separator-normal.webp";
-// Tooltip separator sprites per rarity
 import separatorRare from "../assets/tooltip/separator-rare.webp";
 import separatorUnique from "../assets/tooltip/separator-unique.webp";
 
@@ -38,6 +46,8 @@ const headerSprites: Partial<Record<Rarity, HeaderSprites>> = {
 	Magic: { left: headerMagicLeft, middle: headerMagicMiddle, right: headerMagicRight },
 	Rare: { left: headerRareLeft, middle: headerRareMiddle, right: headerRareRight },
 	Unique: { left: headerUniqueLeft, middle: headerUniqueMiddle, right: headerUniqueRight },
+	Currency: { left: headerCurrencyLeft, middle: headerCurrencyMiddle, right: headerCurrencyRight },
+	Gem: { left: headerGemLeft, middle: headerGemMiddle, right: headerGemRight },
 };
 // biome-ignore lint/style/noNonNullAssertion: Normal is always present in the literal above
 const defaultHeader: HeaderSprites = headerSprites.Normal!;
@@ -47,6 +57,8 @@ const separatorSprites: Partial<Record<Rarity, string>> = {
 	Magic: separatorMagic,
 	Rare: separatorRare,
 	Unique: separatorUnique,
+	Currency: separatorCurrency,
+	Gem: separatorGem,
 };
 const defaultSeparator = separatorNormal;
 
@@ -314,7 +326,8 @@ export function ItemOverlay({
 					<div class="item-properties">
 						{item.properties.map((prop) => (
 							<div key={prop.name} class={`property-line ${prop.augmented ? "augmented" : ""}`}>
-								{prop.name}: {prop.value}
+								<span class="prop-label">{prop.name}: </span>
+								<span class="prop-value">{prop.value}</span>
 							</div>
 						))}
 					</div>

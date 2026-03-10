@@ -314,14 +314,14 @@ body,
 }
 
 .item-name {
-	font-family: "FrizQuadrata", "Fontin SmallCaps", "Fontin", sans-serif;
+	font-family: "Fontin SmallCaps", "FrizQuadrata", "Fontin", sans-serif;
 	font-size: 17px;
 	font-weight: normal;
 	letter-spacing: 0.5px;
 }
 
 .item-base {
-	font-family: "FrizQuadrata", "Fontin SmallCaps", "Fontin", sans-serif;
+	font-family: "Fontin SmallCaps", "FrizQuadrata", "Fontin", sans-serif;
 	font-size: 14px;
 	opacity: 0.85;
 }
@@ -333,11 +333,18 @@ body,
 }
 
 .property-line {
-	color: rgb(127, 127, 127);
 	font-size: 13px;
 }
 
-.property-line.augmented {
+.prop-label {
+	color: rgb(127, 127, 127);
+}
+
+.prop-value {
+	color: #fff;
+}
+
+.property-line.augmented .prop-value {
 	color: var(--augmented-color);
 }
 
