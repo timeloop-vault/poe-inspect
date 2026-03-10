@@ -587,8 +587,10 @@
 	position: absolute;
 	top: 100%;
 	left: 0;
-	right: 0;
-	max-height: 160px;
+	min-width: 100%;
+	width: max-content;
+	max-width: 420px;
+	max-height: 200px;
 	overflow-y: auto;
 	background: rgba(12, 10, 8, 0.98);
 	border: 1px solid var(--poe-border);
@@ -602,9 +604,6 @@
 	font-size: 11px;
 	color: var(--poe-text);
 	cursor: pointer;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 .pred-dropdown-item:hover,

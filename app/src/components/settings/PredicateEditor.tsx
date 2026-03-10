@@ -308,14 +308,23 @@ function TextField({
 		}
 	}, [suggestionsFrom]);
 
-	// Filter suggestions as user types
+	// Filter suggestions as user types (fuzzy: every word must appear as a substring)
 	useEffect(() => {
 		if (!value || suggestions.length === 0) {
 			setFiltered([]);
 			return;
 		}
-		const lower = value.toLowerCase();
-		const matches = suggestions.filter((s) => s.toLowerCase().includes(lower)).slice(0, 50); // limit for performance
+		const words = value.toLowerCase().split(/\s+/).filter(Boolean);
+		if (words.length === 0) {
+			setFiltered([]);
+			return;
+		}
+		const matches = suggestions
+			.filter((s) => {
+				const lower = s.toLowerCase();
+				return words.every((w) => lower.includes(w));
+			})
+			.slice(0, 50);
 		setFiltered(matches);
 	}, [value, suggestions]);
 
