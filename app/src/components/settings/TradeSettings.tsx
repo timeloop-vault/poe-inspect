@@ -8,6 +8,12 @@ import {
 } from "../../store";
 import type { League, LeagueList } from "../../types";
 
+interface IndexStatus {
+	loaded: boolean;
+	statCount: number;
+	mappedCount: number;
+}
+
 export function TradeSettings() {
 	const [settings, setSettings] = useState<TradeSettingsType>(defaultTrade);
 	const [loaded, setLoaded] = useState(false);
@@ -17,6 +23,7 @@ export function TradeSettings() {
 	const [leaguesError, setLeaguesError] = useState<string | null>(null);
 	const [statsRefreshing, setStatsRefreshing] = useState(false);
 	const [statsResult, setStatsResult] = useState<string | null>(null);
+	const [indexStatus, setIndexStatus] = useState<IndexStatus | null>(null);
 
 	useEffect(() => {
 		loadTrade().then((s) => {
@@ -25,9 +32,10 @@ export function TradeSettings() {
 		});
 	}, []);
 
-	// Fetch leagues on mount.
+	// Fetch leagues + index status on mount.
 	useEffect(() => {
 		fetchLeagues();
+		refreshIndexStatus();
 	}, []);
 
 	const update = useCallback((patch: Partial<TradeSettingsType>) => {
@@ -36,6 +44,11 @@ export function TradeSettings() {
 			saveTrade(next);
 			return next;
 		});
+
+		// Sync POESESSID to the Rust trade client when it changes.
+		if ("poesessid" in patch) {
+			invoke("set_trade_session", { poesessid: patch.poesessid ?? "" });
+		}
 	}, []);
 
 	async function fetchLeagues() {
@@ -45,10 +58,30 @@ export function TradeSettings() {
 			const result = await invoke<LeagueList>("fetch_leagues");
 			setLeagues(result.leagues);
 			setPrivateLeagues(result.privateLeagues);
+
+			// Auto-select first league if none saved.
+			const firstLeague = result.leagues[0];
+			setSettings((prev) => {
+				if (prev.league === "" && firstLeague) {
+					const next = { ...prev, league: firstLeague.id };
+					saveTrade(next);
+					return next;
+				}
+				return prev;
+			});
 		} catch (e) {
 			setLeaguesError(String(e));
 		} finally {
 			setLeaguesLoading(false);
+		}
+	}
+
+	async function refreshIndexStatus() {
+		try {
+			const status = await invoke<IndexStatus>("get_trade_index_status");
+			setIndexStatus(status);
+		} catch {
+			// Ignore — command may not exist on older builds
 		}
 	}
 
@@ -58,6 +91,7 @@ export function TradeSettings() {
 		try {
 			const matched = await invoke<number>("refresh_trade_stats");
 			setStatsResult(`Index refreshed: ${matched} stats mapped`);
+			refreshIndexStatus();
 		} catch (e) {
 			setStatsResult(`Error: ${e}`);
 		} finally {
@@ -155,9 +189,35 @@ export function TradeSettings() {
 				<div class="setting-row">
 					<div class="setting-label">
 						Online only
-						<div class="setting-description">Only show listings from players currently online.</div>
+						<div class="setting-description">
+							Only show listings from players currently online. Requires POESESSID to work
+							accurately.
+						</div>
 					</div>
 					<Toggle checked={settings.onlineOnly} onChange={(v) => update({ onlineOnly: v })} />
+				</div>
+			</div>
+
+			<div class="setting-group">
+				<h3>Authentication</h3>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						POESESSID
+						<div class="setting-description">
+							Session cookie from pathofexile.com. Enables accurate "online only" filtering and
+							shows your own listings. Find it in your browser's cookies for pathofexile.com.
+						</div>
+					</div>
+					<div class="setting-control">
+						<input
+							type="password"
+							class="trade-input"
+							placeholder="Paste your POESESSID"
+							value={settings.poesessid}
+							onInput={(e) => update({ poesessid: (e.target as HTMLInputElement).value })}
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -183,6 +243,17 @@ export function TradeSettings() {
 						</button>
 					</div>
 				</div>
+
+				{indexStatus && (
+					<div class="setting-row">
+						<div class="setting-label" />
+						<span class={`trade-status ${indexStatus.loaded ? "trade-success" : ""}`}>
+							{indexStatus.loaded
+								? `${indexStatus.statCount.toLocaleString()} stats loaded, ${indexStatus.mappedCount.toLocaleString()} GGPK IDs mapped`
+								: "Not loaded — click Refresh Trade Stats"}
+						</span>
+					</div>
+				)}
 
 				{statsResult && (
 					<div class="setting-row">
