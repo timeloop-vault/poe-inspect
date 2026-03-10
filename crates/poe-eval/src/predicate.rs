@@ -76,10 +76,17 @@ pub enum Predicate {
     HasModNamed { name: String },
 
     /// Whether any stat line's display text contains the given substring.
+    ///
+    /// **Deprecated**: Use `StatValue` with `stat_id` instead. Text matching is
+    /// fragile (language-dependent, ambiguous). Kept for backward compatibility
+    /// with saved profiles.
     HasStatText { text: String },
 
     /// Whether any stat line has a resolved stat ID matching the given ID.
-    /// Uses the internal stat ID from `ReverseIndex` (language-independent).
+    ///
+    /// **Deprecated**: Use `StatValue` with `op: Ge, value: 0` instead — same
+    /// presence check but with an adjustable threshold. Kept for backward
+    /// compatibility with saved profiles.
     HasStatId { stat_id: String },
 
     /// Mod tier comparison — checks if any mod of the given name has tier <op> value.
