@@ -10,10 +10,16 @@ use serde::Deserialize;
 
 use crate::query::{self, TradeSearchBody};
 use crate::rate_limit::{RateLimitPolicy, RateLimitTracker};
-use crate::types::{Price, PriceCheckResult, SearchResult, TradeQueryConfig, TradeStatsResponse};
+use crate::types::{
+    ApiLeague, League, LeagueList, Price, PriceCheckResult, SearchResult, TradeQueryConfig,
+    TradeStatsResponse,
+};
 
 /// Trade API base URL.
 const POE1_TRADE_API: &str = "https://www.pathofexile.com/api/trade";
+
+/// Main API base URL (leagues endpoint lives here, not under /trade).
+const POE1_API: &str = "https://www.pathofexile.com/api";
 
 /// User-Agent header value. GGG requires a descriptive User-Agent.
 const USER_AGENT: &str = "poe-inspect-2/0.1 (contact: github.com/timeloop-vault/poe-inspect)";
@@ -276,6 +282,64 @@ impl TradeClient {
         Ok(result)
     }
 
+    // ── Leagues ──────────────────────────────────────────────────────────────
+
+    /// Fetch the list of trade-eligible leagues from the GGG API.
+    ///
+    /// Filters out SSF leagues (which have the `NoParties` rule — no trading).
+    /// Returns remaining leagues grouped into public and private.
+    /// Private leagues are detected by the `(PLnnnn)` suffix pattern.
+    pub async fn fetch_leagues(&self) -> Result<LeagueList, TradeApiError> {
+        let url = format!("{POE1_API}/leagues?type=main&realm=pc");
+        let response = self.http.get(&url).send().await?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(TradeApiError::ApiError {
+                status: status.as_u16(),
+                body,
+            });
+        }
+
+        let api_leagues: Vec<ApiLeague> = response.json().await?;
+
+        let mut leagues = Vec::new();
+        let mut private_leagues = Vec::new();
+        let mut skipped_ssf = 0u32;
+
+        for api in api_leagues {
+            // SSF leagues have the "NoParties" rule — no trading possible.
+            if api.rules.iter().any(|r| r.id == "NoParties") {
+                skipped_ssf += 1;
+                continue;
+            }
+
+            let is_private = is_private_league(&api.id);
+            let league = League {
+                id: api.id,
+                private: is_private,
+            };
+            if is_private {
+                private_leagues.push(league);
+            } else {
+                leagues.push(league);
+            }
+        }
+
+        tracing::info!(
+            public = leagues.len(),
+            private = private_leagues.len(),
+            skipped_ssf,
+            "fetched trade-eligible leagues"
+        );
+
+        Ok(LeagueList {
+            leagues,
+            private_leagues,
+        })
+    }
+
     // ── Internals ───────────────────────────────────────────────────────────
 
     fn update_limiter_from_headers(&mut self, headers: &HeaderMap, kind: LimiterKind) {
@@ -376,4 +440,33 @@ fn parse_retry_after(headers: &HeaderMap) -> u64 {
         .and_then(|v| v.to_str().ok())
         .and_then(|s| s.parse().ok())
         .unwrap_or(60)
+}
+
+/// Check if a league ID is a private league.
+///
+/// Private leagues have a `(PLnnnn)` suffix, e.g., `"My League (PL12345)"`.
+fn is_private_league(id: &str) -> bool {
+    let Some(rest) = id.strip_suffix(')') else {
+        return false;
+    };
+    let Some(idx) = rest.rfind("(PL") else {
+        return false;
+    };
+    rest[idx + 3..].chars().all(|c| c.is_ascii_digit()) && !rest[idx + 3..].is_empty()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn private_league_detection() {
+        assert!(is_private_league("My League (PL12345)"));
+        assert!(is_private_league("(PL1)"));
+        assert!(!is_private_league("Mirage"));
+        assert!(!is_private_league("Standard"));
+        assert!(!is_private_league("Hardcore Mirage"));
+        assert!(!is_private_league("(PL)")); // no digits
+        assert!(!is_private_league("(PLabc)")); // non-digits
+    }
 }

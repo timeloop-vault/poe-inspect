@@ -2,14 +2,16 @@ import { useEffect, useState } from "preact/hooks";
 import { GeneralSettings } from "./components/settings/GeneralSettings";
 import { HotkeySettings } from "./components/settings/HotkeySettings";
 import { ProfileSettings } from "./components/settings/ProfileSettings";
+import { TradeSettings } from "./components/settings/TradeSettings";
 import { loadGeneral } from "./store";
 
-type Section = "general" | "hotkeys" | "profiles";
+type Section = "general" | "hotkeys" | "profiles" | "trade";
 
 const sections: { id: Section; label: string }[] = [
 	{ id: "general", label: "General" },
 	{ id: "hotkeys", label: "Hotkeys" },
 	{ id: "profiles", label: "Profiles" },
+	{ id: "trade", label: "Trade" },
 ];
 
 export function SettingsApp() {
@@ -59,6 +61,7 @@ export function SettingsApp() {
 				{active === "general" && <GeneralSettings />}
 				{active === "hotkeys" && <HotkeySettings />}
 				{active === "profiles" && <ProfileSettings />}
+				{active === "trade" && <TradeSettings />}
 			</main>
 		</div>
 	);

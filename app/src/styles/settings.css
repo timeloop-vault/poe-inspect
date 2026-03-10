@@ -1057,3 +1057,69 @@
 	box-shadow: 0 -2px 0 0 var(--poe-accent);
 	border-radius: 4px;
 }
+
+/* --- Trade settings --- */
+
+.setting-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.trade-select {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	padding: 5px 10px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 13px;
+	cursor: pointer;
+	min-width: 180px;
+}
+
+.trade-select:focus {
+	border-color: var(--poe-accent);
+	outline: none;
+}
+
+.trade-btn {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	color: var(--poe-text);
+	padding: 6px 14px;
+	font-family: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	transition: background 0.1s, border-color 0.1s;
+}
+
+.trade-btn:hover {
+	background: rgba(255, 255, 255, 0.1);
+	border-color: var(--poe-text-dim);
+}
+
+.trade-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.trade-btn-small {
+	padding: 5px 8px;
+	font-size: 14px;
+	line-height: 1;
+}
+
+.trade-status {
+	font-size: 12px;
+	color: var(--poe-text-dim);
+}
+
+.trade-error {
+	color: #e74c3c;
+}
+
+.trade-success {
+	color: #2ecc71;
+}

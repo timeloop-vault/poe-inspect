@@ -97,6 +97,12 @@ export interface StoredProfile {
 	display: DisplayPrefs;
 }
 
+export interface TradeSettings {
+	league: string;
+	valueRelaxation: number;
+	onlineOnly: boolean;
+}
+
 // ── Defaults ──────────────────────────────────────────────────────────────
 
 export const defaultGeneral: GeneralSettings = {
@@ -110,6 +116,12 @@ export const defaultGeneral: GeneralSettings = {
 	showTierBadges: true,
 	showTypeBadges: true,
 	showOpenAffixes: true,
+};
+
+export const defaultTrade: TradeSettings = {
+	league: "",
+	valueRelaxation: 0.85,
+	onlineOnly: true,
 };
 
 export const defaultHotkeys: HotkeySettings = {
@@ -192,6 +204,19 @@ export async function loadHotkeys(): Promise<HotkeySettings> {
 export async function saveHotkeys(hotkeys: HotkeySettings): Promise<void> {
 	const store = await getSettingsStore();
 	await store.set("hotkeys", hotkeys);
+}
+
+// ── Trade settings ────────────────────────────────────────────────────────
+
+export async function loadTrade(): Promise<TradeSettings> {
+	const store = await getSettingsStore();
+	const val = await store.get<TradeSettings>("trade");
+	return val ?? { ...defaultTrade };
+}
+
+export async function saveTrade(settings: TradeSettings): Promise<void> {
+	const store = await getSettingsStore();
+	await store.set("trade", settings);
 }
 
 // ── Profile migration ─────────────────────────────────────────────────────

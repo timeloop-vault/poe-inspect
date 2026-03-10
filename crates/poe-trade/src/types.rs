@@ -104,6 +104,46 @@ pub struct PriceCheckResult {
     pub trade_url: String,
 }
 
+// ── Leagues ─────────────────────────────────────────────────────────────────
+
+/// A league from the GGG leagues API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct League {
+    /// League ID used in trade API paths (e.g., `"Mirage"`, `"Standard"`).
+    pub id: String,
+    /// Whether this is a private league (detected by `(PLnnnn)` suffix).
+    pub private: bool,
+}
+
+/// Grouped league list returned to the frontend.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct LeagueList {
+    /// Public leagues (challenge, standard, hardcore, etc.).
+    pub leagues: Vec<League>,
+    /// Private leagues (user-created, `(PLnnnn)` prefix).
+    pub private_leagues: Vec<League>,
+}
+
+/// Raw league entry from `GET /api/leagues`.
+#[derive(Debug, Deserialize)]
+pub(crate) struct ApiLeague {
+    pub id: String,
+    #[serde(default)]
+    pub rules: Vec<ApiLeagueRule>,
+}
+
+/// A rule attached to a league (e.g., `"NoParties"` for SSF).
+#[derive(Debug, Deserialize)]
+pub(crate) struct ApiLeagueRule {
+    pub id: String,
+}
+
 // ── Query Config ────────────────────────────────────────────────────────────
 
 /// Configuration for trade query construction.
