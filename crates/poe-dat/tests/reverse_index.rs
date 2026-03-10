@@ -5,7 +5,10 @@ use poe_dat::stat_desc;
 fn load_index() -> Option<stat_desc::ReverseIndex> {
     let path = std::env::temp_dir().join("stat_desc_utf8.txt");
     if !path.exists() {
-        eprintln!("Skipping: {} not found (extract from GGPK first)", path.display());
+        eprintln!(
+            "Skipping: {} not found (extract from GGPK first)",
+            path.display()
+        );
         return None;
     }
 
@@ -18,7 +21,11 @@ fn load_index() -> Option<stat_desc::ReverseIndex> {
 fn build_reverse_index() {
     let Some(index) = load_index() else { return };
     println!("Reverse index: {} patterns", index.len());
-    assert!(index.len() > 10_000, "expected >10k patterns, got {}", index.len());
+    assert!(
+        index.len() > 10_000,
+        "expected >10k patterns, got {}",
+        index.len()
+    );
 }
 
 #[test]
@@ -111,7 +118,10 @@ fn lookup_batch_common_mods() {
                 match index.lookup_regex(text) {
                     Some(m) => {
                         found += 1;
-                        println!("  OK (exhaustive): {text:40} → {:?} = {:?}", m.stat_ids, m.values);
+                        println!(
+                            "  OK (exhaustive): {text:40} → {:?} = {:?}",
+                            m.stat_ids, m.values
+                        );
                     }
                     None => {
                         not_found.push(*text);
@@ -134,15 +144,18 @@ fn lookup_batch_common_mods() {
 fn save_reverse_index() {
     let Some(index) = load_index() else { return };
 
-    let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../poe-data/data");
+    let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../poe-data/data");
     assert!(out_dir.exists(), "poe-data/data/ directory not found");
 
     let out_path = out_dir.join("reverse_index.json");
     index.save(&out_path).expect("failed to save reverse index");
 
     let size = std::fs::metadata(&out_path).expect("metadata").len();
-    println!("Saved reverse index: {} ({} bytes)", out_path.display(), size);
+    println!(
+        "Saved reverse index: {} ({} bytes)",
+        out_path.display(),
+        size
+    );
 
     // Verify round-trip
     let loaded = stat_desc::ReverseIndex::load(&out_path).expect("failed to load");

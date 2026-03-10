@@ -16,8 +16,14 @@ pub struct Condition {
 pub enum Value {
     Boolean(bool),
     String(StringMatch),
-    Integer { value: i64, op: CompareOp },
-    List { op: ListOp, conditions: Vec<Condition> },
+    Integer {
+        value: i64,
+        op: CompareOp,
+    },
+    List {
+        op: ListOp,
+        conditions: Vec<Condition>,
+    },
 }
 
 /// String matching mode.
@@ -155,7 +161,11 @@ impl From<RawCondition> for Condition {
             }
             "integer" => {
                 let v = raw.value.as_i64().expect("integer value expected");
-                let op = match raw.type_options.as_ref().and_then(|o| o.operator.as_deref()) {
+                let op = match raw
+                    .type_options
+                    .as_ref()
+                    .and_then(|o| o.operator.as_deref())
+                {
                     Some("<") => CompareOp::Lt,
                     Some(">") => CompareOp::Gt,
                     Some("<=") => CompareOp::Lte,
@@ -167,7 +177,11 @@ impl From<RawCondition> for Condition {
             "list" => {
                 let items: Vec<Condition> =
                     serde_json::from_value(raw.value).expect("list of conditions expected");
-                let list_op = match raw.type_options.as_ref().and_then(|o| o.operator.as_deref()) {
+                let list_op = match raw
+                    .type_options
+                    .as_ref()
+                    .and_then(|o| o.operator.as_deref())
+                {
                     Some("and") => ListOp::And,
                     Some("or") => ListOp::Or,
                     Some("not") => ListOp::Not,
@@ -204,7 +218,10 @@ mod tests {
         let json = r#"{"key": "item_category", "value": "Crimson Jewel", "type": "string", "typeOptions": null}"#;
         let cond: Condition = serde_json::from_str(json).unwrap();
         assert_eq!(cond.key, "item_category");
-        assert_eq!(cond.value, Value::String(StringMatch::Exact("Crimson Jewel".into())));
+        assert_eq!(
+            cond.value,
+            Value::String(StringMatch::Exact("Crimson Jewel".into()))
+        );
     }
 
     #[test]
@@ -216,14 +233,22 @@ mod tests {
 
     #[test]
     fn deserialize_integer_with_operator() {
-        let json = r#"{"key": "armor", "value": 20, "type": "integer", "typeOptions": {"operator": ">"}}"#;
+        let json =
+            r#"{"key": "armor", "value": 20, "type": "integer", "typeOptions": {"operator": ">"}}"#;
         let cond: Condition = serde_json::from_str(json).unwrap();
-        assert_eq!(cond.value, Value::Integer { value: 20, op: CompareOp::Gt });
+        assert_eq!(
+            cond.value,
+            Value::Integer {
+                value: 20,
+                op: CompareOp::Gt
+            }
+        );
     }
 
     #[test]
     fn deserialize_boolean() {
-        let json = r#"{"key": "rarity rare", "value": true, "type": "boolean", "typeOptions": null}"#;
+        let json =
+            r#"{"key": "rarity rare", "value": true, "type": "boolean", "typeOptions": null}"#;
         let cond: Condition = serde_json::from_str(json).unwrap();
         assert_eq!(cond.value, Value::Boolean(true));
     }
@@ -302,7 +327,8 @@ mod tests {
             "{}/_reference/rqe/test/data/rq/wanted_crimson_mod.json",
             concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
         );
-        let json = std::fs::read_to_string(&path).expect("test data file should exist at _reference/rqe/");
+        let json =
+            std::fs::read_to_string(&path).expect("test data file should exist at _reference/rqe/");
         let conditions: Vec<Condition> = serde_json::from_str(&json).unwrap();
         assert_eq!(conditions.len(), 3);
     }

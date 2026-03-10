@@ -13,9 +13,9 @@ use poe_data::GameData;
 use regex::Regex;
 
 use crate::types::{
-    GemData, Header, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot, ModSource, Rarity,
-    RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine, Section, StatusKind,
-    ValueRange, VaalGemData, InfluenceKind,
+    GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
+    ModSource, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine,
+    Section, StatusKind, VaalGemData, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -23,9 +23,8 @@ static VALUE_RANGE_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(-?\d+)\((-?\d+)-(-?\d+)\)").unwrap());
 
 /// Regex matching type suffixes appended by Ctrl+Alt+C format.
-static SUFFIX_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\s+\((implicit|crafted|enchant|fractured)\)$").unwrap()
-});
+static SUFFIX_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\s+\((implicit|crafted|enchant|fractured)\)$").unwrap());
 
 /// Resolve a [`RawItem`] into a [`ResolvedItem`] using game data.
 ///
@@ -119,8 +118,12 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
 
     // Convenience booleans
     let is_corrupted = statuses.iter().any(|s| matches!(s, StatusKind::Corrupted));
-    let is_fractured = influences.iter().any(|i| matches!(i, InfluenceKind::Fractured));
-    let is_unidentified = statuses.iter().any(|s| matches!(s, StatusKind::Unidentified));
+    let is_fractured = influences
+        .iter()
+        .any(|i| matches!(i, InfluenceKind::Fractured));
+    let is_unidentified = statuses
+        .iter()
+        .any(|s| matches!(s, StatusKind::Unidentified));
 
     ResolvedItem {
         header,
@@ -216,8 +219,7 @@ fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
         .iter()
         .any(|line| line.ends_with("(fractured)"));
 
-    let display_type =
-        ResolvedMod::compute_display_type(group.header.slot, group.header.source);
+    let display_type = ResolvedMod::compute_display_type(group.header.slot, group.header.source);
     ResolvedMod {
         header: group.header.clone(),
         stat_lines,
@@ -305,7 +307,11 @@ enum SectionKind {
 }
 
 fn classify_single_section(lines: &[String], rarity: Rarity) -> SectionKind {
-    let non_empty: Vec<&str> = lines.iter().map(String::as_str).filter(|l| !l.is_empty()).collect();
+    let non_empty: Vec<&str> = lines
+        .iter()
+        .map(String::as_str)
+        .filter(|l| !l.is_empty())
+        .collect();
     if non_empty.is_empty() {
         return SectionKind::Unclassified;
     }
@@ -434,10 +440,7 @@ fn split_gem_tags_and_props(lines: &[String]) -> (Vec<String>, Vec<ItemProperty>
     }
 
     // First line is comma-separated tags (no colon)
-    let tags: Vec<String> = lines[0]
-        .split(", ")
-        .map(|s| s.trim().to_string())
-        .collect();
+    let tags: Vec<String> = lines[0].split(", ").map(|s| s.trim().to_string()).collect();
 
     // Remaining lines are gem properties (Key: Value)
     let props = parse_property_lines(&lines[1..]);
@@ -475,7 +478,9 @@ fn split_stats_and_quality(lines: &[String]) -> (Vec<String>, Vec<String>) {
 }
 
 /// Try to extract Vaal variant data from remaining sections.
-fn extract_vaal_data<'a>(iter: &mut impl Iterator<Item = &'a Vec<String>>) -> Option<Box<VaalGemData>> {
+fn extract_vaal_data<'a>(
+    iter: &mut impl Iterator<Item = &'a Vec<String>>,
+) -> Option<Box<VaalGemData>> {
     // Peek at the next section — if it's a single line (Vaal skill name), consume it
     let name_section = iter.next()?;
     if name_section.len() != 1 || name_section[0].is_empty() {
@@ -569,7 +574,10 @@ fn resolve_stat_line(raw_text: &str, game_data: &GameData) -> ResolvedStatLine {
         if let Some(m) = ri.lookup(&display_text) {
             (Some(m.stat_ids), Some(m.values))
         } else {
-            tracing::debug!(display_text, "stat line did not match any reverse index entry");
+            tracing::debug!(
+                display_text,
+                "stat line did not match any reverse index entry"
+            );
             (None, None)
         }
     } else {
@@ -625,14 +633,28 @@ mod tests {
     fn parse_simple_range() {
         let ranges = parse_value_ranges("+32(25-40) to maximum Life");
         assert_eq!(ranges.len(), 1);
-        assert_eq!(ranges[0], ValueRange { current: 32, min: 25, max: 40 });
+        assert_eq!(
+            ranges[0],
+            ValueRange {
+                current: 32,
+                min: 25,
+                max: 40
+            }
+        );
     }
 
     #[test]
     fn parse_negative_current() {
         let ranges = parse_value_ranges("-9(-25-50)% to Cold Resistance");
         assert_eq!(ranges.len(), 1);
-        assert_eq!(ranges[0], ValueRange { current: -9, min: -25, max: 50 });
+        assert_eq!(
+            ranges[0],
+            ValueRange {
+                current: -9,
+                min: -25,
+                max: 50
+            }
+        );
     }
 
     #[test]
@@ -640,20 +662,42 @@ mod tests {
         // Ventor's Gamble: "1(10--10)% reduced Quantity of Items found"
         let ranges = parse_value_ranges("1(10--10)% reduced Quantity of Items found");
         assert_eq!(ranges.len(), 1);
-        assert_eq!(ranges[0], ValueRange { current: 1, min: 10, max: -10 });
+        assert_eq!(
+            ranges[0],
+            ValueRange {
+                current: 1,
+                min: 10,
+                max: -10
+            }
+        );
     }
 
     #[test]
     fn parse_two_ranges_adds() {
         let ranges = parse_value_ranges("Adds 18(14-20) to 33(29-33) Fire Damage");
         assert_eq!(ranges.len(), 2);
-        assert_eq!(ranges[0], ValueRange { current: 18, min: 14, max: 20 });
-        assert_eq!(ranges[1], ValueRange { current: 33, min: 29, max: 33 });
+        assert_eq!(
+            ranges[0],
+            ValueRange {
+                current: 18,
+                min: 14,
+                max: 20
+            }
+        );
+        assert_eq!(
+            ranges[1],
+            ValueRange {
+                current: 33,
+                min: 29,
+                max: 33
+            }
+        );
     }
 
     #[test]
     fn parse_no_ranges() {
-        let ranges = parse_value_ranges("+22% Chance to Block Attack Damage while wielding a Staff");
+        let ranges =
+            parse_value_ranges("+22% Chance to Block Attack Damage while wielding a Staff");
         assert!(ranges.is_empty());
     }
 

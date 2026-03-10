@@ -283,9 +283,7 @@ fn parse_transform(pair: pest::iterators::Pair<'_, Rule>) -> Result<Transform, P
                     }
                     "old_leech_percent" => TransformKind::OldLeechPercent,
                     "old_leech_permyriad" => TransformKind::OldLeechPermyriad,
-                    "multiplicative_damage_modifier" => {
-                        TransformKind::MultiplicativeDamageModifier
-                    }
+                    "multiplicative_damage_modifier" => TransformKind::MultiplicativeDamageModifier,
                     "mod_value_to_item_class" => TransformKind::ModValueToItemClass,
                     "display_indexable_support" => TransformKind::DisplayIndexableSupport,
                     "display_indexable_skill" => TransformKind::DisplayIndexableSkill,

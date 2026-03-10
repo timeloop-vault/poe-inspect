@@ -109,7 +109,8 @@ impl ReverseIndex {
     /// Look up stat IDs and raw values from a single line of display text.
     pub fn lookup(&self, display_text: &str) -> Option<StatMatch> {
         // Find all number tokens in the display text
-        let number_positions: Vec<(usize, usize)> = self.number_re
+        let number_positions: Vec<(usize, usize)> = self
+            .number_re
             .find_iter(display_text)
             .map(|m| (m.start(), m.end()))
             .collect();
@@ -454,9 +455,7 @@ fn reverse_transform(kind: &TransformKind, displayed: f64) -> i64 {
 
         TransformKind::ThirtyPercentOfValue => (displayed / 0.3) as i64,
         TransformKind::SixtyPercentOfValue => (displayed / 0.6) as i64,
-        TransformKind::PermyriadPerMinuteToPercentPerSecond => {
-            (displayed * 10000.0 * 60.0) as i64
-        }
+        TransformKind::PermyriadPerMinuteToPercentPerSecond => (displayed * 10000.0 * 60.0) as i64,
 
         TransformKind::MultiplicativeDamageModifier => (displayed - 100.0) as i64,
 

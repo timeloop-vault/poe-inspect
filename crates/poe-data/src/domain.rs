@@ -287,9 +287,8 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
 /// for cases where stripping the `local_` prefix doesn't find a match.
 ///
 /// Used by `set_reverse_index()` to populate `stat_id_to_templates`.
-pub const LOCAL_STAT_NONLOCAL_FALLBACKS: &[(&str, &str)] = &[
-    ("local_energy_shield", "base_maximum_energy_shield"),
-];
+pub const LOCAL_STAT_NONLOCAL_FALLBACKS: &[(&str, &str)] =
+    &[("local_energy_shield", "base_maximum_energy_shield")];
 
 /// Map a mod's display type to the trade API stat category prefix.
 ///
@@ -319,12 +318,18 @@ mod tests {
     fn item_class_trade_categories() {
         // Armour
         assert_eq!(item_class_trade_category("Boots"), Some("armour.boots"));
-        assert_eq!(item_class_trade_category("Body Armours"), Some("armour.chest"));
+        assert_eq!(
+            item_class_trade_category("Body Armours"),
+            Some("armour.chest")
+        );
         assert_eq!(item_class_trade_category("Shields"), Some("armour.shield"));
 
         // Weapons
         assert_eq!(item_class_trade_category("Bows"), Some("weapon.bow"));
-        assert_eq!(item_class_trade_category("Two Hand Axes"), Some("weapon.twoaxe"));
+        assert_eq!(
+            item_class_trade_category("Two Hand Axes"),
+            Some("weapon.twoaxe")
+        );
         assert_eq!(item_class_trade_category("Wands"), Some("weapon.wand"));
         assert_eq!(
             item_class_trade_category("Thrusting One Hand Swords"),
@@ -333,11 +338,17 @@ mod tests {
 
         // Accessories
         assert_eq!(item_class_trade_category("Rings"), Some("accessory.ring"));
-        assert_eq!(item_class_trade_category("Amulets"), Some("accessory.amulet"));
+        assert_eq!(
+            item_class_trade_category("Amulets"),
+            Some("accessory.amulet")
+        );
 
         // Jewels
         assert_eq!(item_class_trade_category("Jewels"), Some("jewel"));
-        assert_eq!(item_class_trade_category("Abyss Jewels"), Some("jewel.abyss"));
+        assert_eq!(
+            item_class_trade_category("Abyss Jewels"),
+            Some("jewel.abyss")
+        );
 
         // Flasks — all variants map to "flask"
         assert_eq!(item_class_trade_category("Life Flasks"), Some("flask"));

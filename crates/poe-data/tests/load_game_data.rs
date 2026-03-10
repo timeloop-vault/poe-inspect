@@ -1,4 +1,4 @@
-use poe_data::{load, GameData, StatSuggestionKind};
+use poe_data::{GameData, StatSuggestionKind, load};
 
 fn load_test_data() -> Option<GameData> {
     let dir = std::env::temp_dir().join("poe-dat");
@@ -19,16 +19,29 @@ fn loads_all_tables() {
     assert!(gd.stats.len() > 20_000, "expected >20k stats");
     assert!(gd.tags.len() > 100, "expected >100 tags");
     assert!(gd.item_classes.len() > 50, "expected >50 item classes");
-    assert!(gd.item_class_categories.len() > 3, "expected >3 item class categories");
+    assert!(
+        gd.item_class_categories.len() > 3,
+        "expected >3 item class categories"
+    );
     assert!(gd.base_item_types.len() > 5_000, "expected >5k base items");
     assert!(gd.mods.len() > 30_000, "expected >30k mods");
-    assert!(gd.rarities.len() >= 4, "expected >=4 rarities (Normal/Magic/Rare/Unique)");
+    assert!(
+        gd.rarities.len() >= 4,
+        "expected >=4 rarities (Normal/Magic/Rare/Unique)"
+    );
 
-    println!("Loaded: {} stats, {} tags, {} classes, {} categories, {} base items, {} mod families, {} mod types, {} mods, {} rarities",
-        gd.stats.len(), gd.tags.len(), gd.item_classes.len(),
-        gd.item_class_categories.len(), gd.base_item_types.len(),
-        gd.mod_families.len(), gd.mod_types.len(), gd.mods.len(),
-        gd.rarities.len());
+    println!(
+        "Loaded: {} stats, {} tags, {} classes, {} categories, {} base items, {} mod families, {} mod types, {} mods, {} rarities",
+        gd.stats.len(),
+        gd.tags.len(),
+        gd.item_classes.len(),
+        gd.item_class_categories.len(),
+        gd.base_item_types.len(),
+        gd.mod_families.len(),
+        gd.mod_types.len(),
+        gd.mods.len(),
+        gd.rarities.len()
+    );
 }
 
 #[test]
@@ -64,7 +77,10 @@ fn id_lookups_work() {
     let rare = rare.unwrap();
     assert!(rare.max_prefix > 0, "Rare should have max_prefix > 0");
     assert!(rare.max_suffix > 0, "Rare should have max_suffix > 0");
-    println!("Rare: max_prefix={}, max_suffix={}", rare.max_prefix, rare.max_suffix);
+    println!(
+        "Rare: max_prefix={}, max_suffix={}",
+        rare.max_prefix, rare.max_suffix
+    );
 
     // Max prefixes/suffixes helper
     assert!(gd.max_prefixes("Rare").is_some());
@@ -97,9 +113,7 @@ fn fk_resolution_works() {
     // Base item tag resolution
     let greaves = gd.base_item_by_name("Iron Greaves");
     if let Some(item) = greaves {
-        let tag_names: Vec<_> = item.tags.iter()
-            .filter_map(|&fk| gd.tag_id(fk))
-            .collect();
+        let tag_names: Vec<_> = item.tags.iter().filter_map(|&fk| gd.tag_id(fk)).collect();
         println!("Iron Greaves tags: {:?}", tag_names);
         assert!(!tag_names.is_empty(), "should have tags");
     }
@@ -111,29 +125,60 @@ fn stat_to_mod_index_works() {
 
     // base_maximum_life should appear in many mods (pure life + hybrid combos).
     let templates = gd.templates_for_stat("base_maximum_life");
-    assert!(templates.is_some(), "base_maximum_life should have templates");
+    assert!(
+        templates.is_some(),
+        "base_maximum_life should have templates"
+    );
     let templates = templates.unwrap();
     assert!(!templates.is_empty());
-    println!("base_maximum_life templates: {:?}", &templates[..templates.len().min(3)]);
+    println!(
+        "base_maximum_life templates: {:?}",
+        &templates[..templates.len().min(3)]
+    );
 
     // Query "maximum Life" — should return single suggestions AND hybrid combos.
     let suggestions = gd.stat_suggestions_for_query("maximum Life");
-    let singles: Vec<_> = suggestions.iter()
+    let singles: Vec<_> = suggestions
+        .iter()
         .filter(|s| matches!(s.kind, StatSuggestionKind::Single))
         .collect();
-    let hybrids: Vec<_> = suggestions.iter()
+    let hybrids: Vec<_> = suggestions
+        .iter()
         .filter(|s| matches!(s.kind, StatSuggestionKind::Hybrid { .. }))
         .collect();
 
-    println!("Query 'maximum Life': {} singles, {} hybrids", singles.len(), hybrids.len());
-    assert!(!singles.is_empty(), "should have single suggestions for 'maximum Life'");
-    assert!(!hybrids.is_empty(), "should have hybrid suggestions for 'maximum Life'");
+    println!(
+        "Query 'maximum Life': {} singles, {} hybrids",
+        singles.len(),
+        hybrids.len()
+    );
+    assert!(
+        !singles.is_empty(),
+        "should have single suggestions for 'maximum Life'"
+    );
+    assert!(
+        !hybrids.is_empty(),
+        "should have hybrid suggestions for 'maximum Life'"
+    );
 
     // Print first few hybrids for inspection.
     for h in hybrids.iter().take(5) {
-        if let StatSuggestionKind::Hybrid { mod_name, generation_type, other_templates, other_stat_ids } = &h.kind {
-            let affix = if *generation_type == 1 { "prefix" } else { "suffix" };
-            println!("  Hybrid ({affix}) \"{mod_name}\": {} + {:?} (other_stat_ids: {:?})", h.template, other_templates, other_stat_ids);
+        if let StatSuggestionKind::Hybrid {
+            mod_name,
+            generation_type,
+            other_templates,
+            other_stat_ids,
+        } = &h.kind
+        {
+            let affix = if *generation_type == 1 {
+                "prefix"
+            } else {
+                "suffix"
+            };
+            println!(
+                "  Hybrid ({affix}) \"{mod_name}\": {} + {:?} (other_stat_ids: {:?})",
+                h.template, other_templates, other_stat_ids
+            );
         }
     }
 }
@@ -145,7 +190,8 @@ fn local_stat_template_fallback() {
     // Local defence stats used in hybrid mods should resolve to display templates
     // via the local→non-local fallback in set_reverse_index().
     assert!(
-        gd.templates_for_stat("local_base_physical_damage_reduction_rating").is_some(),
+        gd.templates_for_stat("local_base_physical_damage_reduction_rating")
+            .is_some(),
         "local armour stat should have template via prefix-strip fallback"
     );
     assert!(
@@ -160,19 +206,38 @@ fn local_stat_template_fallback() {
     // Hybrid suggestions for "maximum Life" should include armour+life hybrids
     // with resolved other_templates and canonical (non-local) stat_ids.
     let suggestions = gd.stat_suggestions_for_query("# to maximum Life");
-    let armour_life_hybrids: Vec<_> = suggestions.iter()
-        .filter(|s| matches!(&s.kind, StatSuggestionKind::Hybrid { other_stat_ids, .. }
-            if other_stat_ids.iter().any(|id| id == "base_physical_damage_reduction_rating")))
+    let armour_life_hybrids: Vec<_> = suggestions
+        .iter()
+        .filter(|s| {
+            matches!(&s.kind, StatSuggestionKind::Hybrid { other_stat_ids, .. }
+            if other_stat_ids.iter().any(|id| id == "base_physical_damage_reduction_rating"))
+        })
         .collect();
-    assert!(!armour_life_hybrids.is_empty(), "should find armour+life hybrid mods");
+    assert!(
+        !armour_life_hybrids.is_empty(),
+        "should find armour+life hybrid mods"
+    );
     for h in &armour_life_hybrids {
-        if let StatSuggestionKind::Hybrid { other_templates, other_stat_ids, .. } = &h.kind {
-            assert!(!other_templates.is_empty(), "armour+life hybrids should have other_templates");
-            assert!(other_templates.iter().any(|t| t.contains("Armour")),
-                "other_templates should contain Armour template");
+        if let StatSuggestionKind::Hybrid {
+            other_templates,
+            other_stat_ids,
+            ..
+        } = &h.kind
+        {
+            assert!(
+                !other_templates.is_empty(),
+                "armour+life hybrids should have other_templates"
+            );
+            assert!(
+                other_templates.iter().any(|t| t.contains("Armour")),
+                "other_templates should contain Armour template"
+            );
             // Stat IDs should be canonical (non-local) for matching against resolved items
-            assert!(!other_stat_ids.iter().any(|id| id.starts_with("local_")),
-                "other_stat_ids should use canonical (non-local) stat IDs, got: {:?}", other_stat_ids);
+            assert!(
+                !other_stat_ids.iter().any(|id| id.starts_with("local_")),
+                "other_stat_ids should use canonical (non-local) stat IDs, got: {:?}",
+                other_stat_ids
+            );
         }
     }
 }

@@ -113,10 +113,7 @@ fn evaluate_list(op: &ListOp, conditions: &[Condition], entry: &Entry) -> bool {
         ListOp::Or => conditions.iter().any(|c| evaluate_one(c, entry)),
         ListOp::Not => !conditions.iter().any(|c| evaluate_one(c, entry)),
         ListOp::Count(n) => {
-            let matched = conditions
-                .iter()
-                .filter(|c| evaluate_one(c, entry))
-                .count();
+            let matched = conditions.iter().filter(|c| evaluate_one(c, entry)).count();
             matched == *n as usize
         }
     }
@@ -131,8 +128,8 @@ mod tests {
             "{}/_reference/rqe/test/data/rq/{filename}",
             concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
         );
-        let data = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
+        let data =
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
         serde_json::from_str(&data).unwrap()
     }
 
@@ -141,8 +138,8 @@ mod tests {
             "{}/_reference/rqe/test/data/entry/{filename}",
             concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
         );
-        let data = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
+        let data =
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
         serde_json::from_str(&data).unwrap()
     }
 

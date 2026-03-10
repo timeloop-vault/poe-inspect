@@ -103,10 +103,7 @@ async fn add_query(
     (StatusCode::CREATED, Json(AddQueryResponse { id }))
 }
 
-async fn get_query(
-    State(state): State<SharedState>,
-    Path(id): Path<QueryId>,
-) -> impl IntoResponse {
+async fn get_query(State(state): State<SharedState>, Path(id): Path<QueryId>) -> impl IntoResponse {
     let store = state.store.lock().unwrap();
     match store.get(id) {
         Some(q) => Ok(Json(q.clone())),
@@ -114,10 +111,7 @@ async fn get_query(
     }
 }
 
-async fn delete_query(
-    State(state): State<SharedState>,
-    Path(id): Path<QueryId>,
-) -> StatusCode {
+async fn delete_query(State(state): State<SharedState>, Path(id): Path<QueryId>) -> StatusCode {
     let mut store = state.store.lock().unwrap();
     if store.remove(id) {
         drop(store);
@@ -137,11 +131,7 @@ async fn match_item(
     let store = state.store.lock().unwrap();
     let matches = store.match_item(&entry);
     let query_count = store.len();
-    tracing::info!(
-        matched = matches.len(),
-        total = query_count,
-        "item matched"
-    );
+    tracing::info!(matched = matches.len(), total = query_count, "item matched");
     Json(MatchResponse {
         matches,
         query_count,
