@@ -558,6 +558,36 @@ fn get_stat_suggestions(
 
 // ── Trade commands (async) ──────────────────────────────────────────────────
 
+/// Preview a trade query without executing it (no HTTP, no rate limit cost).
+///
+/// Returns the full `QueryBuildResult` including `mapped_stats` so the
+/// frontend can populate the "Edit Search" UI with checkboxes and value inputs.
+#[tauri::command]
+async fn preview_trade_query(
+    item_text: String,
+    config: TradeQueryConfig,
+    filter_config: Option<poe_trade::TradeFilterConfig>,
+    gd: tauri::State<'_, GameDataState>,
+    trade: tauri::State<'_, TradeState>,
+) -> Result<poe_trade::QueryBuildResult, String> {
+    let gd = &gd.0;
+
+    let raw = poe_item::parse(&item_text).map_err(|e| format!("Parse error: {e}"))?;
+    let resolved = poe_item::resolve(&raw, gd);
+
+    let index_guard = trade.index.read().await;
+    let index = index_guard
+        .as_ref()
+        .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
+
+    Ok(poe_trade::build_query(
+        &resolved,
+        index,
+        &config,
+        filter_config.as_ref(),
+    ))
+}
+
 /// Full price check: parse item → build query → search → fetch prices.
 ///
 /// Returns prices from the cheapest listings, or an error string.
@@ -565,6 +595,7 @@ fn get_stat_suggestions(
 async fn price_check(
     item_text: String,
     config: TradeQueryConfig,
+    filter_config: Option<poe_trade::TradeFilterConfig>,
     gd: tauri::State<'_, GameDataState>,
     trade: tauri::State<'_, TradeState>,
 ) -> Result<poe_trade::PriceCheckResult, String> {
@@ -578,7 +609,7 @@ async fn price_check(
         .as_ref()
         .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
 
-    let query_result = poe_trade::build_query(&resolved, index, &config, None);
+    let query_result = poe_trade::build_query(&resolved, index, &config, filter_config.as_ref());
     // Release the read lock before acquiring the client mutex.
     drop(index_guard);
 
@@ -596,6 +627,7 @@ async fn price_check(
 async fn trade_search_url(
     item_text: String,
     config: TradeQueryConfig,
+    filter_config: Option<poe_trade::TradeFilterConfig>,
     gd: tauri::State<'_, GameDataState>,
     trade: tauri::State<'_, TradeState>,
 ) -> Result<String, String> {
@@ -609,7 +641,7 @@ async fn trade_search_url(
         .as_ref()
         .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
 
-    let query_result = poe_trade::build_query(&resolved, index, &config, None);
+    let query_result = poe_trade::build_query(&resolved, index, &config, filter_config.as_ref());
     drop(index_guard);
 
     let mut client = trade.client.lock().await;
@@ -862,6 +894,7 @@ pub fn run() {
             get_suggestions,
             resolve_stat_template,
             get_stat_suggestions,
+            preview_trade_query,
             price_check,
             trade_search_url,
             refresh_trade_stats,
