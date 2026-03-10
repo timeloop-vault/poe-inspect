@@ -13,8 +13,9 @@ use poe_data::GameData;
 use regex::Regex;
 
 use crate::types::{
-    Header, ModGroup, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
-    ResolvedStatLine, Section, ValueRange,
+    Header, ItemProperty, ModGroup, ModSlot, Rarity, RawItem, ResolvedHeader, ResolvedItem,
+    ResolvedMod, ResolvedStatLine, Section, StatusKind, ValueRange,
+    InfluenceKind,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -29,7 +30,8 @@ static SUFFIX_RE: LazyLock<Regex> = LazyLock::new(|| {
 /// Resolve a [`RawItem`] into a [`ResolvedItem`] using game data.
 ///
 /// Flattens sections into typed fields, parses value ranges, strips
-/// display suffixes, and resolves stat IDs when a `ReverseIndex` is available.
+/// display suffixes, resolves stat IDs, splits mods into implicits/explicits,
+/// parses properties, and classifies flavor text.
 pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let header = resolve_header(&raw.header, game_data);
 
@@ -39,10 +41,11 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let mut requirements = Vec::new();
     let mut sockets = None;
     let mut experience = None;
-    let mut mods = Vec::new();
+    let mut implicits = Vec::new();
+    let mut explicits = Vec::new();
     let mut influences = Vec::new();
     let mut statuses = Vec::new();
-    let mut properties = Vec::new();
+    let mut generic_sections = Vec::new();
 
     for section in &raw.sections {
         match section {
@@ -54,7 +57,17 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
             Section::Experience(e) => experience = Some(e.clone()),
             Section::Modifiers(mod_section) => {
                 for group in &mod_section.groups {
-                    mods.push(resolve_mod(group, game_data));
+                    let resolved = resolve_mod(group, game_data);
+                    match resolved.header.slot {
+                        ModSlot::Implicit
+                        | ModSlot::SearingExarchImplicit
+                        | ModSlot::EaterOfWorldsImplicit => {
+                            implicits.push(resolved);
+                        }
+                        ModSlot::Prefix | ModSlot::Suffix | ModSlot::Unique => {
+                            explicits.push(resolved);
+                        }
+                    }
                 }
                 for &inf in &mod_section.trailing_influences {
                     if !influences.contains(&inf) {
@@ -70,9 +83,17 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                 }
             }
             Section::Status(s) => statuses.push(*s),
-            Section::Generic(lines) => properties.push(lines.clone()),
+            Section::Generic(lines) => generic_sections.push(lines.clone()),
         }
     }
+
+    // Parse properties and classify flavor text from generic sections
+    let (properties, flavor_text, unclassified_sections) =
+        classify_generic_sections(&generic_sections);
+
+    // Convenience booleans
+    let is_corrupted = statuses.iter().any(|s| matches!(s, StatusKind::Corrupted));
+    let is_fractured = influences.iter().any(|i| matches!(i, InfluenceKind::Fractured));
 
     ResolvedItem {
         header,
@@ -82,10 +103,16 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         requirements,
         sockets,
         experience,
-        mods,
+        properties,
+        implicits,
+        explicits,
+        enchants: vec![],
         influences,
         statuses,
-        properties,
+        is_corrupted,
+        is_fractured,
+        flavor_text,
+        unclassified_sections,
     }
 }
 
@@ -152,10 +179,73 @@ fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
         try_multi_line_resolution(&mut stat_lines, game_data);
     }
 
+    // Detect fractured from raw text suffix "(fractured)" on any stat line
+    let is_fractured = group
+        .body_lines
+        .iter()
+        .any(|line| line.ends_with("(fractured)"));
+
     ResolvedMod {
         header: group.header.clone(),
         stat_lines,
+        is_fractured,
     }
+}
+
+// ── Generic section classification ─────────────────────────────────────────
+
+/// Parse property lines and classify flavor text from generic sections.
+///
+/// Property sections contain lines with `": "` (e.g., "Armour: 890 (augmented)").
+/// Flavor text is the last section with no property-like lines.
+/// Everything else is returned as unclassified.
+fn classify_generic_sections(
+    sections: &[Vec<String>],
+) -> (Vec<ItemProperty>, Option<String>, Vec<Vec<String>>) {
+    let mut properties = Vec::new();
+    let mut unclassified = Vec::new();
+
+    // Check if the last section is flavor text (no colon lines)
+    let flavor_text = sections.last().and_then(|last| {
+        let has_colon = last.iter().any(|l| l.contains(": "));
+        if !has_colon && !last.is_empty() {
+            Some(last.join("\n"))
+        } else {
+            None
+        }
+    });
+
+    let sections_to_process = if flavor_text.is_some() {
+        &sections[..sections.len() - 1]
+    } else {
+        sections
+    };
+
+    for section in sections_to_process {
+        let mut section_props = Vec::new();
+        for line in section {
+            if let Some((name, rest)) = line.split_once(": ") {
+                let augmented = rest.contains("(augmented)");
+                let value = rest
+                    .replace(" (augmented)", "")
+                    .replace("(augmented)", "")
+                    .trim()
+                    .to_string();
+                section_props.push(ItemProperty {
+                    name: name.to_string(),
+                    value,
+                    augmented,
+                });
+            }
+        }
+        if section_props.is_empty() {
+            unclassified.push(section.clone());
+        } else {
+            properties.extend(section_props);
+        }
+    }
+
+    (properties, flavor_text, unclassified)
 }
 
 /// Try joining consecutive unresolved non-reminder lines with `\n` and

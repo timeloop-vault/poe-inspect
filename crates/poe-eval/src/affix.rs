@@ -95,7 +95,7 @@ fn check_modifiability(item: &ResolvedItem) -> Modifiability {
 fn count_slot(item: &ResolvedItem, slot: ModSlot) -> (u32, bool) {
     let mut count = 0u32;
     let mut has_crafted = false;
-    for m in &item.mods {
+    for m in item.all_mods() {
         if m.header.slot == slot {
             count += 1;
             if m.header.source == ModSource::MasterCrafted {

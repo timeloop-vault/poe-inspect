@@ -69,17 +69,16 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
         }
 
         Predicate::HasModNamed { name } => item
-            .mods
-            .iter()
+            .all_mods()
             .any(|m| m.header.name.as_deref() == Some(name.as_str())),
 
-        Predicate::HasStatText { text } => item.mods.iter().any(|m| {
+        Predicate::HasStatText { text } => item.all_mods().any(|m| {
             m.stat_lines
                 .iter()
                 .any(|sl| !sl.is_reminder && sl.display_text.contains(text.as_str()))
         }),
 
-        Predicate::HasStatId { stat_id } => item.mods.iter().any(|m| {
+        Predicate::HasStatId { stat_id } => item.all_mods().any(|m| {
             m.stat_lines.iter().any(|sl| {
                 sl.stat_ids
                     .as_ref()
@@ -87,7 +86,7 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             })
         }),
 
-        Predicate::ModTier { name, op, value } => item.mods.iter().any(|m| {
+        Predicate::ModTier { name, op, value } => item.all_mods().any(|m| {
             m.header.name.as_deref() == Some(name.as_str())
                 && m.header
                     .tier
@@ -184,8 +183,7 @@ pub fn score(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreResu
 
 /// Count mods in a given slot.
 fn count_mods_in_slot(item: &ResolvedItem, slot: ModSlot) -> u32 {
-    item.mods
-        .iter()
+    item.all_mods()
         .filter(|m| m.header.slot == slot)
         .count() as u32
 }
@@ -218,8 +216,7 @@ fn find_matching_stats<'a>(
     stat_id: Option<&'a str>,
 ) -> impl Iterator<Item = &'a poe_item::types::ResolvedStatLine> {
     let sid = stat_id.unwrap_or("");
-    item.mods
-        .iter()
+    item.all_mods()
         .flat_map(|m| &m.stat_lines)
         .filter(move |sl| {
             !sl.is_reminder

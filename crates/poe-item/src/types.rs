@@ -116,6 +116,64 @@ pub enum ModTierKind {
     Rank(u32),
 }
 
+impl ModTierKind {
+    /// Display classification: tier (regular mods) or rank (bench crafts).
+    #[must_use]
+    pub fn display_kind(&self) -> TierDisplayKind {
+        match self {
+            Self::Tier(_) => TierDisplayKind::Tier,
+            Self::Rank(_) => TierDisplayKind::Rank,
+        }
+    }
+
+    /// The tier/rank number.
+    #[must_use]
+    pub fn number(&self) -> u32 {
+        match self {
+            Self::Tier(n) | Self::Rank(n) => *n,
+        }
+    }
+}
+
+/// Flat display type combining ModSlot + ModSource for the frontend.
+/// "T1" badge shows as Tier, "R1" as Rank. The UI doesn't need to know
+/// about SearingExarchImplicit vs EaterOfWorldsImplicit — both are "implicit".
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub enum ModDisplayType {
+    Prefix,
+    Suffix,
+    Implicit,
+    Enchant,
+    Unique,
+    Crafted,
+}
+
+/// Whether a mod number is a tier (regular) or rank (bench craft).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub enum TierDisplayKind {
+    Tier,
+    Rank,
+}
+
+/// A parsed item property line (e.g., "Armour: 890 (augmented)").
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct ItemProperty {
+    pub name: String,
+    pub value: String,
+    pub augmented: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InfluenceKind {
     Shaper,
@@ -198,7 +256,8 @@ impl StatusKind {
 ///
 /// Sections are flattened into typed fields. Value ranges are parsed,
 /// type suffixes stripped, and (when `GameData` has a `ReverseIndex`)
-/// stat IDs resolved.
+/// stat IDs resolved. Properties are parsed, mods are pre-split into
+/// implicits/explicits, and convenience booleans are pre-computed.
 #[derive(Debug, Clone)]
 pub struct ResolvedItem {
     pub header: ResolvedHeader,
@@ -208,11 +267,34 @@ pub struct ResolvedItem {
     pub requirements: Vec<Requirement>,
     pub sockets: Option<String>,
     pub experience: Option<String>,
-    pub mods: Vec<ResolvedMod>,
+    /// Parsed property lines (e.g., "Armour: 890 (augmented)").
+    pub properties: Vec<ItemProperty>,
+    /// Implicit mods (including Searing Exarch / Eater of Worlds implicits).
+    pub implicits: Vec<ResolvedMod>,
+    /// Explicit mods (prefixes, suffixes, unique mods).
+    pub explicits: Vec<ResolvedMod>,
+    /// Enchant mods (currently always empty — needs section classification in parser).
+    pub enchants: Vec<ResolvedMod>,
     pub influences: Vec<InfluenceKind>,
     pub statuses: Vec<StatusKind>,
-    /// Unresolved generic sections (properties, flavor text, usage text, etc.)
-    pub properties: Vec<Vec<String>>,
+    /// Whether the item is corrupted.
+    pub is_corrupted: bool,
+    /// Whether the item is fractured.
+    pub is_fractured: bool,
+    /// Flavor text (last generic section with no property-like lines).
+    pub flavor_text: Option<String>,
+    /// Remaining unclassified generic sections.
+    pub unclassified_sections: Vec<Vec<String>>,
+}
+
+impl ResolvedItem {
+    /// All mods in order: enchants, then implicits, then explicits.
+    pub fn all_mods(&self) -> impl Iterator<Item = &ResolvedMod> {
+        self.enchants
+            .iter()
+            .chain(self.implicits.iter())
+            .chain(self.explicits.iter())
+    }
 }
 
 /// Resolved header with base type always extracted.
@@ -232,6 +314,25 @@ pub struct ResolvedHeader {
 pub struct ResolvedMod {
     pub header: ModHeader,
     pub stat_lines: Vec<ResolvedStatLine>,
+    /// Whether this mod has the `(fractured)` suffix on any stat line.
+    pub is_fractured: bool,
+}
+
+impl ResolvedMod {
+    /// Flat display type for the frontend (prefix/suffix/implicit/crafted/unique).
+    #[must_use]
+    pub fn display_type(&self) -> ModDisplayType {
+        match (self.header.slot, self.header.source) {
+            (_, ModSource::MasterCrafted) => ModDisplayType::Crafted,
+            (ModSlot::Prefix, _) => ModDisplayType::Prefix,
+            (ModSlot::Suffix, _) => ModDisplayType::Suffix,
+            (
+                ModSlot::Implicit | ModSlot::SearingExarchImplicit | ModSlot::EaterOfWorldsImplicit,
+                _,
+            ) => ModDisplayType::Implicit,
+            (ModSlot::Unique, _) => ModDisplayType::Unique,
+        }
+    }
 }
 
 /// A single stat line with parsed values and optional stat ID resolution.

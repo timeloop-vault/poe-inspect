@@ -149,6 +149,7 @@ fn statuses_collected() {
     let item = resolve_fixture("rare-map-city-square-delirium.txt", &gd);
 
     assert!(item.statuses.iter().any(|s| *s == poe_item::types::StatusKind::Corrupted));
+    assert!(item.is_corrupted);
 }
 
 // ─── Mod resolution ─────────────────────────────────────────────────────────
@@ -159,10 +160,11 @@ fn rare_belt_mods_resolved() {
     let item = resolve_fixture("rare-belt-crafted.txt", &gd);
 
     // 1 implicit + 5 explicit mods (across two mod sections)
-    assert!(item.mods.len() >= 5);
+    let all_mods: Vec<_> = item.all_mods().collect();
+    assert!(all_mods.len() >= 5);
 
     // Check implicit mod
-    let implicit = item.mods.iter().find(|m| m.header.slot == ModSlot::Implicit).unwrap();
+    let implicit = item.implicits.iter().find(|m| m.header.slot == ModSlot::Implicit).unwrap();
     assert_eq!(implicit.stat_lines.len(), 1);
     assert_eq!(implicit.stat_lines[0].display_text, "+32 to maximum Life");
     assert_eq!(implicit.stat_lines[0].values.len(), 1);
@@ -172,7 +174,7 @@ fn rare_belt_mods_resolved() {
     );
 
     // Check a prefix mod
-    let studded = item.mods.iter().find(|m| {
+    let studded = item.explicits.iter().find(|m| {
         m.header.name.as_deref() == Some("Studded")
     }).unwrap();
     assert_eq!(studded.header.slot, ModSlot::Prefix);
@@ -183,7 +185,7 @@ fn rare_belt_mods_resolved() {
     );
 
     // Check master crafted mod
-    let crafted = item.mods.iter().find(|m| m.header.source == ModSource::MasterCrafted).unwrap();
+    let crafted = item.explicits.iter().find(|m| m.header.source == ModSource::MasterCrafted).unwrap();
     assert_eq!(crafted.stat_lines[0].display_text, "+10% to Cold and Lightning Resistances");
 }
 
@@ -192,7 +194,7 @@ fn unique_mods_negative_ranges() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("unique-ring-ventors-gamble.txt", &gd);
 
-    let unique_mods: Vec<_> = item.mods.iter().filter(|m| m.header.slot == ModSlot::Unique).collect();
+    let unique_mods: Vec<_> = item.explicits.iter().filter(|m| m.header.slot == ModSlot::Unique).collect();
     assert_eq!(unique_mods.len(), 6);
 
     // "+44(0-60) to maximum Life"
@@ -225,7 +227,7 @@ fn implicit_suffix_stripped() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("unique-ring-ventors-gamble.txt", &gd);
 
-    let implicit = item.mods.iter().find(|m| m.header.slot == ModSlot::Implicit).unwrap();
+    let implicit = item.implicits.first().unwrap();
     // Original: "15(6-15)% increased Rarity of Items found (implicit)"
     assert_eq!(
         implicit.stat_lines[0].display_text,
@@ -238,7 +240,7 @@ fn adds_damage_two_ranges() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("magic-axe-two-handed.txt", &gd);
 
-    let fire_mod = item.mods.iter().find(|m| {
+    let fire_mod = item.explicits.iter().find(|m| {
         m.header.name.as_deref() == Some("Smouldering")
     }).unwrap();
 
@@ -260,7 +262,7 @@ fn reminder_text_flagged() {
     let item = resolve_fixture("rare-belt-crafted.txt", &gd);
 
     // "of the Pugilist" has reminder text about Stun Threshold
-    let pugilist = item.mods.iter().find(|m| {
+    let pugilist = item.explicits.iter().find(|m| {
         m.header.name.as_deref() == Some("of the Pugilist")
     }).unwrap();
     assert_eq!(pugilist.stat_lines.len(), 2);
@@ -279,7 +281,7 @@ fn no_ranges_in_unscaled_line() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("magic-axe-two-handed.txt", &gd);
 
-    let implicit = item.mods.iter().find(|m| m.header.slot == ModSlot::Implicit).unwrap();
+    let implicit = item.implicits.first().unwrap();
     // "+22% Chance to Block Attack Damage while wielding a Staff" — no range annotations
     assert!(implicit.stat_lines[0].values.is_empty());
     assert_eq!(
@@ -294,7 +296,7 @@ fn stat_ids_none_without_reverse_index() {
     let item = resolve_fixture("rare-belt-crafted.txt", &gd);
 
     // Without a ReverseIndex, stat_ids should be None
-    for m in &item.mods {
+    for m in item.all_mods() {
         for line in &m.stat_lines {
             assert!(line.stat_ids.is_none());
             assert!(line.stat_values.is_none());
@@ -308,7 +310,7 @@ fn multi_line_mod_resolved() {
     let item = resolve_fixture("magic-flask-life.txt", &gd);
 
     // "of Allaying" has two stat lines (immunity to Bleeding + Corrupted Blood)
-    let allaying = item.mods.iter().find(|m| {
+    let allaying = item.explicits.iter().find(|m| {
         m.header.name.as_deref() == Some("of Allaying")
     }).unwrap();
     assert_eq!(allaying.stat_lines.len(), 2);
@@ -322,5 +324,51 @@ fn properties_preserved() {
     let item = resolve_fixture("magic-flask-life.txt", &gd);
 
     // Flask has property sections (recovery, charges) and usage text
-    assert!(item.properties.len() >= 2);
+    // Some sections become properties, some become unclassified
+    let total_sections = item.properties.len()
+        + item.unclassified_sections.len()
+        + if item.flavor_text.is_some() { 1 } else { 0 };
+    assert!(total_sections >= 2);
+}
+
+// ─── New enriched fields ─────────────────────────────────────────────────────
+
+#[test]
+fn implicits_and_explicits_split() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("rare-belt-crafted.txt", &gd);
+
+    assert!(!item.implicits.is_empty(), "should have implicits");
+    assert!(!item.explicits.is_empty(), "should have explicits");
+    // All implicits should have implicit slot
+    for m in &item.implicits {
+        assert!(matches!(
+            m.header.slot,
+            ModSlot::Implicit | ModSlot::SearingExarchImplicit | ModSlot::EaterOfWorldsImplicit
+        ));
+    }
+    // All explicits should have prefix/suffix/unique slot
+    for m in &item.explicits {
+        assert!(matches!(
+            m.header.slot,
+            ModSlot::Prefix | ModSlot::Suffix | ModSlot::Unique
+        ));
+    }
+}
+
+#[test]
+fn is_corrupted_flag() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("rare-map-city-square-delirium.txt", &gd);
+    assert!(item.is_corrupted);
+
+    let item2 = resolve_fixture("rare-belt-crafted.txt", &gd);
+    assert!(!item2.is_corrupted);
+}
+
+#[test]
+fn unique_has_flavor_text() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("unique-ring-ventors-gamble.txt", &gd);
+    assert!(item.flavor_text.is_some(), "unique should have flavor text");
 }
