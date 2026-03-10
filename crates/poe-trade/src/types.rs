@@ -6,13 +6,13 @@ use std::collections::HashMap;
 // ── Trade Stats API Response ────────────────────────────────────────────────
 
 /// Raw response from `GET /api/trade/data/stats`.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TradeStatsResponse {
     pub result: Vec<TradeStatCategory>,
 }
 
 /// A category of stats (e.g., "Explicit", "Pseudo").
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TradeStatCategory {
     pub label: String,
     pub entries: Vec<TradeStatEntry>,

@@ -21,9 +21,12 @@
 //! PriceCheckResult
 //! ```
 
+pub mod client;
 pub mod stats_index;
 pub mod types;
 
+pub use client::{fetch_trade_stats, TradeApiError};
+pub use stats_index::IndexBuildResult;
 pub use types::{
     Price, PriceCheckResult, SearchResult, TradeQueryConfig, TradeStatCategory, TradeStatEntry,
     TradeStatsIndex, TradeStatsResponse,
