@@ -13,8 +13,8 @@ use poe_data::GameData;
 use regex::Regex;
 
 use crate::types::{
-    Header, ItemProperty, ModGroup, ModSlot, Rarity, RawItem, ResolvedHeader, ResolvedItem,
-    ResolvedMod, ResolvedStatLine, Section, StatusKind, ValueRange,
+    Header, ItemProperty, ModGroup, ModHeader, ModSlot, ModSource, Rarity, RawItem,
+    ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine, Section, StatusKind, ValueRange,
     InfluenceKind,
 };
 
@@ -65,6 +65,10 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                         | ModSlot::EaterOfWorldsImplicit => {
                             implicits.push(resolved);
                         }
+                        ModSlot::Enchant => {
+                            // Shouldn't appear from grammar (enchants come from generic sections),
+                            // but handle for completeness.
+                        }
                         ModSlot::Prefix | ModSlot::Suffix | ModSlot::Unique => {
                             explicits.push(resolved);
                         }
@@ -89,9 +93,15 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         }
     }
 
-    // Parse properties and classify flavor text from generic sections
-    let (properties, flavor_text, unclassified_sections) =
-        classify_generic_sections(&generic_sections);
+    // Classify generic sections into properties, enchants, description, flavor text, etc.
+    let classified = classify_generic_sections(&generic_sections, header.rarity);
+
+    // Build enchant mods from detected enchant lines
+    let enchants: Vec<ResolvedMod> = classified
+        .enchant_lines
+        .iter()
+        .map(|line| build_enchant_mod(line, game_data))
+        .collect();
 
     // Convenience booleans
     let is_corrupted = statuses.iter().any(|s| matches!(s, StatusKind::Corrupted));
@@ -106,18 +116,19 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         requirements,
         sockets,
         experience,
-        properties,
+        properties: classified.properties,
         implicits,
         explicits,
-        enchants: vec![],
+        enchants,
         influences,
         statuses,
         is_corrupted,
         is_fractured,
         is_unidentified,
         note,
-        flavor_text,
-        unclassified_sections,
+        description: classified.description,
+        flavor_text: classified.flavor_text,
+        unclassified_sections: classified.unclassified,
     }
 }
 
@@ -199,58 +210,181 @@ fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
 
 // ── Generic section classification ─────────────────────────────────────────
 
-/// Parse property lines and classify flavor text from generic sections.
+struct ClassifiedSections {
+    properties: Vec<ItemProperty>,
+    enchant_lines: Vec<String>,
+    description: Option<String>,
+    flavor_text: Option<String>,
+    unclassified: Vec<Vec<String>>,
+}
+
+/// Known prefixes for GGG usage instructions (not flavor text, not descriptions).
+const USAGE_PREFIXES: &[&str] = &[
+    "Right click",
+    "Place into",
+    "Travel to",
+    "Can be used",
+    "This is a Support Gem",
+    "Shift click to unstack",
+];
+
+/// Classify generic sections by content analysis.
 ///
-/// Property sections contain lines with `": "` (e.g., "Armour: 890 (augmented)").
-/// Flavor text is the last section with no property-like lines.
-/// Everything else is returned as unclassified.
-fn classify_generic_sections(
-    sections: &[Vec<String>],
-) -> (Vec<ItemProperty>, Option<String>, Vec<Vec<String>>) {
+/// Each section is independently classified as one of:
+/// - **Properties**: all lines contain `": "` (e.g., "Armour: 890 (augmented)")
+/// - **Enchants**: all lines end with `(enchant)`
+/// - **Usage instructions**: starts with known GGG instruction prefix
+/// - **Flavor text**: poetic/lore text (no colons, not instructions, not enchants)
+/// - **Description**: item effect text (currency effects, scarab effects, etc.)
+/// - **Unclassified**: anything else
+fn classify_generic_sections(sections: &[Vec<String>], rarity: Rarity) -> ClassifiedSections {
     let mut properties = Vec::new();
+    let mut enchant_lines = Vec::new();
+    let mut description: Option<String> = None;
+    let mut flavor_text = None;
     let mut unclassified = Vec::new();
 
-    // Check if the last section is flavor text (no colon lines)
-    let flavor_text = sections.last().and_then(|last| {
-        let has_colon = last.iter().any(|l| l.contains(": "));
-        if !has_colon && !last.is_empty() {
-            Some(last.join("\n"))
-        } else {
-            None
+    for section in sections {
+        if section.is_empty() {
+            continue;
         }
-    });
 
-    let sections_to_process = if flavor_text.is_some() {
-        &sections[..sections.len() - 1]
-    } else {
-        sections
-    };
-
-    for section in sections_to_process {
-        let mut section_props = Vec::new();
-        for line in section {
-            if let Some((name, rest)) = line.split_once(": ") {
-                let augmented = rest.contains("(augmented)");
-                let value = rest
-                    .replace(" (augmented)", "")
-                    .replace("(augmented)", "")
-                    .trim()
-                    .to_string();
-                section_props.push(ItemProperty {
-                    name: name.to_string(),
-                    value,
-                    augmented,
-                });
+        let classification = classify_single_section(section, rarity);
+        match classification {
+            SectionKind::Properties(props) => properties.extend(props),
+            SectionKind::Enchants(lines) => enchant_lines.extend(lines),
+            SectionKind::UsageInstructions => {} // Drop — not useful for evaluation
+            SectionKind::FlavorText(text) => flavor_text = Some(text),
+            SectionKind::Description(text) => {
+                // Append if multiple description sections (e.g., essence header + slot table)
+                if let Some(existing) = &mut description {
+                    existing.push('\n');
+                    existing.push_str(&text);
+                } else {
+                    description = Some(text);
+                }
             }
-        }
-        if section_props.is_empty() {
-            unclassified.push(section.clone());
-        } else {
-            properties.extend(section_props);
+            SectionKind::Unclassified => unclassified.push(section.clone()),
         }
     }
 
-    (properties, flavor_text, unclassified)
+    ClassifiedSections {
+        properties,
+        enchant_lines,
+        description,
+        flavor_text,
+        unclassified,
+    }
+}
+
+enum SectionKind {
+    Properties(Vec<ItemProperty>),
+    Enchants(Vec<String>),
+    UsageInstructions,
+    FlavorText(String),
+    Description(String),
+    Unclassified,
+}
+
+fn classify_single_section(lines: &[String], rarity: Rarity) -> SectionKind {
+    let non_empty: Vec<&str> = lines.iter().map(String::as_str).filter(|l| !l.is_empty()).collect();
+    if non_empty.is_empty() {
+        return SectionKind::Unclassified;
+    }
+
+    // All lines end with (enchant) → enchant section
+    if non_empty.iter().all(|l| l.ends_with("(enchant)")) {
+        return SectionKind::Enchants(non_empty.iter().map(|l| (*l).to_string()).collect());
+    }
+
+    // Starts with known usage instruction prefix → drop
+    if USAGE_PREFIXES.iter().any(|p| non_empty[0].starts_with(p)) {
+        return SectionKind::UsageInstructions;
+    }
+
+    // Check if this is a property section (majority of lines have ": ")
+    let colon_count = non_empty.iter().filter(|l| l.contains(": ")).count();
+    if colon_count > 0 && colon_count == non_empty.len() {
+        // All lines are property-like
+        let props = parse_property_lines(lines);
+        return SectionKind::Properties(props);
+    }
+
+    // Mixed section: some lines have colons, some don't.
+    // For currency/essence: the description header + slot table are mixed.
+    // Treat the whole section as description text.
+    if colon_count > 0 && rarity == Rarity::Currency {
+        return SectionKind::Description(lines.join("\n"));
+    }
+
+    // Pure text section (no colons) — could be flavor text or description
+    // Flavor text: appears on Unique, DivinationCard, and scarab-like items (Normal Map Fragments)
+    // Description: effect text on currency, scarabs, tinctures, etc.
+    let text = lines.join("\n");
+
+    // Currency/gem descriptions come before flavor text
+    if matches!(rarity, Rarity::Currency | Rarity::Gem) {
+        // Currency items: first text section is description, rest are unclassified
+        return SectionKind::Description(text);
+    }
+
+    // For uniques and div cards: text sections are typically flavor text
+    if matches!(rarity, Rarity::Unique | Rarity::DivinationCard) {
+        return SectionKind::FlavorText(text);
+    }
+
+    // For Normal rarity items that are scarabs/fragments: first text section is description,
+    // subsequent ones might be flavor text. Use a heuristic: if it looks like a game effect
+    // (long, mechanical language), it's description. If it's short/poetic, it's flavor.
+    if rarity == Rarity::Normal {
+        // Short poetic text → flavor; longer mechanical text → description
+        if non_empty.len() <= 2 && text.len() < 80 {
+            return SectionKind::FlavorText(text);
+        }
+        return SectionKind::Description(text);
+    }
+
+    SectionKind::Unclassified
+}
+
+fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {
+    let mut props = Vec::new();
+    for line in lines {
+        if line.is_empty() {
+            continue;
+        }
+        if let Some((name, rest)) = line.split_once(": ") {
+            let augmented = rest.contains("(augmented)");
+            let value = rest
+                .replace(" (augmented)", "")
+                .replace("(augmented)", "")
+                .trim()
+                .to_string();
+            props.push(ItemProperty {
+                name: name.to_string(),
+                value,
+                augmented,
+            });
+        }
+    }
+    props
+}
+
+/// Build a synthetic `ResolvedMod` from an enchant line.
+fn build_enchant_mod(line: &str, game_data: &GameData) -> ResolvedMod {
+    let stat_line = resolve_stat_line(line, game_data);
+    ResolvedMod {
+        header: ModHeader {
+            source: ModSource::Regular,
+            slot: ModSlot::Enchant,
+            influence_tier: None,
+            name: None,
+            tier: None,
+            tags: vec![],
+        },
+        stat_lines: vec![stat_line],
+        is_fractured: false,
+    }
 }
 
 /// Try joining consecutive unresolved non-reminder lines with `\n` and

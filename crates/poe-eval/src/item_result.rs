@@ -50,6 +50,9 @@ pub struct EvaluatedItem {
     pub unidentified: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    /// Item effect/description text (currency effects, scarab effects, etc.)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flavor_text: Option<String>,
     pub open_prefixes: u32,
@@ -162,12 +165,14 @@ pub fn evaluate_item(
 
     // Build display mods with tier info
     let all_mods: Vec<_> = item.all_mods().collect();
+    let mut enchants = Vec::new();
     let mut implicits = Vec::new();
     let mut explicits = Vec::new();
 
     for (resolved_mod, tier_info) in all_mods.iter().zip(&tier_summary.mods) {
         let modifier = build_modifier(resolved_mod, tier_info.tier, tier_info.quality);
         match resolved_mod.display_type() {
+            poe_item::types::ModDisplayType::Enchant => enchants.push(modifier),
             poe_item::types::ModDisplayType::Implicit => implicits.push(modifier),
             _ => explicits.push(modifier),
         }
@@ -211,7 +216,7 @@ pub fn evaluate_item(
         properties: item.properties.clone(),
         requirements: item.requirements.clone(),
         sockets: item.sockets.clone(),
-        enchants: vec![],
+        enchants,
         implicits,
         explicits,
         influences,
@@ -219,6 +224,7 @@ pub fn evaluate_item(
         fractured: if item.is_fractured { Some(true) } else { None },
         unidentified: if item.is_unidentified { Some(true) } else { None },
         note: item.note.clone(),
+        description: item.description.clone(),
         flavor_text: item.flavor_text.clone(),
         open_prefixes: affix_summary.prefixes.open.unwrap_or(0),
         open_suffixes: affix_summary.suffixes.open.unwrap_or(0),

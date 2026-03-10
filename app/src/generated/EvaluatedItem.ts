@@ -9,7 +9,7 @@ import type { WatchingScoreInfo } from "./WatchingScoreInfo";
 /**
  * Complete evaluation result for the frontend overlay.
  */
-export type EvaluatedItem = { itemClass: string, rarity: Rarity, name: string, baseType: string, itemLevel: number, properties: Array<ItemProperty>, requirements: Array<Requirement>, sockets: string | null, enchants: Array<Modifier>, implicits: Array<Modifier>, explicits: Array<Modifier>, influences: Array<string>, corrupted: boolean | null, fractured: boolean | null, unidentified: boolean | null, note: string | null, flavorText: string | null, openPrefixes: number, openSuffixes: number, maxPrefixes: number, maxSuffixes: number, modifiable: boolean,
+export type EvaluatedItem = { itemClass: string, rarity: Rarity, name: string, baseType: string, itemLevel: number, properties: Array<ItemProperty>, requirements: Array<Requirement>, sockets: string | null, enchants: Array<Modifier>, implicits: Array<Modifier>, explicits: Array<Modifier>, influences: Array<string>, corrupted: boolean | null, fractured: boolean | null, unidentified: boolean | null, note: string | null, description: string | null, flavorText: string | null, openPrefixes: number, openSuffixes: number, maxPrefixes: number, maxSuffixes: number, modifiable: boolean,
 /**
  * Profile score (None if no profile active or not applicable).
  */

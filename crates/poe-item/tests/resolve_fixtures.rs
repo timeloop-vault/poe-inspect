@@ -323,12 +323,12 @@ fn properties_preserved() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("magic-flask-life.txt", &gd);
 
-    // Flask has property sections (recovery, charges) and usage text
-    // Some sections become properties, some become unclassified
-    let total_sections = item.properties.len()
-        + item.unclassified_sections.len()
-        + if item.flavor_text.is_some() { 1 } else { 0 };
-    assert!(total_sections >= 2);
+    // Flask recovery section (Recovers/Consumes/Currently has) is unclassified
+    // because the lines don't match "Key: Value" property format
+    assert!(
+        !item.unclassified_sections.is_empty(),
+        "flask recovery lines should be unclassified"
+    );
 }
 
 // ─── New enriched fields ─────────────────────────────────────────────────────
@@ -371,4 +371,109 @@ fn unique_has_flavor_text() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("unique-ring-ventors-gamble.txt", &gd);
     assert!(item.flavor_text.is_some(), "unique should have flavor text");
+}
+
+// ─── Enchant routing ─────────────────────────────────────────────────────────
+
+#[test]
+fn talisman_enchant_detected() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("rare-amulet-talisman-corrupted.txt", &gd);
+    assert_eq!(item.enchants.len(), 1, "talisman should have 1 enchant");
+    assert!(
+        item.enchants[0].stat_lines[0].display_text.contains("Allocates Entropy"),
+        "enchant should be Allocates Entropy"
+    );
+    assert_eq!(item.enchants[0].header.slot, ModSlot::Enchant);
+}
+
+#[test]
+fn flask_enchant_detected() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("magic-flask-utility-enchanted.txt", &gd);
+    assert_eq!(item.enchants.len(), 1, "flask should have 1 enchant");
+    assert!(item.enchants[0].stat_lines[0].display_text.contains("Charges reach full"));
+}
+
+#[test]
+fn cluster_jewel_enchants_detected() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("magic-cluster-jewel-large.txt", &gd);
+    assert_eq!(item.enchants.len(), 6, "cluster jewel should have 6 enchant lines");
+}
+
+#[test]
+fn map_delirium_enchants_detected() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("rare-map-tier5-delirium-enchant.txt", &gd);
+    assert_eq!(item.enchants.len(), 2, "map should have 2 delirium enchants");
+}
+
+// ─── Description field ───────────────────────────────────────────────────────
+
+#[test]
+fn currency_has_description() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("currency-chaos-orb.txt", &gd);
+    assert!(item.description.is_some(), "currency should have description");
+    assert!(item.description.as_ref().unwrap().contains("Reforges"));
+}
+
+#[test]
+fn essence_has_description() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("currency-essence-screaming-greed.txt", &gd);
+    assert!(item.description.is_some(), "essence should have description");
+    let desc = item.description.as_ref().unwrap();
+    assert!(desc.contains("Upgrades"), "should contain upgrade text");
+    assert!(desc.contains("Weapon:"), "should contain slot table");
+}
+
+#[test]
+fn scarab_has_description() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("scarab-titanic.txt", &gd);
+    assert!(item.description.is_some(), "scarab should have description");
+    assert!(item.description.as_ref().unwrap().contains("Toughness"));
+}
+
+#[test]
+fn scarab_has_flavor_text() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("scarab-titanic.txt", &gd);
+    assert!(item.flavor_text.is_some(), "scarab should have flavor text");
+    assert!(item.flavor_text.as_ref().unwrap().contains("power lies in a name"));
+}
+
+// ─── Note + statuses ─────────────────────────────────────────────────────────
+
+#[test]
+fn note_and_statuses_coexist() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("rare-jewel-cobalt-mirrored-corrupted.txt", &gd);
+    assert!(item.note.is_some(), "should have note");
+    assert_eq!(item.note.as_deref(), Some("~b/o 35 chaos"));
+    assert!(item.is_corrupted);
+    // Usage instructions should NOT be flavor text
+    assert!(item.flavor_text.is_none(), "jewel usage instructions should not be flavor text");
+}
+
+// ─── Unidentified ────────────────────────────────────────────────────────────
+
+#[test]
+fn unidentified_flag() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("rare-axe-unidentified.txt", &gd);
+    assert!(item.is_unidentified);
+    assert!(item.explicits.is_empty(), "unidentified item should have no explicits");
+}
+
+// ─── Divination card ─────────────────────────────────────────────────────────
+
+#[test]
+fn divination_card_resolved() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("divination-card-hunters-resolve.txt", &gd);
+    assert_eq!(item.header.rarity, Rarity::DivinationCard);
+    assert!(item.flavor_text.is_some(), "div card should have flavor text");
 }
