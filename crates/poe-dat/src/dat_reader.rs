@@ -1,4 +1,4 @@
-//! Reader for PoE `.datc64` binary files.
+//! Reader for `PoE` `.datc64` binary files.
 //!
 //! Based on poe-query's `dat/file.rs` (proven implementation). Adapted to
 //! return native Rust types instead of the generic `Value` enum, and to use
@@ -6,7 +6,7 @@
 //!
 //! The datc64 format:
 //! - Bytes 0..4: u32 LE row count
-//! - Bytes 4..marker: fixed-size row data (row_count * row_size)
+//! - Bytes 4..marker: fixed-size row data (`row_count` * `row_size`)
 //! - 8-byte marker: `0xBBBBBBBBBBBBBBBB`
 //! - After marker: variable-length data section (strings, lists)
 //!
@@ -56,6 +56,10 @@ impl DatFile {
     /// Parse a datc64 file from raw bytes.
     ///
     /// Adapted from poe-query `DatFile::from_bytes`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DatError` if the file is empty, too short, or missing the data section marker.
     pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, DatError> {
         if bytes.is_empty() {
             return Err(DatError::Empty);
@@ -109,7 +113,7 @@ impl DatFile {
         let pos = self.field_pos(row, offset)?;
         let slice = self.bytes.get(pos..pos + 4)?;
         let mut cursor = Cursor::new(slice);
-        Some(cursor.read_i32::<LittleEndian>().ok()?)
+        cursor.read_i32::<LittleEndian>().ok()
     }
 
     /// Read a u64 field (used for foreign keys).
@@ -152,6 +156,7 @@ impl DatFile {
             return None;
         }
         let mut cursor = Cursor::new(&self.bytes[exact_offset..]);
+        #[expect(clippy::maybe_infinite_iter)]
         let raw: Vec<u16> = (0..)
             .map(|_| cursor.read_u16::<LittleEndian>().unwrap_or(0))
             .take_while(|&x| x != 0)

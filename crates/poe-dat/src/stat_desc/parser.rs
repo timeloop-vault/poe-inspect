@@ -1,7 +1,10 @@
 use pest::Parser;
 use pest_derive::Parser;
 
-use super::types::*;
+use super::types::{
+    Bound, LangBlock, Range, StatDescription, StatDescriptionFile, Transform, TransformKind,
+    Variant,
+};
 
 #[derive(Parser)]
 #[grammar = "stat_desc/grammar.pest"]
@@ -10,6 +13,10 @@ struct StatDescParser;
 /// Parse a stat description file from a UTF-8 string.
 ///
 /// The input should already be converted from UTF-16LE to UTF-8.
+///
+/// # Errors
+///
+/// Returns `ParseError` if the input doesn't match the stat description grammar.
 pub fn parse(input: &str) -> Result<StatDescriptionFile, ParseError> {
     // Normalize each line:
     // 1. Strip trailing whitespace (real files have trailing tabs)
@@ -67,11 +74,10 @@ pub fn parse(input: &str) -> Result<StatDescriptionFile, ParseError> {
                     .unwrap_or_default();
                 file.no_descriptions.push(stat_id);
             }
-            Rule::no_identifiers => {}
+            Rule::no_identifiers | Rule::EOI => {}
             Rule::description => {
                 file.descriptions.push(parse_description(pair)?);
             }
-            Rule::EOI => {}
             other => {
                 return Err(ParseError::UnexpectedRule(format!("{other:?}")));
             }
@@ -308,7 +314,7 @@ fn parse_transform(pair: pest::iterators::Pair<'_, Rule>) -> Result<Transform, P
     }
 
     Ok(Transform {
-        kind: kind.ok_or_else(|| ParseError::MissingTransformName)?,
+        kind: kind.ok_or(ParseError::MissingTransformName)?,
         stat_index,
     })
 }

@@ -93,7 +93,7 @@ pub struct ScoreInfo {
     pub total: f64,
     /// Maximum possible score (sum of all rule weights).
     pub max_possible: f64,
-    /// Percentage (total / max_possible * 100), clamped to 0-100.
+    /// Percentage (total / `max_possible` * 100), clamped to 0-100.
     pub percent: f64,
     /// Whether the profile filter matched this item.
     pub applicable: bool,
@@ -133,7 +133,11 @@ pub fn evaluate_item(
         .all_mods()
         .zip(&tier_summary.mods)
         .map(|(m, tier_info)| {
-            let tier_kind = m.header.tier.as_ref().map(|t| t.display_kind());
+            let tier_kind = m
+                .header
+                .tier
+                .as_ref()
+                .map(poe_item::types::ModTierKind::display_kind);
             let quality = match tier_info.quality {
                 TierQuality::Unknown => None,
                 q => Some(q),

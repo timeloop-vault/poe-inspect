@@ -1,10 +1,13 @@
 //! Extract typed rows from raw `DatFile` data.
 //!
-//! Field offsets are derived from dat-schema GQL definitions for PoE 3.28.
+//! Field offsets are derived from dat-schema GQL definitions for `PoE` 3.28.
 //! FK fields are 16 bytes (u64 row index + u64 key hash); we read only
 //! the first u64 (row index). Lists are 16 bytes (u64 length + u64 offset).
 
-use super::types::*;
+use super::types::{
+    BaseItemTypeRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow, ModRow, ModTypeRow,
+    RarityRow, StatRow, TagRow,
+};
 use crate::dat_reader::DatFile;
 
 // ── Stats ───────────────────────────────────────────────────────────────────

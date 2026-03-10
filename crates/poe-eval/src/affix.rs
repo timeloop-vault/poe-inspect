@@ -91,7 +91,7 @@ fn check_modifiability(item: &ResolvedItem) -> Modifiability {
     Modifiability::Yes
 }
 
-/// Count mods in a slot, returning (total, has_crafted).
+/// Count mods in a slot, returning (total, `has_crafted`).
 fn count_slot(item: &ResolvedItem, slot: ModSlot) -> (u32, bool) {
     let mut count = 0u32;
     let mut has_crafted = false;
