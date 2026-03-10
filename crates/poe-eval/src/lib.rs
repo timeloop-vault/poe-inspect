@@ -15,7 +15,7 @@ pub mod tier;
 
 pub use affix::{analyze_affixes, AffixSummary, Modifiability};
 pub use evaluate::{evaluate, score};
-pub use item_result::{evaluate_item, EvaluatedItem, WatchingProfileInput};
+pub use item_result::{evaluate_item, ItemEvaluation, WatchingProfileInput};
 pub use predicate::Predicate;
 pub use profile::{Profile, ScoreResult};
 pub use rule::Rule;

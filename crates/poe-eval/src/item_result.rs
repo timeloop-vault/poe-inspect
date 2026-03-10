@@ -1,14 +1,12 @@
-//! Display-ready item evaluation result.
+//! Item evaluation result — pure evaluation data, no display reshaping.
 //!
-//! Combines parsing (poe-item) + tier analysis + affix analysis + profile
-//! scoring into a single serializable struct for the frontend overlay.
-//! This is the **only** type the app needs to render an evaluated item.
+//! Combines tier analysis + affix analysis + profile scoring into a
+//! serializable struct. The app combines this with `ResolvedItem` (poe-item)
+//! into a frontend payload.
 
 use poe_data::domain::TierQuality;
 use poe_data::GameData;
-use poe_item::types::{
-    InfluenceKind, ModDisplayType, ModSource, Rarity, ResolvedItem, ResolvedMod, TierDisplayKind,
-};
+use poe_item::types::ResolvedItem;
 use serde::Serialize;
 
 use crate::affix::{self, Modifiability};
@@ -23,44 +21,20 @@ pub struct WatchingProfileInput {
     pub profile: Profile,
 }
 
-/// Complete evaluation result for the frontend overlay.
-#[derive(Debug, Serialize)]
+/// Evaluation result for a parsed item.
+///
+/// Contains only evaluation data: tier quality per mod, affix analysis, and
+/// scoring results. Display data comes from `ResolvedItem` (poe-item).
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
-pub struct EvaluatedItem {
-    pub item_class: String,
-    pub rarity: Rarity,
-    pub name: String,
-    pub base_type: String,
-    pub item_level: u32,
-    pub properties: Vec<poe_item::types::ItemProperty>,
-    pub requirements: Vec<poe_item::types::Requirement>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sockets: Option<String>,
-    pub enchants: Vec<Modifier>,
-    pub implicits: Vec<Modifier>,
-    pub explicits: Vec<Modifier>,
-    pub influences: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub corrupted: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fractured: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unidentified: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub note: Option<String>,
-    /// Item effect/description text (currency effects, scarab effects, etc.)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub flavor_text: Option<String>,
-    pub open_prefixes: u32,
-    pub open_suffixes: u32,
-    pub max_prefixes: u32,
-    pub max_suffixes: u32,
-    pub modifiable: bool,
-    /// Profile score (None if no profile active or not applicable).
+pub struct ItemEvaluation {
+    /// Per-mod tier analysis, ordered to match `ResolvedItem::all_mods()`.
+    pub mod_tiers: Vec<ModTierResult>,
+    /// Affix slot analysis.
+    pub affix_summary: AffixInfo,
+    /// Primary profile score.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub score: Option<ScoreInfo>,
     /// Scores from watching profiles.
@@ -68,8 +42,38 @@ pub struct EvaluatedItem {
     pub watching_scores: Vec<WatchingScoreInfo>,
 }
 
+/// Per-mod tier evaluation result (aligned with `all_mods()` ordering).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct ModTierResult {
+    /// Tier/rank number (from Ctrl+Alt+C header).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tier: Option<u32>,
+    /// Whether this is a "tier" (regular mod) or "rank" (bench craft).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tier_kind: Option<poe_item::types::TierDisplayKind>,
+    /// Quality classification from poe-data (Best/Great/Good/Mid/Low).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<TierQuality>,
+}
+
+/// Serializable affix summary for the frontend.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct AffixInfo {
+    pub open_prefixes: u32,
+    pub open_suffixes: u32,
+    pub max_prefixes: u32,
+    pub max_suffixes: u32,
+    pub modifiable: bool,
+}
+
 /// Score result from a watching profile.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
@@ -80,7 +84,7 @@ pub struct WatchingScoreInfo {
 }
 
 /// Scoring result from evaluating an item against a profile.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
@@ -100,7 +104,7 @@ pub struct ScoreInfo {
 }
 
 /// A matched or unmatched scoring rule.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
 pub struct RuleMatch {
@@ -108,82 +112,38 @@ pub struct RuleMatch {
     pub weight: f64,
 }
 
-/// Display-ready modifier for the frontend.
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
-pub struct Modifier {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mod_name: Option<String>,
-    #[serde(rename = "type")]
-    pub mod_type: ModDisplayType,
-    /// Raw tier/rank number (for badge display).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tier: Option<u32>,
-    /// Whether this is a "tier" (regular mod) or "rank" (bench craft).
-    /// Frontend uses this for badge label: "T1" vs "R1".
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tier_kind: Option<TierDisplayKind>,
-    /// Quality classification from poe-data (Best/Great/Good/Mid/Low).
-    /// Frontend uses this for coloring — no domain logic in the app.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub quality: Option<TierQuality>,
-    pub tags: Vec<String>,
-    pub text: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub value: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub crafted: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fractured: Option<bool>,
-}
-
 // ── Public API ──────────────────────────────────────────────────────────────
 
-/// Build a complete evaluation result from a resolved item.
+/// Evaluate a resolved item: tier analysis, affix analysis, and scoring.
 ///
-/// This is the single entry point the app calls. It combines:
-/// - Tier analysis (mod quality classification)
-/// - Affix analysis (open slots, modifiability)
-/// - Profile scoring (primary + watching profiles)
-///
-/// The result is directly serializable to JSON for the frontend overlay.
+/// Returns evaluation-only data. The app combines this with `ResolvedItem`
+/// for the frontend payload.
 #[must_use]
 pub fn evaluate_item(
     item: &ResolvedItem,
     gd: &GameData,
     profile: Option<&Profile>,
     watching: &[WatchingProfileInput],
-) -> EvaluatedItem {
+) -> ItemEvaluation {
     let tier_summary = tier::analyze_tiers(item, gd);
     let affix_summary = affix::analyze_affixes(item, gd);
 
-    // Build display mods with tier info
-    let all_mods: Vec<_> = item.all_mods().collect();
-    let mut enchants = Vec::new();
-    let mut implicits = Vec::new();
-    let mut explicits = Vec::new();
-
-    for (resolved_mod, tier_info) in all_mods.iter().zip(&tier_summary.mods) {
-        let modifier = build_modifier(resolved_mod, tier_info.tier, tier_info.quality);
-        match resolved_mod.display_type() {
-            poe_item::types::ModDisplayType::Enchant => enchants.push(modifier),
-            poe_item::types::ModDisplayType::Implicit => implicits.push(modifier),
-            _ => explicits.push(modifier),
-        }
-    }
-
-    // Influences (excluding Fractured which is a separate flag)
-    let influences = item
-        .influences
-        .iter()
-        .filter(|i| !matches!(i, InfluenceKind::Fractured))
-        .map(|i| i.to_string())
+    // Build per-mod tier results aligned with all_mods() order
+    let mod_tiers: Vec<ModTierResult> = item
+        .all_mods()
+        .zip(&tier_summary.mods)
+        .map(|(m, tier_info)| {
+            let tier_kind = m.header.tier.as_ref().map(|t| t.display_kind());
+            let quality = match tier_info.quality {
+                TierQuality::Unknown => None,
+                q => Some(q),
+            };
+            ModTierResult {
+                tier: tier_info.tier,
+                tier_kind,
+                quality,
+            }
+        })
         .collect();
 
     // Evaluate watching profiles
@@ -203,34 +163,15 @@ pub fn evaluate_item(
         })
         .collect();
 
-    EvaluatedItem {
-        item_class: item.header.item_class.clone(),
-        rarity: item.header.rarity,
-        name: item
-            .header
-            .name
-            .clone()
-            .unwrap_or_else(|| item.header.base_type.clone()),
-        base_type: item.header.base_type.clone(),
-        item_level: item.item_level.unwrap_or(0),
-        properties: item.properties.clone(),
-        requirements: item.requirements.clone(),
-        sockets: item.sockets.clone(),
-        enchants,
-        implicits,
-        explicits,
-        influences,
-        corrupted: if item.is_corrupted { Some(true) } else { None },
-        fractured: if item.is_fractured { Some(true) } else { None },
-        unidentified: if item.is_unidentified { Some(true) } else { None },
-        note: item.note.clone(),
-        description: item.description.clone(),
-        flavor_text: item.flavor_text.clone(),
-        open_prefixes: affix_summary.prefixes.open.unwrap_or(0),
-        open_suffixes: affix_summary.suffixes.open.unwrap_or(0),
-        max_prefixes: affix_summary.prefixes.max.unwrap_or(0),
-        max_suffixes: affix_summary.suffixes.max.unwrap_or(0),
-        modifiable: affix_summary.modifiable == Modifiability::Yes,
+    ItemEvaluation {
+        mod_tiers,
+        affix_summary: AffixInfo {
+            open_prefixes: affix_summary.prefixes.open.unwrap_or(0),
+            open_suffixes: affix_summary.suffixes.open.unwrap_or(0),
+            max_prefixes: affix_summary.prefixes.max.unwrap_or(0),
+            max_suffixes: affix_summary.suffixes.max.unwrap_or(0),
+            modifiable: affix_summary.modifiable == Modifiability::Yes,
+        },
         score: profile.map(|p| build_score_info(item, p, gd)),
         watching_scores,
     }
@@ -268,60 +209,5 @@ fn build_score_info(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> Sc
                 weight: m.weight,
             })
             .collect(),
-    }
-}
-
-fn build_modifier(m: &ResolvedMod, tier_num: Option<u32>, quality: TierQuality) -> Modifier {
-    // Tier kind from poe-item's method
-    let tier_kind = m.header.tier.as_ref().map(|t| t.display_kind());
-
-    // Quality from poe-data classification (None for Unknown)
-    let quality_val = match quality {
-        TierQuality::Unknown => None,
-        q => Some(q),
-    };
-
-    // Combine stat lines into display text
-    let text = m
-        .stat_lines
-        .iter()
-        .filter(|sl| !sl.is_reminder)
-        .map(|sl| sl.display_text.as_str())
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    // Use first stat line's value range for the roll bar
-    let first_value = m
-        .stat_lines
-        .iter()
-        .find(|sl| !sl.is_reminder && !sl.values.is_empty())
-        .and_then(|sl| sl.values.first());
-
-    let (value, min, max) = match first_value {
-        Some(vr) => (
-            Some(vr.current as f64),
-            Some(vr.min as f64),
-            Some(vr.max as f64),
-        ),
-        None => (None, None, None),
-    };
-
-    Modifier {
-        mod_name: m.header.name.clone(),
-        mod_type: m.display_type(),
-        tier: tier_num,
-        tier_kind,
-        quality: quality_val,
-        tags: m.header.tags.clone(),
-        text,
-        value,
-        min,
-        max,
-        crafted: if m.header.source == ModSource::MasterCrafted {
-            Some(true)
-        } else {
-            None
-        },
-        fractured: if m.is_fractured { Some(true) } else { None },
     }
 }

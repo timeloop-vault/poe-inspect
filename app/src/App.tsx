@@ -11,7 +11,7 @@ import {
 	loadHotkeys,
 	syncActiveProfile,
 } from "./store";
-import type { ParsedItem } from "./types";
+import type { ItemPayload } from "./types";
 
 /** Panel position — either left-anchored or right-anchored. */
 type PanelPosition =
@@ -87,7 +87,7 @@ class OverlayErrorBoundary extends Component<
 
 export function App() {
 	const [itemText, setItemText] = useState<string | null>(null);
-	const [evaluatedItem, setEvaluatedItem] = useState<ParsedItem | null>(null);
+	const [evaluatedItem, setEvaluatedItem] = useState<ItemPayload | null>(null);
 	const [parseError, setParseError] = useState<{ error: string; rawText: string } | null>(null);
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(true);
@@ -140,7 +140,7 @@ export function App() {
 			setCursorPos(event.payload);
 		});
 
-		const unlistenEvaluated = listen<ParsedItem>("item-evaluated", (event) => {
+		const unlistenEvaluated = listen<ItemPayload>("item-evaluated", (event) => {
 			reloadSettings();
 			setEvaluatedItem(event.payload);
 			setItemText(null);
@@ -236,7 +236,9 @@ export function App() {
 	let showDismiss = true;
 
 	if (evaluatedItem && !showMock) {
-		content = <ItemOverlay item={evaluatedItem} display={displaySettings} />;
+		content = (
+			<ItemOverlay item={evaluatedItem.item} eval={evaluatedItem.eval} display={displaySettings} />
+		);
 	} else if (parseError && !showMock) {
 		content = (
 			<div class="parse-error">
@@ -260,9 +262,9 @@ export function App() {
 			<>
 				{/* Item selector for cycling mock items */}
 				<div class="item-selector">
-					{mockItems.map((item, i) => (
+					{mockItems.map((m, i) => (
 						<button
-							key={item.name}
+							key={m.item.header.name ?? m.item.header.baseType}
 							type="button"
 							class={i === mockIndex ? "active" : ""}
 							onClick={() => {
@@ -270,11 +272,13 @@ export function App() {
 								setShowMock(true);
 							}}
 						>
-							{item.name}
+							{m.item.header.name ?? m.item.header.baseType}
 						</button>
 					))}
 				</div>
-				{currentItem !== undefined && <ItemOverlay item={currentItem} display={displaySettings} />}
+				{currentItem !== undefined && (
+					<ItemOverlay item={currentItem.item} eval={currentItem.eval} display={displaySettings} />
+				)}
 			</>
 		);
 	}

@@ -4,7 +4,7 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ## Status
 
-**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 32 fixture tests.
+**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 32 fixture tests. Supports DivinationCard rarity, Unidentified status.
 
 ## Scope
 

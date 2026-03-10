@@ -1,19 +1,30 @@
 // ── Generated types (from Rust via ts-rs) ───────────────────────────────────
-// Regenerate: TS_RS_EXPORT_DIR="app/src/generated" cargo test -p poe-eval --features ts export_bindings
+// Regenerate: TS_RS_EXPORT_DIR="app/src/generated" cargo test -p poe-eval --features ts
 //             (also poe-item and poe-data with same pattern)
 
-// Display types (overlay rendering)
+// Item display types (from poe-item)
 export type { Rarity } from "./generated/Rarity";
 export type { ModType } from "./generated/ModType";
 export type { TierKind } from "./generated/TierKind";
+export type { ItemProperty } from "./generated/ItemProperty";
+export type { Requirement } from "./generated/Requirement";
+export type { ResolvedItem } from "./generated/ResolvedItem";
+export type { ResolvedMod } from "./generated/ResolvedMod";
+export type { ResolvedStatLine } from "./generated/ResolvedStatLine";
+export type { ResolvedHeader } from "./generated/ResolvedHeader";
+export type { ModHeader } from "./generated/ModHeader";
+export type { ValueRange } from "./generated/ValueRange";
+export type { InfluenceKind } from "./generated/InfluenceKind";
+export type { StatusKind } from "./generated/StatusKind";
+
+// Evaluation types (from poe-eval)
 export type { TierQuality } from "./generated/TierQuality";
-export type { Modifier } from "./generated/Modifier";
-export type { EvaluatedItem as ParsedItem } from "./generated/EvaluatedItem";
+export type { ItemEvaluation } from "./generated/ItemEvaluation";
+export type { ModTierResult } from "./generated/ModTierResult";
+export type { AffixInfo } from "./generated/AffixInfo";
 export type { WatchingScoreInfo as WatchingScore } from "./generated/WatchingScoreInfo";
 export type { ScoreInfo } from "./generated/ScoreInfo";
 export type { RuleMatch } from "./generated/RuleMatch";
-export type { ItemProperty } from "./generated/ItemProperty";
-export type { Requirement } from "./generated/Requirement";
 
 // Profile/rule types (profile editor)
 export type { Profile as EvalProfile } from "./generated/Profile";
@@ -27,6 +38,17 @@ export type { PredicateField } from "./generated/PredicateField";
 export type { FieldKind } from "./generated/FieldKind";
 export type { EnumOption } from "./generated/EnumOption";
 export type { Cmp } from "./generated/Cmp";
+
+// ── App-owned combined payload ──────────────────────────────────────────────
+// Matches the Rust `ItemPayload` struct in app/src-tauri/src/lib.rs.
+
+import type { ItemEvaluation } from "./generated/ItemEvaluation";
+import type { ResolvedItem } from "./generated/ResolvedItem";
+
+export interface ItemPayload {
+	item: ResolvedItem;
+	eval: ItemEvaluation;
+}
 
 // ── Type guards ─────────────────────────────────────────────────────────────
 // These belong to poe-eval conceptually (they narrow poe-eval's Rule union),
