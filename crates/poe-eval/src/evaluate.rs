@@ -235,8 +235,8 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
     max_u32.saturating_sub(current)
 }
 
-/// Iterate all non-reminder stat lines matching by stat_id.
-/// Returns no matches if stat_id is None (rules must have a resolved stat_id).
+/// Iterate all non-reminder stat lines matching by `stat_id`.
+/// Returns no matches if `stat_id` is None (rules must have a resolved `stat_id`).
 fn find_matching_stats<'a>(
     item: &'a ResolvedItem,
     stat_id: Option<&'a str>,

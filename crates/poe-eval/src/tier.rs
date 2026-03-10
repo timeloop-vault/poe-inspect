@@ -47,7 +47,7 @@ pub struct QualityCounts {
 /// Analyze a single mod's tier, using per-mod tier counts when available.
 fn analyze_mod(m: &ResolvedMod, gd: &GameData) -> ModTierInfo {
     let tier = match &m.header.tier {
-        Some(ModTierKind::Tier(n)) | Some(ModTierKind::Rank(n)) => Some(*n),
+        Some(ModTierKind::Tier(n) | ModTierKind::Rank(n)) => Some(*n),
         None => None,
     };
 

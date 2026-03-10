@@ -4,7 +4,7 @@ use std::path::Path;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use super::types::*;
+use super::types::{Range, StatDescriptionFile, Transform, TransformKind};
 
 /// Result of matching display text against the reverse index.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,6 +61,10 @@ const NUMBER_PATTERN: &str = r"[+-]?\d+(?:\.\d+)?";
 
 impl ReverseIndex {
     /// Build a reverse index from a parsed stat description file.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number-matching regex fails to compile (should never happen).
     pub fn from_file(file: &StatDescriptionFile) -> Self {
         let mut entries = Vec::new();
         let mut template_map: HashMap<String, Vec<usize>> = HashMap::new();
@@ -251,19 +255,25 @@ impl ReverseIndex {
     }
 
     /// Save the reverse index to a JSON file.
+    ///
+    /// # Errors
+    ///
+    /// Returns `std::io::Error` if the file can't be created or serialization fails.
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
         let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
-        serde_json::to_writer(writer, self)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        serde_json::to_writer(writer, self).map_err(std::io::Error::other)
     }
 
     /// Load a reverse index from a JSON file.
+    ///
+    /// # Errors
+    ///
+    /// Returns `std::io::Error` if the file can't be read or deserialization fails.
     pub fn load(path: &Path) -> std::io::Result<Self> {
         let file = std::fs::File::open(path)?;
         let reader = std::io::BufReader::new(file);
-        serde_json::from_reader(reader)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        serde_json::from_reader(reader).map_err(std::io::Error::other)
     }
 }
 
@@ -281,7 +291,7 @@ fn build_template_key(segments: &[Segment]) -> String {
 }
 
 /// Build a display key by replacing selected number tokens with \x00.
-/// `skip_set` contains indices of number_positions to NOT replace (literal numbers).
+/// `skip_set` contains indices of `number_positions` to NOT replace (literal numbers).
 fn build_display_key(
     display_text: &str,
     number_positions: &[(usize, usize)],
@@ -360,7 +370,7 @@ fn parse_format_string(fmt: &str) -> Vec<Segment> {
             let signed = inside.contains('+');
             let index: usize = inside
                 .chars()
-                .take_while(|c| c.is_ascii_digit())
+                .take_while(char::is_ascii_digit)
                 .collect::<String>()
                 .parse()
                 .unwrap_or(0);
@@ -419,9 +429,13 @@ fn reverse_transform(kind: &TransformKind, displayed: f64) -> i64 {
         | TransformKind::MillisecondsToSeconds0dp
         | TransformKind::MillisecondsToSeconds1dp
         | TransformKind::MillisecondsToSeconds2dp
-        | TransformKind::MillisecondsToSeconds2dpIfRequired => (displayed * 1000.0) as i64,
+        | TransformKind::MillisecondsToSeconds2dpIfRequired
+        | TransformKind::DivideByOneThousand => (displayed * 1000.0) as i64,
 
-        TransformKind::DecisecondsToSeconds => (displayed * 10.0) as i64,
+        TransformKind::DecisecondsToSeconds
+        | TransformKind::DivideByTen0dp
+        | TransformKind::DivideByTen1dp
+        | TransformKind::DivideByTen1dpIfRequired => (displayed * 10.0) as i64,
 
         TransformKind::PerMinuteToPerSecond
         | TransformKind::PerMinuteToPerSecond0dp
@@ -434,9 +448,6 @@ fn reverse_transform(kind: &TransformKind, displayed: f64) -> i64 {
         TransformKind::DivideByFour => (displayed * 4.0) as i64,
         TransformKind::DivideByFive => (displayed * 5.0) as i64,
         TransformKind::DivideBySix => (displayed * 6.0) as i64,
-        TransformKind::DivideByTen0dp
-        | TransformKind::DivideByTen1dp
-        | TransformKind::DivideByTen1dpIfRequired => (displayed * 10.0) as i64,
         TransformKind::DivideByTwelve => (displayed * 12.0) as i64,
         TransformKind::DivideByFifteen0dp => (displayed * 15.0) as i64,
         TransformKind::DivideByTwenty => (displayed * 20.0) as i64,
@@ -446,8 +457,6 @@ fn reverse_transform(kind: &TransformKind, displayed: f64) -> i64 {
         | TransformKind::DivideByOneHundred2dp
         | TransformKind::DivideByOneHundred2dpIfRequired => (displayed * 100.0) as i64,
         TransformKind::DivideByOneHundredAndNegate => (-displayed * 100.0) as i64,
-
-        TransformKind::DivideByOneThousand => (displayed * 1000.0) as i64,
 
         TransformKind::TimesOnePointFive => (displayed / 1.5) as i64,
         TransformKind::TimesTwenty => (displayed / 20.0) as i64,

@@ -62,6 +62,10 @@ pub struct TradeClient {
 
 impl TradeClient {
     /// Create a new trade client.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the HTTP client builder fails (should never happen with default config).
     #[must_use]
     pub fn new() -> Self {
         let http = reqwest::Client::builder()
@@ -91,6 +95,10 @@ impl TradeClient {
     /// Full price check: search → fetch listings → extract prices.
     ///
     /// Returns prices from the cheapest listings (up to 10).
+    ///
+    /// # Errors
+    ///
+    /// Returns `TradeApiError` on HTTP failure, rate limiting, or API errors.
     pub async fn price_check(
         &mut self,
         query_body: &TradeSearchBody,
@@ -143,6 +151,10 @@ impl TradeClient {
     ///
     /// `POST /api/trade/search/{league}` with the query body.
     /// Returns a search ID and the first batch of listing IDs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TradeApiError` on HTTP failure, rate limiting, or API errors.
     pub async fn search(
         &mut self,
         query_body: &TradeSearchBody,
@@ -205,6 +217,10 @@ impl TradeClient {
     ///
     /// `GET /api/trade/fetch/{id1,id2,...}?query={search_id}`
     /// Maximum 10 IDs per request (trade API limit).
+    ///
+    /// # Errors
+    ///
+    /// Returns `TradeApiError` on HTTP failure, rate limiting, or API errors.
     pub async fn fetch_listings(
         &mut self,
         search_id: &str,
@@ -267,6 +283,10 @@ impl TradeClient {
     ///
     /// Returns all searchable stats with their IDs, text patterns, and categories.
     /// This is the foundation for building the `TradeStatsIndex`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TradeApiError` on HTTP failure or API errors.
     pub async fn fetch_stats(&self) -> Result<TradeStatsResponse, TradeApiError> {
         let url = format!("{POE1_TRADE_API}/data/stats");
         let response = self.http.get(&url).send().await?;
@@ -291,6 +311,10 @@ impl TradeClient {
     /// Filters out SSF leagues (which have the `NoParties` rule — no trading).
     /// Returns remaining leagues grouped into public and private.
     /// Private leagues are detected by the `(PLnnnn)` suffix pattern.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TradeApiError` on HTTP failure or API errors.
     pub async fn fetch_leagues(&self) -> Result<LeagueList, TradeApiError> {
         let url = format!("{POE1_API}/leagues?type=main&realm=pc");
         let response = self.http.get(&url).send().await?;
@@ -381,6 +405,10 @@ enum LimiterKind {
 ///
 /// Convenience wrapper — creates a one-shot client. For repeated use,
 /// prefer `TradeClient::fetch_stats()`.
+///
+/// # Errors
+///
+/// Returns `TradeApiError` on HTTP failure or API errors.
 pub async fn fetch_trade_stats() -> Result<TradeStatsResponse, TradeApiError> {
     TradeClient::new().fetch_stats().await
 }

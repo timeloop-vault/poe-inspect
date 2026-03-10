@@ -454,26 +454,23 @@ fn split_stats_and_quality(lines: &[String]) -> (Vec<String>, Vec<String>) {
         .iter()
         .position(|l| l.starts_with("Additional Effects From Quality"));
 
-    match quality_marker {
-        Some(pos) => {
-            // Stats are before the marker (skip trailing blank lines)
-            let stats: Vec<String> = lines[..pos]
-                .iter()
-                .filter(|l| !l.is_empty())
-                .cloned()
-                .collect();
-            // Quality effects are after the marker
-            let quality: Vec<String> = lines[pos + 1..]
-                .iter()
-                .filter(|l| !l.is_empty())
-                .cloned()
-                .collect();
-            (stats, quality)
-        }
-        None => {
-            let stats: Vec<String> = lines.iter().filter(|l| !l.is_empty()).cloned().collect();
-            (stats, vec![])
-        }
+    if let Some(pos) = quality_marker {
+        // Stats are before the marker (skip trailing blank lines)
+        let stats: Vec<String> = lines[..pos]
+            .iter()
+            .filter(|l| !l.is_empty())
+            .cloned()
+            .collect();
+        // Quality effects are after the marker
+        let quality: Vec<String> = lines[pos + 1..]
+            .iter()
+            .filter(|l| !l.is_empty())
+            .cloned()
+            .collect();
+        (stats, quality)
+    } else {
+        let stats: Vec<String> = lines.iter().filter(|l| !l.is_empty()).cloned().collect();
+        (stats, vec![])
     }
 }
 

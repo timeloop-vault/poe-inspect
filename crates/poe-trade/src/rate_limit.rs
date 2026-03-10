@@ -5,8 +5,8 @@
 //! wait before sending rather than reacting to 429 responses.
 //!
 //! Header format:
-//! - `X-Rate-Limit-Ip: 12:6:60,16:12:300` — policy: max:period_secs:penalty_secs
-//! - `X-Rate-Limit-Ip-State: 1:6:0,1:12:0` — state: current:period_secs:penalty_remaining
+//! - `X-Rate-Limit-Ip: 12:6:60,16:12:300` — policy: `max:period_secs:penalty_secs`
+//! - `X-Rate-Limit-Ip-State: 1:6:0,1:12:0` — state: `current:period_secs:penalty_remaining`
 
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};

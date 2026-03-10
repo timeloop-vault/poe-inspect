@@ -162,9 +162,9 @@ impl ModTierKind {
     }
 }
 
-/// Flat display type combining ModSlot + ModSource for the frontend.
+/// Flat display type combining `ModSlot` + `ModSource` for the frontend.
 /// "T1" badge shows as Tier, "R1" as Rank. The UI doesn't need to know
-/// about SearingExarchImplicit vs EaterOfWorldsImplicit — both are "implicit".
+/// about `SearingExarchImplicit` vs `EaterOfWorldsImplicit` — both are "implicit".
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
@@ -351,7 +351,7 @@ pub struct ResolvedItem {
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
 pub struct GemData {
-    /// Gem tags (e.g., ["Spell", "AoE", "Cold", "Nova"]).
+    /// Gem tags (e.g., `["Spell", "AoE", "Cold", "Nova"]`).
     pub tags: Vec<String>,
     /// Gem description text.
     pub description: Option<String>,

@@ -218,7 +218,7 @@ pub fn build_query(
                     .find(|o| o.stat_index == flat_index)
             });
 
-            let enabled = user_override.map_or(true, |o| o.enabled);
+            let enabled = user_override.is_none_or(|o| o.enabled);
             let included = enabled && trade_id.is_some();
 
             if included {
@@ -313,7 +313,7 @@ pub fn trade_url(league: &str, search_id: &str) -> String {
 /// Determine the trade API category prefix for a mod.
 ///
 /// Delegates to `poe_data::domain::mod_trade_category()` — the mapping
-/// from mod types to trade API categories is PoE domain knowledge.
+/// from mod types to trade API categories is `PoE` domain knowledge.
 fn mod_trade_category(m: &ResolvedMod) -> &'static str {
     let display_type = match m.display_type {
         ModDisplayType::Prefix => "prefix",

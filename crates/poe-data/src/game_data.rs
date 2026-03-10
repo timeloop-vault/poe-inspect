@@ -400,6 +400,10 @@ impl GameData {
 ///
 /// Expects files named `{table}.datc64` (lowercase):
 /// stats, tags, itemclasses, baseitemtypes, modfamily, modtype, mods.
+///
+/// # Errors
+///
+/// Returns `LoadError` if any datc64 file is missing or fails to parse.
 pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
     let stats = load_table(dat_dir, "stats", tables::extract_stats)?;
     let tags = load_table(dat_dir, "tags", tables::extract_tags)?;
@@ -520,7 +524,7 @@ pub enum StatSuggestionKind {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-/// Format a stat_id as a human-readable display string (last-resort fallback).
+/// Format a `stat_id` as a human-readable display string (last-resort fallback).
 ///
 /// Strips common prefixes (`local_`, `base_`), replaces underscores with
 /// spaces, and title-cases words. Example:

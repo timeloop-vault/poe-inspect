@@ -1,7 +1,7 @@
 //! Trade stats index: maps between GGPK stat IDs and trade API stat IDs.
 //!
 //! The join key is template text (e.g., `"+# to maximum Life"`) which appears
-//! in both our `ReverseIndex` (from stat_descriptions.txt) and the trade API's
+//! in both our `ReverseIndex` (from `stat_descriptions.txt`) and the trade API's
 //! `/data/stats` endpoint.
 
 use std::collections::HashMap;
@@ -177,22 +177,28 @@ impl TradeStatsIndex {
     }
 
     /// Save the trade stats response to disk for caching.
+    ///
+    /// # Errors
+    ///
+    /// Returns `std::io::Error` if the file can't be created or serialization fails.
     pub fn save_response(
         response: &TradeStatsResponse,
         path: &std::path::Path,
     ) -> std::io::Result<()> {
         let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
-        serde_json::to_writer(writer, response)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        serde_json::to_writer(writer, response).map_err(std::io::Error::other)
     }
 
     /// Load a cached trade stats response from disk.
+    ///
+    /// # Errors
+    ///
+    /// Returns `std::io::Error` if the file can't be read or deserialization fails.
     pub fn load_response(path: &std::path::Path) -> std::io::Result<TradeStatsResponse> {
         let file = std::fs::File::open(path)?;
         let reader = std::io::BufReader::new(file);
-        serde_json::from_reader(reader)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        serde_json::from_reader(reader).map_err(std::io::Error::other)
     }
 }
 

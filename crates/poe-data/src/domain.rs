@@ -83,7 +83,7 @@ pub fn classify_tier_relative(tier: u32, total_tiers: u32) -> TierQuality {
         };
     }
     // 3+ tiers: position as fraction (0.0 = best, 1.0 = worst)
-    let position = (tier - 1) as f64 / (total_tiers - 1) as f64;
+    let position = f64::from(tier - 1) / f64::from(total_tiers - 1);
     if position < 0.01 {
         TierQuality::Best // T1
     } else if position < 0.25 {
@@ -164,7 +164,7 @@ pub fn rarity_to_ggpk_id(rarity: &str) -> Option<&'static str> {
 
 /// Suffixes that GGG's trade API appends to stat descriptions.
 ///
-/// These are not part of the GGPK stat_descriptions.txt format strings.
+/// These are not part of the GGPK `stat_descriptions.txt` format strings.
 /// Used by `poe-trade` when matching trade API text against the reverse index.
 pub const TRADE_STAT_SUFFIXES: &[&str] = &[" (Local)", " (Shields)"];
 

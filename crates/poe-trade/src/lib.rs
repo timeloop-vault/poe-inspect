@@ -1,7 +1,7 @@
 //! Trade API client for pathofexile.com.
 //!
 //! Provides stat index building, query construction, and rate-limited HTTP
-//! client for PoE's official trade search API.
+//! client for `PoE`'s official trade search API.
 //!
 //! # Architecture
 //!

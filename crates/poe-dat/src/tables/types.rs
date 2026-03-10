@@ -6,7 +6,7 @@
 /// A stat definition from `Stats.datc64`.
 #[derive(Debug, Clone)]
 pub struct StatRow {
-    /// Internal stat ID (e.g., "base_maximum_life").
+    /// Internal stat ID (e.g., "`base_maximum_life`").
     pub id: String,
     /// Whether this stat is local to the item.
     pub is_local: bool,
@@ -26,7 +26,7 @@ pub struct TagRow {
 /// A mod family from `ModFamily.datc64`.
 #[derive(Debug, Clone)]
 pub struct ModFamilyRow {
-    /// Family ID (e.g., "IncreasedLife").
+    /// Family ID (e.g., "`IncreasedLife`").
     pub id: String,
 }
 
@@ -40,11 +40,11 @@ pub struct ModTypeRow {
 /// An item class from `ItemClasses.datc64`.
 #[derive(Debug, Clone)]
 pub struct ItemClassRow {
-    /// Internal ID (e.g., "LifeFlask", "BodyArmour").
+    /// Internal ID (e.g., "`LifeFlask`", "`BodyArmour`").
     pub id: String,
     /// Display name (e.g., "Life Flasks", "Body Armours").
     pub name: String,
-    /// FK to ItemClassCategories (row index, None if null).
+    /// FK to `ItemClassCategories` (row index, None if null).
     pub category: Option<u64>,
     /// Whether the item can have veiled mods.
     pub can_have_veiled_mods: bool,
@@ -55,7 +55,7 @@ pub struct ItemClassRow {
 pub struct BaseItemTypeRow {
     /// Metadata path (e.g., "Metadata/Items/Armours/Boots/BootsStr1").
     pub id: String,
-    /// FK to ItemClasses (row index).
+    /// FK to `ItemClasses` (row index).
     pub item_class: Option<u64>,
     /// Grid width in inventory.
     pub width: i32,
@@ -106,7 +106,7 @@ pub struct ItemClassCategoryRow {
 pub struct ModRow {
     /// Internal mod ID (e.g., "Strength1").
     pub id: String,
-    /// FK to ModType (row index).
+    /// FK to `ModType` (row index).
     pub mod_type: Option<u64>,
     /// Required item level.
     pub level: i32,
@@ -118,13 +118,13 @@ pub struct ModRow {
     pub name: String,
     /// Generation type as raw enum index (1=prefix, 2=suffix, 3=unique, etc.).
     pub generation_type: u32,
-    /// FK list to ModFamily (row indices).
+    /// FK list to `ModFamily` (row indices).
     pub families: Vec<u64>,
     /// Stat value ranges: [min, max] for each of the 6 stats.
     pub stat_ranges: [(i32, i32); 6],
     /// Spawn weight tags (FK list to Tags).
     pub spawn_weight_tags: Vec<u64>,
-    /// Spawn weight values (parallel with spawn_weight_tags).
+    /// Spawn weight values (parallel with `spawn_weight_tags`).
     pub spawn_weight_values: Vec<i32>,
     /// Tags applied to this mod (FK list to Tags).
     pub tags: Vec<u64>,
