@@ -80,21 +80,14 @@ impl TradeStatsIndex {
                         // stat_descriptions.txt uses `{0:+d}` format specifier for signed
                         // values. The `+` is NOT literal text, so our template key has
                         // just `#`, while the trade API shows `+#`.
-                        let stat_ids = resolve_template(
-                            &normalized,
-                            &ri_case_map,
-                            ri,
-                        );
+                        let stat_ids = resolve_template(&normalized, &ri_case_map, ri);
 
                         if let Some(stat_ids) = stat_ids {
                             matched += 1;
                             for stat_id in &stat_ids {
                                 ggpk_to_trade.insert(stat_id.clone(), trade_num);
                             }
-                            trade_to_ggpk
-                                .entry(trade_num)
-                                .or_default()
-                                .extend(stat_ids);
+                            trade_to_ggpk.entry(trade_num).or_default().extend(stat_ids);
                         } else {
                             unmatched_templates.push(entry.text.clone());
                         }
@@ -184,7 +177,10 @@ impl TradeStatsIndex {
     }
 
     /// Save the trade stats response to disk for caching.
-    pub fn save_response(response: &TradeStatsResponse, path: &std::path::Path) -> std::io::Result<()> {
+    pub fn save_response(
+        response: &TradeStatsResponse,
+        path: &std::path::Path,
+    ) -> std::io::Result<()> {
         let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
         serde_json::to_writer(writer, response)

@@ -168,7 +168,8 @@ impl TradeClient {
         // Handle rate limit response.
         if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
             let retry_after = parse_retry_after(&headers);
-            self.search_limiter.block_for(Duration::from_secs(retry_after));
+            self.search_limiter
+                .block_for(Duration::from_secs(retry_after));
             return Err(TradeApiError::RateLimited {
                 retry_after_secs: retry_after,
             });
@@ -238,7 +239,8 @@ impl TradeClient {
 
         if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
             let retry_after = parse_retry_after(&headers);
-            self.fetch_limiter.block_for(Duration::from_secs(retry_after));
+            self.fetch_limiter
+                .block_for(Duration::from_secs(retry_after));
             return Err(TradeApiError::RateLimited {
                 retry_after_secs: retry_after,
             });

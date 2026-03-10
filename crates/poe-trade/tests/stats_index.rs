@@ -13,15 +13,14 @@ fn game_data() -> &'static GameData {
     static GD: OnceLock<GameData> = OnceLock::new();
     GD.get_or_init(|| {
         let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../poe-data/data");
-        poe_data::load(&data_dir)
-            .expect("game data required — run poe-data extraction first")
+        poe_data::load(&data_dir).expect("game data required — run poe-data extraction first")
     })
 }
 
 /// Load the trade stats fixture.
 fn trade_stats_fixture() -> TradeStatsResponse {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/trade_stats_3.28.json");
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/trade_stats_3.28.json");
     let file = std::fs::File::open(&path)
         .unwrap_or_else(|e| panic!("fixture not found at {}: {e}", path.display()));
     serde_json::from_reader(std::io::BufReader::new(file)).expect("valid JSON fixture")
@@ -164,10 +163,7 @@ fn resistance_stats_map() {
         "base_lightning_damage_resistance_%",
     ] {
         let trade_num = idx.trade_stat_number(stat_id);
-        assert!(
-            trade_num.is_some(),
-            "{stat_id} should have a trade mapping"
-        );
+        assert!(trade_num.is_some(), "{stat_id} should have a trade mapping");
         println!("{stat_id} → stat_{}", trade_num.unwrap());
     }
 }
