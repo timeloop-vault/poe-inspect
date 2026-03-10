@@ -63,6 +63,8 @@ struct TradeStatsIndex {
 
 **Done when**: Can load the index, look up a GGPK stat ID, and get back the correct trade stat ID with category prefix.
 
+**Current status (Phase 1 done)**: 87.4% match rate (10,160/11,624 stat entries), 7,037 GGPK stat IDs mapped. Remaining 1,464 unmatched are from stat description files we haven't parsed yet — see "Stat description coverage gap" below.
+
 ---
 
 ## Phase 2: Query Builder
@@ -152,11 +154,32 @@ struct TradeStatsIndex {
 
 ---
 
+## Stat Description Coverage Gap
+
+Current match rate is 87.4%. The unmatched 1,464 stats come from **separate stat description files** that our `ReverseIndex` doesn't parse yet. We only parse `stat_descriptions.txt` (30MB, the main file).
+
+| Missing file | Size | Covers | Unmatched stats |
+|-------------|------|--------|----------------|
+| `atlas_stat_descriptions.txt` | 2.8MB | Atlas passive mods | ~636 |
+| `map_stat_descriptions.txt` | 468KB | Map mods ("Your Maps have...") | (included in atlas) |
+| `graft_stat_descriptions.txt` | 363KB | Sanctum graft mods | ~87 |
+| `sanctum_relic_stat_descriptions.txt` | 128KB | Sanctum relic mods | (included in graft) |
+| `heist_equipment_stat_descriptions.txt` | 329KB | Heist equipment | ~8 |
+| `expedition_relic_stat_descriptions.txt` | 446KB | Expedition relics | (included in other) |
+| Other domain-specific files | varies | Wombgifts, sentinels, etc. | ~733 |
+
+**Fix**: Parse these additional files in `poe-dat` and merge into the `ReverseIndex`. The trade stats index will automatically improve — no changes needed in poe-trade. These files use `include "stat_descriptions.txt"`, so they extend the main file. Our PEST parser already handles the format; we just need to parse more files.
+
+**Priority**: Parse `atlas_stat_descriptions.txt` and `map_stat_descriptions.txt` first — maps are one of the most commonly traded item types.
+
+---
+
 ## Risks
 
 | Risk | Mitigation |
 |------|-----------|
-| Template text mismatch (GGPK vs trade API) | Case-insensitive compare, log mismatches, manual override table in `poe-data/domain.rs` |
+| Template text mismatch (GGPK vs trade API) | Case-insensitive compare, `+#`→`#` fallback, `(Local)` stripping, log mismatches |
+| Stat description coverage | Parse additional stat description files in poe-dat (see gap analysis above) |
 | Rate limit exhaustion | Explicit user action (no auto-check), cache results, cooldown UI |
 | GGG changes API without notice | Community tools break too — monitor, adapt |
 | Category prefix mapping errors | Test against known items, validate `ModDisplayType` → prefix mapping |

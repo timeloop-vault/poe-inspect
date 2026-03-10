@@ -4,7 +4,7 @@ Trade API client for pathofexile.com — fetches trade stats, builds search quer
 
 ## Status
 
-**Phase 1** — Scaffolding. See `docs/trade-integration-plan.md` for phased plan.
+**Phase 1 done** — Trade stats index: 87.4% match rate, 7,037 GGPK stat IDs mapped. 11 tests. Remaining 12.6% gap is from unparsed stat description files in poe-dat (atlas, map, sanctum, heist — see `docs/trade-integration-plan.md` gap analysis). See plan for phases 2-5.
 
 ## Scope
 
