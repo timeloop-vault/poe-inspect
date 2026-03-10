@@ -706,6 +706,24 @@ fn transfigured_gem_status() {
     assert_eq!(status, StatusKind::Transfigured);
 }
 
+#[test]
+fn transfigured_gem_corrupted_imbued() {
+    let item = parse_fixture("gem-skill-transfigured-shock-nova-of-procession.txt");
+    assert_eq!(item.header.rarity, Rarity::Gem);
+    assert_eq!(item.header.name1, "Shock Nova of Procession");
+
+    let statuses: Vec<StatusKind> = item
+        .sections
+        .iter()
+        .filter_map(|s| match s {
+            Section::Status(k) => Some(*k),
+            _ => None,
+        })
+        .collect();
+    assert!(statuses.contains(&StatusKind::Corrupted));
+    assert!(statuses.contains(&StatusKind::Transfigured));
+}
+
 // ─── Belt, helmet, shield ───────────────────────────────────────────────────
 
 #[test]
