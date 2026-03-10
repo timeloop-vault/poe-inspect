@@ -885,46 +885,7 @@
 	opacity: 1;
 }
 
-/* --- Stat search bar (unified scoring) --- */
-
-.stat-search {
-	position: relative;
-	margin-bottom: 12px;
-}
-
-/* Hybrid mod suggestion items */
-.pred-dropdown-item.hybrid-item {
-	display: flex;
-	align-items: baseline;
-	gap: 6px;
-	border-left: 2px solid var(--poe-header);
-	padding-left: 6px;
-}
-
-.hybrid-affix {
-	font-size: 9px;
-	font-weight: 700;
-	color: var(--poe-header);
-	background: rgba(175, 96, 37, 0.15);
-	padding: 0 3px;
-	border-radius: 2px;
-	flex-shrink: 0;
-}
-
-.hybrid-stats {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.hybrid-mod-name {
-	font-size: 9px;
-	color: rgba(255, 255, 255, 0.4);
-	flex-shrink: 0;
-	font-style: italic;
-}
+/* (stat-search bar removed — use compound rules with StatValue predicates instead) */
 
 /* --- Weight bar (bar + click-to-edit numeric) --- */
 
