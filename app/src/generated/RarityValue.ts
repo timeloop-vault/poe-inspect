@@ -3,4 +3,4 @@
 /**
  * Serializable rarity value (maps to `poe_item::types::Rarity`).
  */
-export type RarityValue = "Normal" | "Magic" | "Rare" | "Unique" | "Gem" | "Currency";
+export type RarityValue = "Normal" | "Magic" | "Rare" | "Unique" | "Gem" | "Currency" | "DivinationCard";

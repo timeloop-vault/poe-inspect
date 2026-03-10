@@ -70,6 +70,7 @@ fn walk_section(pair: pest::iterators::Pair<'_, Rule>) -> Result<Section, ParseE
         Rule::mod_section => walk_mod_section(pair),
         Rule::influence_section => Ok(walk_influence_section(pair)),
         Rule::status_section => walk_status_section(pair),
+        Rule::note_section => Ok(walk_note_section(pair)),
         _ => Ok(walk_generic_section(pair)),
     }
 }
@@ -315,6 +316,15 @@ fn walk_status_section(pair: pest::iterators::Pair<'_, Rule>) -> Result<Section,
     Err(ParseError::Internal(
         "status section with no recognized keyword".into(),
     ))
+}
+
+fn walk_note_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
+    let text = pair
+        .into_inner()
+        .find(|p| p.as_rule() == Rule::rest_of_line)
+        .map(|p| p.as_str().to_string())
+        .unwrap_or_default();
+    Section::Note(text)
 }
 
 fn walk_generic_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {

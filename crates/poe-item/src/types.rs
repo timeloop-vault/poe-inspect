@@ -31,6 +31,7 @@ pub enum Rarity {
     Unique,
     Gem,
     Currency,
+    DivinationCard,
     Unknown,
 }
 
@@ -43,6 +44,7 @@ impl From<&str> for Rarity {
             "Unique" => Self::Unique,
             "Gem" => Self::Gem,
             "Currency" => Self::Currency,
+            "Divination Card" => Self::DivinationCard,
             _ => Self::Unknown,
         }
     }
@@ -60,6 +62,8 @@ pub enum Section {
     Modifiers(ModSection),
     Influence(Vec<InfluenceKind>),
     Status(StatusKind),
+    /// GGG trade pricing annotation: "Note: ~b/o 35 chaos"
+    Note(String),
     /// Catch-all for unclassified sections (properties, flavor text, enchants, etc.)
     Generic(Vec<String>),
 }
@@ -238,6 +242,7 @@ pub enum StatusKind {
     Unmodifiable,
     Split,
     Transfigured,
+    Unidentified,
 }
 
 impl StatusKind {
@@ -249,6 +254,7 @@ impl StatusKind {
             "Unmodifiable" => Some(Self::Unmodifiable),
             "Split" => Some(Self::Split),
             "Transfigured" => Some(Self::Transfigured),
+            "Unidentified" => Some(Self::Unidentified),
             _ => None,
         }
     }
@@ -285,6 +291,10 @@ pub struct ResolvedItem {
     pub is_corrupted: bool,
     /// Whether the item is fractured.
     pub is_fractured: bool,
+    /// Whether the item is unidentified (no explicit mods visible).
+    pub is_unidentified: bool,
+    /// GGG trade pricing annotation (e.g., "~b/o 35 chaos").
+    pub note: Option<String>,
     /// Flavor text (last generic section with no property-like lines).
     pub flavor_text: Option<String>,
     /// Remaining unclassified generic sections.

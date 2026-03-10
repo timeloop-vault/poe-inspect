@@ -3,4 +3,4 @@
 /**
  * Serializable status kind (maps to `poe_item::types::StatusKind`).
  */
-export type StatusValue = "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transfigured";
+export type StatusValue = "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transfigured" | "Unidentified";

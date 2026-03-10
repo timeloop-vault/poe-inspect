@@ -507,7 +507,7 @@ fn flavor_text_as_generic() {
 fn divination_card_header() {
     let item = parse_fixture("divination-card-hunters-resolve.txt");
     assert_eq!(item.header.item_class, "Divination Cards");
-    assert_eq!(item.header.rarity, Rarity::Unknown); // "Divination Card" not in enum yet
+    assert_eq!(item.header.rarity, Rarity::DivinationCard);
     assert_eq!(item.header.name1, "Hunter's Resolve");
     assert!(item.header.name2.is_none());
     // Stack size, reward hint, and flavor text are all generic sections
@@ -779,6 +779,60 @@ fn unique_flask_parsed() {
         _ => false,
     });
     assert!(has_flavor);
+}
+
+// ─── Unidentified status ────────────────────────────────────────────────────
+
+#[test]
+fn unidentified_status() {
+    let item = parse_fixture("rare-axe-unidentified.txt");
+    let status = item
+        .sections
+        .iter()
+        .find_map(|s| match s {
+            Section::Status(k) => Some(*k),
+            _ => None,
+        })
+        .expect("should have Unidentified status");
+    assert_eq!(status, StatusKind::Unidentified);
+}
+
+// ─── Note (trade pricing) ──────────────────────────────────────────────────
+
+#[test]
+fn note_section_parsed() {
+    let item = parse_fixture("rare-jewel-cobalt-mirrored-corrupted.txt");
+    let note = item
+        .sections
+        .iter()
+        .find_map(|s| match s {
+            Section::Note(n) => Some(n.as_str()),
+            _ => None,
+        })
+        .expect("should have Note section");
+    assert_eq!(note, "~b/o 35 chaos");
+}
+
+#[test]
+fn mirrored_and_corrupted_statuses() {
+    let item = parse_fixture("rare-jewel-cobalt-mirrored-corrupted.txt");
+    let statuses: Vec<_> = item
+        .sections
+        .iter()
+        .filter_map(|s| match s {
+            Section::Status(k) => Some(*k),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(statuses, vec![StatusKind::Mirrored, StatusKind::Corrupted]);
+}
+
+// ─── Divination Card rarity ────────────────────────────────────────────────
+
+#[test]
+fn divination_card_rarity() {
+    let item = parse_fixture("divination-card-emperors-luck.txt");
+    assert_eq!(item.header.rarity, Rarity::DivinationCard);
 }
 
 // ─── Comprehensive: all .txt fixtures parse without error ───────────────────

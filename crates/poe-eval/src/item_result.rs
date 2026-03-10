@@ -47,6 +47,10 @@ pub struct EvaluatedItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fractured: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub unidentified: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub flavor_text: Option<String>,
     pub open_prefixes: u32,
     pub open_suffixes: u32,
@@ -213,6 +217,8 @@ pub fn evaluate_item(
         influences,
         corrupted: if item.is_corrupted { Some(true) } else { None },
         fractured: if item.is_fractured { Some(true) } else { None },
+        unidentified: if item.is_unidentified { Some(true) } else { None },
+        note: item.note.clone(),
         flavor_text: item.flavor_text.clone(),
         open_prefixes: affix_summary.prefixes.open.unwrap_or(0),
         open_suffixes: affix_summary.suffixes.open.unwrap_or(0),

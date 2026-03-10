@@ -57,6 +57,7 @@ section = {
   | mod_section
   | influence_section
   | status_section
+  | note_section
   | generic_section
 }
 
@@ -188,7 +189,12 @@ influence_keyword = {
 
 status_section = { status_keyword ~ NEWLINE }
 
-status_keyword = { "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transfigured" }
+status_keyword = { "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transfigured" | "Unidentified" }
+
+// ─── Note (trade pricing) ───────────────────────────────────────────────────
+// GGG trade system annotation: "Note: ~b/o 35 chaos" or "Note: ~price 1 divine"
+
+note_section = { "Note: " ~ rest_of_line ~ NEWLINE }
 
 // ─── Generic section (catch-all) ────────────────────────────────────────────
 // Matches any section not caught by a specific rule above:
