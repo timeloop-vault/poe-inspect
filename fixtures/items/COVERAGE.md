@@ -13,9 +13,9 @@ but to any stage of the pipeline that processes item text.
 4. `all_fixtures_parse` auto-discovers all `.txt` files — no list to update
 5. If the fixture exposes a new section type or edge case, add targeted assertions
 
-## Current coverage (66 fixtures)
+## Current coverage (68 fixtures)
 
-### Equipment — Rare (16)
+### Equipment — Rare (17)
 - battered-foil-rare-ess-craft.txt (1H sword, essence craft, master craft)
 - rare-axe-fractured.txt (2H axe, fractured mod)
 - rare-axe-shaper.txt (2H axe, Shaper influence)
@@ -32,12 +32,14 @@ but to any stage of the pipeline that processes item text.
 - rare-wand-standard.txt (wand, no influence)
 - rare-amulet-talisman-corrupted.txt (amulet, talisman, corrupted, enchant, flavor text)
 - rare-body-armour-craft-hybrid-and-normal-life-mod.txt (body armour, hybrid + pure life mods)
+- rare-axe-unidentified.txt (2H axe, unidentified, implicit only, no explicit mods)
 
-### Equipment — Unique (4)
+### Equipment — Unique (5)
 - unique-bow-short-bow.txt (bow, weapon sub-header, 7 unique mods, flavor text)
 - unique-flask-doedres-flask.txt (mana flask, flask props + unique mods + flavor)
 - unique-quiver-soul-strike.txt (quiver, flavor text, corrupted, Relic Unique)
 - unique-ring-ventors-gamble.txt (ring, negative ranges, unique mods)
+- unique-body-armour-lightning-coil.txt (body armour, AR/EV base, negative resistance, phys taken as lightning)
 
 ### Equipment — Normal (1)
 - normal-staff-elder.txt (staff, Elder influence, implicit)
@@ -113,10 +115,11 @@ Priority ordered by impact on the parser/resolver:
 
 ### P1 — Important item types with no coverage
 - [ ] **Unique jewel** — e.g., Watcher's Eye (multi-mod with no tier)
-- [ ] **Unique armour** — e.g., Shavronne's Wrappings (armour + unique mods)
+- [x] ~~**Unique armour**~~ — unique-body-armour-lightning-coil.txt
 - [ ] **Unidentified item** — no mod section at all, "Unidentified" status
 - [x] ~~**Vaal gem**~~ — gem-vaal-ice-nova.txt
 - [x] ~~**Abyssal jewel**~~ — rare-abyss-jewel-ghastly-eye.txt
+- [x] ~~**Unidentified item**~~ — rare-axe-unidentified.txt
 
 ### P2 — Coverage gaps in existing categories
 - [ ] **Dagger/claw** — no dagger or claw
