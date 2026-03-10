@@ -116,6 +116,7 @@ pub enum ModSlot {
     Unique,
     SearingExarchImplicit,
     EaterOfWorldsImplicit,
+    Enchant,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -295,7 +296,9 @@ pub struct ResolvedItem {
     pub is_unidentified: bool,
     /// GGG trade pricing annotation (e.g., "~b/o 35 chaos").
     pub note: Option<String>,
-    /// Flavor text (last generic section with no property-like lines).
+    /// Item effect/description text (currency effects, scarab effects, gem descriptions, etc.)
+    pub description: Option<String>,
+    /// Flavor text (poetic/lore text on uniques, div cards, scarabs).
     pub flavor_text: Option<String>,
     /// Remaining unclassified generic sections.
     pub unclassified_sections: Vec<Vec<String>>,
@@ -345,6 +348,7 @@ impl ResolvedMod {
                 _,
             ) => ModDisplayType::Implicit,
             (ModSlot::Unique, _) => ModDisplayType::Unique,
+            (ModSlot::Enchant, _) => ModDisplayType::Enchant,
         }
     }
 }
