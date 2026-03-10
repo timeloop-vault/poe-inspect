@@ -57,7 +57,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
             Section::Experience(e) => experience = Some(e.clone()),
             Section::Modifiers(mod_section) => {
                 for group in &mod_section.groups {
-                    let resolved = resolve_mod(group, game_data);
+                    let resolved = resolve_mod(group, &header.base_type, game_data);
                     match resolved.header.slot {
                         ModSlot::Implicit
                         | ModSlot::SearingExarchImplicit
@@ -200,7 +200,7 @@ fn extract_magic_base_type(name: &str, game_data: &GameData) -> Option<String> {
 
 // ── Mod resolution ──────────────────────────────────────────────────────────
 
-fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
+fn resolve_mod(group: &ModGroup, base_type: &str, game_data: &GameData) -> ResolvedMod {
     let mut stat_lines: Vec<ResolvedStatLine> = group
         .body_lines
         .iter()
@@ -211,6 +211,17 @@ fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
     // one format string with `\n`. Try joining consecutive unresolved lines.
     if game_data.reverse_index.is_some() {
         try_multi_line_resolution(&mut stat_lines, game_data);
+    }
+
+    // Base-type-anchored stat_id resolution: the reverse index gives us
+    // non-local stat_ids (all it knows from stat_descriptions.txt). The real
+    // stat_ids come from the Mods table, confirmed via base type tag
+    // intersection. Replace reverse index guesses with confirmed truth.
+    if let Some(mod_name) = &group.header.name {
+        if let Some(mod_row) = game_data.find_eligible_mod(base_type, mod_name) {
+            let real_stat_ids = game_data.mod_stat_ids(mod_row);
+            apply_confirmed_stat_ids(&mut stat_lines, &real_stat_ids, game_data);
+        }
     }
 
     // Detect fractured from raw text suffix "(fractured)" on any stat line
@@ -225,6 +236,56 @@ fn resolve_mod(group: &ModGroup, game_data: &GameData) -> ResolvedMod {
         stat_lines,
         is_fractured,
         display_type,
+    }
+}
+
+/// Replace reverse-index `stat_ids` with confirmed IDs from the Mods table.
+///
+/// The reverse index gives non-local IDs (e.g., `base_physical_damage_reduction_rating`).
+/// The Mods table knows the real IDs (e.g., `local_base_physical_damage_reduction_rating`).
+/// For each stat line, if it has reverse-index IDs, find the corresponding real ID
+/// from the mod's `stat_keys` and replace it.
+///
+/// Matching strategy: for each stat line's reverse-index IDs, check if any real ID
+/// from the mod shares the same display template. If so, replace with the real one.
+fn apply_confirmed_stat_ids(
+    stat_lines: &mut [ResolvedStatLine],
+    real_stat_ids: &[String],
+    game_data: &GameData,
+) {
+    for sl in stat_lines.iter_mut() {
+        let Some(ri_ids) = &sl.stat_ids else {
+            continue;
+        };
+
+        let mut confirmed = ri_ids.clone();
+        let mut changed = false;
+
+        for (i, ri_id) in ri_ids.iter().enumerate() {
+            // Find a real stat_id that maps to the same display template as this
+            // reverse-index stat_id. This correctly handles local↔non-local pairs
+            // that share display text.
+            let ri_templates = game_data.templates_for_stat(ri_id);
+
+            for real_id in real_stat_ids {
+                if real_id == ri_id {
+                    // Already correct, no replacement needed.
+                    break;
+                }
+                let real_templates = game_data.templates_for_stat(real_id);
+                if let (Some(ri_t), Some(real_t)) = (ri_templates, real_templates) {
+                    if ri_t.iter().any(|t| real_t.contains(t)) {
+                        confirmed[i].clone_from(real_id);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if changed {
+            sl.stat_ids = Some(confirmed);
+        }
     }
 }
 

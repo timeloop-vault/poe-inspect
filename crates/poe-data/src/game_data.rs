@@ -45,6 +45,9 @@ pub struct GameData {
     // Pre-computed tier counts: (family_fk, generation_type) → number of tiers
     family_tier_counts: HashMap<(u64, u32), u32>,
 
+    // Mod name → indices into self.mods (multiple tiers share a name).
+    mods_by_name: HashMap<String, Vec<usize>>,
+
     // Reverse index: stat_id → indices into self.mods that contain this stat.
     stat_to_mods: HashMap<String, Vec<usize>>,
 
@@ -92,6 +95,17 @@ impl GameData {
             }
         }
 
+        // Mod name → mod indices (multiple tiers share a display name).
+        let mut mods_by_name: HashMap<String, Vec<usize>> = HashMap::new();
+        for (mod_idx, m) in mods.iter().enumerate() {
+            if !m.name.is_empty() {
+                mods_by_name
+                    .entry(m.name.clone())
+                    .or_default()
+                    .push(mod_idx);
+            }
+        }
+
         // Reverse index: stat_id → mod indices containing that stat.
         let mut stat_to_mods: HashMap<String, Vec<usize>> = HashMap::new();
         for (mod_idx, m) in mods.iter().enumerate() {
@@ -123,6 +137,7 @@ impl GameData {
             rarity_by_id,
             item_class_category_by_id,
             family_tier_counts,
+            mods_by_name,
             stat_to_mods,
             stat_id_to_templates: HashMap::new(),
             reverse_index: None,
@@ -264,6 +279,41 @@ impl GameData {
         self.rarity(rarity_id).map(|r| r.max_suffix)
     }
 
+    /// Find the mod that is eligible for a given base type, by mod display name.
+    ///
+    /// Uses the GGPK's tag intersection system: a mod is eligible if any of its
+    /// `spawn_weight_tags` overlap with the base type's `tags` AND the weight > 0.
+    ///
+    /// Returns the first eligible `ModRow` (all tiers of a mod share `stat_keys`,
+    /// so any match gives the correct `stat_ids`).
+    pub fn find_eligible_mod(&self, base_type: &str, mod_name: &str) -> Option<&ModRow> {
+        let base = self.base_item_by_name(base_type)?;
+        let base_tags: HashSet<u64> = base.tags.iter().copied().collect();
+        let mod_indices = self.mods_by_name.get(mod_name)?;
+
+        mod_indices.iter().find_map(|&idx| {
+            let m = &self.mods[idx];
+            let eligible = m
+                .spawn_weight_tags
+                .iter()
+                .zip(&m.spawn_weight_values)
+                .any(|(&tag, &weight)| weight > 0 && base_tags.contains(&tag));
+            eligible.then_some(m)
+        })
+    }
+
+    /// Resolve a mod's `stat_keys` to `stat_id` strings.
+    ///
+    /// Returns the stat IDs for all non-None `stat_keys` in order.
+    pub fn mod_stat_ids(&self, mod_row: &ModRow) -> Vec<String> {
+        mod_row
+            .stat_keys
+            .iter()
+            .flatten()
+            .filter_map(|&fk| self.stat_id(fk).map(String::from))
+            .collect()
+    }
+
     /// Get display templates for a stat ID (e.g., `"base_maximum_life"` → `["+# to maximum Life"]`).
     ///
     /// Requires `set_reverse_index()` to have been called.
@@ -359,23 +409,6 @@ impl GameData {
                         })
                         .collect();
 
-                    // Resolve other_stat_ids to canonical reverse index stat_ids.
-                    // The Mods table uses local stat_ids (e.g., local_base_physical_damage_reduction_rating)
-                    // but the reverse index (and item resolver) uses non-local equivalents
-                    // (e.g., base_physical_damage_reduction_rating). Map through templates
-                    // to get the stat_ids that items will actually have after resolution.
-                    let canonical_other_stat_ids: Vec<String> = other_stat_ids
-                        .iter()
-                        .map(|sid| {
-                            self.stat_id_to_templates
-                                .get(sid)
-                                .and_then(|ts| ts.first())
-                                .and_then(|tmpl| ri.stat_ids_for_template(tmpl))
-                                .and_then(|ids| ids.first().cloned())
-                                .unwrap_or_else(|| sid.clone())
-                        })
-                        .collect();
-
                     results.push(StatSuggestion {
                         template: template.clone(),
                         stat_ids: stat_ids.clone(),
@@ -383,7 +416,7 @@ impl GameData {
                             mod_name: m.name.clone(),
                             generation_type: m.generation_type,
                             other_templates,
-                            other_stat_ids: canonical_other_stat_ids,
+                            other_stat_ids,
                         },
                     });
                 }
