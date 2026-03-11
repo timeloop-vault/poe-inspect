@@ -650,3 +650,15 @@ fn divination_card_resolved() {
         "div card should have flavor text"
     );
 }
+
+#[test]
+fn superior_quality_prefix_stripped() {
+    let gd = test_game_data(&["Ezomyte Tower Shield"]);
+    let item = resolve_fixture("normal-shield-superior-quality.txt", &gd);
+
+    assert_eq!(item.header.rarity, Rarity::Normal);
+    assert_eq!(item.header.name, None);
+    // "Superior" prefix must be stripped — trade API rejects it
+    assert_eq!(item.header.base_type, "Ezomyte Tower Shield");
+    assert_eq!(item.header.item_class, "Shields");
+}

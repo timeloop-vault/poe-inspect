@@ -290,6 +290,34 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
 pub const LOCAL_STAT_NONLOCAL_FALLBACKS: &[(&str, &str)] =
     &[("local_energy_shield", "base_maximum_energy_shield")];
 
+// ── Quality prefix ──────────────────────────────────────────────────────────
+//
+// WHY HARDCODED: The PoE client prepends a localized quality prefix to item
+// names when quality > 0 (e.g., "Superior Ezomyte Tower Shield"). This prefix
+// is NOT part of the base item type name in the GGPK BaseItemTypes table.
+// The trade API rejects the prefixed name as "Unknown item base type".
+//
+// The prefix appears on:
+// - Normal items with quality > 0 (always "Superior" in English)
+// - Unidentified Magic/Rare/Unique items with quality > 0
+//
+// The GGPK does contain this string in a localization table, but we only
+// support English currently. Confirmed via 3.28 Mirage.
+
+/// The English quality prefix prepended to item names by the `PoE` client.
+///
+/// Used by `poe-item`'s resolver to strip the prefix from base type names
+/// before sending to the trade API or looking up in `BaseItemTypes`.
+pub const QUALITY_PREFIX: &str = "Superior ";
+
+/// Strip the quality prefix from an item name, if present.
+///
+/// Returns the original string unchanged if the prefix is not found.
+#[must_use]
+pub fn strip_quality_prefix(name: &str) -> &str {
+    name.strip_prefix(QUALITY_PREFIX).unwrap_or(name)
+}
+
 /// Map a mod's display type to the trade API stat category prefix.
 ///
 /// `display_type` is one of: `"prefix"`, `"suffix"`, `"implicit"`, `"crafted"`,
