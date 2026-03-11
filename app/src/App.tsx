@@ -4,6 +4,7 @@ import { Component } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
 import { TradePanel } from "./components/TradePanel";
+import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
 import {
 	type QualityColors,
@@ -250,6 +251,8 @@ export function App() {
 		onlineOnly: tradeSettings.onlineOnly,
 	};
 
+	const tradeFilters = useTradeFilters(evaluatedItem?.rawText ?? "", tradeConfig);
+
 	if (evaluatedItem && !showMock) {
 		content = (
 			<>
@@ -257,8 +260,25 @@ export function App() {
 					item={evaluatedItem.item}
 					eval={evaluatedItem.eval}
 					display={displaySettings}
+					tradeEdit={
+						tradeFilters.editMode
+							? {
+									mappedStats: tradeFilters.mappedStats,
+									isStatEnabled: tradeFilters.isStatEnabled,
+									getStatMin: tradeFilters.getStatMin,
+									toggleStat: tradeFilters.toggleStat,
+									setStatMin: tradeFilters.setStatMin,
+								}
+							: undefined
+					}
 				/>
-				<TradePanel itemText={evaluatedItem.rawText} config={tradeConfig} />
+				<TradePanel
+					itemText={evaluatedItem.rawText}
+					config={tradeConfig}
+					filters={tradeFilters}
+					baseType={evaluatedItem.item.header.baseType}
+					itemClass={evaluatedItem.item.header.itemClass}
+				/>
 			</>
 		);
 	} else if (parseError && !showMock) {

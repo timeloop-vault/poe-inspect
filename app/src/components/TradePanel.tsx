@@ -1,12 +1,19 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useState } from "preact/hooks";
-import type { PriceCheckResult, TradeQueryConfig } from "../types";
+import type { TradeFilters } from "../hooks/useTradeFilters";
+import type { PriceCheckResult, TradeQueryConfig, TypeSearchScope } from "../types";
 
 interface TradePanelProps {
 	/** Raw item text from clipboard (Ctrl+Alt+C). */
 	itemText: string;
 	/** Trade config from user settings. */
 	config: TradeQueryConfig;
+	/** Trade filter state from useTradeFilters hook. */
+	filters: TradeFilters;
+	/** Base type from item header (for breadcrumb display). */
+	baseType: string;
+	/** Item class from item header (e.g., "Wands"). */
+	itemClass: string;
 }
 
 type TradeState =
@@ -17,7 +24,15 @@ type TradeState =
 	| { status: "error"; message: string }
 	| { status: "rate-limited"; retryAfterSecs: number };
 
-export function TradePanel({ itemText, config }: TradePanelProps) {
+const scopeLabels: Record<TypeSearchScope, string> = {
+	baseType: "Base Type",
+	itemClass: "Item Class",
+	any: "Any",
+};
+
+const scopeOrder: TypeSearchScope[] = ["baseType", "itemClass", "any"];
+
+export function TradePanel({ itemText, config, filters, baseType, itemClass }: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
 	const [urlLoading, setUrlLoading] = useState(false);
 
@@ -30,6 +45,7 @@ export function TradePanel({ itemText, config }: TradePanelProps) {
 			const result = await invoke<PriceCheckResult>("price_check", {
 				itemText,
 				config,
+				filterConfig: filters.filterConfig,
 			});
 			if (result.total === 0 || result.prices.length === 0) {
 				setState({ status: "empty" });
@@ -48,7 +64,7 @@ export function TradePanel({ itemText, config }: TradePanelProps) {
 				setState({ status: "error", message: msg });
 			}
 		}
-	}, [itemText, config, hasLeague]);
+	}, [itemText, config, hasLeague, filters.filterConfig]);
 
 	const openTrade = useCallback(async () => {
 		if (!hasLeague) return;
@@ -57,6 +73,7 @@ export function TradePanel({ itemText, config }: TradePanelProps) {
 			const url = await invoke<string>("trade_search_url", {
 				itemText,
 				config,
+				filterConfig: filters.filterConfig,
 			});
 			await invoke("open_url", { url });
 		} catch (e) {
@@ -64,13 +81,22 @@ export function TradePanel({ itemText, config }: TradePanelProps) {
 		} finally {
 			setUrlLoading(false);
 		}
-	}, [itemText, config, hasLeague]);
+	}, [itemText, config, hasLeague, filters.filterConfig]);
 
 	const disabledTitle = hasLeague ? undefined : "Set a league in Settings > Trade";
 
 	return (
 		<div class="trade-panel">
 			<div class="trade-actions">
+				<button
+					type="button"
+					class={`trade-action-btn ${filters.editMode ? "trade-action-active" : "trade-action-secondary"}`}
+					onClick={filters.toggleEditMode}
+					disabled={!hasLeague}
+					title={hasLeague ? "Toggle search filter editing" : disabledTitle}
+				>
+					{filters.editMode ? "Done" : "Edit Search"}
+				</button>
 				<button
 					type="button"
 					class="trade-action-btn"
@@ -104,6 +130,27 @@ export function TradePanel({ itemText, config }: TradePanelProps) {
 					)}
 				</button>
 			</div>
+
+			{/* Type scope breadcrumb — shown in edit mode */}
+			{filters.editMode && (
+				<div class="trade-type-scope">
+					{scopeOrder.map((scope) => {
+						const label =
+							scope === "baseType" ? baseType : scope === "itemClass" ? itemClass : "Any";
+						return (
+							<button
+								key={scope}
+								type="button"
+								class={`scope-btn ${filters.typeScope === scope ? "scope-active" : ""}`}
+								onClick={() => filters.setTypeScope(scope)}
+								title={scopeLabels[scope]}
+							>
+								{label}
+							</button>
+						);
+					})}
+				</div>
+			)}
 
 			{state.status === "results" && <TradeResults result={state.result} />}
 			{state.status === "empty" && <div class="trade-message">No listings found</div>}

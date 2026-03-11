@@ -916,3 +916,108 @@ body,
 	background: rgba(175, 96, 37, 0.15);
 	border-color: var(--poe-accent);
 }
+
+/* --- Edit Search mode --- */
+
+.trade-action-active {
+	background: rgba(175, 96, 37, 0.2);
+	border-color: var(--poe-accent);
+	color: var(--poe-header);
+}
+
+/* Type scope breadcrumb */
+
+.trade-type-scope {
+	display: flex;
+	gap: 2px;
+	padding: 4px 0;
+	font-size: 11px;
+}
+
+.scope-btn {
+	padding: 2px 8px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(70, 59, 43, 0.4);
+	border-radius: 2px;
+	color: var(--poe-text-dim);
+	font-family: inherit;
+	font-size: 11px;
+	cursor: pointer;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 140px;
+}
+
+.scope-btn:hover {
+	border-color: var(--poe-accent);
+	color: var(--poe-text);
+}
+
+.scope-active {
+	background: rgba(175, 96, 37, 0.15);
+	border-color: var(--poe-accent);
+	color: var(--poe-header);
+}
+
+/* Mod line edit mode */
+
+.mod-checkbox {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	padding-top: 2px;
+}
+
+.mod-checkbox input[type="checkbox"] {
+	width: 13px;
+	height: 13px;
+	accent-color: var(--poe-accent);
+	cursor: pointer;
+	margin: 0;
+}
+
+.mod-unmappable {
+	opacity: 0.35;
+}
+
+.mod-unmappable input[type="checkbox"] {
+	cursor: not-allowed;
+}
+
+.mod-line-disabled {
+	opacity: 0.4;
+}
+
+/* Min value input */
+
+.stat-min-input {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	padding-top: 1px;
+}
+
+.min-value-input {
+	width: 44px;
+	padding: 1px 4px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(70, 59, 43, 0.6);
+	border-radius: 2px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 11px;
+	text-align: right;
+	-moz-appearance: textfield;
+}
+
+.min-value-input::-webkit-inner-spin-button,
+.min-value-input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.min-value-input:focus {
+	outline: none;
+	border-color: var(--poe-accent);
+}

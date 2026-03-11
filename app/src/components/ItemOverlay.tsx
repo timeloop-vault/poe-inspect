@@ -1,6 +1,7 @@
-import { useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 import type {
 	ItemEvaluation,
+	MappedStat,
 	ModTierResult,
 	ModType,
 	Rarity,
@@ -221,11 +222,31 @@ export const defaultDisplay: DisplaySettings = {
 	showStatIds: false,
 };
 
+/** Trade edit mode props for a single mod line. */
+interface ModTradeEdit {
+	/** MappedStats for this mod's non-reminder stat lines. */
+	stats: MappedStat[];
+	/** Whether each stat is enabled in the current filter. */
+	isStatEnabled: (statIndex: number) => boolean;
+	/** Current min value for each stat. */
+	getStatMin: (statIndex: number) => number | null;
+	/** Toggle a stat on/off. */
+	toggleStat: (statIndex: number) => void;
+	/** Set the min value for a stat. */
+	setStatMin: (statIndex: number, min: number | null) => void;
+}
+
 function ModLine({
 	mod,
 	tier,
 	display,
-}: { mod: ResolvedMod; tier: ModTierResult; display: DisplaySettings }) {
+	tradeEdit,
+}: {
+	mod: ResolvedMod;
+	tier: ModTierResult;
+	display: DisplaySettings;
+	tradeEdit?: ModTradeEdit | undefined;
+}) {
 	const quality = rollQuality(mod);
 	const typeLabel = modTypeLabel(mod.displayType);
 	const qualityCls = mod.displayType === "unique" ? "quality-unique" : qualityClass(tier.quality);
@@ -233,8 +254,41 @@ function ModLine({
 	const statIds = modStatIds(mod);
 	const statIdTitle = statIds.length > 0 ? statIds.join(", ") : undefined;
 
+	// In edit mode, show checkbox per mod (uses first stat's enabled state).
+	// A mod is "checked" if any of its stats are enabled.
+	const editStat = tradeEdit?.stats[0];
+	const isEditable = tradeEdit && editStat;
+	const isChecked = tradeEdit?.stats.some((s) => tradeEdit.isStatEnabled(s.statIndex)) ?? false;
+	const isMappable = tradeEdit?.stats.some((s) => s.tradeId != null) ?? false;
+
+	const handleToggle = useCallback(() => {
+		if (!tradeEdit) return;
+		for (const s of tradeEdit.stats) {
+			tradeEdit.toggleStat(s.statIndex);
+		}
+	}, [tradeEdit]);
+
+	// Min value from first stat that has one
+	const firstMappedStat = tradeEdit?.stats.find((s) => s.tradeId != null);
+	const minValue = firstMappedStat
+		? (tradeEdit?.getStatMin(firstMappedStat.statIndex) ?? null)
+		: null;
+
 	return (
-		<div class={`mod-line ${qualityCls}`} title={statIdTitle}>
+		<div
+			class={`mod-line ${qualityCls} ${isEditable && !isChecked ? "mod-line-disabled" : ""}`}
+			title={statIdTitle}
+		>
+			{isEditable && (
+				<label class={`mod-checkbox ${!isMappable ? "mod-unmappable" : ""}`}>
+					<input
+						type="checkbox"
+						checked={isChecked}
+						disabled={!isMappable}
+						onChange={handleToggle}
+					/>
+				</label>
+			)}
 			<div class="mod-badges">
 				{display.showTierBadges && tier.tier != null && (
 					<span class={`tier-badge ${qualityCls}`}>{tierBadgeLabel(tier)}</span>
@@ -255,17 +309,49 @@ function ModLine({
 					<div class="stat-id-line">{statIds.join(", ")}</div>
 				)}
 			</div>
-			{display.showRollBars && quality !== null && (
-				<div class="roll-quality" title={`Roll: ${quality}%`}>
-					<div class="roll-bar">
-						<div
-							class={`roll-fill ${quality >= 80 ? "roll-high" : quality >= 50 ? "roll-mid" : "roll-low"}`}
-							style={{ width: `${quality}%` }}
-						/>
+			{isEditable && isMappable && isChecked ? (
+				<MinInput
+					value={minValue}
+					onChange={(v) => {
+						if (firstMappedStat) tradeEdit.setStatMin(firstMappedStat.statIndex, v);
+					}}
+				/>
+			) : (
+				display.showRollBars &&
+				quality !== null && (
+					<div class="roll-quality" title={`Roll: ${quality}%`}>
+						<div class="roll-bar">
+							<div
+								class={`roll-fill ${quality >= 80 ? "roll-high" : quality >= 50 ? "roll-mid" : "roll-low"}`}
+								style={{ width: `${quality}%` }}
+							/>
+						</div>
+						<span class="roll-pct">{quality}%</span>
 					</div>
-					<span class="roll-pct">{quality}%</span>
-				</div>
+				)
 			)}
+		</div>
+	);
+}
+
+/** Compact numeric input for min stat value. */
+function MinInput({
+	value,
+	onChange,
+}: { value: number | null; onChange: (v: number | null) => void }) {
+	return (
+		<div class="stat-min-input">
+			<input
+				type="number"
+				class="min-value-input"
+				value={value != null ? Math.round(value) : ""}
+				placeholder="-"
+				onInput={(e) => {
+					const raw = (e.target as HTMLInputElement).value;
+					onChange(raw === "" ? null : Number(raw));
+				}}
+				onClick={(e) => (e.target as HTMLInputElement).select()}
+			/>
 		</div>
 	);
 }
@@ -287,11 +373,116 @@ const emptyEval: ItemEvaluation = {
 
 const emptyTier: ModTierResult = { tier: null, tierKind: null, quality: null };
 
+/**
+ * Render a list of mods with trade edit support.
+ * Tracks the running flat stat index across mods.
+ */
+function ModSection({
+	mods,
+	tiers,
+	display,
+	tradeEdit,
+	statOffset,
+}: {
+	mods: ResolvedMod[];
+	tiers: ModTierResult[];
+	display: DisplaySettings;
+	tradeEdit?: TradeEditOverlay | undefined;
+	statOffset: number;
+}) {
+	let runningIndex = statOffset;
+	return (
+		<>
+			{mods.map((mod, i) => {
+				let modEdit: ModTradeEdit | undefined;
+				if (tradeEdit) {
+					const result = buildModTradeEdit(mod, runningIndex, tradeEdit);
+					modEdit = result.edit;
+					runningIndex += result.consumed;
+				} else {
+					// Still advance the index even without trade edit
+					for (const sl of mod.statLines) {
+						if (!sl.isReminder) runningIndex++;
+					}
+				}
+				return (
+					<ModLine
+						key={modText(mod)}
+						mod={mod}
+						tier={tiers[i] ?? emptyTier}
+						display={display}
+						tradeEdit={modEdit}
+					/>
+				);
+			})}
+		</>
+	);
+}
+
+/** Props for trade edit mode overlay on mod lines. */
+export interface TradeEditOverlay {
+	mappedStats: MappedStat[];
+	isStatEnabled: (statIndex: number) => boolean;
+	getStatMin: (statIndex: number) => number | null;
+	toggleStat: (statIndex: number) => void;
+	setStatMin: (statIndex: number, min: number | null) => void;
+}
+
+/**
+ * Count non-reminder stat lines in a list of mods.
+ * This matches the flat_index counting in build_query().
+ */
+function countNonReminderStats(mods: ResolvedMod[]): number {
+	let count = 0;
+	for (const mod of mods) {
+		for (const sl of mod.statLines) {
+			if (!sl.isReminder) count++;
+		}
+	}
+	return count;
+}
+
+/**
+ * Build ModTradeEdit for a single mod given its starting flat index.
+ * Returns the edit props and the number of stat indices consumed.
+ */
+function buildModTradeEdit(
+	mod: ResolvedMod,
+	startIndex: number,
+	tradeEdit: TradeEditOverlay,
+): { edit: ModTradeEdit; consumed: number } {
+	const stats: MappedStat[] = [];
+	let idx = startIndex;
+	for (const sl of mod.statLines) {
+		if (!sl.isReminder) {
+			const mapped = tradeEdit.mappedStats.find((s) => s.statIndex === idx);
+			if (mapped) stats.push(mapped);
+			idx++;
+		}
+	}
+	return {
+		edit: {
+			stats,
+			isStatEnabled: tradeEdit.isStatEnabled,
+			getStatMin: tradeEdit.getStatMin,
+			toggleStat: tradeEdit.toggleStat,
+			setStatMin: tradeEdit.setStatMin,
+		},
+		consumed: idx - startIndex,
+	};
+}
+
 export function ItemOverlay({
 	item,
 	eval: evaluation = emptyEval,
 	display = defaultDisplay,
-}: { item: ResolvedItem; eval?: ItemEvaluation; display?: DisplaySettings }) {
+	tradeEdit,
+}: {
+	item: ResolvedItem;
+	eval?: ItemEvaluation;
+	display?: DisplaySettings;
+	tradeEdit?: TradeEditOverlay | undefined;
+}) {
 	const rarity = item.header.rarity;
 	const name = item.header.name ?? item.header.baseType;
 	const baseType = item.header.baseType;
@@ -303,6 +494,11 @@ export function ItemOverlay({
 	const nImplicits = item.implicits.length;
 	const implicitTiers = evaluation.modTiers.slice(nEnchants, nEnchants + nImplicits);
 	const explicitTiers = evaluation.modTiers.slice(nEnchants + nImplicits);
+
+	// Compute flat stat index offsets for each mod section (matches build_query ordering)
+	const enchantStatCount = countNonReminderStats(item.enchants);
+	const implicitStatOffset = enchantStatCount;
+	const explicitStatOffset = implicitStatOffset + countNonReminderStats(item.implicits);
 
 	const affix = evaluation.affixSummary;
 
@@ -397,14 +593,13 @@ export function ItemOverlay({
 			{item.implicits.length > 0 && (
 				<>
 					<div class="mod-section implicit-section">
-						{item.implicits.map((mod, i) => (
-							<ModLine
-								key={modText(mod)}
-								mod={mod}
-								tier={implicitTiers[i] ?? emptyTier}
-								display={display}
-							/>
-						))}
+						<ModSection
+							mods={item.implicits}
+							tiers={implicitTiers}
+							display={display}
+							tradeEdit={tradeEdit}
+							statOffset={implicitStatOffset}
+						/>
 					</div>
 					<Separator rarity={rarity} />
 				</>
@@ -413,14 +608,13 @@ export function ItemOverlay({
 			{/* Explicit mods */}
 			{item.explicits.length > 0 && (
 				<div class="mod-section explicit-section">
-					{item.explicits.map((mod, i) => (
-						<ModLine
-							key={modText(mod)}
-							mod={mod}
-							tier={explicitTiers[i] ?? emptyTier}
-							display={display}
-						/>
-					))}
+					<ModSection
+						mods={item.explicits}
+						tiers={explicitTiers}
+						display={display}
+						tradeEdit={tradeEdit}
+						statOffset={explicitStatOffset}
+					/>
 				</div>
 			)}
 
