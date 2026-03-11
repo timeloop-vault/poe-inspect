@@ -31,7 +31,7 @@ pub use client::{TradeApiError, TradeClient, fetch_trade_stats};
 pub use query::{QueryBuildResult, TradeSearchBody, build_query};
 pub use stats_index::IndexBuildResult;
 pub use types::{
-    League, LeagueList, MappedStat, Price, PriceCheckResult, SearchResult, StatFilterOverride,
-    TradeFilterConfig, TradeQueryConfig, TradeStatCategory, TradeStatEntry, TradeStatsIndex,
-    TradeStatsResponse, TypeSearchScope,
+    League, LeagueList, MappedStat, Price, PriceCheckResult, SearchResult, SocketInfo,
+    StatFilterOverride, TradeFilterConfig, TradeQueryConfig, TradeStatCategory, TradeStatEntry,
+    TradeStatsIndex, TradeStatsResponse, TypeSearchScope,
 };
