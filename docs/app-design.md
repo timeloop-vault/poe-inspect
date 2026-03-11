@@ -645,6 +645,19 @@ validation for a rule DSL that compiles to the same `Rule` JSON.
 - VS Code extension: language server for the DSL, snippets, schema validation
 - Import/export between text DSL and the visual builder JSON
 
+### Compact / Score-Only Overlay Mode
+
+A minimal overlay mode that shows just the score verdict ("is this good?") without
+the full stat breakdown. User triggers with a different hotkey (or modifier key).
+
+- **Mini pill**: shows profile name + score (e.g., `"RF Jugg: 87"`) and tier color
+- **Expand**: press the full-overlay hotkey (or a keybind) to expand into the normal
+  detailed view with stats, roll bars, trade panel, etc.
+- **Use case**: speed-scanning items in stash tabs — don't need full mod breakdown,
+  just a quick pass/fail signal
+- Needs: separate hotkey binding, compact CSS layout, option in settings to choose
+  default mode (compact vs full)
+
 ### Stash Tab Scrolling
 
 Mouse scroll wheel to cycle stash tabs left/right. Popular feature from Awakened PoE Trade.

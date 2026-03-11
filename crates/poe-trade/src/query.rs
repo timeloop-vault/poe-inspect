@@ -669,6 +669,7 @@ mod tests {
             stat_ids: None,
             stat_values: None,
             is_reminder: false,
+            is_unscalable: false,
         };
         let fv = compute_filter_value(&stat_line, &config).unwrap();
         // 139 * 0.85 = 118.15 → floor = 118
@@ -690,6 +691,7 @@ mod tests {
             stat_ids: None,
             stat_values: None,
             is_reminder: false,
+            is_unscalable: false,
         };
         let fv = compute_filter_value(&stat_line, &config).unwrap();
         // -30 * (2 - 0.85) = -30 * 1.15 = -34.5 → floor = -35
@@ -718,6 +720,7 @@ mod tests {
             stat_ids: None,
             stat_values: None,
             is_reminder: false,
+            is_unscalable: false,
         };
         let fv = compute_filter_value(&stat_line, &config).unwrap();
         // average = (11 + 24) / 2 = 17.5, relaxed = 17.5 * 0.85 = 14.875 → floor = 14
@@ -734,6 +737,7 @@ mod tests {
             stat_ids: None,
             stat_values: None,
             is_reminder: false,
+            is_unscalable: false,
         };
         assert!(compute_filter_value(&stat_line, &config).is_none());
     }
@@ -779,6 +783,7 @@ mod tests {
                         stat_ids: Some(vec!["base_maximum_life".to_string()]),
                         stat_values: None,
                         is_reminder: false,
+                        is_unscalable: false,
                     }],
                     is_fractured: false,
                     display_type: ModDisplayType::Prefix,
@@ -803,6 +808,7 @@ mod tests {
                         stat_ids: Some(vec!["base_cold_damage_resistance_pct".to_string()]),
                         stat_values: None,
                         is_reminder: false,
+                        is_unscalable: false,
                     }],
                     is_fractured: false,
                     display_type: ModDisplayType::Suffix,

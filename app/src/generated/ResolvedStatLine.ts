@@ -29,4 +29,8 @@ statValues: Array<number> | null,
 /**
  * Whether this line is reminder text (parenthesized).
  */
-isReminder: boolean, };
+isReminder: boolean, 
+/**
+ * Whether this stat has the "Unscalable Value" annotation (fixed, cannot be modified).
+ */
+isUnscalable: boolean, };
