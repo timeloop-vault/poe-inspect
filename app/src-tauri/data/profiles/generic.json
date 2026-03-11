@@ -23,7 +23,7 @@
       "rule": {
         "rule_type": "Pred",
         "type": "RollPercent",
-        "stat_id": "base_maximum_life",
+        "stat_ids": ["base_maximum_life"],
         "value_index": 0,
         "op": "Ge",
         "value": 80

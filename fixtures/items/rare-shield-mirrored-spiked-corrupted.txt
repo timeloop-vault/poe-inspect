@@ -1,0 +1,33 @@
+Item Class: Shields
+Rarity: Rare
+Miracle Fend
+Mirrored Spiked Shield
+--------
+Chance to Block: 26%
+Evasion Rating: 160
+Energy Shield: 33
+--------
+Requirements:
+Level: 66
+Dex: 85
+Int: 85
+--------
+Sockets: G-B
+--------
+Item Level: 78
+--------
+{ Corruption Implicit Modifier — Gem }
++2 to Level of Socketed AoE Gems
+{ Corruption Implicit Modifier — Life }
+6(4-6)% increased maximum Life
+--------
+{ Prefix Modifier "Enigmatic" (Tier: 4) }
+9(8-9)% Chance to Block Spell Damage
+{ Suffix Modifier "of the Kaleidoscope" (Tier: 4) — Elemental, Resistance }
++10(9-11)% to all Elemental Resistances
+{ Suffix Modifier "of the Phoenix" (Tier: 3) — Life }
+Regenerate 77.3(64.1-96) Life per second
+{ Suffix Modifier "of Steadiness" (Tier: 5) — Attack }
++94(50-100) to Accuracy Rating
+--------
+Corrupted

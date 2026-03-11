@@ -279,16 +279,14 @@ export function ProfileSettings() {
 							>
 								Export
 							</button>
-							{profiles.length > 1 && (
-								<button
-									type="button"
-									class="btn btn-small"
-									onClick={() => deleteProfile(profile.id)}
-									title="Delete"
-								>
-									Del
-								</button>
-							)}
+							<button
+								type="button"
+								class="btn btn-small"
+								onClick={() => deleteProfile(profile.id)}
+								title="Delete"
+							>
+								Del
+							</button>
 						</div>
 					</div>
 				))}

@@ -1148,3 +1148,76 @@ fn stat_value_conditions_serialize_roundtrip() {
         _ => panic!("expected StatValue variant"),
     }
 }
+
+/// Debug: trace stat_ids through the full pipeline for a body armour with hybrid mods.
+#[test]
+fn trace_stat_ids_body_armour() {
+    let gd = full_game_data();
+    let item = resolve_full("rare-body-armour-craft-hybrid-and-normal-life-mod.txt");
+
+    println!("\n=== RESOLVED ITEM STAT IDS ===");
+    for m in item.implicits.iter().chain(item.explicits.iter()) {
+        println!(
+            "\nMod: {:?} ({:?})",
+            m.header.name, m.header.slot
+        );
+        for sl in &m.stat_lines {
+            if sl.is_reminder {
+                continue;
+            }
+            println!("  display: {}", sl.display_text);
+            println!("  stat_ids: {:?}", sl.stat_ids);
+        }
+    }
+
+    // Now trace what suggestions would provide
+    let suggestions = gd.stat_suggestions_for_query("to Armour");
+    let armour_single = suggestions
+        .iter()
+        .find(|s| {
+            matches!(s.kind, poe_data::StatSuggestionKind::Single)
+                && s.stat_ids
+                    .iter()
+                    .any(|id| id.contains("physical_damage_reduction"))
+        });
+    println!("\n=== ARMOUR SINGLE SUGGESTION ===");
+    if let Some(s) = armour_single {
+        println!("  template: {}", s.template);
+        println!("  stat_ids: {:?}", s.stat_ids);
+    } else {
+        println!("  NOT FOUND");
+    }
+
+    let life_suggestions = gd.stat_suggestions_for_query("to maximum Life");
+    let life_single = life_suggestions
+        .iter()
+        .find(|s| {
+            matches!(s.kind, poe_data::StatSuggestionKind::Single)
+                && s.stat_ids.iter().any(|id| id == "base_maximum_life")
+        });
+    println!("\n=== LIFE SINGLE SUGGESTION ===");
+    if let Some(s) = life_single {
+        println!("  template: {}", s.template);
+        println!("  stat_ids: {:?}", s.stat_ids);
+    }
+
+    let life_hybrids: Vec<_> = life_suggestions
+        .iter()
+        .filter(|s| matches!(&s.kind, poe_data::StatSuggestionKind::Hybrid { .. }))
+        .collect();
+    println!("\n=== LIFE HYBRID SUGGESTIONS ===");
+    for h in &life_hybrids {
+        if let poe_data::StatSuggestionKind::Hybrid {
+            mod_name,
+            other_stat_ids,
+            other_templates,
+            ..
+        } = &h.kind
+        {
+            println!("  mod: {mod_name}");
+            println!("  primary stat_ids: {:?}", h.stat_ids);
+            println!("  other_stat_ids: {other_stat_ids:?}");
+            println!("  other_templates: {other_templates:?}");
+        }
+    }
+}
