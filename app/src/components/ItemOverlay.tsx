@@ -92,6 +92,13 @@ function modText(mod: ResolvedMod): string {
 		.join("\n");
 }
 
+/** Collect all stat_ids from a mod's non-reminder stat lines. */
+function modStatIds(mod: ResolvedMod): string[] {
+	return mod.statLines
+		.filter((sl) => !sl.isReminder && sl.statIds)
+		.flatMap((sl) => sl.statIds ?? []);
+}
+
 /** CSS class for mod quality coloring. */
 function qualityClass(quality: TierQuality | null | undefined): string {
 	switch (quality) {
@@ -203,6 +210,7 @@ export interface DisplaySettings {
 	showTierBadges: boolean;
 	showTypeBadges: boolean;
 	showOpenAffixes: boolean;
+	showStatIds: boolean;
 }
 
 export const defaultDisplay: DisplaySettings = {
@@ -210,6 +218,7 @@ export const defaultDisplay: DisplaySettings = {
 	showTierBadges: true,
 	showTypeBadges: true,
 	showOpenAffixes: true,
+	showStatIds: false,
 };
 
 function ModLine({
@@ -221,9 +230,11 @@ function ModLine({
 	const typeLabel = modTypeLabel(mod.displayType);
 	const qualityCls = mod.displayType === "unique" ? "quality-unique" : qualityClass(tier.quality);
 	const isCrafted = mod.header.source === "masterCrafted";
+	const statIds = modStatIds(mod);
+	const statIdTitle = statIds.length > 0 ? statIds.join(", ") : undefined;
 
 	return (
-		<div class={`mod-line ${qualityCls}`}>
+		<div class={`mod-line ${qualityCls}`} title={statIdTitle}>
 			<div class="mod-badges">
 				{display.showTierBadges && tier.tier != null && (
 					<span class={`tier-badge ${qualityCls}`}>{tierBadgeLabel(tier)}</span>
@@ -240,6 +251,9 @@ function ModLine({
 					))}
 				{isCrafted && <span class="crafted-tag">(crafted)</span>}
 				{mod.isFractured && <span class="fractured-tag">(fractured)</span>}
+				{display.showStatIds && statIds.length > 0 && (
+					<div class="stat-id-line">{statIds.join(", ")}</div>
+				)}
 			</div>
 			{display.showRollBars && quality !== null && (
 				<div class="roll-quality" title={`Roll: ${quality}%`}>

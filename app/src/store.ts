@@ -44,6 +44,7 @@ export interface GeneralSettings {
 	showTierBadges: boolean;
 	showTypeBadges: boolean;
 	showOpenAffixes: boolean;
+	showStatIds: boolean;
 }
 
 export interface HotkeySettings {
@@ -117,6 +118,7 @@ export const defaultGeneral: GeneralSettings = {
 	showTierBadges: true,
 	showTypeBadges: true,
 	showOpenAffixes: true,
+	showStatIds: false,
 };
 
 export const defaultTrade: TradeSettings = {
