@@ -152,32 +152,57 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 				</div>
 			)}
 
-			{/* Socket/link filters — shown in edit mode when item has sockets */}
-			{filters.editMode && filters.socketInfo && (
+			{/* Item property filters — shown in edit mode */}
+			{filters.editMode && (filters.socketInfo || filters.quality != null) && (
 				<div class="trade-socket-filters">
-					<label class="socket-filter-row">
-						<input
-							type="checkbox"
-							checked={filters.linksEnabled}
-							onChange={() => filters.setLinksEnabled(!filters.linksEnabled)}
-						/>
-						<span class="socket-filter-label">Min Links</span>
-						<input
-							type="number"
-							class="socket-filter-input"
-							value={filters.linksMin ?? filters.socketInfo.maxLink}
-							min={1}
-							max={filters.socketInfo.total}
-							disabled={!filters.linksEnabled}
-							onInput={(e) => {
-								const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
-								filters.setLinksMin(Number.isNaN(v) ? null : v);
-							}}
-						/>
-						<span class="socket-filter-hint">
-							{filters.socketInfo.total}S / {filters.socketInfo.maxLink}L
-						</span>
-					</label>
+					{filters.socketInfo && (
+						<label class="socket-filter-row">
+							<input
+								type="checkbox"
+								checked={filters.linksEnabled}
+								onChange={() => filters.setLinksEnabled(!filters.linksEnabled)}
+							/>
+							<span class="socket-filter-label">Min Links</span>
+							<input
+								type="number"
+								class="socket-filter-input"
+								value={filters.linksMin ?? filters.socketInfo.maxLink}
+								min={1}
+								max={filters.socketInfo.total}
+								disabled={!filters.linksEnabled}
+								onInput={(e) => {
+									const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
+									filters.setLinksMin(Number.isNaN(v) ? null : v);
+								}}
+							/>
+							<span class="socket-filter-hint">
+								{filters.socketInfo.total}S / {filters.socketInfo.maxLink}L
+							</span>
+						</label>
+					)}
+					{filters.quality != null && (
+						<label class="socket-filter-row">
+							<input
+								type="checkbox"
+								checked={filters.qualityEnabled}
+								onChange={() => filters.setQualityEnabled(!filters.qualityEnabled)}
+							/>
+							<span class="socket-filter-label">Min Quality</span>
+							<input
+								type="number"
+								class="socket-filter-input"
+								value={filters.qualityMin ?? filters.quality}
+								min={0}
+								max={30}
+								disabled={!filters.qualityEnabled}
+								onInput={(e) => {
+									const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
+									filters.setQualityMin(Number.isNaN(v) ? null : v);
+								}}
+							/>
+							<span class="socket-filter-hint">{filters.quality}%</span>
+						</label>
+					)}
 				</div>
 			)}
 
