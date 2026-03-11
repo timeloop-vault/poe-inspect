@@ -26,6 +26,9 @@ static VALUE_RANGE_RE: LazyLock<Regex> =
 static SUFFIX_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\s+\((implicit|crafted|enchant|fractured)\)$").unwrap());
 
+/// Suffix appended to stat lines whose values are fixed and cannot be modified.
+const UNSCALABLE_SUFFIX: &str = " \u{2014} Unscalable Value";
+
 /// Resolve a [`RawItem`] into a [`ResolvedItem`] using game data.
 ///
 /// Flattens sections into typed fields, parses value ranges, strips
@@ -621,6 +624,7 @@ fn try_multi_line_resolution(lines: &mut [ResolvedStatLine], game_data: &GameDat
 
 fn resolve_stat_line(raw_text: &str, game_data: &GameData) -> ResolvedStatLine {
     let is_reminder = raw_text.starts_with('(') && raw_text.ends_with(')');
+    let is_unscalable = raw_text.ends_with(UNSCALABLE_SUFFIX);
 
     let values = parse_value_ranges(raw_text);
     let display_text = build_display_text(raw_text);
@@ -649,6 +653,7 @@ fn resolve_stat_line(raw_text: &str, game_data: &GameData) -> ResolvedStatLine {
         stat_ids,
         stat_values,
         is_reminder,
+        is_unscalable,
     }
 }
 
@@ -680,7 +685,11 @@ pub(crate) fn build_display_text(text: &str) -> String {
     let stripped = VALUE_RANGE_RE.replace_all(text, "$1");
     // Remove type suffixes: " (implicit)", " (crafted)", " (enchant)", " (fractured)"
     let stripped = SUFFIX_RE.replace(&stripped, "");
-    stripped.into_owned()
+    // Remove unscalable value annotation: " — Unscalable Value"
+    match stripped.strip_suffix(UNSCALABLE_SUFFIX) {
+        Some(s) => s.to_string(),
+        None => stripped.into_owned(),
+    }
 }
 
 #[cfg(test)]

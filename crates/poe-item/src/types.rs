@@ -463,6 +463,8 @@ pub struct ResolvedStatLine {
     pub stat_values: Option<Vec<i64>>,
     /// Whether this line is reminder text (parenthesized).
     pub is_reminder: bool,
+    /// Whether this stat has the "Unscalable Value" annotation (fixed, cannot be modified).
+    pub is_unscalable: bool,
 }
 
 /// A rolled value with its possible range.

@@ -6,7 +6,7 @@ import type { VaalGemData } from "./VaalGemData";
  */
 export type GemData = { 
 /**
- * Gem tags (e.g., ["Spell", "AoE", "Cold", "Nova"]).
+ * Gem tags (e.g., `["Spell", "AoE", "Cold", "Nova"]`).
  */
 tags: Array<string>, 
 /**

@@ -297,6 +297,11 @@ impl GameData {
         self.rarity(rarity_id).map(|r| r.max_suffix)
     }
 
+    /// Look up mod indices by display name (for direct GGPK mod table access).
+    pub fn mods_by_name_indices(&self, name: &str) -> Option<&[usize]> {
+        self.mods_by_name.get(name).map(Vec::as_slice)
+    }
+
     /// Find the mod that is eligible for a given base type, by mod display name.
     ///
     /// Uses the GGPK's tag intersection system: a mod is eligible if any of its

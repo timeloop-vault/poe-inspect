@@ -1161,6 +1161,47 @@ fn fractured_mod_source_parses() {
         .any(|m| m.header.name.as_deref() == Some("Dragon's")));
 }
 
+/// Unique item unscalable mods resolve stat_ids after stripping "— Unscalable Value" suffix.
+#[test]
+fn unique_unscalable_mods_resolve_stat_ids() {
+    let item = resolve_full("unique-body-armour-doryanis-prototype.txt");
+
+    assert_eq!(item.explicits.len(), 6);
+
+    // Standard stats resolve normally
+    let armour_es = &item.explicits[0].stat_lines[0];
+    assert!(armour_es
+        .stat_ids
+        .as_ref()
+        .unwrap()
+        .iter()
+        .any(|s| s == "local_armour_and_energy_shield_+%"));
+    assert!(!armour_es.is_unscalable);
+
+    // Unscalable stats: suffix stripped, stat_ids resolved, flag set
+    let no_lightning = &item.explicits[2].stat_lines[0];
+    assert!(no_lightning
+        .stat_ids
+        .as_ref()
+        .unwrap()
+        .iter()
+        .any(|s| s == "deal_no_non_lightning_damage"));
+    assert!(no_lightning.is_unscalable);
+    assert_eq!(no_lightning.display_text, "Deal no Non-Lightning Damage");
+
+    let armour_lightning = &item.explicits[3].stat_lines[0];
+    assert!(armour_lightning.is_unscalable);
+    assert!(armour_lightning.stat_ids.is_some());
+
+    let resist_no_apply = &item.explicits[4].stat_lines[0];
+    assert!(resist_no_apply.is_unscalable);
+    assert!(resist_no_apply.stat_ids.is_some());
+
+    let nearby = &item.explicits[5].stat_lines[0];
+    assert!(nearby.is_unscalable);
+    assert!(nearby.stat_ids.is_some());
+}
+
 /// Debug: trace stat_ids through the full pipeline for a body armour with hybrid mods.
 #[test]
 fn trace_stat_ids_body_armour() {
