@@ -124,6 +124,28 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             let count = u32::try_from(item.influences.len()).unwrap_or(u32::MAX);
             op.eval(&count, value)
         }
+
+        // ── Socket / quality predicates ─────────────────────────────
+        Predicate::SocketCount { op, value } => {
+            let count = item
+                .sockets
+                .as_deref()
+                .map_or(0, |s| count_sockets(s));
+            op.eval(&count, value)
+        }
+
+        Predicate::LinkCount { op, value } => {
+            let max_link = item
+                .sockets
+                .as_deref()
+                .map_or(0, |s| max_link_group(s));
+            op.eval(&max_link, value)
+        }
+
+        Predicate::Quality { op, value } => {
+            let quality = extract_quality(item);
+            op.eval(&quality, value)
+        }
     }
 }
 
@@ -232,6 +254,47 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
     let current = count_mods_in_slot(item, mod_slot);
     let max_u32 = u32::try_from(max).unwrap_or(0);
     max_u32.saturating_sub(current)
+}
+
+/// Count total sockets from a socket string like `"R-R-G B"`.
+/// Letters are sockets; `-` = linked, ` ` = new group.
+fn count_sockets(sockets: &str) -> u32 {
+    sockets.chars().filter(|c| c.is_ascii_alphabetic()).count() as u32
+}
+
+/// Find the largest linked group in a socket string like `"R-R-G B"`.
+fn max_link_group(sockets: &str) -> u32 {
+    let mut max: u32 = 0;
+    let mut current: u32 = 0;
+    for c in sockets.chars() {
+        if c.is_ascii_alphabetic() {
+            if current == 0 {
+                current = 1;
+            }
+        } else if c == '-' {
+            current += 1;
+        } else {
+            // Space or other separator = new group
+            max = max.max(current);
+            current = 0;
+        }
+    }
+    max.max(current)
+}
+
+/// Extract quality value from item properties (e.g., "Quality" → "+20%" → 20).
+fn extract_quality(item: &ResolvedItem) -> u32 {
+    item.properties
+        .iter()
+        .find(|p| p.name == "Quality")
+        .and_then(|p| {
+            p.value
+                .trim_start_matches('+')
+                .trim_end_matches('%')
+                .parse::<u32>()
+                .ok()
+        })
+        .unwrap_or(0)
 }
 
 /// Iterate all non-reminder stat lines matching any of the given `stat_ids`.

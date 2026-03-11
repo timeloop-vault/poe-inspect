@@ -1,101 +1,101 @@
 {
-  "name": "Generic",
-  "description": "Scores universally desirable stats (life, resistances, movement speed)",
-  "filter": {
-    "rule_type": "Pred",
-    "type": "Rarity",
-    "op": "Ge",
-    "value": "Magic"
-  },
-  "scoring": [
-    {
-      "label": "+# to maximum Life",
-      "weight": 20.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "HasStatId",
-        "stat_id": "base_maximum_life"
-      }
-    },
-    {
-      "label": "Life roll >= 80%",
-      "weight": 10.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "RollPercent",
-        "stat_ids": ["base_maximum_life"],
-        "value_index": 0,
-        "op": "Ge",
-        "value": 80
-      }
-    },
-    {
-      "label": "+#% to Fire Resistance",
-      "weight": 10.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "HasStatId",
-        "stat_id": "base_fire_damage_resistance_%"
-      }
-    },
-    {
-      "label": "+#% to Cold Resistance",
-      "weight": 10.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "HasStatId",
-        "stat_id": "base_cold_damage_resistance_%"
-      }
-    },
-    {
-      "label": "+#% to Lightning Resistance",
-      "weight": 10.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "HasStatId",
-        "stat_id": "base_lightning_damage_resistance_%"
-      }
-    },
-    {
-      "label": "#% increased Movement Speed",
-      "weight": 15.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "HasStatId",
-        "stat_id": "base_movement_velocity_+%"
-      }
-    },
-    {
-      "label": "Has open prefix",
-      "weight": 10.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "OpenMods",
-        "slot": "Prefix",
-        "op": "Ge",
-        "value": 1
-      }
-    },
-    {
-      "label": "Has open suffix",
-      "weight": 10.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "OpenMods",
-        "slot": "Suffix",
-        "op": "Ge",
-        "value": 1
-      }
-    },
-    {
-      "label": "Item level >= 84",
-      "weight": 5.0,
-      "rule": {
-        "rule_type": "Pred",
-        "type": "ItemLevel",
-        "op": "Ge",
-        "value": 84
-      }
-    }
-  ]
+	"name": "Generic",
+	"description": "Scores universally desirable stats (life, resistances, movement speed)",
+	"filter": {
+		"rule_type": "Pred",
+		"type": "Rarity",
+		"op": "Ge",
+		"value": "Magic"
+	},
+	"scoring": [
+		{
+			"label": "+# to maximum Life",
+			"weight": 20.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "HasStatId",
+				"stat_id": "base_maximum_life"
+			}
+		},
+		{
+			"label": "Life roll >= 80%",
+			"weight": 10.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "RollPercent",
+				"stat_ids": ["base_maximum_life"],
+				"value_index": 0,
+				"op": "Ge",
+				"value": 80
+			}
+		},
+		{
+			"label": "+#% to Fire Resistance",
+			"weight": 10.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "HasStatId",
+				"stat_id": "base_fire_damage_resistance_%"
+			}
+		},
+		{
+			"label": "+#% to Cold Resistance",
+			"weight": 10.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "HasStatId",
+				"stat_id": "base_cold_damage_resistance_%"
+			}
+		},
+		{
+			"label": "+#% to Lightning Resistance",
+			"weight": 10.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "HasStatId",
+				"stat_id": "base_lightning_damage_resistance_%"
+			}
+		},
+		{
+			"label": "#% increased Movement Speed",
+			"weight": 15.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "HasStatId",
+				"stat_id": "base_movement_velocity_+%"
+			}
+		},
+		{
+			"label": "Has open prefix",
+			"weight": 10.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "OpenMods",
+				"slot": "Prefix",
+				"op": "Ge",
+				"value": 1
+			}
+		},
+		{
+			"label": "Has open suffix",
+			"weight": 10.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "OpenMods",
+				"slot": "Suffix",
+				"op": "Ge",
+				"value": 1
+			}
+		},
+		{
+			"label": "Item level >= 84",
+			"weight": 5.0,
+			"rule": {
+				"rule_type": "Pred",
+				"type": "ItemLevel",
+				"op": "Ge",
+				"value": 84
+			}
+		}
+	]
 }

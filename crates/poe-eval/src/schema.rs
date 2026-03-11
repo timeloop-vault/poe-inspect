@@ -376,6 +376,58 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                 },
             ],
         },
+        // ── Socket / quality predicates ─────────────────────────────
+        PredicateSchema {
+            type_name: "SocketCount".into(),
+            label: "Socket Count".into(),
+            description: "Total number of sockets on the item".into(),
+            category: "Properties".into(),
+            fields: vec![
+                comparison_field(&NUM_CMP),
+                PredicateField {
+                    name: "value".into(),
+                    label: "Count".into(),
+                    kind: FieldKind::Number {
+                        min: Some(0),
+                        max: Some(6),
+                    },
+                },
+            ],
+        },
+        PredicateSchema {
+            type_name: "LinkCount".into(),
+            label: "Link Count".into(),
+            description: "Largest linked socket group on the item".into(),
+            category: "Properties".into(),
+            fields: vec![
+                comparison_field(&NUM_CMP),
+                PredicateField {
+                    name: "value".into(),
+                    label: "Count".into(),
+                    kind: FieldKind::Number {
+                        min: Some(1),
+                        max: Some(6),
+                    },
+                },
+            ],
+        },
+        PredicateSchema {
+            type_name: "Quality".into(),
+            label: "Quality".into(),
+            description: "Item quality percentage".into(),
+            category: "Properties".into(),
+            fields: vec![
+                comparison_field(&NUM_CMP),
+                PredicateField {
+                    name: "value".into(),
+                    label: "Quality %".into(),
+                    kind: FieldKind::Number {
+                        min: Some(0),
+                        max: Some(30),
+                    },
+                },
+            ],
+        },
     ]
 }
 
@@ -419,8 +471,8 @@ mod tests {
     #[test]
     fn schema_has_all_predicates() {
         let schema = predicate_schema();
-        // 14 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
-        assert_eq!(schema.len(), 14, "schema should have exactly 14 predicates");
+        // 17 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
+        assert_eq!(schema.len(), 17, "schema should have exactly 17 predicates");
     }
 
     #[test]
@@ -429,7 +481,7 @@ mod tests {
         let mut names: Vec<&str> = schema.iter().map(|s| s.type_name.as_str()).collect();
         names.sort();
         names.dedup();
-        assert_eq!(names.len(), 14, "all type names should be unique");
+        assert_eq!(names.len(), 17, "all type names should be unique");
     }
 
     #[test]
@@ -454,6 +506,9 @@ mod tests {
             r#"{"type":"HasInfluence","influence":"Shaper"}"#,
             r#"{"type":"HasStatus","status":"Corrupted"}"#,
             r#"{"type":"InfluenceCount","op":"Ge","value":1}"#,
+            r#"{"type":"SocketCount","op":"Ge","value":4}"#,
+            r#"{"type":"LinkCount","op":"Ge","value":5}"#,
+            r#"{"type":"Quality","op":"Ge","value":20}"#,
         ];
 
         let schema = predicate_schema();

@@ -66,6 +66,9 @@ tests/
 | `HasInfluence` | Specific influence check |
 | `HasStatus` | Specific status check (Corrupted, etc.) |
 | `InfluenceCount` | Total number of influences |
+| `SocketCount` | Total number of sockets on the item |
+| `LinkCount` | Largest linked socket group |
+| `Quality` | Item quality percentage |
 
 ### Rule combinators
 
