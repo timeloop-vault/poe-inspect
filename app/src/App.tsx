@@ -253,25 +253,33 @@ export function App() {
 
 	const tradeFilters = useTradeFilters(evaluatedItem?.rawText ?? "", tradeConfig);
 
+	// Trade panel goes on the opposite side from the screen edge:
+	// right-anchored overlay → trade on left; left-anchored → trade on right.
+	const tradeSide = pos.anchor === "right" ? "left" : "right";
+
 	if (evaluatedItem && !showMock) {
-		content = (
-			<>
+		const tradeEditProps = tradeFilters.editMode
+			? {
+					mappedStats: tradeFilters.mappedStats,
+					isStatEnabled: tradeFilters.isStatEnabled,
+					getStatMin: tradeFilters.getStatMin,
+					toggleStat: tradeFilters.toggleStat,
+					setStatMin: tradeFilters.setStatMin,
+				}
+			: undefined;
+
+		const itemCard = (
+			<div class="overlay-item-col">
 				<ItemOverlay
 					item={evaluatedItem.item}
 					eval={evaluatedItem.eval}
 					display={displaySettings}
-					tradeEdit={
-						tradeFilters.editMode
-							? {
-									mappedStats: tradeFilters.mappedStats,
-									isStatEnabled: tradeFilters.isStatEnabled,
-									getStatMin: tradeFilters.getStatMin,
-									toggleStat: tradeFilters.toggleStat,
-									setStatMin: tradeFilters.setStatMin,
-								}
-							: undefined
-					}
+					tradeEdit={tradeEditProps}
 				/>
+			</div>
+		);
+		const tradeCol = (
+			<div class="overlay-trade-col">
 				<TradePanel
 					itemText={evaluatedItem.rawText}
 					config={tradeConfig}
@@ -279,29 +287,50 @@ export function App() {
 					baseType={evaluatedItem.item.header.baseType}
 					itemClass={evaluatedItem.item.header.itemClass}
 				/>
-			</>
+			</div>
+		);
+		content = (
+			<div class="overlay-columns">
+				{tradeSide === "left" ? (
+					<>
+						{tradeCol}
+						{itemCard}
+					</>
+				) : (
+					<>
+						{itemCard}
+						{tradeCol}
+					</>
+				)}
+			</div>
 		);
 	} else if (parseError && !showMock) {
 		content = (
-			<div class="parse-error">
-				<div class="parse-error-title">Item not supported yet</div>
-				<div class="parse-error-hint">
-					This item type can't be parsed. Copy the item text (Ctrl+Alt+C) and report it to help us
-					add support.
+			<div class="overlay-single">
+				<div class="parse-error">
+					<div class="parse-error-title">Item not supported yet</div>
+					<div class="parse-error-hint">
+						This item type can't be parsed. Copy the item text (Ctrl+Alt+C) and report it to help us
+						add support.
+					</div>
+					<details class="parse-error-details">
+						<summary>Raw item text</summary>
+						<pre>{parseError.rawText}</pre>
+					</details>
 				</div>
-				<details class="parse-error-details">
-					<summary>Raw item text</summary>
-					<pre>{parseError.rawText}</pre>
-				</details>
 			</div>
 		);
 	} else if (itemText && !showMock) {
-		content = <pre class="item-text">{itemText}</pre>;
+		content = (
+			<div class="overlay-single">
+				<pre class="item-text">{itemText}</pre>
+			</div>
+		);
 	} else if (showMock) {
 		const currentItem = mockItems[mockIndex];
 		showDismiss = true;
 		content = (
-			<>
+			<div class="overlay-single">
 				{/* Item selector for cycling mock items */}
 				<div class="item-selector">
 					{mockItems.map((m, i) => (
@@ -321,7 +350,7 @@ export function App() {
 				{currentItem !== undefined && (
 					<ItemOverlay item={currentItem.item} eval={currentItem.eval} display={displaySettings} />
 				)}
-			</>
+			</div>
 		);
 	}
 

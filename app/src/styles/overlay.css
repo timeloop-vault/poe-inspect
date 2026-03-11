@@ -113,12 +113,46 @@ body,
 
 .overlay-panel {
 	position: absolute;
+	max-height: calc(100vh - 20px);
+}
+
+/* Single-column fallback (mock, errors, raw text) */
+.overlay-single {
 	background: var(--poe-bg);
 	border: 1px solid var(--poe-border);
 	border-radius: 4px;
 	padding: 12px 16px;
 	min-width: 300px;
 	max-width: 420px;
+	max-height: calc(100vh - 20px);
+	overflow-y: auto;
+}
+
+/* Two-column layout: item card + trade panel side by side */
+.overlay-columns {
+	display: flex;
+	gap: 0;
+	align-items: flex-start;
+}
+
+.overlay-item-col {
+	background: var(--poe-bg);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	padding: 12px 16px;
+	min-width: 300px;
+	max-width: 420px;
+	max-height: calc(100vh - 20px);
+	overflow-y: auto;
+}
+
+.overlay-trade-col {
+	background: var(--poe-bg);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	padding: 8px 12px;
+	min-width: 180px;
+	max-width: 240px;
 	max-height: calc(100vh - 20px);
 	overflow-y: auto;
 }
