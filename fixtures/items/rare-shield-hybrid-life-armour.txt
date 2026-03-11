@@ -1,0 +1,32 @@
+Item Class: Shields
+Rarity: Rare
+Grim Rook
+Colossal Tower Shield
+--------
+Chance to Block: 38% (augmented)
+Armour: 661 (augmented)
+--------
+Requirements:
+Level: 67
+Str: 159
+--------
+Sockets: R-R-R
+--------
+Item Level: 76
+--------
+{ Implicit Modifier — Life }
++19(10-20) to maximum Life
+--------
+{ Prefix Modifier "Nautilus's" (Tier: 1) — Life, Defences, Armour }
++63(49-96) to Armour
++29(29-33) to maximum Life
+{ Prefix Modifier "Fecund" (Tier: 2) — Life }
++139(130-144) to maximum Life
+{ Prefix Modifier "Unwavering" (Tier: 3) }
+69(64-69)% increased Chance to Block
+{ Suffix Modifier "of the Kiln" (Tier: 5) — Elemental, Fire, Resistance }
++28(24-29)% to Fire Resistance
+{ Suffix Modifier "of the Troll" (Tier: 5) — Life }
+Regenerate 44.8(32.1-48) Life per second
+{ Master Crafted Suffix Modifier "of Craft" (Rank: 3) — Elemental, Lightning, Resistance }
++33(29-35)% to Lightning Resistance
