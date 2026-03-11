@@ -27,4 +27,13 @@ minLinksEnabled: boolean,
  * Minimum link count override (only used when `min_links_enabled` is true).
  * `None` = use the item's actual max link group size.
  */
-minLinks: number | null, };
+minLinks: number | null, 
+/**
+ * Whether to include a quality filter.
+ */
+qualityEnabled: boolean, 
+/**
+ * Minimum quality override (only used when `quality_enabled` is true).
+ * `None` = use the item's actual quality value.
+ */
+qualityMin: number | null, };

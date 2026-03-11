@@ -202,6 +202,13 @@ pub struct TradeFilterConfig {
     /// `None` = use the item's actual max link group size.
     #[serde(default)]
     pub min_links: Option<u32>,
+    /// Whether to include a quality filter.
+    #[serde(default)]
+    pub quality_enabled: bool,
+    /// Minimum quality override (only used when `quality_enabled` is true).
+    /// `None` = use the item's actual quality value.
+    #[serde(default)]
+    pub quality_min: Option<u32>,
 }
 
 /// How specific the type filter should be in a trade search.

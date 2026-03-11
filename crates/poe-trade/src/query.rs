@@ -37,6 +37,9 @@ pub struct QueryBuildResult {
     /// Parsed socket info (total count, max link, colors).
     /// `None` if the item has no sockets section.
     pub socket_info: Option<SocketInfo>,
+    /// Item quality percentage (e.g., 20 for `"+20%"`).
+    /// `None` if the item has no quality property.
+    pub quality: Option<u32>,
 }
 
 // ── Trade search body ───────────────────────────────────────────────────────
@@ -203,6 +206,8 @@ pub struct MiscFilterValues {
     pub identified: Option<OptionFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fractured_item: Option<OptionFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<FilterValue>,
 }
 
 // ── Builder ─────────────────────────────────────────────────────────────────
@@ -296,12 +301,19 @@ pub fn build_query(
         }]
     };
 
-    // Parse socket info from item
+    // Parse socket info and quality from item
     let socket_info = item.sockets.as_deref().map(parse_socket_info);
+    let quality = extract_quality(item);
 
     let type_scope = filter_config.map_or(TypeSearchScope::BaseType, |fc| fc.type_scope);
-    let query_filters =
-        build_item_filters(item, config, type_scope, socket_info.as_ref(), filter_config);
+    let query_filters = build_item_filters(
+        item,
+        config,
+        type_scope,
+        socket_info.as_ref(),
+        quality,
+        filter_config,
+    );
 
     let body = TradeSearchBody {
         query: TradeQuery {
@@ -335,6 +347,7 @@ pub fn build_query(
         unmapped_stats,
         mapped_stats,
         socket_info,
+        quality,
     }
 }
 
@@ -475,10 +488,11 @@ fn build_item_filters(
     config: &TradeQueryConfig,
     type_scope: TypeSearchScope,
     socket_info: Option<&SocketInfo>,
+    quality: Option<u32>,
     filter_config: Option<&TradeFilterConfig>,
 ) -> Option<QueryFilters> {
     let type_filters = build_type_filters(item, type_scope);
-    let misc_filters = build_misc_filters(item, config);
+    let misc_filters = build_misc_filters(item, config, quality, filter_config);
     let socket_filters = build_socket_filters(socket_info, filter_config);
 
     if type_filters.is_none() && misc_filters.is_none() && socket_filters.is_none() {
@@ -521,7 +535,12 @@ fn build_type_filters(item: &ResolvedItem, type_scope: TypeSearchScope) -> Optio
     })
 }
 
-fn build_misc_filters(item: &ResolvedItem, _config: &TradeQueryConfig) -> Option<MiscFilters> {
+fn build_misc_filters(
+    item: &ResolvedItem,
+    _config: &TradeQueryConfig,
+    quality: Option<u32>,
+    filter_config: Option<&TradeFilterConfig>,
+) -> Option<MiscFilters> {
     let corrupted = if item.is_corrupted {
         Some(OptionFilter {
             option: "true".to_string(),
@@ -546,7 +565,23 @@ fn build_misc_filters(item: &ResolvedItem, _config: &TradeQueryConfig) -> Option
         None
     };
 
-    if corrupted.is_none() && identified.is_none() && fractured_item.is_none() {
+    // Quality filter: only included when user explicitly enables it in edit mode.
+    let quality_filter = match filter_config {
+        Some(fc) if fc.quality_enabled => {
+            let min = fc.quality_min.or(quality).map(f64::from);
+            min.map(|m| FilterValue {
+                min: Some(m),
+                max: None,
+            })
+        }
+        _ => None,
+    };
+
+    if corrupted.is_none()
+        && identified.is_none()
+        && fractured_item.is_none()
+        && quality_filter.is_none()
+    {
         return None;
     }
 
@@ -555,7 +590,29 @@ fn build_misc_filters(item: &ResolvedItem, _config: &TradeQueryConfig) -> Option
             corrupted,
             identified,
             fractured_item,
+            quality: quality_filter,
         },
+    })
+}
+
+/// Extract the numeric quality value from an item's properties.
+///
+/// Looks for a property named `"Quality"` and parses its value
+/// (e.g., `"+26%"` → `26`, `"+20% (augmented)"` → `20`).
+fn extract_quality(item: &ResolvedItem) -> Option<u32> {
+    item.properties.iter().find_map(|p| {
+        if p.name == "Quality" {
+            // Strip leading +, trailing %, and any " (augmented)" suffix.
+            let num_str = p
+                .value
+                .trim_start_matches('+')
+                .split('%')
+                .next()?
+                .trim();
+            num_str.parse().ok()
+        } else {
+            None
+        }
     })
 }
 
@@ -880,6 +937,8 @@ mod tests {
             ],
             min_links_enabled: false,
             min_links: None,
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -907,6 +966,8 @@ mod tests {
             }],
             min_links_enabled: false,
             min_links: None,
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -924,6 +985,8 @@ mod tests {
             stat_overrides: vec![],
             min_links_enabled: false,
             min_links: None,
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -948,6 +1011,8 @@ mod tests {
             stat_overrides: vec![],
             min_links_enabled: false,
             min_links: None,
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -974,6 +1039,8 @@ mod tests {
             stat_overrides: vec![],
             min_links_enabled: false,
             min_links: None,
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1132,6 +1199,8 @@ mod tests {
             stat_overrides: vec![],
             min_links_enabled: true,
             min_links: Some(3),
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1156,6 +1225,8 @@ mod tests {
             stat_overrides: vec![],
             min_links_enabled: false,
             min_links: None,
+            quality_enabled: false,
+            quality_min: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1167,5 +1238,93 @@ mod tests {
             .as_ref()
             .and_then(|f| f.socket_filters.as_ref());
         assert!(sf.is_none());
+    }
+
+    // ── Quality tests ─────────────────────────────────────────────────────
+
+    #[test]
+    fn extract_quality_from_properties() {
+        let mut item = test_item();
+        item.properties = vec![poe_item::types::ItemProperty {
+            name: "Quality".to_string(),
+            value: "+20%".to_string(),
+            augmented: true,
+        }];
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        assert_eq!(result.quality, Some(20));
+        // Default: no quality filter in the query
+        let qf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.misc_filters.as_ref())
+            .and_then(|mf| mf.filters.quality.as_ref());
+        assert!(qf.is_none());
+    }
+
+    #[test]
+    fn edit_mode_enables_quality_filter() {
+        let mut item = test_item();
+        item.properties = vec![poe_item::types::ItemProperty {
+            name: "Quality".to_string(),
+            value: "+20%".to_string(),
+            augmented: true,
+        }];
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![],
+            min_links_enabled: false,
+            min_links: None,
+            quality_enabled: true,
+            quality_min: None, // use item's actual quality
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        let qf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.misc_filters.as_ref())
+            .and_then(|mf| mf.filters.quality.as_ref())
+            .unwrap();
+        assert_eq!(qf.min, Some(20.0));
+    }
+
+    #[test]
+    fn edit_mode_quality_custom_min() {
+        let mut item = test_item();
+        item.properties = vec![poe_item::types::ItemProperty {
+            name: "Quality".to_string(),
+            value: "+20%".to_string(),
+            augmented: true,
+        }];
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![],
+            min_links_enabled: false,
+            min_links: None,
+            quality_enabled: true,
+            quality_min: Some(15),
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        let qf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.misc_filters.as_ref())
+            .and_then(|mf| mf.filters.quality.as_ref())
+            .unwrap();
+        assert_eq!(qf.min, Some(15.0));
     }
 }

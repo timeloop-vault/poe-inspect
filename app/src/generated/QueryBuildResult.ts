@@ -36,4 +36,9 @@ mappedStats: Array<MappedStat>,
  * Parsed socket info (total count, max link, colors).
  * `None` if the item has no sockets section.
  */
-socketInfo: SocketInfo | null, };
+socketInfo: SocketInfo | null, 
+/**
+ * Item quality percentage (e.g., 20 for `"+20%"`).
+ * `None` if the item has no quality property.
+ */
+quality: number | null, };

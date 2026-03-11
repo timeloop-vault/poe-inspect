@@ -25,6 +25,11 @@ export interface TradeFilters {
 	linksMin: number | null;
 	setLinksEnabled: (enabled: boolean) => void;
 	setLinksMin: (min: number | null) => void;
+	quality: number | null;
+	qualityEnabled: boolean;
+	qualityMin: number | null;
+	setQualityEnabled: (enabled: boolean) => void;
+	setQualityMin: (min: number | null) => void;
 	filterConfig: TradeFilterConfig | null;
 }
 
@@ -42,6 +47,9 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 	const [socketInfo, setSocketInfo] = useState<SocketInfo | null>(null);
 	const [linksEnabled, setLinksEnabled] = useState(false);
 	const [linksMin, setLinksMin] = useState<number | null>(null);
+	const [quality, setQuality] = useState<number | null>(null);
+	const [qualityEnabled, setQualityEnabled] = useState(false);
+	const [qualityMin, setQualityMin] = useState<number | null>(null);
 
 	// Reset when item changes
 	// biome-ignore lint/correctness/useExhaustiveDependencies: itemText change triggers reset intentionally
@@ -53,6 +61,9 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 		setSocketInfo(null);
 		setLinksEnabled(false);
 		setLinksMin(null);
+		setQuality(null);
+		setQualityEnabled(false);
+		setQualityMin(null);
 	}, [itemText]);
 
 	const toggleEditMode = useCallback(async () => {
@@ -76,6 +87,11 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 					setLinksEnabled(false);
 					setLinksMin(si?.maxLink ?? null);
 				}
+
+				// Initialize quality state
+				setQuality(result.quality);
+				setQualityEnabled(false);
+				setQualityMin(result.quality);
 			} catch (e) {
 				console.error("Failed to preview trade query:", e);
 				return;
@@ -136,6 +152,8 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 				statOverrides: Array.from(statOverrides.values()),
 				minLinksEnabled: linksEnabled,
 				minLinks: linksMin,
+				qualityEnabled,
+				qualityMin,
 			}
 		: null;
 
@@ -154,6 +172,11 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 		linksMin,
 		setLinksEnabled,
 		setLinksMin,
+		quality,
+		qualityEnabled,
+		qualityMin,
+		setQualityEnabled,
+		setQualityMin,
 		filterConfig,
 	};
 }
