@@ -164,8 +164,10 @@ fn resolve_header(header: &Header, game_data: &GameData) -> ResolvedHeader {
             base_type: header.name2.clone().unwrap_or_default(),
         },
         Rarity::Magic => {
-            let base_type = extract_magic_base_type(&header.name1, game_data)
-                .unwrap_or_else(|| header.name1.clone());
+            // Strip quality prefix before extracting base type from magic name.
+            let name = poe_data::domain::strip_quality_prefix(&header.name1);
+            let base_type = extract_magic_base_type(name, game_data)
+                .unwrap_or_else(|| name.to_string());
             ResolvedHeader {
                 item_class: header.item_class.clone(),
                 rarity: header.rarity,
@@ -173,12 +175,13 @@ fn resolve_header(header: &Header, game_data: &GameData) -> ResolvedHeader {
                 base_type,
             }
         }
-        // Normal, Gem, Currency, Unknown — name1 is the base type
+        // Normal, Gem, Currency, Unknown — name1 is the base type.
+        // Strip quality prefix (e.g., "Superior Ezomyte Tower Shield" → "Ezomyte Tower Shield").
         _ => ResolvedHeader {
             item_class: header.item_class.clone(),
             rarity: header.rarity,
             name: None,
-            base_type: header.name1.clone(),
+            base_type: poe_data::domain::strip_quality_prefix(&header.name1).to_string(),
         },
     }
 }
