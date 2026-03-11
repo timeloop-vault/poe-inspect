@@ -126,6 +126,16 @@ pub enum Predicate {
 
     /// Total number of influences.
     InfluenceCount { op: Cmp, value: u32 },
+
+    // ── Socket / quality predicates ─────────────────────────────────
+    /// Total number of sockets on the item.
+    SocketCount { op: Cmp, value: u32 },
+
+    /// Largest linked socket group on the item.
+    LinkCount { op: Cmp, value: u32 },
+
+    /// Item quality percentage (parsed from properties).
+    Quality { op: Cmp, value: u32 },
 }
 
 /// A single stat condition: identifies a stat and checks its rolled value.

@@ -1,6 +1,6 @@
 // Kill any process listening on the given port (Windows).
 // Usage: node scripts/kill-port.js 1420
-const { execSync } = require("child_process");
+const { execSync } = require("node:child_process");
 
 const port = process.argv[2];
 if (!port) process.exit(0);

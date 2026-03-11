@@ -91,10 +91,12 @@ poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
 - `clippy::pedantic` enabled, `unsafe_code = "forbid"`
 - `cargo fmt` before commit
 - Use `thiserror` for error types
+- **Always fix clippy warnings** — even if unrelated to your changes. Zero warnings policy.
 
 ### TypeScript
 - Strict mode, no `any` without justification
-- Biome or similar for formatting/linting
+- Biome for formatting/linting
+- **Always fix biome errors** — even if unrelated to your changes. Run `npx biome check --write --unsafe .` from `app/` and fix any remaining issues before committing.
 
 ### Git / CLI
 - **Never `cd <path> && git <command>`** — the working directory is the repo root. Use git commands directly without `cd`. This applies to all git operations (status, add, commit, diff, log, etc.)
