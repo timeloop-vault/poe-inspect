@@ -8,7 +8,7 @@ use poe_item::types::{ModDisplayType, Rarity, ResolvedItem, ResolvedMod, Resolve
 use serde::Serialize;
 
 use crate::types::{
-    MappedStat, TradeFilterConfig, TradeQueryConfig, TradeStatsIndex, TypeSearchScope,
+    MappedStat, SocketInfo, TradeFilterConfig, TradeQueryConfig, TradeStatsIndex, TypeSearchScope,
 };
 
 // ── Result ──────────────────────────────────────────────────────────────────
@@ -34,6 +34,9 @@ pub struct QueryBuildResult {
     /// stats are mappable, their default min values, and whether
     /// they were included in the final query.
     pub mapped_stats: Vec<MappedStat>,
+    /// Parsed socket info (total count, max link, colors).
+    /// `None` if the item has no sockets section.
+    pub socket_info: Option<SocketInfo>,
 }
 
 // ── Trade search body ───────────────────────────────────────────────────────
@@ -129,6 +132,34 @@ pub struct QueryFilters {
     pub type_filters: Option<TypeFilters>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub misc_filters: Option<MiscFilters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub socket_filters: Option<SocketFilters>,
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct SocketFilters {
+    pub filters: SocketFilterValues,
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct SocketFilterValues {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub links: Option<IntFilterValue>,
+}
+
+/// Integer-valued filter range (trade API requires integers for links/sockets).
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct IntFilterValue {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max: Option<u32>,
 }
 
 #[derive(Debug, Serialize)]
@@ -265,8 +296,12 @@ pub fn build_query(
         }]
     };
 
+    // Parse socket info from item
+    let socket_info = item.sockets.as_deref().map(parse_socket_info);
+
     let type_scope = filter_config.map_or(TypeSearchScope::BaseType, |fc| fc.type_scope);
-    let query_filters = build_item_filters(item, config, type_scope);
+    let query_filters =
+        build_item_filters(item, config, type_scope, socket_info.as_ref(), filter_config);
 
     let body = TradeSearchBody {
         query: TradeQuery {
@@ -299,6 +334,7 @@ pub fn build_query(
         stats_total,
         unmapped_stats,
         mapped_stats,
+        socket_info,
     }
 }
 
@@ -378,22 +414,81 @@ fn compute_filter_value(
     })
 }
 
-/// Build item-level filters (type, misc).
+/// Parse an item's socket string into structured info.
+///
+/// Format: letters `R`/`G`/`B`/`W` separated by `-` (linked) or ` ` (unlinked).
+/// Example: `"B-B-B B"` → 4 sockets, max link 3, 4 blue, 0 white.
+#[must_use]
+pub fn parse_socket_info(socket_str: &str) -> SocketInfo {
+    let mut total = 0u32;
+    let mut max_link = 1u32;
+    let mut current_link = 1u32;
+    let mut red = 0u32;
+    let mut green = 0u32;
+    let mut blue = 0u32;
+    let mut white = 0u32;
+
+    let mut prev_was_link = false;
+
+    for ch in socket_str.chars() {
+        match ch {
+            'R' | 'G' | 'B' | 'W' => {
+                total += 1;
+                match ch {
+                    'R' => red += 1,
+                    'G' => green += 1,
+                    'B' => blue += 1,
+                    'W' => white += 1,
+                    _ => unreachable!(),
+                }
+                if !prev_was_link && total > 1 {
+                    // Space-separated = new group
+                    current_link = 1;
+                }
+                prev_was_link = false;
+            }
+            '-' => {
+                current_link += 1;
+                max_link = max_link.max(current_link);
+                prev_was_link = true;
+            }
+            ' ' => {
+                prev_was_link = false;
+            }
+            _ => {}
+        }
+    }
+
+    SocketInfo {
+        total,
+        max_link,
+        red,
+        green,
+        blue,
+        white,
+    }
+}
+
+/// Build item-level filters (type, misc, sockets).
 fn build_item_filters(
     item: &ResolvedItem,
     config: &TradeQueryConfig,
     type_scope: TypeSearchScope,
+    socket_info: Option<&SocketInfo>,
+    filter_config: Option<&TradeFilterConfig>,
 ) -> Option<QueryFilters> {
     let type_filters = build_type_filters(item, type_scope);
     let misc_filters = build_misc_filters(item, config);
+    let socket_filters = build_socket_filters(socket_info, filter_config);
 
-    if type_filters.is_none() && misc_filters.is_none() {
+    if type_filters.is_none() && misc_filters.is_none() && socket_filters.is_none() {
         return None;
     }
 
     Some(QueryFilters {
         type_filters,
         misc_filters,
+        socket_filters,
     })
 }
 
@@ -460,6 +555,44 @@ fn build_misc_filters(item: &ResolvedItem, _config: &TradeQueryConfig) -> Option
             corrupted,
             identified,
             fractured_item,
+        },
+    })
+}
+
+/// Build socket filters (links).
+///
+/// Default behavior (no filter config): include a min-links filter only for
+/// 5-link or 6-link items (link count significantly affects price).
+///
+/// With filter config: respect the user's `min_links_enabled` and `min_links` overrides.
+fn build_socket_filters(
+    socket_info: Option<&SocketInfo>,
+    filter_config: Option<&TradeFilterConfig>,
+) -> Option<SocketFilters> {
+    let info = socket_info?;
+
+    let (enabled, min_links) = match filter_config {
+        Some(fc) => (fc.min_links_enabled, fc.min_links.unwrap_or(info.max_link)),
+        None => {
+            // Auto: only include for 5L+ items
+            if info.max_link >= 5 {
+                (true, info.max_link)
+            } else {
+                (false, 0)
+            }
+        }
+    };
+
+    if !enabled || min_links == 0 {
+        return None;
+    }
+
+    Some(SocketFilters {
+        filters: SocketFilterValues {
+            links: Some(IntFilterValue {
+                min: Some(min_links),
+                max: None,
+            }),
         },
     })
 }
@@ -739,6 +872,8 @@ mod tests {
                     min_override: None,
                 },
             ],
+            min_links_enabled: false,
+            min_links: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -764,6 +899,8 @@ mod tests {
                 enabled: true,
                 min_override: Some(50.0),
             }],
+            min_links_enabled: false,
+            min_links: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -779,6 +916,8 @@ mod tests {
         let fc = TradeFilterConfig {
             type_scope: TypeSearchScope::BaseType,
             stat_overrides: vec![],
+            min_links_enabled: false,
+            min_links: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -801,6 +940,8 @@ mod tests {
         let fc = TradeFilterConfig {
             type_scope: TypeSearchScope::ItemClass,
             stat_overrides: vec![],
+            min_links_enabled: false,
+            min_links: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -825,6 +966,8 @@ mod tests {
         let fc = TradeFilterConfig {
             type_scope: TypeSearchScope::Any,
             stat_overrides: vec![],
+            min_links_enabled: false,
+            min_links: None,
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -852,5 +995,171 @@ mod tests {
         assert_eq!(result.mapped_stats[0].display_text, "+100 to maximum Life");
         // Cold res: 40 * 0.85 = 34.0
         assert_eq!(result.mapped_stats[1].computed_min, Some(34.0));
+    }
+
+    // ── Socket parsing tests ──────────────────────────────────────────────
+
+    #[test]
+    fn parse_sockets_simple_linked() {
+        let info = parse_socket_info("B-B-B B");
+        assert_eq!(info.total, 4);
+        assert_eq!(info.max_link, 3);
+        assert_eq!(info.blue, 4);
+        assert_eq!(info.red, 0);
+        assert_eq!(info.green, 0);
+        assert_eq!(info.white, 0);
+    }
+
+    #[test]
+    fn parse_sockets_mixed_colors() {
+        let info = parse_socket_info("R-G-B W");
+        assert_eq!(info.total, 4);
+        assert_eq!(info.max_link, 3);
+        assert_eq!(info.red, 1);
+        assert_eq!(info.green, 1);
+        assert_eq!(info.blue, 1);
+        assert_eq!(info.white, 1);
+    }
+
+    #[test]
+    fn parse_sockets_six_linked() {
+        let info = parse_socket_info("R-R-G-G-B-B");
+        assert_eq!(info.total, 6);
+        assert_eq!(info.max_link, 6);
+    }
+
+    #[test]
+    fn parse_sockets_all_unlinked() {
+        let info = parse_socket_info("R G B W");
+        assert_eq!(info.total, 4);
+        assert_eq!(info.max_link, 1);
+    }
+
+    #[test]
+    fn parse_sockets_single() {
+        let info = parse_socket_info("B");
+        assert_eq!(info.total, 1);
+        assert_eq!(info.max_link, 1);
+        assert_eq!(info.blue, 1);
+    }
+
+    #[test]
+    fn parse_sockets_two_groups() {
+        let info = parse_socket_info("R-R G-G-G");
+        assert_eq!(info.total, 5);
+        assert_eq!(info.max_link, 3);
+        assert_eq!(info.red, 2);
+        assert_eq!(info.green, 3);
+    }
+
+    // ── Socket filter tests ───────────────────────────────────────────────
+
+    #[test]
+    fn no_sockets_no_filter() {
+        let item = test_item(); // sockets: None
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        assert!(result.socket_info.is_none());
+        // No socket filters in query
+        let sf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.socket_filters.as_ref());
+        assert!(sf.is_none());
+    }
+
+    #[test]
+    fn five_link_auto_includes_link_filter() {
+        let mut item = test_item();
+        item.sockets = Some("R-R-G-G-B".to_string());
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        let info = result.socket_info.as_ref().unwrap();
+        assert_eq!(info.total, 5);
+        assert_eq!(info.max_link, 5);
+
+        let sf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.socket_filters.as_ref())
+            .unwrap();
+        assert_eq!(sf.filters.links.as_ref().unwrap().min, Some(5));
+    }
+
+    #[test]
+    fn four_link_no_auto_filter() {
+        let mut item = test_item();
+        item.sockets = Some("R-R-G-G B".to_string());
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        let info = result.socket_info.as_ref().unwrap();
+        assert_eq!(info.max_link, 4);
+
+        // No auto link filter for < 5L
+        let sf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.socket_filters.as_ref());
+        assert!(sf.is_none());
+    }
+
+    #[test]
+    fn edit_mode_enables_link_filter() {
+        let mut item = test_item();
+        item.sockets = Some("R-R-G B".to_string()); // 3-link
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![],
+            min_links_enabled: true,
+            min_links: Some(3),
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        let sf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.socket_filters.as_ref())
+            .unwrap();
+        assert_eq!(sf.filters.links.as_ref().unwrap().min, Some(3));
+    }
+
+    #[test]
+    fn edit_mode_disables_link_filter() {
+        let mut item = test_item();
+        item.sockets = Some("R-R-G-G-B-B".to_string()); // 6-link
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let fc = TradeFilterConfig {
+            type_scope: TypeSearchScope::BaseType,
+            stat_overrides: vec![],
+            min_links_enabled: false,
+            min_links: None,
+        };
+        let result = build_query(&item, &index, &config, Some(&fc));
+
+        // User disabled link filter even though 6L would auto-include
+        let sf = result
+            .body
+            .query
+            .filters
+            .as_ref()
+            .and_then(|f| f.socket_filters.as_ref());
+        assert!(sf.is_none());
     }
 }

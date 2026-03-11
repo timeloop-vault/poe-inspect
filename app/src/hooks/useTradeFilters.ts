@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import type {
 	MappedStat,
 	QueryBuildResult,
+	SocketInfo,
 	StatFilterOverride,
 	TradeFilterConfig,
 	TradeQueryConfig,
@@ -19,6 +20,11 @@ export interface TradeFilters {
 	setStatMin: (statIndex: number, min: number | null) => void;
 	isStatEnabled: (statIndex: number) => boolean;
 	getStatMin: (statIndex: number) => number | null;
+	socketInfo: SocketInfo | null;
+	linksEnabled: boolean;
+	linksMin: number | null;
+	setLinksEnabled: (enabled: boolean) => void;
+	setLinksMin: (min: number | null) => void;
 	filterConfig: TradeFilterConfig | null;
 }
 
@@ -33,6 +39,9 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 	const [mappedStats, setMappedStats] = useState<MappedStat[]>([]);
 	const [typeScope, setTypeScope] = useState<TypeSearchScope>("baseType");
 	const [statOverrides, setStatOverrides] = useState<Map<number, StatFilterOverride>>(new Map());
+	const [socketInfo, setSocketInfo] = useState<SocketInfo | null>(null);
+	const [linksEnabled, setLinksEnabled] = useState(false);
+	const [linksMin, setLinksMin] = useState<number | null>(null);
 
 	// Reset when item changes
 	// biome-ignore lint/correctness/useExhaustiveDependencies: itemText change triggers reset intentionally
@@ -41,6 +50,9 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 		setMappedStats([]);
 		setStatOverrides(new Map());
 		setTypeScope("baseType");
+		setSocketInfo(null);
+		setLinksEnabled(false);
+		setLinksMin(null);
 	}, [itemText]);
 
 	const toggleEditMode = useCallback(async () => {
@@ -53,6 +65,17 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 				setMappedStats(result.mappedStats);
 				setStatOverrides(new Map());
 				setTypeScope("baseType");
+
+				// Initialize socket state from query result
+				const si = result.socketInfo;
+				setSocketInfo(si);
+				if (si && si.maxLink >= 5) {
+					setLinksEnabled(true);
+					setLinksMin(si.maxLink);
+				} else {
+					setLinksEnabled(false);
+					setLinksMin(si?.maxLink ?? null);
+				}
 			} catch (e) {
 				console.error("Failed to preview trade query:", e);
 				return;
@@ -111,6 +134,8 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 		? {
 				typeScope,
 				statOverrides: Array.from(statOverrides.values()),
+				minLinksEnabled: linksEnabled,
+				minLinks: linksMin,
 			}
 		: null;
 
@@ -124,6 +149,11 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 		setStatMin,
 		isStatEnabled,
 		getStatMin,
+		socketInfo,
+		linksEnabled,
+		linksMin,
+		setLinksEnabled,
+		setLinksMin,
 		filterConfig,
 	};
 }

@@ -55,6 +55,7 @@ export type { TradeFilterConfig } from "./generated/TradeFilterConfig";
 export type { TypeSearchScope } from "./generated/TypeSearchScope";
 export type { StatFilterOverride } from "./generated/StatFilterOverride";
 export type { MappedStat } from "./generated/MappedStat";
+export type { SocketInfo } from "./generated/SocketInfo";
 
 // ── App-owned combined payload ──────────────────────────────────────────────
 // Matches the Rust `ItemPayload` struct in app/src-tauri/src/lib.rs.

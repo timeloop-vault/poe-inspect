@@ -152,6 +152,35 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 				</div>
 			)}
 
+			{/* Socket/link filters — shown in edit mode when item has sockets */}
+			{filters.editMode && filters.socketInfo && (
+				<div class="trade-socket-filters">
+					<label class="socket-filter-row">
+						<input
+							type="checkbox"
+							checked={filters.linksEnabled}
+							onChange={() => filters.setLinksEnabled(!filters.linksEnabled)}
+						/>
+						<span class="socket-filter-label">Min Links</span>
+						<input
+							type="number"
+							class="socket-filter-input"
+							value={filters.linksMin ?? filters.socketInfo.maxLink}
+							min={1}
+							max={filters.socketInfo.total}
+							disabled={!filters.linksEnabled}
+							onInput={(e) => {
+								const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
+								filters.setLinksMin(Number.isNaN(v) ? null : v);
+							}}
+						/>
+						<span class="socket-filter-hint">
+							{filters.socketInfo.total}S / {filters.socketInfo.maxLink}L
+						</span>
+					</label>
+				</div>
+			)}
+
 			{state.status === "results" && <TradeResults result={state.result} />}
 			{state.status === "empty" && <div class="trade-message">No listings found</div>}
 			{state.status === "error" && (

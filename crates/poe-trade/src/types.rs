@@ -194,6 +194,14 @@ pub struct TradeFilterConfig {
     /// Per-stat overrides, indexed by flat stat position
     /// (order: enchants → implicits → explicits, skipping reminder text).
     pub stat_overrides: Vec<StatFilterOverride>,
+    /// Whether to include a minimum-links filter.
+    /// Default `false` — auto-include only for 5L/6L items.
+    #[serde(default)]
+    pub min_links_enabled: bool,
+    /// Minimum link count override (only used when `min_links_enabled` is true).
+    /// `None` = use the item's actual max link group size.
+    #[serde(default)]
+    pub min_links: Option<u32>,
 }
 
 /// How specific the type filter should be in a trade search.
@@ -228,6 +236,31 @@ pub struct StatFilterOverride {
     pub enabled: bool,
     /// Min value override. `None` = use relaxation-computed default.
     pub min_override: Option<f64>,
+}
+
+// ── Socket Info ────────────────────────────────────────────────────────────
+
+/// Parsed socket data from the item's socket string (e.g., `"B-B-B B"`).
+///
+/// Returned in `QueryBuildResult` so the frontend can populate
+/// socket filter controls in the "Edit Search" UI.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct SocketInfo {
+    /// Total number of sockets.
+    pub total: u32,
+    /// Size of the largest linked group.
+    pub max_link: u32,
+    /// Red socket count.
+    pub red: u32,
+    /// Green socket count.
+    pub green: u32,
+    /// Blue socket count.
+    pub blue: u32,
+    /// White socket count.
+    pub white: u32,
 }
 
 // ── Mapped Stat Info (returned from query builder) ─────────────────────────

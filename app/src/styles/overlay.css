@@ -1055,3 +1055,66 @@ body,
 	outline: none;
 	border-color: var(--poe-accent);
 }
+
+/* Socket/link filter controls */
+
+.trade-socket-filters {
+	padding: 4px 0;
+	border-top: 1px solid rgba(70, 59, 43, 0.3);
+}
+
+.socket-filter-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.socket-filter-row input[type="checkbox"] {
+	width: 13px;
+	height: 13px;
+	accent-color: var(--poe-accent);
+	cursor: pointer;
+	margin: 0;
+}
+
+.socket-filter-label {
+	color: var(--poe-text);
+	white-space: nowrap;
+}
+
+.socket-filter-input {
+	width: 36px;
+	padding: 1px 4px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(70, 59, 43, 0.6);
+	border-radius: 2px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 11px;
+	text-align: right;
+	-moz-appearance: textfield;
+}
+
+.socket-filter-input::-webkit-inner-spin-button,
+.socket-filter-input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.socket-filter-input:focus {
+	outline: none;
+	border-color: var(--poe-accent);
+}
+
+.socket-filter-input:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.socket-filter-hint {
+	color: var(--poe-text-dim);
+	font-size: 10px;
+	margin-left: auto;
+}

@@ -17,4 +17,14 @@ typeScope: TypeSearchScope,
  * Per-stat overrides, indexed by flat stat position
  * (order: enchants → implicits → explicits, skipping reminder text).
  */
-statOverrides: Array<StatFilterOverride>, };
+statOverrides: Array<StatFilterOverride>, 
+/**
+ * Whether to include a minimum-links filter.
+ * Default `false` — auto-include only for 5L/6L items.
+ */
+minLinksEnabled: boolean, 
+/**
+ * Minimum link count override (only used when `min_links_enabled` is true).
+ * `None` = use the item's actual max link group size.
+ */
+minLinks: number | null, };
