@@ -1149,6 +1149,18 @@ fn stat_value_conditions_serialize_roundtrip() {
     }
 }
 
+/// Fractured mod source prefix parses correctly.
+#[test]
+fn fractured_mod_source_parses() {
+    let item = resolve_full("rare-helmet-fractured-rarity.txt");
+
+    assert_eq!(item.explicits.len(), 4);
+    assert!(item
+        .explicits
+        .iter()
+        .any(|m| m.header.name.as_deref() == Some("Dragon's")));
+}
+
 /// Debug: trace stat_ids through the full pipeline for a body armour with hybrid mods.
 #[test]
 fn trace_stat_ids_body_armour() {

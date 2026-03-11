@@ -229,7 +229,12 @@ fn walk_mod_header(pair: pest::iterators::Pair<'_, Rule>) -> ModHeader {
 
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::mod_source => source = ModSource::MasterCrafted,
+            Rule::mod_source => {
+                source = match inner.as_str().trim() {
+                    "Fractured" => ModSource::Fractured,
+                    _ => ModSource::MasterCrafted,
+                };
+            }
             Rule::mod_slot => {
                 slot = match inner.as_str() {
                     "Implicit" => ModSlot::Implicit,

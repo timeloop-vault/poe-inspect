@@ -49,6 +49,7 @@ import { invoke } from "@tauri-apps/api/core";
  * a single stat or a different hybrid.
  */
 import { useEffect, useRef, useState } from "preact/hooks";
+import { loadGeneral } from "../../store";
 import type {
 	FieldKind,
 	PredicateField,
@@ -232,13 +233,15 @@ function StatValueEditor({
 	const [showDropdown, setShowDropdown] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [filterText, setFilterText] = useState("");
+	const [showStatIds, setShowStatIds] = useState(false);
 	const wrapperRef = useRef<HTMLLabelElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);
 
-	// Load stat suggestions on mount
+	// Load stat suggestions on mount + check power-user setting
 	useEffect(() => {
 		getSuggestions("stat_texts").then(setSuggestions);
+		loadGeneral().then((s) => setShowStatIds(s.showStatIds));
 	}, []);
 
 	// Scroll dropdown into view when it appears
@@ -431,6 +434,7 @@ function StatValueEditor({
 				<input
 					type="text"
 					class="pred-input"
+					title={conditions[0]?.stat_ids?.join(", ") || undefined}
 					value={pickedTemplate ? filterText : (conditions[0]?.text ?? "")}
 					onInput={(e) => {
 						const v = (e.target as HTMLInputElement).value;
@@ -481,11 +485,24 @@ function StatValueEditor({
 		</label>
 	);
 
-	// Single mode: input + op + value all inline
+	// Inline stat_ids display for a condition (shown in power-user mode)
+	const statIdBox = (cond: StatCondition) =>
+		showStatIds && cond.stat_ids && cond.stat_ids.length > 0 ? (
+			<input
+				type="text"
+				class="stat-id-readonly"
+				value={cond.stat_ids.join(", ")}
+				readOnly
+				title={cond.stat_ids.join(", ")}
+			/>
+		) : null;
+
+	// Single mode: template | stat_id | op | value
 	if (!isMulti) {
 		return (
 			<div class={`predicate-fields stat-value-editor${compact ? " compact" : ""}`}>
 				{statInput}
+				{conditions[0] && statIdBox(conditions[0])}
 				<ComparisonField
 					label=""
 					allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
@@ -517,6 +534,7 @@ function StatValueEditor({
 						<span class="stat-value-condition-label" title={cond.stat_ids?.join(", ") ?? ""}>
 							{cond.text || cond.stat_ids?.[0] || `Condition ${i + 1}`}
 						</span>
+						{statIdBox(cond)}
 						<ComparisonField
 							label=""
 							allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}

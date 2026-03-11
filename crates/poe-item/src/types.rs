@@ -117,6 +117,7 @@ pub struct ModHeader {
 pub enum ModSource {
     Regular,
     MasterCrafted,
+    Fractured,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

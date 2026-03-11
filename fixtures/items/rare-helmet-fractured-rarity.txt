@@ -1,0 +1,28 @@
+Item Class: Helmets
+Rarity: Rare
+Sorrow Visage
+Lacquered Helmet
+--------
+Armour: 140
+Evasion Rating: 140
+--------
+Requirements:
+Level: 57
+Str: 46 (augmented)
+Dex: 46 (augmented)
+--------
+Sockets: R-G-G-G
+--------
+Item Level: 80
+--------
+{ Fractured Prefix Modifier "Dragon's" (Tier: 1) — Drop }
+22(19-24)% increased Rarity of Items found
+{ Prefix Modifier "Athlete's" (Tier: 2) — Life }
++128(115-129) to maximum Life
+{ Suffix Modifier "of the Ice" (Tier: 2) — Elemental, Cold, Resistance }
++43(42-45)% to Cold Resistance
+{ Suffix Modifier "of the Worthy" (Tier: 2) }
+18% reduced Attribute Requirements
+(Attributes are Strength, Dexterity, and Intelligence)
+--------
+Fractured Item

@@ -102,6 +102,7 @@ export function App() {
 		showTierBadges: true,
 		showTypeBadges: true,
 		showOpenAffixes: true,
+		showStatIds: false,
 	});
 	const [qualityColors, setQualityColors] = useState<QualityColors | null>(null);
 	const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({
@@ -131,6 +132,7 @@ export function App() {
 					showTierBadges: s.showTierBadges,
 					showTypeBadges: s.showTypeBadges,
 					showOpenAffixes: s.showOpenAffixes,
+					showStatIds: s.showStatIds,
 				});
 			});
 			loadHotkeys().then((h) => {

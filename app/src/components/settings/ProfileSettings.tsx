@@ -520,6 +520,7 @@ function CustomProfileView({
 }) {
 	const [dragFrom, setDragFrom] = useState<number | null>(null);
 	const [dragOver, setDragOver] = useState<number | null>(null);
+	const [draggableIdx, setDraggableIdx] = useState<number | null>(null);
 
 	const addRule = () => {
 		const firstSchema = schema[0];
@@ -595,7 +596,13 @@ function CustomProfileView({
 						// biome-ignore lint/suspicious/noArrayIndexKey: rules have no stable ID
 						key={i}
 						class={`scoring-rule-slot${isDragging ? " dragging" : ""}${isDropTarget ? " drop-target" : ""}`}
-						draggable={true}
+						draggable={draggableIdx === i}
+						onPointerDown={(e) => {
+							if ((e.target as HTMLElement).closest(".drag-handle")) {
+								setDraggableIdx(i);
+							}
+						}}
+						onPointerUp={() => setDraggableIdx(null)}
 						onDragStart={(e) => {
 							setDragFrom(i);
 							const dt = (e as DragEvent).dataTransfer;
@@ -620,6 +627,7 @@ function CustomProfileView({
 						onDragEnd={() => {
 							setDragFrom(null);
 							setDragOver(null);
+							setDraggableIdx(null);
 						}}
 					>
 						{isStatRule(rule) ? (

@@ -575,6 +575,23 @@
 	width: 64px;
 }
 
+.stat-id-readonly {
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: var(--poe-text-dim);
+	font-family: Consolas, monospace;
+	font-size: 12px;
+	width: 180px;
+	min-width: 0;
+	flex: 0 0 auto;
+	cursor: default;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
 .pred-text-wrapper {
 	position: relative;
 }
@@ -733,6 +750,12 @@
 }
 
 .predicate-fields.compact .pred-text-wrapper .pred-input {
+	width: 120px;
+}
+
+.predicate-fields.compact .stat-id-readonly {
+	font-size: 11px;
+	padding: 2px 6px;
 	width: 120px;
 }
 

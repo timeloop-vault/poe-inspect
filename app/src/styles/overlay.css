@@ -519,6 +519,13 @@ body,
 	margin-left: 4px;
 }
 
+.stat-id-line {
+	font-size: 10px;
+	color: #7a7a6e;
+	font-family: Consolas, monospace;
+	margin-top: 1px;
+}
+
 /* --- Roll quality bar --- */
 
 .roll-quality {

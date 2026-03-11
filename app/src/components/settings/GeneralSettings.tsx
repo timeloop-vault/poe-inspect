@@ -203,6 +203,14 @@ export function GeneralSettings() {
 						onChange={(v) => update({ showOpenAffixes: v })}
 					/>
 				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">Show stat IDs (power user)</div>
+					<Toggle checked={settings.showStatIds} onChange={(v) => update({ showStatIds: v })} />
+				</div>
+				<div class="setting-description">
+					Show internal stat IDs on mod lines in the overlay and rule builder.
+				</div>
 			</div>
 		</>
 	);

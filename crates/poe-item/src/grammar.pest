@@ -127,7 +127,7 @@ mod_header = {
     " }"
 }
 
-mod_source = { "Master Crafted " }
+mod_source = { "Fractured " | "Master Crafted " }
 
 mod_slot = {
     "Searing Exarch Implicit"
