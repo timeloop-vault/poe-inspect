@@ -984,3 +984,62 @@ fn corruption_implicit_mods() {
         .expect("should have Corrupted status");
     assert_eq!(status, StatusKind::Corrupted);
 }
+
+// ─── Anointed talisman ─────────────────────────────────────────────────────
+
+#[test]
+fn anointed_talisman_parsed() {
+    let item = parse_fixture("rare-talisman-anointed-corrupted.txt");
+    assert_eq!(item.header.item_class, "Amulets");
+    assert_eq!(item.header.rarity, Rarity::Rare);
+    assert_eq!(item.header.name2.as_deref(), Some("Ashscale Talisman"));
+
+    // Talisman tier
+    let tier = item
+        .sections
+        .iter()
+        .find_map(|s| match s {
+            Section::TalismanTier(n) => Some(*n),
+            _ => None,
+        })
+        .expect("should have talisman tier");
+    assert_eq!(tier, 1);
+
+    // Anointment enchant in generic section
+    let has_anoint = item.sections.iter().any(|s| match s {
+        Section::Generic(lines) => {
+            lines
+                .iter()
+                .any(|l| l.contains("Allocates Devotion (enchant)"))
+        }
+        _ => false,
+    });
+    assert!(has_anoint, "should have anointment enchant");
+
+    // Flavor text in generic section
+    let has_flavor = item.sections.iter().any(|s| match s {
+        Section::Generic(lines) => lines.iter().any(|l| l.contains("Wolven King")),
+        _ => false,
+    });
+    assert!(has_flavor, "should have flavor text");
+
+    // Implicit + explicits
+    let mod_sections: Vec<_> = item
+        .sections
+        .iter()
+        .filter_map(|s| match s {
+            Section::Modifiers(m) => Some(m),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(mod_sections.len(), 2);
+    assert_eq!(mod_sections[0].groups[0].header.slot, ModSlot::Implicit);
+    assert_eq!(mod_sections[1].groups.len(), 4); // 1 prefix + 3 suffix
+
+    // Corrupted
+    let has_corrupted = item
+        .sections
+        .iter()
+        .any(|s| matches!(s, Section::Status(StatusKind::Corrupted)));
+    assert!(has_corrupted, "should have Corrupted status");
+}
