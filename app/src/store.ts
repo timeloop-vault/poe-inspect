@@ -51,6 +51,7 @@ export interface HotkeySettings {
 	inspectItem: string;
 	dismissOverlay: string;
 	openSettings: string;
+	cycleProfile: string;
 }
 
 export interface QualityColors {
@@ -147,6 +148,7 @@ export const defaultHotkeys: HotkeySettings = {
 	inspectItem: "Ctrl+I",
 	dismissOverlay: "Escape",
 	openSettings: "Ctrl+Shift+I",
+	cycleProfile: "Ctrl+Shift+P",
 };
 
 export const defaultQualityColors: QualityColors = {

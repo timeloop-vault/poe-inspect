@@ -13,6 +13,7 @@ async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 		inspectItem: settings.inspectItem.toLowerCase().replace(/\+/g, "+"),
 		dismissOverlay: settings.dismissOverlay.toLowerCase().replace(/\+/g, "+"),
 		openSettings: settings.openSettings.toLowerCase().replace(/\+/g, "+"),
+		cycleProfile: settings.cycleProfile.toLowerCase().replace(/\+/g, "+"),
 	});
 }
 
@@ -20,6 +21,7 @@ const hotkeyFields: { label: string; key: keyof HotkeySettingsType }[] = [
 	{ label: "Inspect Item", key: "inspectItem" },
 	{ label: "Dismiss Overlay", key: "dismissOverlay" },
 	{ label: "Open Settings", key: "openSettings" },
+	{ label: "Cycle Profile", key: "cycleProfile" },
 ];
 
 function findConflict(

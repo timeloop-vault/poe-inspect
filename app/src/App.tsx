@@ -262,6 +262,15 @@ export function App() {
 			setShowMock(true);
 		});
 
+		const unlistenCycleProfile = listen("cycle-profile", () => {
+			const profiles = profilesRef.current;
+			if (profiles.length < 2) return;
+			const primaryIdx = profiles.findIndex((p) => p.role === "primary");
+			const nextIdx = (primaryIdx + 1) % profiles.length;
+			const next = profiles[nextIdx];
+			if (next) handleSwitchProfile(next.id);
+		});
+
 		// Dismiss overlay on configured key (window-level, not global shortcut)
 		const handleKeydown = (e: KeyboardEvent) => {
 			const parts: string[] = [];
@@ -286,9 +295,10 @@ export function App() {
 			unlistenParseFailed.then((fn) => fn());
 			unlistenDismiss.then((fn) => fn());
 			unlistenDebug.then((fn) => fn());
+			unlistenCycleProfile.then((fn) => fn());
 			document.removeEventListener("keydown", handleKeydown);
 		};
-	}, [dismiss, showProfileToast, syncProfileState]);
+	}, [dismiss, showProfileToast, syncProfileState, handleSwitchProfile]);
 
 	const zoom = overlayScale / 100;
 	const pos = computePanelPosition(cursorPos, overlayMode, zoom);

@@ -291,6 +291,7 @@ fn show_settings(app: &tauri::AppHandle) {
 struct HotkeyConfig {
     inspect_item: String,
     open_settings: String,
+    cycle_profile: String,
 }
 
 impl Default for HotkeyConfig {
@@ -298,6 +299,7 @@ impl Default for HotkeyConfig {
         Self {
             inspect_item: "ctrl+i".into(),
             open_settings: "ctrl+shift+i".into(),
+            cycle_profile: "ctrl+shift+p".into(),
         }
     }
 }
@@ -328,6 +330,11 @@ fn load_hotkey_config(app: &tauri::AppHandle) -> HotkeyConfig {
             .and_then(|v| v.as_str())
             .map(|s| s.to_lowercase())
             .unwrap_or(defaults.open_settings),
+        cycle_profile: hotkeys_val
+            .get("cycleProfile")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or(defaults.cycle_profile),
     }
 }
 
@@ -336,9 +343,10 @@ fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
     let gs = app.global_shortcut();
     let _ = gs.unregister_all();
 
-    let entries: [(&str, &str); 2] = [
+    let entries: [(&str, &str); 3] = [
         (&config.inspect_item, "inspect"),
         (&config.open_settings, "settings"),
+        (&config.cycle_profile, "cycle_profile"),
     ];
 
     for (shortcut_str, action_name) in entries {
@@ -358,6 +366,9 @@ fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
                     }
                 }
                 "settings" => show_settings(app),
+                "cycle_profile" => {
+                    let _ = app.emit("cycle-profile", ());
+                }
                 _ => {}
             }
         }) {
@@ -375,10 +386,12 @@ fn update_hotkeys(
     inspect_item: String,
     #[allow(unused_variables)] dismiss_overlay: String,
     open_settings: String,
+    cycle_profile: String,
 ) {
     let config = HotkeyConfig {
         inspect_item,
         open_settings,
+        cycle_profile,
     };
     register_hotkeys(&app, &config);
     *app.state::<HotkeyState>().0.lock().unwrap() = config;
