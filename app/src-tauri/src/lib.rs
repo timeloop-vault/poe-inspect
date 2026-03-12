@@ -549,6 +549,7 @@ fn get_map_mod_templates(state: tauri::State<'_, GameDataState>) -> Vec<MapModTe
         .0
         .map_mod_templates()
         .into_iter()
+        .filter(|(template, _)| template.chars().any(|c| c.is_alphabetic()))
         .map(|(template, stat_ids)| MapModTemplate {
             template: template.to_string(),
             stat_ids: stat_ids.to_vec(),
