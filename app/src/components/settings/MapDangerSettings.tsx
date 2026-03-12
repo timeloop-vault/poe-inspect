@@ -26,6 +26,7 @@ export function MapDangerSettings() {
 	const [profiles, setProfiles] = useState<StoredProfile[]>([]);
 	const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
 	const [search, setSearch] = useState("");
+	const [classifiedOnly, setClassifiedOnly] = useState(false);
 	const [loaded, setLoaded] = useState(false);
 	const profilesRef = useRef<StoredProfile[]>([]);
 
@@ -71,10 +72,16 @@ export function MapDangerSettings() {
 	);
 
 	const filtered = useMemo(() => {
-		if (!search.trim()) return templates;
-		const q = search.toLowerCase();
-		return templates.filter((t) => t.template.toLowerCase().includes(q));
-	}, [templates, search]);
+		let result = templates;
+		if (classifiedOnly) {
+			result = result.filter((t) => t.template in mapDanger);
+		}
+		if (search.trim()) {
+			const q = search.toLowerCase();
+			result = result.filter((t) => t.template.toLowerCase().includes(q));
+		}
+		return result;
+	}, [templates, search, classifiedOnly, mapDanger]);
 
 	// Stats
 	const classifiedCount = Object.keys(mapDanger).length;
@@ -116,19 +123,29 @@ export function MapDangerSettings() {
 					</span>
 				</h3>
 
-				<div class="danger-search-row">
-					<input
-						type="text"
-						class="danger-search"
-						placeholder="Search map mods..."
-						value={search}
-						onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
-					/>
-					{search && (
-						<button type="button" class="danger-search-clear" onClick={() => setSearch("")}>
-							&times;
-						</button>
-					)}
+				<div class="danger-toolbar">
+					<div class="danger-search-row">
+						<input
+							type="text"
+							class="danger-search"
+							placeholder="Search map mods..."
+							value={search}
+							onInput={(e) => setSearch((e.target as HTMLInputElement).value)}
+						/>
+						{search && (
+							<button type="button" class="danger-search-clear" onClick={() => setSearch("")}>
+								&times;
+							</button>
+						)}
+					</div>
+					<label class="danger-filter-toggle">
+						<input
+							type="checkbox"
+							checked={classifiedOnly}
+							onChange={(e) => setClassifiedOnly((e.target as HTMLInputElement).checked)}
+						/>
+						Classified only
+					</label>
 				</div>
 
 				<div class="danger-list">
@@ -153,7 +170,13 @@ export function MapDangerSettings() {
 							</div>
 						);
 					})}
-					{filtered.length === 0 && <div class="danger-empty">No map mods match "{search}"</div>}
+					{filtered.length === 0 && (
+						<div class="danger-empty">
+							{classifiedOnly && !search
+								? "No mods classified yet. Inspect a map and click mods to classify them."
+								: `No map mods match "${search}"`}
+						</div>
+					)}
 				</div>
 			</div>
 		</>

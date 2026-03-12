@@ -1252,9 +1252,16 @@
 	margin-left: 8px;
 }
 
+.danger-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
 .danger-search-row {
 	position: relative;
-	margin-bottom: 8px;
+	flex: 1;
 }
 
 .danger-search {
@@ -1367,6 +1374,25 @@
 	background: rgba(127, 118, 103, 0.15);
 	border-color: var(--poe-text-dim);
 	color: var(--poe-text);
+}
+
+.danger-filter-toggle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	color: var(--poe-text-dim);
+	cursor: pointer;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.danger-filter-toggle input[type="checkbox"] {
+	width: 13px;
+	height: 13px;
+	accent-color: var(--poe-accent);
+	cursor: pointer;
+	margin: 0;
 }
 
 .danger-empty {
