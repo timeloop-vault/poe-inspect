@@ -184,6 +184,45 @@ fn stat_to_mod_index_works() {
 }
 
 #[test]
+fn map_mod_templates_available() {
+    let Some(gd) = load_test_data() else { return };
+
+    let map_templates = gd.map_mod_templates();
+    println!("Map mod templates: {}", map_templates.len());
+
+    // Should have a meaningful number of map mod templates
+    assert!(
+        map_templates.len() >= 50,
+        "expected >=50 map mod templates, got {}",
+        map_templates.len()
+    );
+
+    // All returned templates should have at least one map_ stat_id
+    for (template, stat_ids) in &map_templates {
+        assert!(
+            stat_ids.iter().any(|id| id.starts_with("map_")),
+            "template {template:?} should have a map_ stat_id, got {stat_ids:?}"
+        );
+    }
+
+    // Spot-check known map mods
+    let templates_set: Vec<&str> = map_templates.iter().map(|(t, _)| *t).collect();
+    assert!(
+        templates_set.iter().any(|t| t.contains("Area of Effect")),
+        "should include Area of Effect template"
+    );
+    assert!(
+        templates_set.iter().any(|t| t.contains("Cursed")),
+        "should include curse template"
+    );
+
+    // Print a sample
+    for (template, stat_ids) in map_templates.iter().take(10) {
+        println!("  {template:60} → {stat_ids:?}");
+    }
+}
+
+#[test]
 fn local_stat_template_fallback() {
     let Some(gd) = load_test_data() else { return };
 

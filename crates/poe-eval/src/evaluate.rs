@@ -127,18 +127,12 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
 
         // ── Socket / quality predicates ─────────────────────────────
         Predicate::SocketCount { op, value } => {
-            let count = item
-                .sockets
-                .as_deref()
-                .map_or(0, count_sockets);
+            let count = item.sockets.as_deref().map_or(0, count_sockets);
             op.eval(&count, value)
         }
 
         Predicate::LinkCount { op, value } => {
-            let max_link = item
-                .sockets
-                .as_deref()
-                .map_or(0, max_link_group);
+            let max_link = item.sockets.as_deref().map_or(0, max_link_group);
             op.eval(&max_link, value)
         }
 
@@ -218,8 +212,7 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
             m.stat_lines.iter().any(|sl| {
                 !sl.is_reminder
                     && sl.stat_ids.as_ref().is_some_and(|ids| {
-                        ids.iter()
-                            .any(|id| c.stat_ids.iter().any(|sid| sid == id))
+                        ids.iter().any(|id| c.stat_ids.iter().any(|sid| sid == id))
                     })
                     && sl
                         .values
@@ -308,8 +301,9 @@ fn find_matching_stats<'a>(
         .filter(move |sl| {
             !sl.is_reminder
                 && !stat_ids.is_empty()
-                && sl.stat_ids.as_ref().is_some_and(|ids| {
-                    ids.iter().any(|id| stat_ids.iter().any(|sid| sid == id))
-                })
+                && sl
+                    .stat_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.iter().any(|id| stat_ids.iter().any(|sid| sid == id)))
         })
 }

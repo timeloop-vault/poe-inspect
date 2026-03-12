@@ -2,6 +2,14 @@ use std::path::PathBuf;
 
 use poe_dat::stat_desc;
 
+/// Additional stat description files to merge into the reverse index.
+/// These contain domain-specific overrides/additions beyond the base file.
+/// Extract from GGPK with: cargo run --example extract_utf8 -- <poe_path> <file_path> > <out>
+const ADDITIONAL_STAT_FILES: &[&str] = &[
+    "map_stat_desc_utf8.txt",
+    // Future: "atlas_stat_desc_utf8.txt", "sanctum_relic_stat_desc_utf8.txt", etc.
+];
+
 fn load_index() -> Option<stat_desc::ReverseIndex> {
     let path = std::env::temp_dir().join("stat_desc_utf8.txt");
     if !path.exists() {
@@ -14,7 +22,28 @@ fn load_index() -> Option<stat_desc::ReverseIndex> {
 
     let input = std::fs::read_to_string(&path).expect("failed to read file");
     let file = stat_desc::parse(&input).expect("failed to parse");
-    Some(stat_desc::ReverseIndex::from_file(&file))
+    let mut index = stat_desc::ReverseIndex::from_file(&file);
+
+    // Merge additional stat description files (map mods, atlas mods, etc.)
+    for filename in ADDITIONAL_STAT_FILES {
+        let extra_path = std::env::temp_dir().join(filename);
+        if extra_path.exists() {
+            let extra_input =
+                std::fs::read_to_string(&extra_path).expect("failed to read extra file");
+            let extra_file = stat_desc::parse(&extra_input).expect("failed to parse extra file");
+            let before = index.len();
+            index.merge(&extra_file);
+            eprintln!(
+                "Merged {filename}: +{} patterns (total: {})",
+                index.len() - before,
+                index.len()
+            );
+        } else {
+            eprintln!("Note: {filename} not found, skipping (extract from GGPK to include)");
+        }
+    }
+
+    Some(index)
 }
 
 #[test]
@@ -161,6 +190,59 @@ fn save_reverse_index() {
     let loaded = stat_desc::ReverseIndex::load(&out_path).expect("failed to load");
     assert_eq!(loaded.len(), index.len());
     println!("Round-trip OK: {} patterns", loaded.len());
+}
+
+/// Test that map-specific mod text resolves after merging map_stat_descriptions.
+#[test]
+fn lookup_map_mods() {
+    let Some(index) = load_index() else { return };
+
+    // Map mod texts from fixtures (rare-map-abomination-t17, rare-map-shore, etc.)
+    let test_cases = [
+        "Player Skills which Throw Mines throw 1 fewer Mine",
+        "All Monster Damage from Hits always Ignites",
+        "Monsters have +100% chance to Suppress Spell Damage",
+        "Players have 27% less Area of Effect",
+        "Players are Cursed with Elemental Weakness",
+        "Buffs on Players expire 100% faster",
+        "Unique Boss deals 20% increased Damage",
+        "Unique Boss has 25% increased Attack and Cast Speed",
+        "Monsters have a 15% chance to Ignite, Freeze and Shock on Hit",
+        "Monsters deal 88% extra Physical Damage as Lightning",
+        "Monsters steal Power, Frenzy and Endurance charges on Hit",
+        "Players have 30% less Cooldown Recovery Rate",
+        "Players are Cursed with Temporal Chains",
+    ];
+
+    let mut found = 0;
+    let mut not_found = Vec::new();
+    for text in &test_cases {
+        match index.lookup(text) {
+            Some(m) => {
+                found += 1;
+                println!("  OK: {text:60} → {:?} = {:?}", m.stat_ids, m.values);
+            }
+            None => {
+                not_found.push(*text);
+                println!("  MISS: {text}");
+            }
+        }
+    }
+
+    println!("\nMap mods: {found}/{}", test_cases.len());
+    if !not_found.is_empty() {
+        println!("Not found:");
+        for m in &not_found {
+            println!("  - {m}");
+        }
+    }
+
+    // All map mods should resolve with the merged index
+    assert!(
+        found >= test_cases.len() - 2,
+        "expected most map mods to resolve, got {found}/{} (missing: {not_found:?})",
+        test_cases.len()
+    );
 }
 
 /// Test against real item data from a 3.28 Mirage character snapshot.

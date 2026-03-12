@@ -167,8 +167,8 @@ fn resolve_header(header: &Header, game_data: &GameData) -> ResolvedHeader {
         Rarity::Magic => {
             // Strip quality prefix before extracting base type from magic name.
             let name = poe_data::domain::strip_quality_prefix(&header.name1);
-            let base_type = extract_magic_base_type(name, game_data)
-                .unwrap_or_else(|| name.to_string());
+            let base_type =
+                extract_magic_base_type(name, game_data).unwrap_or_else(|| name.to_string());
             ResolvedHeader {
                 item_class: header.item_class.clone(),
                 rarity: header.rarity,

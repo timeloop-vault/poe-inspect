@@ -603,12 +603,7 @@ fn extract_quality(item: &ResolvedItem) -> Option<u32> {
     item.properties.iter().find_map(|p| {
         if p.name == "Quality" {
             // Strip leading +, trailing %, and any " (augmented)" suffix.
-            let num_str = p
-                .value
-                .trim_start_matches('+')
-                .split('%')
-                .next()?
-                .trim();
+            let num_str = p.value.trim_start_matches('+').split('%').next()?.trim();
             num_str.parse().ok()
         } else {
             None
