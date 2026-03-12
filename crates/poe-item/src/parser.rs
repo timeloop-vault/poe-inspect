@@ -242,6 +242,7 @@ fn walk_mod_header(pair: pest::iterators::Pair<'_, Rule>) -> ModHeader {
                     "Unique" => ModSlot::Unique,
                     "Searing Exarch Implicit" => ModSlot::SearingExarchImplicit,
                     "Eater of Worlds Implicit" => ModSlot::EaterOfWorldsImplicit,
+                    "Corruption Implicit" => ModSlot::CorruptionImplicit,
                     // "Prefix" and any unknown slot
                     _ => ModSlot::Prefix,
                 };
