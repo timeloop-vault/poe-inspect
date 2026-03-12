@@ -73,6 +73,19 @@ export interface DisplayPrefs {
 /** Profile role: primary (one at a time), watching (background), or off. */
 export type ProfileRole = "primary" | "watching" | "off";
 
+// ── Map danger assessment ────────────────────────────────────────────────
+
+/** Danger classification for a map mod. */
+export type DangerLevel = "deadly" | "warning" | "good";
+
+/**
+ * Per-profile map danger classifications.
+ *
+ * Keys are stat templates (e.g. "Players have #% less Area of Effect").
+ * Unclassified mods are absent from the record.
+ */
+export type MapDangerConfig = Record<string, DangerLevel>;
+
 /** Preset colors for watching profiles (PoE-themed palette). */
 export const WATCH_COLORS = [
 	"#3498db", // blue
@@ -96,6 +109,8 @@ export interface StoredProfile {
 	modWeights: ModWeight[];
 	/** App-owned display settings. */
 	display: DisplayPrefs;
+	/** Per-stat danger classifications for map mods. */
+	mapDanger: MapDangerConfig;
 }
 
 export interface TradeSettings {
@@ -156,6 +171,7 @@ const defaultProfiles: StoredProfile[] = [
 		evalProfile: null, // uses built-in Generic profile
 		modWeights: [],
 		display: { ...defaultDisplay },
+		mapDanger: {},
 	},
 ];
 
@@ -280,6 +296,8 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 	const watchColor =
 		(typeof raw.watchColor === "string" ? raw.watchColor : null) ?? WATCH_COLORS[0];
 
+	const mapDanger = (raw.mapDanger as MapDangerConfig | undefined) ?? {};
+
 	// Old format detection: has modWeights but no evalProfile
 	if ("modWeights" in raw && !("evalProfile" in raw)) {
 		result = {
@@ -294,6 +312,7 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 				highlightWeights: (raw.highlightWeights as boolean) ?? true,
 				dimIgnored: (raw.dimIgnored as boolean) ?? true,
 			},
+			mapDanger,
 		};
 	} else {
 		// New format — pass through with defaults for missing fields
@@ -310,6 +329,7 @@ function migrateProfile(raw: Record<string, unknown>): StoredProfile {
 				highlightWeights: (rawDisplay.highlightWeights as boolean) ?? true,
 				dimIgnored: (rawDisplay.dimIgnored as boolean) ?? true,
 			},
+			mapDanger,
 		};
 	}
 

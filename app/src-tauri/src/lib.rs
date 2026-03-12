@@ -534,6 +534,30 @@ fn get_suggestions(source: String, state: tauri::State<'_, GameDataState>) -> Ve
     }
 }
 
+/// A map mod template with its stat IDs (for the map danger settings page).
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MapModTemplate {
+    template: String,
+    stat_ids: Vec<String>,
+}
+
+/// Return all map/area mod templates for the map danger settings page.
+#[tauri::command]
+fn get_map_mod_templates(state: tauri::State<'_, GameDataState>) -> Vec<MapModTemplate> {
+    let mut templates: Vec<MapModTemplate> = state
+        .0
+        .map_mod_templates()
+        .into_iter()
+        .map(|(template, stat_ids)| MapModTemplate {
+            template: template.to_string(),
+            stat_ids: stat_ids.to_vec(),
+        })
+        .collect();
+    templates.sort_by(|a, b| a.template.cmp(&b.template));
+    templates
+}
+
 /// Return enriched stat suggestions matching a text query.
 ///
 /// Returns both single-stat suggestions and hybrid mod combos that include
@@ -883,6 +907,7 @@ pub fn run() {
             get_predicate_schema,
             get_suggestions,
             get_stat_suggestions,
+            get_map_mod_templates,
             preview_trade_query,
             price_check,
             trade_search_url,
