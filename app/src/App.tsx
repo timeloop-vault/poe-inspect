@@ -2,7 +2,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Component } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { type DisplaySettings, ItemOverlay } from "./components/ItemOverlay";
+import { type DisplaySettings, ItemOverlay, type ProfileSummary } from "./components/ItemOverlay";
+import { ProfileToast } from "./components/ProfileToast";
 import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
@@ -117,7 +118,26 @@ export function App() {
 	});
 	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
 	const [mapDanger, setMapDanger] = useState<MapDangerConfig>({});
+	const [toastMessage, setToastMessage] = useState<{ profileName: string; color?: string } | null>(
+		null,
+	);
+	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
 	const profilesRef = useRef<StoredProfile[]>([]);
+	const startupToastShown = useRef(false);
+
+	const showProfileToast = useCallback((profile: StoredProfile) => {
+		setToastMessage({ profileName: profile.name, color: profile.watchColor });
+	}, []);
+
+	/** Update derived state from the profiles ref. */
+	const syncProfileState = useCallback((profiles: StoredProfile[]) => {
+		profilesRef.current = profiles;
+		const primary = profiles.find((p) => p.role === "primary");
+		setMapDanger(primary?.mapDanger ?? {});
+		setProfileSummaries(
+			profiles.map((p) => ({ id: p.id, name: p.name, role: p.role, watchColor: p.watchColor })),
+		);
+	}, []);
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
@@ -127,23 +147,43 @@ export function App() {
 		await invoke("dismiss_overlay");
 	}, []);
 
-	const handleDangerChange = useCallback((template: string, level: DangerLevel | null) => {
-		const profiles = profilesRef.current;
-		const primaryIdx = profiles.findIndex((p) => p.role === "primary");
-		const primary = primaryIdx >= 0 ? profiles[primaryIdx] : undefined;
-		if (!primary) return;
-		const updated = { ...primary.mapDanger };
-		if (level === null) {
-			delete updated[template];
-		} else {
-			updated[template] = level;
-		}
-		const newProfiles = [...profiles];
-		newProfiles[primaryIdx] = { ...primary, mapDanger: updated };
-		profilesRef.current = newProfiles;
-		setMapDanger(updated);
-		saveProfiles(newProfiles);
-	}, []);
+	const handleDangerChange = useCallback(
+		(template: string, level: DangerLevel | null) => {
+			const profiles = profilesRef.current;
+			const primaryIdx = profiles.findIndex((p) => p.role === "primary");
+			const primary = primaryIdx >= 0 ? profiles[primaryIdx] : undefined;
+			if (!primary) return;
+			const updated = { ...primary.mapDanger };
+			if (level === null) {
+				delete updated[template];
+			} else {
+				updated[template] = level;
+			}
+			const newProfiles = [...profiles];
+			newProfiles[primaryIdx] = { ...primary, mapDanger: updated };
+			syncProfileState(newProfiles);
+			saveProfiles(newProfiles);
+		},
+		[syncProfileState],
+	);
+
+	const handleSwitchProfile = useCallback(
+		(profileId: string) => {
+			const profiles = profilesRef.current;
+			const next = profiles.map((p) => {
+				if (p.id === profileId) return { ...p, role: "primary" as const };
+				if (p.role === "primary") return { ...p, role: "off" as const };
+				return p;
+			});
+			syncProfileState(next);
+			saveProfiles(next);
+			syncActiveProfile(next);
+			loadActiveQualityColors().then(setQualityColors);
+			const switched = next.find((p) => p.id === profileId);
+			if (switched) showProfileToast(switched);
+		},
+		[syncProfileState, showProfileToast],
+	);
 
 	const dismissKeyRef = useRef("Escape");
 
@@ -167,9 +207,14 @@ export function App() {
 			loadActiveQualityColors().then(setQualityColors);
 			loadTrade().then(setTradeSettings);
 			loadProfiles().then((profiles) => {
-				profilesRef.current = profiles;
-				const primary = profiles.find((p) => p.role === "primary");
-				setMapDanger(primary?.mapDanger ?? {});
+				syncProfileState(profiles);
+				if (!startupToastShown.current) {
+					const primary = profiles.find((p) => p.role === "primary");
+					if (primary) {
+						startupToastShown.current = true;
+						showProfileToast(primary);
+					}
+				}
 			});
 			syncActiveProfile();
 		};
@@ -243,7 +288,7 @@ export function App() {
 			unlistenDebug.then((fn) => fn());
 			document.removeEventListener("keydown", handleKeydown);
 		};
-	}, [dismiss]);
+	}, [dismiss, showProfileToast, syncProfileState]);
 
 	const zoom = overlayScale / 100;
 	const pos = computePanelPosition(cursorPos, overlayMode, zoom);
@@ -307,6 +352,8 @@ export function App() {
 					tradeEdit={tradeEditProps}
 					mapDanger={mapDanger}
 					onDangerChange={handleDangerChange}
+					profiles={profileSummaries}
+					onSwitchProfile={handleSwitchProfile}
 				/>
 			</div>
 		);
@@ -395,6 +442,7 @@ export function App() {
 				if (e.target === e.currentTarget) dismiss();
 			}}
 		>
+			<ProfileToast message={toastMessage} onDone={() => setToastMessage(null)} />
 			{content && (
 				<div class="overlay-panel" style={panelStyle}>
 					{showDismiss && (

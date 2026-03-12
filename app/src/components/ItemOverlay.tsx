@@ -565,6 +565,14 @@ function MapDangerSection({
 	);
 }
 
+/** Lightweight profile summary for the switch pills. */
+export interface ProfileSummary {
+	id: string;
+	name: string;
+	role: string;
+	watchColor: string;
+}
+
 export function ItemOverlay({
 	item,
 	eval: evaluation = emptyEval,
@@ -572,6 +580,8 @@ export function ItemOverlay({
 	tradeEdit,
 	mapDanger,
 	onDangerChange,
+	profiles,
+	onSwitchProfile,
 }: {
 	item: ResolvedItem;
 	eval?: ItemEvaluation;
@@ -579,6 +589,8 @@ export function ItemOverlay({
 	tradeEdit?: TradeEditOverlay | undefined;
 	mapDanger?: MapDangerConfig | undefined;
 	onDangerChange?: ((template: string, level: DangerLevel | null) => void) | undefined;
+	profiles?: ProfileSummary[] | undefined;
+	onSwitchProfile?: ((profileId: string) => void) | undefined;
 }) {
 	const rarity = item.header.rarity;
 	const name = item.header.name ?? item.header.baseType;
@@ -804,6 +816,27 @@ export function ItemOverlay({
 						>
 							<span class="watching-dot" style={{ background: ws.color }} />
 							{ws.profileName}: {Math.round(ws.score.percent)}%
+						</button>
+					))}
+				</div>
+			)}
+
+			{/* Profile switch pills */}
+			{profiles && profiles.length > 1 && onSwitchProfile && (
+				<div class="profile-switch-pills">
+					{profiles.map((p) => (
+						<button
+							key={p.id}
+							type="button"
+							class={`profile-switch-pill ${p.role === "primary" ? "active" : ""}`}
+							style={{ borderColor: p.watchColor }}
+							onClick={() => {
+								if (p.role !== "primary") onSwitchProfile(p.id);
+							}}
+							title={p.role === "primary" ? `${p.name} (active)` : `Switch to ${p.name}`}
+						>
+							<span class="profile-switch-dot" style={{ background: p.watchColor }} />
+							{p.name}
 						</button>
 					))}
 				</div>
