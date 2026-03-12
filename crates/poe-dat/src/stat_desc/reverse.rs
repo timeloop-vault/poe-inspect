@@ -254,6 +254,49 @@ impl ReverseIndex {
             .map(|&idx| self.entries[idx].stat_ids.clone())
     }
 
+    /// Merge entries from another parsed stat description file into this index.
+    ///
+    /// Appends all English variants from `file` as new entries. This is used to
+    /// combine multiple stat description files (e.g., base `stat_descriptions.txt`
+    /// plus `map_stat_descriptions.txt`) into a single reverse index.
+    ///
+    /// Duplicate template keys are allowed — both entries will be tried during
+    /// lookup, and the correct one will match based on value ranges/transforms.
+    pub fn merge(&mut self, file: &StatDescriptionFile) {
+        for desc in &file.descriptions {
+            let english = desc.languages.iter().find(|l| l.language.is_none());
+            let Some(english) = english else { continue };
+
+            for variant in &english.variants {
+                let segments = parse_format_string(&variant.format_string);
+                let Some(regex_pattern) = build_regex_pattern(&segments) else {
+                    continue;
+                };
+
+                let capture_to_placeholder: Vec<usize> = segments
+                    .iter()
+                    .filter_map(|s| match s {
+                        Segment::Placeholder { index, .. } => Some(*index),
+                        Segment::Literal(_) => None,
+                    })
+                    .collect();
+
+                let template_key = build_template_key(&segments);
+                let idx = self.entries.len();
+
+                self.entries.push(PatternEntry {
+                    regex_pattern,
+                    stat_ids: desc.stat_ids.clone(),
+                    transforms: variant.transforms.clone(),
+                    ranges: variant.ranges.clone(),
+                    capture_to_placeholder,
+                });
+
+                self.template_map.entry(template_key).or_default().push(idx);
+            }
+        }
+    }
+
     /// Save the reverse index to a JSON file.
     ///
     /// # Errors

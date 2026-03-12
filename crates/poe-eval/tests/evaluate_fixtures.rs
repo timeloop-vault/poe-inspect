@@ -1155,10 +1155,11 @@ fn fractured_mod_source_parses() {
     let item = resolve_full("rare-helmet-fractured-rarity.txt");
 
     assert_eq!(item.explicits.len(), 4);
-    assert!(item
-        .explicits
-        .iter()
-        .any(|m| m.header.name.as_deref() == Some("Dragon's")));
+    assert!(
+        item.explicits
+            .iter()
+            .any(|m| m.header.name.as_deref() == Some("Dragon's"))
+    );
 }
 
 /// Unique item unscalable mods resolve stat_ids after stripping "— Unscalable Value" suffix.
@@ -1170,22 +1171,26 @@ fn unique_unscalable_mods_resolve_stat_ids() {
 
     // Standard stats resolve normally
     let armour_es = &item.explicits[0].stat_lines[0];
-    assert!(armour_es
-        .stat_ids
-        .as_ref()
-        .unwrap()
-        .iter()
-        .any(|s| s == "local_armour_and_energy_shield_+%"));
+    assert!(
+        armour_es
+            .stat_ids
+            .as_ref()
+            .unwrap()
+            .iter()
+            .any(|s| s == "local_armour_and_energy_shield_+%")
+    );
     assert!(!armour_es.is_unscalable);
 
     // Unscalable stats: suffix stripped, stat_ids resolved, flag set
     let no_lightning = &item.explicits[2].stat_lines[0];
-    assert!(no_lightning
-        .stat_ids
-        .as_ref()
-        .unwrap()
-        .iter()
-        .any(|s| s == "deal_no_non_lightning_damage"));
+    assert!(
+        no_lightning
+            .stat_ids
+            .as_ref()
+            .unwrap()
+            .iter()
+            .any(|s| s == "deal_no_non_lightning_damage")
+    );
     assert!(no_lightning.is_unscalable);
     assert_eq!(no_lightning.display_text, "Deal no Non-Lightning Damage");
 
@@ -1210,10 +1215,7 @@ fn trace_stat_ids_body_armour() {
 
     println!("\n=== RESOLVED ITEM STAT IDS ===");
     for m in item.implicits.iter().chain(item.explicits.iter()) {
-        println!(
-            "\nMod: {:?} ({:?})",
-            m.header.name, m.header.slot
-        );
+        println!("\nMod: {:?} ({:?})", m.header.name, m.header.slot);
         for sl in &m.stat_lines {
             if sl.is_reminder {
                 continue;
@@ -1225,14 +1227,12 @@ fn trace_stat_ids_body_armour() {
 
     // Now trace what suggestions would provide
     let suggestions = gd.stat_suggestions_for_query("to Armour");
-    let armour_single = suggestions
-        .iter()
-        .find(|s| {
-            matches!(s.kind, poe_data::StatSuggestionKind::Single)
-                && s.stat_ids
-                    .iter()
-                    .any(|id| id.contains("physical_damage_reduction"))
-        });
+    let armour_single = suggestions.iter().find(|s| {
+        matches!(s.kind, poe_data::StatSuggestionKind::Single)
+            && s.stat_ids
+                .iter()
+                .any(|id| id.contains("physical_damage_reduction"))
+    });
     println!("\n=== ARMOUR SINGLE SUGGESTION ===");
     if let Some(s) = armour_single {
         println!("  template: {}", s.template);
@@ -1242,12 +1242,10 @@ fn trace_stat_ids_body_armour() {
     }
 
     let life_suggestions = gd.stat_suggestions_for_query("to maximum Life");
-    let life_single = life_suggestions
-        .iter()
-        .find(|s| {
-            matches!(s.kind, poe_data::StatSuggestionKind::Single)
-                && s.stat_ids.iter().any(|id| id == "base_maximum_life")
-        });
+    let life_single = life_suggestions.iter().find(|s| {
+        matches!(s.kind, poe_data::StatSuggestionKind::Single)
+            && s.stat_ids.iter().any(|id| id == "base_maximum_life")
+    });
     println!("\n=== LIFE SINGLE SUGGESTION ===");
     if let Some(s) = life_single {
         println!("  template: {}", s.template);
@@ -1275,6 +1273,45 @@ fn trace_stat_ids_body_armour() {
     }
 }
 
+/// Map mods must resolve to map-specific stat_ids from map_stat_descriptions.
+/// Verifies that the merged reverse index includes map mod patterns.
+#[test]
+fn map_mods_resolve_stat_ids() {
+    let item = resolve_full("rare-map-abomination-t17.txt");
+
+    let all_stat_ids: Vec<_> = item
+        .explicits
+        .iter()
+        .flat_map(|m| &m.stat_lines)
+        .filter(|sl| !sl.is_reminder)
+        .filter_map(|sl| sl.stat_ids.as_ref())
+        .flatten()
+        .collect();
+
+    println!("Map mod stat_ids:");
+    for m in &item.explicits {
+        println!(
+            "  {:?}: {:?}",
+            m.header.name,
+            m.stat_lines
+                .iter()
+                .filter(|sl| !sl.is_reminder)
+                .map(|sl| (&sl.display_text, &sl.stat_ids))
+                .collect::<Vec<_>>()
+        );
+    }
+
+    // At least some map mods should have stat_ids starting with "map_"
+    let map_stat_count = all_stat_ids
+        .iter()
+        .filter(|id| id.starts_with("map_"))
+        .count();
+    assert!(
+        map_stat_count >= 3,
+        "expected at least 3 map-specific stat_ids, got {map_stat_count} (all: {all_stat_ids:?})"
+    );
+}
+
 /// Abyss jewel mods must resolve to non-local stat_ids.
 /// "Vaporous" (+# to Evasion Rating) on a jewel is base_evasion_rating,
 /// NOT local_base_evasion_rating (which is for armour items).
@@ -1283,7 +1320,9 @@ fn abyss_jewel_resolves_non_local_stat_ids() {
     let item = resolve_full("rare-abyss-jewel-searching-eye.txt");
 
     // "Vaporous" — flat evasion on jewel must be non-local
-    let vaporous = item.explicits.iter()
+    let vaporous = item
+        .explicits
+        .iter()
         .find(|m| m.header.name.as_deref() == Some("Vaporous"))
         .expect("Vaporous mod should exist");
     let evasion_stat = &vaporous.stat_lines[0];
@@ -1294,7 +1333,9 @@ fn abyss_jewel_resolves_non_local_stat_ids() {
     );
 
     // "of the Ranger" — accuracy on jewel must be non-local
-    let ranger = item.explicits.iter()
+    let ranger = item
+        .explicits
+        .iter()
         .find(|m| m.header.name.as_deref() == Some("of the Ranger"))
         .expect("of the Ranger mod should exist");
     let accuracy_stat = &ranger.stat_lines[0];

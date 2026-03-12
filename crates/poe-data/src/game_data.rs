@@ -370,6 +370,20 @@ impl GameData {
         self.stat_id_to_templates.get(stat_id).map(Vec::as_slice)
     }
 
+    /// Return all map/area mod templates with their stat IDs.
+    ///
+    /// Filters the template index for entries where any associated stat ID
+    /// starts with `map_`. Used by the map danger assessment settings page.
+    ///
+    /// Requires `set_reverse_index()` to have been called.
+    pub fn map_mod_templates(&self) -> Vec<(&str, &[String])> {
+        self.template_to_all_stat_ids
+            .iter()
+            .filter(|(_, stat_ids)| stat_ids.iter().any(|id| id.starts_with("map_")))
+            .map(|(template, stat_ids)| (template.as_str(), stat_ids.as_slice()))
+            .collect()
+    }
+
     /// Return stat suggestions matching a text query, including hybrid mod combos.
     ///
     /// For each matching template, returns a `Single` suggestion. For each stat
