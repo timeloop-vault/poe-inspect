@@ -1,0 +1,22 @@
+Item Class: Abyss Jewels
+Rarity: Rare
+Ancient Sphere
+Searching Eye Jewel
+--------
+Abyss
+--------
+Requirements:
+Level: 62
+--------
+Item Level: 81
+--------
+{ Prefix Modifier "Skewering" (Tier: 2) — Physical }
+3(3-4)% increased Impale Effect
+{ Prefix Modifier "Vaporous" (Tier: 2) — Defences, Evasion }
++127(101-180) to Evasion Rating
+{ Suffix Modifier "of Warming" (Tier: 2) — Elemental, Cold, Ailment }
+39(31-40)% chance to Avoid being Frozen
+{ Suffix Modifier "of the Ranger" (Tier: 2) — Attack }
++206(121-240) to Accuracy Rating
+--------
+Place into an Abyssal Socket on an Item or into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.

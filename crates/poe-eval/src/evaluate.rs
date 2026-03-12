@@ -130,7 +130,7 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             let count = item
                 .sockets
                 .as_deref()
-                .map_or(0, |s| count_sockets(s));
+                .map_or(0, count_sockets);
             op.eval(&count, value)
         }
 
@@ -138,7 +138,7 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             let max_link = item
                 .sockets
                 .as_deref()
-                .map_or(0, |s| max_link_group(s));
+                .map_or(0, max_link_group);
             op.eval(&max_link, value)
         }
 
@@ -259,7 +259,7 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
 /// Count total sockets from a socket string like `"R-R-G B"`.
 /// Letters are sockets; `-` = linked, ` ` = new group.
 fn count_sockets(sockets: &str) -> u32 {
-    sockets.chars().filter(|c| c.is_ascii_alphabetic()).count() as u32
+    sockets.chars().filter(char::is_ascii_alphabetic).count() as u32
 }
 
 /// Find the largest linked group in a socket string like `"R-R-G B"`.

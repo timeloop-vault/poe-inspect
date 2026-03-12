@@ -302,27 +302,53 @@ impl GameData {
         self.mods_by_name.get(name).map(Vec::as_slice)
     }
 
-    /// Find the mod that is eligible for a given base type, by mod display name.
+    /// Find the mod that is eligible for a given base type and item class.
     ///
     /// Uses the GGPK's tag intersection system: a mod is eligible if any of its
     /// `spawn_weight_tags` overlap with the base type's `tags` AND the weight > 0.
     ///
-    /// Returns the first eligible `ModRow` (all tiers of a mod share `stat_keys`,
-    /// so any match gives the correct `stat_ids`).
-    pub fn find_eligible_mod(&self, base_type: &str, mod_name: &str) -> Option<&ModRow> {
+    /// Filters by mod domain (from `item_class_mod_domains`) to exclude mods
+    /// that can't appear on this item type (e.g., monster mods, abyss jewel
+    /// mods on equipment).
+    ///
+    /// When multiple mods share the same display name (e.g., local vs non-local
+    /// variants of "Vaporous"), returns the one with the highest total spawn
+    /// weight for this base type's tags. This ensures items get the correct
+    /// variant (e.g., abyss jewels get `base_evasion_rating` not
+    /// `local_base_evasion_rating`).
+    pub fn find_eligible_mod(
+        &self,
+        base_type: &str,
+        mod_name: &str,
+        item_class: &str,
+    ) -> Option<&ModRow> {
         let base = self.base_item_by_name(base_type)?;
         let base_tags: HashSet<u64> = base.tags.iter().copied().collect();
         let mod_indices = self.mods_by_name.get(mod_name)?;
+        let valid_domains = crate::domain::item_class_mod_domains(item_class);
 
-        mod_indices.iter().find_map(|&idx| {
-            let m = &self.mods[idx];
-            let eligible = m
-                .spawn_weight_tags
-                .iter()
-                .zip(&m.spawn_weight_values)
-                .any(|(&tag, &weight)| weight > 0 && base_tags.contains(&tag));
-            eligible.then_some(m)
-        })
+        mod_indices
+            .iter()
+            .filter_map(|&idx| {
+                let m = &self.mods[idx];
+                if !valid_domains.contains(&m.domain) {
+                    return None;
+                }
+                let total_weight: i32 = m
+                    .spawn_weight_tags
+                    .iter()
+                    .zip(m.spawn_weight_values.iter())
+                    .filter(|(tag, weight)| **weight > 0 && base_tags.contains(tag))
+                    .map(|(_, weight)| *weight)
+                    .sum();
+                if total_weight > 0 {
+                    Some((m, total_weight))
+                } else {
+                    None
+                }
+            })
+            .max_by_key(|&(_, weight)| weight)
+            .map(|(m, _)| m)
     }
 
     /// Resolve a mod's `stat_keys` to `stat_id` strings.

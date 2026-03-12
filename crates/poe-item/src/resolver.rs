@@ -60,7 +60,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
             Section::Experience(e) => experience = Some(e.clone()),
             Section::Modifiers(mod_section) => {
                 for group in &mod_section.groups {
-                    let resolved = resolve_mod(group, &header.base_type, game_data);
+                    let resolved =
+                        resolve_mod(group, &header.base_type, &header.item_class, game_data);
                     match resolved.header.slot {
                         ModSlot::Implicit
                         | ModSlot::SearingExarchImplicit
@@ -206,7 +207,12 @@ fn extract_magic_base_type(name: &str, game_data: &GameData) -> Option<String> {
 
 // ── Mod resolution ──────────────────────────────────────────────────────────
 
-fn resolve_mod(group: &ModGroup, base_type: &str, game_data: &GameData) -> ResolvedMod {
+fn resolve_mod(
+    group: &ModGroup,
+    base_type: &str,
+    item_class: &str,
+    game_data: &GameData,
+) -> ResolvedMod {
     let mut stat_lines: Vec<ResolvedStatLine> = group
         .body_lines
         .iter()
@@ -224,7 +230,7 @@ fn resolve_mod(group: &ModGroup, base_type: &str, game_data: &GameData) -> Resol
     // stat_ids come from the Mods table, confirmed via base type tag
     // intersection. Replace reverse index guesses with confirmed truth.
     if let Some(mod_name) = &group.header.name {
-        if let Some(mod_row) = game_data.find_eligible_mod(base_type, mod_name) {
+        if let Some(mod_row) = game_data.find_eligible_mod(base_type, mod_name, item_class) {
             let real_stat_ids = game_data.mod_stat_ids(mod_row);
             apply_confirmed_stat_ids(&mut stat_lines, &real_stat_ids, game_data);
         }
