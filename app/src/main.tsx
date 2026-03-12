@@ -2,6 +2,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { render } from "preact";
 import { App } from "./App";
 import { SettingsApp } from "./SettingsApp";
+import { ToastApp } from "./ToastApp";
 import "./styles/overlay.css";
 import "./styles/settings.css";
 if (import.meta.env.DEV) {
@@ -9,7 +10,7 @@ if (import.meta.env.DEV) {
 }
 
 const windowLabel = getCurrentWebviewWindow().label;
-const Root = windowLabel === "settings" ? SettingsApp : App;
+const Root = windowLabel === "settings" ? SettingsApp : windowLabel === "toast" ? ToastApp : App;
 
 // Properly unmount previous Preact tree before mounting a new one.
 // When Vite HMR re-executes this module, the old tree's useEffect cleanup
