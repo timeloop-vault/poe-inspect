@@ -7,13 +7,18 @@ import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
 import {
+	type DangerLevel,
+	type MapDangerConfig,
 	type QualityColors,
+	type StoredProfile,
 	type TradeSettings,
 	defaultTrade,
 	loadActiveQualityColors,
 	loadGeneral,
 	loadHotkeys,
+	loadProfiles,
 	loadTrade,
+	saveProfiles,
 	syncActiveProfile,
 } from "./store";
 import type { ItemPayload, TradeQueryConfig } from "./types";
@@ -111,6 +116,8 @@ export function App() {
 		y: 100,
 	});
 	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
+	const [mapDanger, setMapDanger] = useState<MapDangerConfig>({});
+	const profilesRef = useRef<StoredProfile[]>([]);
 
 	const dismiss = useCallback(async () => {
 		setItemText(null);
@@ -118,6 +125,24 @@ export function App() {
 		setParseError(null);
 		setShowMock(false);
 		await invoke("dismiss_overlay");
+	}, []);
+
+	const handleDangerChange = useCallback((template: string, level: DangerLevel | null) => {
+		const profiles = profilesRef.current;
+		const primaryIdx = profiles.findIndex((p) => p.role === "primary");
+		const primary = primaryIdx >= 0 ? profiles[primaryIdx] : undefined;
+		if (!primary) return;
+		const updated = { ...primary.mapDanger };
+		if (level === null) {
+			delete updated[template];
+		} else {
+			updated[template] = level;
+		}
+		const newProfiles = [...profiles];
+		newProfiles[primaryIdx] = { ...primary, mapDanger: updated };
+		profilesRef.current = newProfiles;
+		setMapDanger(updated);
+		saveProfiles(newProfiles);
 	}, []);
 
 	const dismissKeyRef = useRef("Escape");
@@ -141,6 +166,11 @@ export function App() {
 			});
 			loadActiveQualityColors().then(setQualityColors);
 			loadTrade().then(setTradeSettings);
+			loadProfiles().then((profiles) => {
+				profilesRef.current = profiles;
+				const primary = profiles.find((p) => p.role === "primary");
+				setMapDanger(primary?.mapDanger ?? {});
+			});
 			syncActiveProfile();
 		};
 		reloadSettings();
@@ -275,6 +305,8 @@ export function App() {
 					eval={evaluatedItem.eval}
 					display={displaySettings}
 					tradeEdit={tradeEditProps}
+					mapDanger={mapDanger}
+					onDangerChange={handleDangerChange}
 				/>
 			</div>
 		);

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "preact/hooks";
+import type { DangerLevel, MapDangerConfig } from "../store";
 import type {
 	ItemEvaluation,
 	MappedStat,
@@ -472,21 +473,118 @@ function buildModTradeEdit(
 	};
 }
 
+// ── Map danger assessment ───────────────────────────────────────────────────
+
+/** Convert display text to template key by replacing numbers with `#`. */
+function toTemplateKey(text: string): string {
+	return text.replace(/[+-]?\d+(?:\.\d+)?/g, "#");
+}
+
+/** Cycle danger level: unclassified → deadly → warning → good → unclassified */
+const DANGER_CYCLE: (DangerLevel | null)[] = [null, "deadly", "warning", "good"];
+
+function nextDangerLevel(current: DangerLevel | null): DangerLevel | null {
+	const idx = DANGER_CYCLE.indexOf(current);
+	return DANGER_CYCLE[(idx + 1) % DANGER_CYCLE.length] ?? null;
+}
+
+/** CSS class for danger level coloring. */
+function dangerClass(level: DangerLevel | null): string {
+	switch (level) {
+		case "deadly":
+			return "danger-deadly";
+		case "warning":
+			return "danger-warning";
+		case "good":
+			return "danger-good";
+		default:
+			return "danger-unclassified";
+	}
+}
+
+/** Verdict for the map based on all mod danger levels. */
+function mapVerdict(levels: (DangerLevel | null)[]): {
+	label: string;
+	cls: string;
+} {
+	if (levels.some((l) => l === "deadly")) {
+		return { label: "DEADLY", cls: "danger-deadly" };
+	}
+	if (levels.some((l) => l === "warning")) {
+		return { label: "CAUTION", cls: "danger-warning" };
+	}
+	if (levels.length > 0 && levels.every((l) => l === "good")) {
+		return { label: "SAFE", cls: "danger-good" };
+	}
+	return { label: "UNRATED", cls: "danger-unclassified" };
+}
+
+function MapDangerSection({
+	mods,
+	mapDanger,
+	onDangerChange,
+	rarity,
+}: {
+	mods: ResolvedMod[];
+	mapDanger: MapDangerConfig;
+	onDangerChange: (template: string, level: DangerLevel | null) => void;
+	rarity: Rarity;
+}) {
+	const modEntries = mods.map((mod) => {
+		const text = modText(mod);
+		const template = toTemplateKey(text);
+		const level = mapDanger[template] ?? null;
+		return { mod, text, template, level };
+	});
+
+	const verdict = mapVerdict(modEntries.map((e) => e.level));
+
+	return (
+		<div class="map-danger-section">
+			<div class={`map-verdict ${verdict.cls}`}>{verdict.label}</div>
+			<Separator rarity={rarity} />
+			<div class="mod-section">
+				{modEntries.map((entry) => (
+					// biome-ignore lint/a11y/useKeyWithClickEvents: click-to-cycle is the primary interaction for danger classification
+					<div
+						key={entry.template}
+						class={`mod-line danger-mod-line ${dangerClass(entry.level)}`}
+						onClick={() => onDangerChange(entry.template, nextDangerLevel(entry.level))}
+						title="Click to cycle danger level"
+					>
+						<span class={`danger-indicator ${dangerClass(entry.level)}`} />
+						<div class="mod-content">
+							{entry.text.split("\n").map((line) => (
+								<div key={line}>{line}</div>
+							))}
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export function ItemOverlay({
 	item,
 	eval: evaluation = emptyEval,
 	display = defaultDisplay,
 	tradeEdit,
+	mapDanger,
+	onDangerChange,
 }: {
 	item: ResolvedItem;
 	eval?: ItemEvaluation;
 	display?: DisplaySettings;
 	tradeEdit?: TradeEditOverlay | undefined;
+	mapDanger?: MapDangerConfig | undefined;
+	onDangerChange?: ((template: string, level: DangerLevel | null) => void) | undefined;
 }) {
 	const rarity = item.header.rarity;
 	const name = item.header.name ?? item.header.baseType;
 	const baseType = item.header.baseType;
 	const doubleLine = rarity === "Rare" || rarity === "Unique";
+	const isMap = item.header.itemClass === "Maps";
 	const [swapView, setSwapView] = useState<WatchingScore | null>(null);
 
 	// Split mod tiers to match enchants / implicits / explicits
@@ -605,18 +703,26 @@ export function ItemOverlay({
 				</>
 			)}
 
-			{/* Explicit mods */}
-			{item.explicits.length > 0 && (
-				<div class="mod-section explicit-section">
-					<ModSection
+			{/* Explicit mods — map danger view or normal */}
+			{item.explicits.length > 0 &&
+				(isMap && mapDanger && onDangerChange ? (
+					<MapDangerSection
 						mods={item.explicits}
-						tiers={explicitTiers}
-						display={display}
-						tradeEdit={tradeEdit}
-						statOffset={explicitStatOffset}
+						mapDanger={mapDanger}
+						onDangerChange={onDangerChange}
+						rarity={rarity}
 					/>
-				</div>
-			)}
+				) : (
+					<div class="mod-section explicit-section">
+						<ModSection
+							mods={item.explicits}
+							tiers={explicitTiers}
+							display={display}
+							tradeEdit={tradeEdit}
+							statOffset={explicitStatOffset}
+						/>
+					</div>
+				))}
 
 			{/* Open affixes */}
 			{display.showOpenAffixes && (affix.openPrefixes > 0 || affix.openSuffixes > 0) && (
