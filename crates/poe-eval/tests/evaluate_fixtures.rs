@@ -1274,3 +1274,33 @@ fn trace_stat_ids_body_armour() {
         }
     }
 }
+
+/// Abyss jewel mods must resolve to non-local stat_ids.
+/// "Vaporous" (+# to Evasion Rating) on a jewel is base_evasion_rating,
+/// NOT local_base_evasion_rating (which is for armour items).
+#[test]
+fn abyss_jewel_resolves_non_local_stat_ids() {
+    let item = resolve_full("rare-abyss-jewel-searching-eye.txt");
+
+    // "Vaporous" — flat evasion on jewel must be non-local
+    let vaporous = item.explicits.iter()
+        .find(|m| m.header.name.as_deref() == Some("Vaporous"))
+        .expect("Vaporous mod should exist");
+    let evasion_stat = &vaporous.stat_lines[0];
+    assert_eq!(
+        evasion_stat.stat_ids.as_ref().unwrap(),
+        &["base_evasion_rating"],
+        "Jewel evasion should be non-local (base_evasion_rating)"
+    );
+
+    // "of the Ranger" — accuracy on jewel must be non-local
+    let ranger = item.explicits.iter()
+        .find(|m| m.header.name.as_deref() == Some("of the Ranger"))
+        .expect("of the Ranger mod should exist");
+    let accuracy_stat = &ranger.stat_lines[0];
+    assert_eq!(
+        accuracy_stat.stat_ids.as_ref().unwrap(),
+        &["accuracy_rating"],
+        "Jewel accuracy should be non-local (accuracy_rating)"
+    );
+}

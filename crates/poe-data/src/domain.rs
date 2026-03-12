@@ -271,6 +271,46 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
     }
 }
 
+// ── Mod domain mapping ───────────────────────────────────────────────────
+//
+// WHY HARDCODED: The GGPK `Mods.datc64` stores a numeric `domain` field that
+// partitions mods by item type (equipment, jewels, flasks, monster mods, etc.).
+// The numeric → meaning mapping isn't in any GGPK table — it's implicit in
+// GGG's code. Community tools (RePoE, poedb) document these values.
+//
+// `find_eligible_mod()` uses this to filter out mods from wrong domains
+// (e.g., monster mods, abyss jewel mods on equipment, etc.). Without
+// domain filtering, mods with high `default` spawn weights (like monster
+// mods) pollute the results.
+//
+// Confirmed via 3.28 GGPK mod analysis.
+
+/// Map an item class (from Ctrl+Alt+C header) to the expected mod domain(s).
+///
+/// Returns the GGPK numeric domain values that are valid for this item class.
+/// Mods outside these domains should not be considered for this item type.
+///
+/// Known domains:
+/// - 1 = item (regular equipment: armour, weapons, accessories)
+/// - 2 = flask
+/// - 3 = monster
+/// - 5 = area
+/// - 9 = crafted (bench crafts — also `generation_type=10`)
+/// - 10 = jewel
+/// - 11 = atlas passive (legacy)
+/// - 13 = abyss jewel
+/// - 19 = delve (fossil-specific)
+#[must_use]
+pub fn item_class_mod_domains(item_class: &str) -> &'static [u32] {
+    match item_class {
+        "Abyss Jewels" => &[13, 9],
+        "Jewels" | "Cluster Jewels" => &[10, 9],
+        "Life Flasks" | "Mana Flasks" | "Hybrid Flasks" | "Utility Flasks" => &[2, 9],
+        // All regular equipment (armour, weapons, accessories, shields, quivers)
+        _ => &[1, 9],
+    }
+}
+
 // ── Local stat display fallbacks ──────────────────────────────────────────
 //
 // WHY HARDCODED: Local stats used in armour mods (flat armour, evasion,
