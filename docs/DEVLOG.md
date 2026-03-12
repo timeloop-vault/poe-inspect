@@ -54,7 +54,8 @@ Status snapshots for picking up where we left off. Newest first.
 | Compact overlay mode | Score-only pill for speed-scanning stash tabs | App-only (CSS + hotkey) |
 | Stash tab scrolling | Mouse wheel to cycle stash tabs | App-only (research AWP approach) |
 | Chat macros | Custom hotkeys for chat commands | App-only (enigo) |
-| Map mod checker | Separate hotkey for map danger assessment | Map-specific poe-eval profiles |
+| Map danger assessment | Per-mod danger tagging (deadly / warning / good) with traffic-light overlay. User classifies each map mod per profile — no hardcoded danger list since riskiness is build-dependent. Click-to-cycle in overlay, full searchable mod list in settings. Dedicated hotkey and/or shown in normal overlay when item class is Map. Reference: `_reference/awakened-poe-trade/renderer/src/web/map-check/` | App UX + settings UI; poe-eval profiles already support the evaluation; needs area mod stat list from poe-dat |
+| Character-aware profile switching | Parse PoE `client.txt` live to detect character login events, auto-switch active + watching profiles (including map profiles) per character. Enables "set once, forget" workflow where each character has its own danger/eval config. | File watching (notify crate or Tauri fs-watch), client.txt format research, profile-to-character binding UI |
 | Rule text DSL | Textual rule format compilable to Profile JSON | Grammar design, VS Code ext |
 | CSS split | Separate entry points for overlay vs settings | Low priority, class-scoping works |
 | Craft suggestions | Deterministic craft advice from open affixes | `CraftingBenchOptions` table in poe-data |
@@ -78,6 +79,8 @@ Status snapshots for picking up where we left off. Newest first.
 4. **Parse more stat description files** — Bumps trade match rate above 87.4%. Files: atlas, map, sanctum, heist.
 5. **`(Local)` trade suffix** — Ensure local stat_ids get the `(Local)` suffix when building trade queries.
 6. **Craft suggestions** — Extract `CraftingBenchOptions` from GGPK, surface "you can bench-craft X" in overlay.
+7. **Map danger assessment** — High value for HC/mapping safety. Per-mod deadly/warning/good tagging using existing profile+eval system. Dedicated hotkey or auto-detect map item class. UX reference: awakened-poe-trade's map-check (click-to-cycle, 3-profile slots, searchable settings list).
+8. **Character-aware profile switching** — Parse `client.txt` to detect character logins, auto-switch active profiles (eval + map danger). Natural companion to map danger — makes per-character danger config seamless.
 
 ### Recent Git History (for context)
 
