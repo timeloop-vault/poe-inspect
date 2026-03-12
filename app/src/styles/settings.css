@@ -1227,3 +1227,151 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
+/* --- Map Danger Settings --- */
+
+.danger-profile-select {
+	padding: 4px 8px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 12px;
+}
+
+.danger-profile-select:focus {
+	outline: none;
+	border-color: var(--poe-accent);
+}
+
+.danger-stats {
+	font-size: 11px;
+	font-weight: normal;
+	color: var(--poe-text-dim);
+	margin-left: 8px;
+}
+
+.danger-search-row {
+	position: relative;
+	margin-bottom: 8px;
+}
+
+.danger-search {
+	width: 100%;
+	padding: 6px 28px 6px 10px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 12px;
+}
+
+.danger-search:focus {
+	outline: none;
+	border-color: var(--poe-accent);
+}
+
+.danger-search-clear {
+	position: absolute;
+	right: 4px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	color: var(--poe-text-dim);
+	font-size: 16px;
+	cursor: pointer;
+	padding: 0 4px;
+	line-height: 1;
+}
+
+.danger-search-clear:hover {
+	color: var(--poe-text);
+}
+
+.danger-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	max-height: 60vh;
+	overflow-y: auto;
+	border: 1px solid rgba(70, 59, 43, 0.3);
+	border-radius: 3px;
+}
+
+.danger-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 8px;
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.danger-row:nth-child(odd) {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.danger-template {
+	flex: 1;
+	font-size: 12px;
+	color: var(--poe-text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.danger-radios {
+	display: flex;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.danger-radio {
+	padding: 2px 6px;
+	font-family: inherit;
+	font-size: 10px;
+	border: 1px solid rgba(70, 59, 43, 0.4);
+	border-radius: 2px;
+	background: rgba(0, 0, 0, 0.3);
+	color: var(--poe-text-dim);
+	cursor: pointer;
+	transition: background 0.1s, border-color 0.1s;
+}
+
+.danger-radio:hover {
+	border-color: var(--poe-border);
+	color: var(--poe-text);
+}
+
+.danger-radio-deadly.active {
+	background: rgba(224, 80, 64, 0.25);
+	border-color: #e05040;
+	color: #e05040;
+}
+
+.danger-radio-warning.active {
+	background: rgba(232, 160, 32, 0.2);
+	border-color: #e8a020;
+	color: #e8a020;
+}
+
+.danger-radio-good.active {
+	background: rgba(56, 216, 56, 0.15);
+	border-color: #38d838;
+	color: #38d838;
+}
+
+.danger-radio-unclassified.active {
+	background: rgba(127, 118, 103, 0.15);
+	border-color: var(--poe-text-dim);
+	color: var(--poe-text);
+}
+
+.danger-empty {
+	text-align: center;
+	padding: 16px;
+	color: var(--poe-text-dim);
+	font-size: 12px;
+}

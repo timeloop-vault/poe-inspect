@@ -1,16 +1,18 @@
 import { useEffect, useState } from "preact/hooks";
 import { GeneralSettings } from "./components/settings/GeneralSettings";
 import { HotkeySettings } from "./components/settings/HotkeySettings";
+import { MapDangerSettings } from "./components/settings/MapDangerSettings";
 import { ProfileSettings } from "./components/settings/ProfileSettings";
 import { TradeSettings } from "./components/settings/TradeSettings";
 import { loadGeneral } from "./store";
 
-type Section = "general" | "hotkeys" | "profiles" | "trade";
+type Section = "general" | "hotkeys" | "profiles" | "map-danger" | "trade";
 
 const sections: { id: Section; label: string }[] = [
 	{ id: "general", label: "General" },
 	{ id: "hotkeys", label: "Hotkeys" },
 	{ id: "profiles", label: "Profiles" },
+	{ id: "map-danger", label: "Map Danger" },
 	{ id: "trade", label: "Trade" },
 ];
 
@@ -61,6 +63,7 @@ export function SettingsApp() {
 				{active === "general" && <GeneralSettings />}
 				{active === "hotkeys" && <HotkeySettings />}
 				{active === "profiles" && <ProfileSettings />}
+				{active === "map-danger" && <MapDangerSettings />}
 				{active === "trade" && <TradeSettings />}
 			</main>
 		</div>
