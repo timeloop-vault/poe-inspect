@@ -1206,3 +1206,89 @@ body,
 .mod-line.danger-unclassified .mod-content {
 	color: var(--poe-text);
 }
+
+/* --- Profile switch pills (overlay) --- */
+
+.profile-switch-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 6px 10px;
+	border-top: 1px solid rgba(70, 59, 43, 0.3);
+}
+
+.profile-switch-pill {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid;
+	border-radius: 10px;
+	font-family: inherit;
+	font-size: 10px;
+	color: var(--poe-text-dim);
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.profile-switch-pill:hover {
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--poe-text);
+}
+
+.profile-switch-pill.active {
+	background: rgba(175, 96, 37, 0.15);
+	border-color: var(--poe-accent);
+	color: var(--poe-header);
+	cursor: default;
+}
+
+.profile-switch-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+/* --- Profile switch toast --- */
+
+.profile-toast {
+	position: fixed;
+	top: 16px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 16px;
+	background: var(--poe-bg);
+	border: 1px solid var(--poe-border);
+	border-radius: 4px;
+	font-size: 13px;
+	color: var(--poe-text);
+	z-index: 100;
+	pointer-events: none;
+	opacity: 1;
+	transition: opacity 0.3s;
+}
+
+.profile-toast.toast-fading {
+	opacity: 0;
+}
+
+.toast-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--poe-accent);
+	flex-shrink: 0;
+}
+
+.toast-text {
+	white-space: nowrap;
+}
+
+.toast-text strong {
+	color: var(--poe-header);
+}
