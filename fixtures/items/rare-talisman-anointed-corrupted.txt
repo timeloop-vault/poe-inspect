@@ -1,0 +1,34 @@
+Item Class: Amulets
+Rarity: Rare
+Glyph Clasp
+Ashscale Talisman
+--------
+Requirements:
+Level: 57
+--------
+Item Level: 81
+--------
+Talisman Tier: 1
+--------
+Allocates Devotion (enchant)
+--------
+{ Implicit Modifier — Damage, Elemental, Fire }
+26(20-30)% increased Fire Damage
+--------
+{ Prefix Modifier "Magpie's" (Tier: 4) — Drop }
+10(8-12)% increased Rarity of Items found
+{ Suffix Modifier "of the Ice" (Tier: 2) — Elemental, Cold, Resistance }
++45(42-45)% to Cold Resistance
+{ Suffix Modifier "of the Squall" (Tier: 7) — Elemental, Lightning, Resistance }
++13(12-17)% to Lightning Resistance
+{ Suffix Modifier "of the Goliath" (Tier: 4) — Attribute }
++34(33-37) to Strength
+--------
+The fire of the hearth is a docile dog,
+leashed and tamed.
+The fire of the First Ones is a ravening wolf,
+wild and free.
+- The Wolven King
+
+--------
+Corrupted
