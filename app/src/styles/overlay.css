@@ -1251,35 +1251,35 @@ body,
 	flex-shrink: 0;
 }
 
-/* --- Profile switch toast --- */
+/* --- Profile switch toast (standalone window) --- */
 
-.profile-toast {
-	position: fixed;
-	top: 16px;
-	left: 50%;
-	transform: translateX(-50%);
+.toast-window {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 6px 16px;
+	justify-content: center;
+	gap: 10px;
+	/* Fixed base size — Rust sizes the window to base * zoom, and the
+	   frontend applies transform: scale(zoom) matching the overlay approach */
+	width: 280px;
+	height: 46px;
 	background: var(--poe-bg);
 	border: 1px solid var(--poe-border);
 	border-radius: 4px;
-	font-size: 13px;
+	font-size: 14px;
 	color: var(--poe-text);
-	z-index: 100;
 	pointer-events: none;
 	opacity: 1;
 	transition: opacity 0.3s;
+	box-sizing: border-box;
 }
 
-.profile-toast.toast-fading {
+.toast-window.toast-fading {
 	opacity: 0;
 }
 
 .toast-dot {
-	width: 8px;
-	height: 8px;
+	width: 10px;
+	height: 10px;
 	border-radius: 50%;
 	background: var(--poe-accent);
 	flex-shrink: 0;

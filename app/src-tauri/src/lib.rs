@@ -3,12 +3,13 @@ mod clipboard;
 #[cfg(target_os = "linux")]
 mod wayland;
 
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use poe_data::GameData;
 use poe_eval::{Profile, WatchingProfileInput};
 use poe_trade::{LeagueList, TradeClient, TradeQueryConfig, TradeStatsIndex, TradeStatsResponse};
-use tauri::menu::{Menu, MenuItem};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
@@ -29,6 +30,9 @@ struct ProfileSet {
 
 /// Active evaluation profiles, loaded from JSON data files.
 struct ProfileState(Mutex<ProfileSet>);
+
+/// Monotonic counter for toast deduplication — prevents stale hide timers.
+struct ToastCounter(AtomicU64);
 
 /// Trade API client + stats index, managed as Tauri state.
 ///
@@ -136,6 +140,7 @@ fn handle_inspect(app: &tauri::AppHandle) {
         if let Some(window) = app.get_webview_window("overlay") {
             let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
             let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
+            let _ = window.set_ignore_cursor_events(false);
             let _ = window.show();
             let _ = window.set_focus();
         }
@@ -260,8 +265,108 @@ fn get_cursor_position() -> (i32, i32) {
 /// Dismiss the overlay: hide window, notify frontend.
 #[tauri::command]
 fn dismiss_overlay(window: tauri::WebviewWindow) {
+    let _ = window.set_ignore_cursor_events(false);
     let _ = window.hide();
     let _ = window.emit("overlay-dismissed", ());
+}
+
+/// Show a toast notification in the small always-on-top toast window.
+/// The toast window is pre-created at startup and reused.
+#[tauri::command]
+fn show_toast(app: tauri::AppHandle, profile_name: String, color: String) {
+    let Some(window) = app.get_webview_window("toast") else {
+        eprintln!("[toast] Toast window not found");
+        return;
+    };
+
+    // Read overlay scale from settings store for toast sizing
+    let scale_pct = app
+        .store("settings.json")
+        .ok()
+        .and_then(|s| s.get("general"))
+        .and_then(|v| v.get("overlayScale")?.as_f64())
+        .unwrap_or(100.0);
+    let zoom = scale_pct / 100.0;
+    let toast_w = (280.0 * zoom).round();
+    let toast_h = (46.0 * zoom).round();
+    let _ = window.set_size(tauri::LogicalSize::new(toast_w, toast_h));
+
+    // Position at top-center of the monitor where the cursor is
+    let (cursor_x, cursor_y) = get_cursor_position();
+    let monitors = window.available_monitors().unwrap_or_default();
+    let monitor = monitors.iter().find(|m| {
+        let pos = m.position();
+        let size = m.size();
+        cursor_x >= pos.x
+            && cursor_x < pos.x + size.width as i32
+            && cursor_y >= pos.y
+            && cursor_y < pos.y + size.height as i32
+    });
+
+    if let Some(monitor) = monitor {
+        let mon_pos = monitor.position();
+        let mon_size = monitor.size();
+        let mon_scale = monitor.scale_factor();
+        let phys_w = (toast_w * mon_scale) as i32;
+        let center_x = mon_pos.x + (mon_size.width as i32 - phys_w) / 2;
+        let top_y = mon_pos.y + (40.0 * mon_scale) as i32;
+        let _ = window.set_position(tauri::PhysicalPosition::new(center_x, top_y));
+    }
+
+    let _ = window.emit(
+        "show-toast",
+        serde_json::json!({ "profileName": profile_name, "color": color, "zoom": zoom }),
+    );
+    let _ = window.show();
+
+    // Bump toast counter — only the latest toast's timer will hide the window
+    let generation = app
+        .state::<ToastCounter>()
+        .0
+        .fetch_add(1, Ordering::Relaxed)
+        + 1;
+
+    let app_clone = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(2300));
+        let current = app_clone.state::<ToastCounter>().0.load(Ordering::Relaxed);
+        if current == generation {
+            if let Some(w) = app_clone.get_webview_window("toast") {
+                let _ = w.hide();
+            }
+        }
+    });
+}
+
+/// Update the tray menu with the given profile data (bypasses store read).
+/// Called from the frontend after profile changes to avoid store race conditions.
+/// Also emits `profiles-updated` so other windows (e.g. settings) can refresh.
+#[tauri::command]
+fn update_tray_profiles(app: tauri::AppHandle, profiles_json: String) {
+    let profiles: Vec<(String, String, String)> =
+        serde_json::from_str::<Vec<serde_json::Value>>(&profiles_json)
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|p| {
+                let id = p.get("id")?.as_str()?.to_string();
+                let name = p.get("name")?.as_str()?.to_string();
+                let role = p.get("role")?.as_str().unwrap_or("off").to_string();
+                Some((id, name, role))
+            })
+            .collect();
+
+    let menu = build_tray_menu_with_profiles(&app, &profiles);
+    match menu {
+        Ok(menu) => {
+            if let Some(tray) = app.tray_by_id("main-tray") {
+                let _ = tray.set_menu(Some(menu));
+            }
+        }
+        Err(e) => eprintln!("[tray] Failed to build menu: {e}"),
+    }
+
+    // Notify all windows so settings can refresh its profile list
+    let _ = app.emit("profiles-updated", ());
 }
 
 /// Show the overlay window with mock data for testing (tray debug button).
@@ -270,6 +375,7 @@ fn show_debug_overlay(app: &tauri::AppHandle) {
         let (cursor_x, cursor_y) = get_cursor_position();
         let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
         let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
+        let _ = window.set_ignore_cursor_events(false);
         let _ = window.show();
         let _ = window.set_focus();
     }
@@ -865,6 +971,77 @@ fn default_profile() -> Option<Profile> {
     }
 }
 
+/// Build the system tray menu with the given profile data.
+fn build_tray_menu_with_profiles(
+    app: &tauri::AppHandle,
+    profiles: &[(String, String, String)],
+) -> tauri::Result<Menu<tauri::Wry>> {
+    let show_overlay = MenuItem::with_id(
+        app,
+        "show_overlay",
+        "Show Overlay (Debug)",
+        true,
+        None::<&str>,
+    )?;
+    let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+
+    if profiles.len() > 1 {
+        let sep1 = PredefinedMenuItem::separator(app)?;
+        let sep2 = PredefinedMenuItem::separator(app)?;
+
+        let profile_items: Vec<MenuItem<tauri::Wry>> = profiles
+            .iter()
+            .map(|(id, name, role)| {
+                let prefix = if role == "primary" { "● " } else { "   " };
+                MenuItem::with_id(
+                    app,
+                    format!("profile:{id}"),
+                    format!("{prefix}{name}"),
+                    true,
+                    None::<&str>,
+                )
+            })
+            .collect::<Result<_, _>>()?;
+
+        let mut items: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = Vec::new();
+        items.push(&show_overlay);
+        items.push(&settings);
+        items.push(&sep1);
+        for item in &profile_items {
+            items.push(item);
+        }
+        items.push(&sep2);
+        items.push(&quit);
+
+        Menu::with_items(app, &items)
+    } else {
+        Menu::with_items(app, &[&show_overlay, &settings, &quit])
+    }
+}
+
+/// Build the system tray menu by reading profiles from the store.
+fn build_tray_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
+    let profiles: Vec<(String, String, String)> = (|| {
+        let store = app.store("profiles.json").ok()?;
+        let val = store.get("profiles")?;
+        let arr = val.as_array()?;
+        Some(
+            arr.iter()
+                .filter_map(|p| {
+                    let id = p.get("id")?.as_str()?.to_string();
+                    let name = p.get("name")?.as_str()?.to_string();
+                    let role = p.get("role")?.as_str().unwrap_or("off").to_string();
+                    Some((id, name, role))
+                })
+                .collect(),
+        )
+    })()
+    .unwrap_or_default();
+
+    build_tray_menu_with_profiles(app, &profiles)
+}
+
 pub fn run() {
     // WebKitGTK's DMA-BUF renderer has a bug with explicit sync on Wayland
     // compositors (Hyprland): it creates a wp_linux_drm_syncobj_surface but
@@ -884,7 +1061,7 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(
             tauri_plugin_window_state::Builder::new()
-                .with_denylist(&["overlay"])
+                .with_denylist(&["overlay", "toast"])
                 // Don't save/restore visibility — we control that in setup()
                 // based on the "start minimized" setting
                 .with_state_flags(StateFlags::all().difference(StateFlags::VISIBLE))
@@ -908,8 +1085,11 @@ pub fn run() {
             primary: default_profile(),
             watching: vec![],
         })))
+        .manage(ToastCounter(AtomicU64::new(0)))
         .invoke_handler(tauri::generate_handler![
             dismiss_overlay,
+            show_toast,
+            update_tray_profiles,
             update_hotkeys,
             pause_hotkeys,
             resume_hotkeys,
@@ -933,26 +1113,23 @@ pub fn run() {
         ])
         .setup(|app| {
             // --- System tray ---
-            let show_overlay = MenuItem::with_id(
-                app,
-                "show_overlay",
-                "Show Overlay (Debug)",
-                true,
-                None::<&str>,
-            )?;
-            let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
-            let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_overlay, &settings, &quit])?;
+            let menu = build_tray_menu(app.handle())?;
 
-            TrayIconBuilder::new()
+            TrayIconBuilder::with_id("main-tray")
                 .icon(app.default_window_icon().unwrap().clone())
                 .tooltip("PoE Inspect")
                 .menu(&menu)
-                .on_menu_event(|app, event| match event.id.as_ref() {
-                    "show_overlay" => show_debug_overlay(app),
-                    "settings" => show_settings(app),
-                    "quit" => app.exit(0),
-                    _ => {}
+                .on_menu_event(|app, event| {
+                    let id = event.id.as_ref();
+                    if id == "show_overlay" {
+                        show_debug_overlay(app);
+                    } else if id == "settings" {
+                        show_settings(app);
+                    } else if id == "quit" {
+                        app.exit(0);
+                    } else if let Some(profile_id) = id.strip_prefix("profile:") {
+                        let _ = app.emit("switch-profile", profile_id.to_string());
+                    }
                 })
                 .on_tray_icon_event(|tray, event| {
                     if let tauri::tray::TrayIconEvent::DoubleClick { .. } = event {
@@ -960,6 +1137,24 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
+
+            // --- Toast notification window (hidden, click-through) ---
+            {
+                let url = tauri::WebviewUrl::App("index.html".into());
+                let toast_win =
+                    tauri::WebviewWindowBuilder::new(app, "toast", url)
+                        .title("Toast")
+                        .decorations(false)
+                        .transparent(true)
+                        .always_on_top(true)
+                        .skip_taskbar(true)
+                        .resizable(false)
+                        .focused(false)
+                        .visible(false)
+                        .inner_size(300.0, 50.0)
+                        .build()?;
+                let _ = toast_win.set_ignore_cursor_events(true);
+            }
 
             // --- Wayland layer-shell setup ---
             #[cfg(target_os = "linux")]

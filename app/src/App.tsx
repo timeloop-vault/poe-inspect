@@ -3,7 +3,6 @@ import { listen } from "@tauri-apps/api/event";
 import { Component } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { type DisplaySettings, ItemOverlay, type ProfileSummary } from "./components/ItemOverlay";
-import { ProfileToast } from "./components/ProfileToast";
 import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
@@ -118,15 +117,12 @@ export function App() {
 	});
 	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
 	const [mapDanger, setMapDanger] = useState<MapDangerConfig>({});
-	const [toastMessage, setToastMessage] = useState<{ profileName: string; color?: string } | null>(
-		null,
-	);
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
 	const profilesRef = useRef<StoredProfile[]>([]);
 	const startupToastShown = useRef(false);
 
 	const showProfileToast = useCallback((profile: StoredProfile) => {
-		setToastMessage({ profileName: profile.name, color: profile.watchColor });
+		invoke("show_toast", { profileName: profile.name, color: profile.watchColor ?? "" });
 	}, []);
 
 	/** Update derived state from the profiles ref. */
@@ -262,13 +258,22 @@ export function App() {
 			setShowMock(true);
 		});
 
-		const unlistenCycleProfile = listen("cycle-profile", () => {
-			const profiles = profilesRef.current;
-			if (profiles.length < 2) return;
-			const primaryIdx = profiles.findIndex((p) => p.role === "primary");
-			const nextIdx = (primaryIdx + 1) % profiles.length;
-			const next = profiles[nextIdx];
+		const unlistenCycleProfile = listen("cycle-profile", async () => {
+			// Reload profiles from store — local state may be stale
+			const fresh = await loadProfiles();
+			syncProfileState(fresh);
+			if (fresh.length < 2) return;
+			const primaryIdx = fresh.findIndex((p) => p.role === "primary");
+			const nextIdx = (primaryIdx + 1) % fresh.length;
+			const next = fresh[nextIdx];
 			if (next) handleSwitchProfile(next.id);
+		});
+
+		const unlistenSwitchProfile = listen<string>("switch-profile", async (event) => {
+			// Reload profiles from store — local state may be stale
+			const fresh = await loadProfiles();
+			syncProfileState(fresh);
+			handleSwitchProfile(event.payload);
 		});
 
 		// Dismiss overlay on configured key (window-level, not global shortcut)
@@ -296,6 +301,7 @@ export function App() {
 			unlistenDismiss.then((fn) => fn());
 			unlistenDebug.then((fn) => fn());
 			unlistenCycleProfile.then((fn) => fn());
+			unlistenSwitchProfile.then((fn) => fn());
 			document.removeEventListener("keydown", handleKeydown);
 		};
 	}, [dismiss, showProfileToast, syncProfileState, handleSwitchProfile]);
@@ -452,7 +458,6 @@ export function App() {
 				if (e.target === e.currentTarget) dismiss();
 			}}
 		>
-			<ProfileToast message={toastMessage} onDone={() => setToastMessage(null)} />
 			{content && (
 				<div class="overlay-panel" style={panelStyle}>
 					{showDismiss && (

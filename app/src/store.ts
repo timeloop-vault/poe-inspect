@@ -351,6 +351,9 @@ export async function loadProfiles(): Promise<StoredProfile[]> {
 export async function saveProfiles(profiles: StoredProfile[]): Promise<void> {
 	const store = await getProfilesStore();
 	await store.set("profiles", profiles);
+	// Update tray menu whenever profiles change (name, add, delete, role, etc.)
+	const trayProfiles = profiles.map((p) => ({ id: p.id, name: p.name, role: p.role }));
+	await invoke("update_tray_profiles", { profilesJson: JSON.stringify(trayProfiles) });
 }
 
 /** Load quality colors from the primary profile (or defaults if none). */

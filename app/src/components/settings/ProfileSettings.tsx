@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
@@ -69,6 +70,13 @@ export function ProfileSettings() {
 			setProfiles(p);
 			setLoaded(true);
 		});
+		// Refresh when profiles change in another window (overlay switch, tray switch)
+		const unlisten = listen("profiles-updated", () => {
+			loadProfiles().then(setProfiles);
+		});
+		return () => {
+			unlisten.then((fn) => fn());
+		};
 	}, []);
 
 	const persist = useCallback((next: StoredProfile[]) => {
@@ -118,6 +126,7 @@ export function ProfileSettings() {
 			},
 		];
 		persist(next);
+		syncActiveProfile(next);
 		setEditing(id);
 	}, [persist]);
 
@@ -139,7 +148,7 @@ export function ProfileSettings() {
 			const source = profilesRef.current.find((p) => p.id === id);
 			if (!source) return;
 			const newId = String(Date.now());
-			persist([
+			const next = [
 				...profilesRef.current,
 				{
 					...structuredClone(source),
@@ -147,7 +156,9 @@ export function ProfileSettings() {
 					name: `${source.name} (copy)`,
 					role: "off" as const,
 				},
-			]);
+			];
+			persist(next);
+			syncActiveProfile(next);
 		},
 		[persist],
 	);
@@ -172,7 +183,9 @@ export function ProfileSettings() {
 				display: data.display ?? { ...defaultDisplay },
 				mapDanger: data.mapDanger ?? {},
 			});
-			persist([...profilesRef.current, imported]);
+			const next = [...profilesRef.current, imported];
+			persist(next);
+			syncActiveProfile(next);
 		} catch (e) {
 			console.error("Failed to import profile:", e);
 		}
