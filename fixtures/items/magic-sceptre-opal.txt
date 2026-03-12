@@ -1,0 +1,27 @@
+Item Class: Sceptres
+Rarity: Magic
+Frozen Opal Sceptre of Discharge
+--------
+Sceptre
+Physical Damage: 49-73
+Critical Strike Chance: 8.00%
+Attacks per Second: 1.25
+Weapon Range: 1.1 metres
+Memory Strands: 31
+--------
+Requirements:
+Level: 60
+Str: 95
+Int: 131
+--------
+Sockets: G-R-R
+--------
+Item Level: 82
+--------
+{ Implicit Modifier — Damage, Elemental }
+40% increased Elemental Damage
+--------
+{ Prefix Modifier "Frozen" (Tier: 4) — Damage, Elemental, Cold, Caster }
+Adds 26(20-26) to 42(40-46) Cold Damage to Spells
+{ Suffix Modifier "of Discharge" (Tier: 2) — Damage, Elemental, Lightning }
+24(23-26)% increased Lightning Damage

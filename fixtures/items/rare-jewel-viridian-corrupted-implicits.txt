@@ -1,0 +1,23 @@
+Item Class: Jewels
+Rarity: Rare
+Gale Glimmer
+Viridian Jewel
+--------
+Item Level: 81
+--------
+{ Corruption Implicit Modifier — Damage }
+5(4-5)% increased Damage
+{ Corruption Implicit Modifier — Curse }
+22(25-20)% reduced Effect of Curses on you
+--------
+{ Prefix Modifier "Puncturing" (Tier: 1) — Damage, Attack, Critical }
++18(15-18)% to Critical Strike Multiplier while Dual Wielding
+{ Prefix Modifier "Slicing" (Tier: 1) — Attack, Speed }
+8(6-8)% increased Attack Speed with Daggers
+(Rune Daggers are considered Daggers)
+{ Suffix Modifier "of Exsanguinating" (Tier: 1) — Damage, Physical }
++6(6-8)% to Physical Damage over Time Multiplier
+--------
+Place into an allocated Jewel Socket on the Passive Skill Tree. Right click to remove from the Socket.
+--------
+Corrupted

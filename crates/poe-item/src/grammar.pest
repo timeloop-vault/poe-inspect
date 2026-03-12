@@ -132,6 +132,7 @@ mod_source = { "Fractured " | "Master Crafted " }
 mod_slot = {
     "Searing Exarch Implicit"
   | "Eater of Worlds Implicit"
+  | "Corruption Implicit"
   | "Implicit"
   | "Prefix"
   | "Suffix"

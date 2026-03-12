@@ -65,7 +65,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                     match resolved.header.slot {
                         ModSlot::Implicit
                         | ModSlot::SearingExarchImplicit
-                        | ModSlot::EaterOfWorldsImplicit => {
+                        | ModSlot::EaterOfWorldsImplicit
+                        | ModSlot::CorruptionImplicit => {
                             implicits.push(resolved);
                         }
                         ModSlot::Enchant => {

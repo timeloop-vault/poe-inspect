@@ -903,3 +903,84 @@ fn all_fixtures_parse() {
     }
     assert!(count >= 41, "expected at least 41 fixtures, found {count}");
 }
+
+// ─── Magic sceptre with Memory Strands property ────────────────────────────
+
+#[test]
+fn magic_sceptre_parsed() {
+    let item = parse_fixture("magic-sceptre-opal.txt");
+    assert_eq!(item.header.item_class, "Sceptres");
+    assert_eq!(item.header.rarity, Rarity::Magic);
+    assert_eq!(item.header.name1, "Frozen Opal Sceptre of Discharge");
+    assert!(item.header.name2.is_none());
+
+    // Properties section includes Memory Strands
+    let has_memory_strands = item.sections.iter().any(|s| match s {
+        Section::Generic(lines) => lines.iter().any(|l| l.starts_with("Memory Strands")),
+        _ => false,
+    });
+    assert!(has_memory_strands, "should have Memory Strands property");
+
+    // Implicit + explicit mods
+    let mod_sections: Vec<_> = item
+        .sections
+        .iter()
+        .filter_map(|s| match s {
+            Section::Modifiers(m) => Some(m),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(mod_sections.len(), 2);
+    assert_eq!(mod_sections[0].groups[0].header.slot, ModSlot::Implicit);
+    assert_eq!(mod_sections[1].groups.len(), 2); // prefix + suffix
+}
+
+// ─── Corruption implicit mods ──────────────────────────────────────────────
+
+#[test]
+fn corruption_implicit_mods() {
+    let item = parse_fixture("rare-jewel-viridian-corrupted-implicits.txt");
+    assert_eq!(item.header.item_class, "Jewels");
+    assert_eq!(item.header.rarity, Rarity::Rare);
+
+    let mod_sections: Vec<_> = item
+        .sections
+        .iter()
+        .filter_map(|s| match s {
+            Section::Modifiers(m) => Some(m),
+            _ => None,
+        })
+        .collect();
+
+    // Corruption implicits + explicits
+    assert_eq!(mod_sections.len(), 2);
+
+    // First section: corruption implicits
+    let corruption = &mod_sections[0];
+    assert_eq!(corruption.groups.len(), 2);
+    assert_eq!(
+        corruption.groups[0].header.slot,
+        ModSlot::CorruptionImplicit
+    );
+    assert_eq!(corruption.groups[0].header.tags, vec!["Damage"]);
+    assert_eq!(
+        corruption.groups[1].header.slot,
+        ModSlot::CorruptionImplicit
+    );
+    assert_eq!(corruption.groups[1].header.tags, vec!["Curse"]);
+
+    // Second section: explicits
+    let explicits = &mod_sections[1];
+    assert_eq!(explicits.groups.len(), 3); // 2 prefix + 1 suffix
+
+    // Corrupted status
+    let status = item
+        .sections
+        .iter()
+        .find_map(|s| match s {
+            Section::Status(k) => Some(*k),
+            _ => None,
+        })
+        .expect("should have Corrupted status");
+    assert_eq!(status, StatusKind::Corrupted);
+}
