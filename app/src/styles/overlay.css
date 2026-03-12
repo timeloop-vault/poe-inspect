@@ -1118,3 +1118,91 @@ body,
 	font-size: 10px;
 	margin-left: auto;
 }
+
+/* --- Map danger assessment --- */
+
+.map-danger-section {
+	display: flex;
+	flex-direction: column;
+}
+
+.map-verdict {
+	text-align: center;
+	font-family: "Fontin SmallCaps", "FrizQuadrata", sans-serif;
+	font-size: 15px;
+	font-weight: bold;
+	letter-spacing: 1.5px;
+	padding: 4px 0;
+}
+
+.map-verdict.danger-deadly {
+	color: #e05040;
+}
+
+.map-verdict.danger-warning {
+	color: #e8a020;
+}
+
+.map-verdict.danger-good {
+	color: #38d838;
+}
+
+.map-verdict.danger-unclassified {
+	color: var(--poe-text-dim);
+}
+
+.danger-mod-line {
+	cursor: pointer;
+	padding: 3px 4px;
+	border-radius: 2px;
+	transition: background 0.1s;
+}
+
+.danger-mod-line:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.danger-indicator {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	margin-top: 5px;
+}
+
+.danger-indicator.danger-deadly {
+	background: #e05040;
+	box-shadow: 0 0 4px rgba(224, 80, 64, 0.5);
+}
+
+.danger-indicator.danger-warning {
+	background: #e8a020;
+	box-shadow: 0 0 4px rgba(232, 160, 32, 0.4);
+}
+
+.danger-indicator.danger-good {
+	background: #38d838;
+	box-shadow: 0 0 4px rgba(56, 216, 56, 0.4);
+}
+
+.danger-indicator.danger-unclassified {
+	background: var(--poe-text-dim);
+	opacity: 0.4;
+}
+
+.mod-line.danger-deadly .mod-content {
+	color: #e05040;
+}
+
+.mod-line.danger-warning .mod-content {
+	color: #e8a020;
+}
+
+.mod-line.danger-good .mod-content {
+	color: #50c050;
+}
+
+.mod-line.danger-unclassified .mod-content {
+	color: var(--poe-text);
+}

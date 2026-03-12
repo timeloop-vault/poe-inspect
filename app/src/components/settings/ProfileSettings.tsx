@@ -114,6 +114,7 @@ export function ProfileSettings() {
 				evalProfile: null,
 				modWeights: [],
 				display: { ...defaultDisplay },
+				mapDanger: {},
 			},
 		];
 		persist(next);
@@ -169,6 +170,7 @@ export function ProfileSettings() {
 				evalProfile: data.evalProfile ?? null,
 				modWeights: data.modWeights ?? [],
 				display: data.display ?? { ...defaultDisplay },
+				mapDanger: data.mapDanger ?? {},
 			});
 			persist([...profilesRef.current, imported]);
 		} catch (e) {
