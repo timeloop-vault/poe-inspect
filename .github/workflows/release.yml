@@ -36,6 +36,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Read version from tauri.conf.json
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' app/src-tauri/tauri.conf.json | head -1 | cut -d'"' -f4)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -76,18 +84,15 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Updater signing key (required for update artifacts)
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: app
           tauriScript: npx tauri
           args: --target ${{ matrix.target }}
-          # On release event, attach artifacts to the triggering release
-          tagName: ${{ github.event.release.tag_name || '' }}
-          releaseName: ${{ github.event.release.name || '' }}
+          tagName: ${{ github.event.release.tag_name || steps.version.outputs.tag }}
+          releaseName: ${{ github.event.release.name || format('PoE Inspect {0}', steps.version.outputs.tag) }}
           releaseId: ${{ github.event.release.id || '' }}
-          # On manual dispatch, create a draft release
           releaseDraft: ${{ github.event_name == 'workflow_dispatch' }}
           prerelease: false
           includeUpdaterJson: true
