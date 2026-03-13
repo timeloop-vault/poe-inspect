@@ -13,6 +13,7 @@ use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
+#[cfg(not(target_os = "linux"))]
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_store::StoreExt;
