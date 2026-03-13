@@ -55,6 +55,29 @@ pub fn init_overlay_layer_shell(gtk_window: &gtk::ApplicationWindow) {
     gtk_window.set_namespace("poe-inspect");
 }
 
+/// Initialize the toast window as a layer-shell surface.
+///
+/// Anchored to the top edge only — the compositor centers it horizontally.
+/// Uses `KeyboardMode::None` so it never steals focus. Click-through is
+/// handled by `set_ignore_cursor_events` after the window is realized.
+pub fn init_toast_layer_shell(gtk_window: &gtk::ApplicationWindow) {
+    if gtk_window.is_realized() {
+        gtk_window.unrealize();
+    }
+    gtk_window.init_layer_shell();
+    gtk_window.set_layer(gtk_layer_shell::Layer::Overlay);
+
+    // Anchor top only — compositor centers horizontally
+    gtk_window.set_anchor(gtk_layer_shell::Edge::Top, true);
+
+    // Small margin from the top edge
+    gtk_window.set_layer_shell_margin(gtk_layer_shell::Edge::Top, 40);
+
+    gtk_window.set_exclusive_zone(-1);
+    gtk_window.set_keyboard_mode(gtk_layer_shell::KeyboardMode::None);
+    gtk_window.set_namespace("poe-inspect-toast");
+}
+
 /// Position a layer-shell surface at absolute screen coordinates (x, y).
 ///
 /// Layer surfaces are positioned via margins from their anchor edges.

@@ -141,8 +141,8 @@ fn handle_inspect(app: &tauri::AppHandle) {
         if let Some(window) = app.get_webview_window("overlay") {
             let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
             let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
-            let _ = window.set_ignore_cursor_events(false);
             let _ = window.show();
+            let _ = window.set_ignore_cursor_events(false);
             let _ = window.set_focus();
         }
 
@@ -319,6 +319,7 @@ fn show_toast(app: tauri::AppHandle, profile_name: String, color: String) {
         serde_json::json!({ "profileName": profile_name, "color": color, "zoom": zoom }),
     );
     let _ = window.show();
+    let _ = window.set_ignore_cursor_events(true);
 
     // Bump toast counter — only the latest toast's timer will hide the window
     let generation = app
@@ -376,8 +377,8 @@ fn show_debug_overlay(app: &tauri::AppHandle) {
         let (cursor_x, cursor_y) = get_cursor_position();
         let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
         let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
-        let _ = window.set_ignore_cursor_events(false);
         let _ = window.show();
+        let _ = window.set_ignore_cursor_events(false);
         let _ = window.set_focus();
     }
     let _ = app.emit("show-debug-overlay", ());
@@ -1166,7 +1167,6 @@ pub fn run() {
                         .visible(false)
                         .inner_size(300.0, 50.0)
                         .build()?;
-                let _ = toast_win.set_ignore_cursor_events(true);
             }
 
             // --- Wayland layer-shell setup ---
@@ -1179,6 +1179,14 @@ pub fn run() {
                             wayland::init_overlay_layer_shell(&gtk_win);
                             wayland_active = true;
                             eprintln!("Wayland detected — layer-shell overlay initialized");
+                        }
+                    }
+                }
+                if wayland_active {
+                    if let Some(toast) = app.get_webview_window("toast") {
+                        if let Ok(gtk_win) = toast.gtk_window() {
+                            wayland::init_toast_layer_shell(&gtk_win);
+                            eprintln!("Wayland detected — layer-shell toast initialized");
                         }
                     }
                 }
