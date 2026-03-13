@@ -143,6 +143,9 @@ fn handle_inspect(app: &tauri::AppHandle) {
         if let Some(window) = app.get_webview_window("overlay") {
             let (css_x, css_y) = setup_fullscreen_overlay(&window, cursor_x, cursor_y);
             let _ = app.emit("overlay-position", OverlayPosition { x: css_x, y: css_y });
+            // Invalidate before show — forces web process to discard stale tiles
+            #[cfg(target_os = "linux")]
+            invalidate_webview_buffer(&window);
             let _ = window.show();
             let _ = window.set_ignore_cursor_events(false);
             let _ = window.set_focus();
@@ -271,12 +274,61 @@ fn get_cursor_position() -> (i32, i32) {
     (100, 100)
 }
 
+/// Force WebKitGTK to reallocate its rendering buffers.
+///
+/// WebKitGTK doesn't clear its backing buffer for transparent windows between
+/// hide/show cycles — old content accumulates. Two things must happen:
+///
+/// 1. **Tile invalidation** — `size_allocate(1×1)` then restore triggers
+///    `webkitWebViewBaseSizeAllocate` → `drawingArea().setSize()`, which tells
+///    the web process to discard cached tiles and repaint.
+///
+/// 2. **Buffer clear** — `queue_draw()` on the toplevel schedules a draw signal,
+///    which triggers tao's `connect_draw` handler to clear the GDK window backing
+///    buffer to transparent before WebKitGTK composites fresh tiles into it.
+///    On non-layer-shell, the size_allocate alone suffices (GDK creates a new
+///    buffer). On layer-shell, the buffer size is fixed by the compositor so GDK
+///    reuses the same buffer — the explicit queue_draw is needed to clear it.
+#[cfg(target_os = "linux")]
+fn invalidate_webview_buffer(window: &tauri::WebviewWindow) {
+    let _ = window.with_webview(|wv| {
+        use gtk::prelude::WidgetExt;
+        let webview = wv.inner();
+        let alloc = webview.allocation();
+        eprintln!(
+            "[webview] Invalidating buffer (current {}x{})",
+            alloc.width(),
+            alloc.height()
+        );
+        // Shrink to 1x1 — discards existing rendering target in web process
+        webview.size_allocate(&gdk::Rectangle::new(alloc.x(), alloc.y(), 1, 1));
+        // Restore original size — web process allocates fresh tiles
+        webview.size_allocate(&gdk::Rectangle::new(
+            alloc.x(),
+            alloc.y(),
+            alloc.width(),
+            alloc.height(),
+        ));
+        // Force a full redraw cycle — tao's connect_draw clears the GDK
+        // window backing buffer to transparent before WebKitGTK paints.
+        if let Some(toplevel) = webview.toplevel() {
+            toplevel.queue_draw();
+        }
+    });
+}
+
 /// Dismiss the overlay: hide window, notify frontend.
+///
+/// Also invalidates the WebView buffer so the web process has time to create
+/// fresh tiles before the next show (the show-time invalidation handles the
+/// GDK buffer clear).
 #[tauri::command]
 fn dismiss_overlay(window: tauri::WebviewWindow) {
     let _ = window.set_ignore_cursor_events(false);
     let _ = window.hide();
     let _ = window.emit("overlay-dismissed", ());
+    #[cfg(target_os = "linux")]
+    invalidate_webview_buffer(&window);
 }
 
 /// Show a toast notification in the small always-on-top toast window.
@@ -388,6 +440,8 @@ fn show_debug_overlay(app: &tauri::AppHandle) {
         let _ = window.show();
         let _ = window.set_ignore_cursor_events(false);
         let _ = window.set_focus();
+        #[cfg(target_os = "linux")]
+        invalidate_webview_buffer(&window);
     }
     let _ = app.emit("show-debug-overlay", ());
 }
@@ -1177,7 +1231,7 @@ pub fn run() {
                         .build()?;
             }
 
-            // --- Wayland layer-shell setup ---
+            // --- Linux overlay setup ---
             #[cfg(target_os = "linux")]
             {
                 let mut wayland_active = false;

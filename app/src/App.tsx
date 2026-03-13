@@ -98,6 +98,7 @@ class OverlayErrorBoundary extends Component<
 export function App() {
 	const [itemText, setItemText] = useState<string | null>(null);
 	const [evaluatedItem, setEvaluatedItem] = useState<ItemPayload | null>(null);
+	const [panelReady, setPanelReady] = useState(false);
 	const [parseError, setParseError] = useState<{ error: string; rawText: string } | null>(null);
 	const [mockIndex, setMockIndex] = useState(0);
 	const [showMock, setShowMock] = useState(import.meta.env.DEV);
@@ -222,6 +223,7 @@ export function App() {
 
 		const unlistenEvaluated = listen<ItemPayload>("item-evaluated", (event) => {
 			reloadSettings();
+			setPanelReady(false);
 			setEvaluatedItem(event.payload);
 			setItemText(null);
 			setParseError(null);
@@ -230,6 +232,7 @@ export function App() {
 
 		const unlistenCapture = listen<string>("item-captured", (event) => {
 			reloadSettings();
+			setPanelReady(false);
 			setItemText(event.payload);
 			setEvaluatedItem(null);
 			setParseError(null);
@@ -240,6 +243,7 @@ export function App() {
 			"item-parse-failed",
 			(event) => {
 				reloadSettings();
+				setPanelReady(false);
 				setParseError(event.payload);
 				setEvaluatedItem(null);
 				setItemText(null);
@@ -255,6 +259,7 @@ export function App() {
 
 		const unlistenDebug = listen("show-debug-overlay", () => {
 			reloadSettings();
+			setPanelReady(false);
 			setShowMock(true);
 		});
 
@@ -306,6 +311,19 @@ export function App() {
 		};
 	}, [dismiss, showProfileToast, syncProfileState, handleSwitchProfile]);
 
+	// When new content arrives (panelReady=false), wait for the browser to
+	// complete layout before making the panel visible. This prevents a flash
+	// of partially-laid-out content that leaves ghost pixels on the transparent
+	// overlay surface (WebKitGTK does not fully clear the backing store between
+	// rapid repaints of different-sized content at different positions).
+	useEffect(() => {
+		if (panelReady) return;
+		const id = requestAnimationFrame(() => {
+			requestAnimationFrame(() => setPanelReady(true));
+		});
+		return () => cancelAnimationFrame(id);
+	}, [panelReady]);
+
 	const zoom = overlayScale / 100;
 	const pos = computePanelPosition(cursorPos, overlayMode, zoom);
 
@@ -329,6 +347,9 @@ export function App() {
 		panelStyle["--quality-good"] = qualityColors.good;
 		panelStyle["--quality-mid"] = qualityColors.mid;
 		panelStyle["--quality-low"] = qualityColors.low;
+	}
+	if (!panelReady) {
+		panelStyle.visibility = "hidden";
 	}
 
 	// Determine content to display
