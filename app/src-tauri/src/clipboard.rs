@@ -71,39 +71,45 @@ impl ClipboardWatcher {
     }
 }
 
-/// Linux clipboard acquisition: Wayland watcher → X11 direct fallback.
+/// Linux clipboard acquisition: single keystroke, race Wayland watcher vs X11 poll.
 ///
-/// 1. Watcher: send keystroke, wait for selection event (usually <500ms).
-/// 2. X11 fallback: snapshot clipboard, retry keystroke, poll until changed.
+/// 1. Snapshot X11 clipboard (for change detection).
+/// 2. Arm Wayland watcher if available.
+/// 3. Send one keystroke.
+/// 4. Poll both paths: Wayland watcher (non-blocking) and X11 clipboard change.
 pub fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
     use super::wayland;
 
-    if let Some(watcher) = app.try_state::<ClipboardWatcher>() {
-        let rx = watcher.request_next();
-
-        if let Err(e) = super::send_copy_keystroke() {
-            eprintln!("[inspect] Keystroke FAILED: {e}");
-            return None;
-        }
-
-        match rx.recv_timeout(std::time::Duration::from_millis(500)) {
-            Ok(text) if !text.is_empty() => return Some(text),
-            _ => eprintln!("[inspect] Watcher miss, trying X11 fallback"),
-        }
-    }
-
-    // Keystroke likely wasn't processed — snapshot, retry, poll for change
+    // Snapshot X11 clipboard BEFORE keystroke for change detection
     let old = wayland::read_x11_clipboard(100).unwrap_or_default();
 
+    // Arm Wayland watcher if available
+    let watcher_rx = app
+        .try_state::<ClipboardWatcher>()
+        .map(|w| w.request_next());
+
+    // Send one keystroke
     if let Err(e) = super::send_copy_keystroke() {
-        eprintln!("[inspect] Keystroke retry FAILED: {e}");
+        eprintln!("[inspect] Keystroke FAILED: {e}");
         return None;
     }
 
+    // Race both paths concurrently
     let deadline =
         std::time::Instant::now() + std::time::Duration::from_millis(2000);
     while std::time::Instant::now() < deadline {
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        // Check Wayland watcher (non-blocking)
+        if let Some(rx) = &watcher_rx {
+            if let Ok(text) = rx.try_recv() {
+                if !text.is_empty() {
+                    return Some(text);
+                }
+            }
+        }
+
+        std::thread::sleep(std::time::Duration::from_millis(50));
+
+        // Check X11 clipboard for change
         if let Ok(text) = wayland::read_x11_clipboard(100) {
             if !text.is_empty() && text != old {
                 return Some(text);

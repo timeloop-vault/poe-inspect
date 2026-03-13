@@ -18,7 +18,7 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-clipboard-manager = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-enigo = { version = "0.2", features = ["xdo", "wayland"] }
+enigo = { version = "0.6.1", features = ["xdo", "wayland"] }
 tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
