@@ -96,7 +96,7 @@ pub fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
 
     // Race both paths concurrently
     let deadline =
-        std::time::Instant::now() + std::time::Duration::from_millis(2000);
+        std::time::Instant::now() + std::time::Duration::from_millis(500);
     while std::time::Instant::now() < deadline {
         // Check Wayland watcher (non-blocking)
         if let Some(rx) = &watcher_rx {
