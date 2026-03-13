@@ -55,7 +55,7 @@ Status snapshots for picking up where we left off. Newest first.
 | Stash tab scrolling | Mouse wheel to cycle stash tabs | App-only (research AWP approach) |
 | Chat macros | Custom hotkeys for chat commands | App-only (enigo) |
 | Map danger assessment | Per-mod danger tagging (deadly / warning / good) with traffic-light overlay. User classifies each map mod per profile — no hardcoded danger list since riskiness is build-dependent. Click-to-cycle in overlay, full searchable mod list in settings. Dedicated hotkey and/or shown in normal overlay when item class is Map. Reference: `_reference/awakened-poe-trade/renderer/src/web/map-check/` | App UX + settings UI; poe-eval profiles already support the evaluation; needs area mod stat list from poe-dat |
-| Character-aware profile switching | Parse PoE `client.txt` live to detect character login events, auto-switch active + watching profiles (including map profiles) per character. Enables "set once, forget" workflow where each character has its own danger/eval config. | File watching (notify crate or Tauri fs-watch), client.txt format research, profile-to-character binding UI |
+| ~~Character-aware profile switching~~ | ~~Scrapped — client.txt doesn't contain character name on zone entry~~ | — |
 | Rule text DSL | Textual rule format compilable to Profile JSON | Grammar design, VS Code ext |
 | CSS split | Separate entry points for overlay vs settings | Low priority, class-scoping works |
 | Craft suggestions | Deterministic craft advice from open affixes | `CraftingBenchOptions` table in poe-data |
@@ -71,27 +71,6 @@ Status snapshots for picking up where we left off. Newest first.
 | Ctrl+C fallback parser | poe-item | Only Ctrl+Alt+C format supported, Ctrl+C has less data |
 | `{ Foulborn Unique Modifier }` | poe-item | Mod name before "Unique" keyword — grammar doesn't handle this header pattern |
 
-### Suggested Next Steps (Pick Any)
+### Current Roadmap
 
-1. **Pseudo stats** — High value for profile usability. Add `PseudoStat` predicate to poe-eval that sums matching stat values across all mods.
-2. **Compact overlay** — Quick win, app-only. Score pill + expand hotkey.
-3. **Phase 8c UX polish** — Collapsible rule groups, better visual hierarchy for compound rules.
-4. **Parse more stat description files** — Bumps trade match rate above 87.4%. Files: atlas, map, sanctum, heist.
-5. **`(Local)` trade suffix** — Ensure local stat_ids get the `(Local)` suffix when building trade queries.
-6. **Craft suggestions** — Extract `CraftingBenchOptions` from GGPK, surface "you can bench-craft X" in overlay.
-7. **Map danger assessment** — High value for HC/mapping safety. Per-mod deadly/warning/good tagging using existing profile+eval system. Dedicated hotkey or auto-detect map item class. UX reference: awakened-poe-trade's map-check (click-to-cycle, 3-profile slots, searchable settings list).
-8. **Character-aware profile switching** — Parse `client.txt` to detect character logins, auto-switch active profiles (eval + map danger). Natural companion to map danger — makes per-character danger config seamless.
-
-### Recent Git History (for context)
-
-```
-5711a98 Domain-based mod resolution for correct local/non-local stat_ids
-a3ddad9 Add SocketCount, LinkCount, Quality predicates to poe-eval + fix biome
-d47d53e Add quality filter to trade queries with Edit Search UI control
-c8c1c79 Strip "Superior" quality prefix from base type names in poe-item
-33bcaf8 Handle "— Unscalable Value" suffix in poe-item resolver
-5f9c563 Add socket/link filter support to trade queries and Edit Search UI
-4068ae9 Update domain-knowledge-reviewer agent for poe-trade boundary
-62e4402 Fractured mod support, stat ID power-user toggle, drag-handle-only reorder
-59503b7 Phase 4: stat_id → stat_ids for local/non-local equivalence
-```
+See `docs/ROADMAP.md` for the prioritized list.
