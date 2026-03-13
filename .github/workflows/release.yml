@@ -28,7 +28,7 @@ jobs:
           - platform: macos-latest
             target: aarch64-apple-darwin
             label: macos-aarch64
-          - platform: macos-13
+          - platform: macos-14
             target: x86_64-apple-darwin
             label: macos-x86_64
 
@@ -37,9 +37,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action/setup@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           targets: ${{ matrix.target }}
 
       - name: Install Linux dependencies
