@@ -3,12 +3,7 @@ name: Release
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      debug:
-        description: "Enable debug features (mock overlay, MCP plugin)"
-        type: boolean
-        default: false
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -35,14 +30,6 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v6
-
-      - name: Read version from tauri.conf.json
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(grep -o '"version": "[^"]*"' app/src-tauri/tauri.conf.json | head -1 | cut -d'"' -f4)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -80,7 +67,9 @@ jobs:
           workspaces: app/src-tauri
           shared-key: ${{ matrix.label }}
 
-      - name: Build and bundle (Tauri)
+      # --- Release event: build + attach artifacts to the GitHub Release ---
+      - name: Build and publish release
+        if: github.event_name == 'release'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,9 +79,32 @@ jobs:
           projectPath: app
           tauriScript: npx tauri
           args: --target ${{ matrix.target }}
-          tagName: ${{ github.event.release.tag_name || steps.version.outputs.tag }}
-          releaseName: ${{ github.event.release.name || format('PoE Inspect {0}', steps.version.outputs.tag) }}
-          releaseId: ${{ github.event.release.id || '' }}
-          releaseDraft: ${{ github.event_name == 'workflow_dispatch' }}
+          tagName: ${{ github.event.release.tag_name }}
+          releaseName: ${{ github.event.release.name }}
+          releaseId: ${{ github.event.release.id }}
+          releaseDraft: false
           prerelease: false
           includeUpdaterJson: true
+
+      # --- Manual dispatch: build only, upload as workflow artifacts ---
+      - name: Build (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: app
+        run: npx tauri build --target ${{ matrix.target }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Upload artifacts (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: |
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.AppImage
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.deb
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.dmg
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.app
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.exe
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.msi
+            app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.sig
