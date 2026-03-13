@@ -1155,7 +1155,7 @@ pub fn run() {
             // --- Toast notification window (hidden, click-through) ---
             {
                 let url = tauri::WebviewUrl::App("index.html".into());
-                let toast_win =
+                let _toast =
                     tauri::WebviewWindowBuilder::new(app, "toast", url)
                         .title("Toast")
                         .decorations(false)
