@@ -976,6 +976,7 @@ fn build_tray_menu_with_profiles(
     app: &tauri::AppHandle,
     profiles: &[(String, String, String)],
 ) -> tauri::Result<Menu<tauri::Wry>> {
+    #[cfg(debug_assertions)]
     let show_overlay = MenuItem::with_id(
         app,
         "show_overlay",
@@ -1005,6 +1006,7 @@ fn build_tray_menu_with_profiles(
             .collect::<Result<_, _>>()?;
 
         let mut items: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = Vec::new();
+        #[cfg(debug_assertions)]
         items.push(&show_overlay);
         items.push(&settings);
         items.push(&sep1);
@@ -1016,7 +1018,10 @@ fn build_tray_menu_with_profiles(
 
         Menu::with_items(app, &items)
     } else {
-        Menu::with_items(app, &[&show_overlay, &settings, &quit])
+        #[cfg(debug_assertions)]
+        return Menu::with_items(app, &[&show_overlay, &settings, &quit]);
+        #[cfg(not(debug_assertions))]
+        Menu::with_items(app, &[&settings, &quit])
     }
 }
 

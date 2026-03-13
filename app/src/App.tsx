@@ -100,7 +100,7 @@ export function App() {
 	const [evaluatedItem, setEvaluatedItem] = useState<ItemPayload | null>(null);
 	const [parseError, setParseError] = useState<{ error: string; rawText: string } | null>(null);
 	const [mockIndex, setMockIndex] = useState(0);
-	const [showMock, setShowMock] = useState(true);
+	const [showMock, setShowMock] = useState(import.meta.env.DEV);
 	const [overlayScale, setOverlayScale] = useState(100);
 	const [overlayMode, setOverlayMode] = useState("cursor");
 	const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
