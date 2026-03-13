@@ -910,20 +910,27 @@ fn load_cached_trade_index(app: &tauri::AppHandle, gd: &GameData) -> Option<Trad
 ///
 /// Looks for data in these locations (first match wins):
 /// 1. `POE_DATA_DIR` environment variable
-/// 2. `data/` directory next to the executable
-/// 3. `%TEMP%/poe-dat/` (dev fallback — same dir used by poe-data tests)
+/// 2. `data/` directory next to the executable (Windows/Linux release)
+/// 3. `../Resources/data/` relative to executable (macOS .app bundle)
+/// 4. Repo path via `CARGO_MANIFEST_DIR` (dev builds)
+/// 5. `%TEMP%/poe-dat/` (dev fallback — same dir used by poe-data tests)
 ///
 /// Returns empty GameData if no data directory is found (overlay still works,
 /// just without stat resolution or open affix detection).
 fn load_game_data() -> GameData {
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()));
+
     let candidates = [
         std::env::var("POE_DATA_DIR")
             .ok()
             .map(std::path::PathBuf::from),
-        std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|d| d.join("data"))),
-        // Committed game data in the repo (dev + release)
+        // Windows/Linux: data/ next to executable
+        exe_dir.as_ref().map(|d| d.join("data")),
+        // macOS .app bundle: Contents/MacOS/../Resources/data/
+        exe_dir.as_ref().map(|d| d.join("../Resources/data")),
+        // Dev: committed game data in the repo
         Some(
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../crates/poe-data/data"),
         ),
