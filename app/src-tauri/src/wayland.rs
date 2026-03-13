@@ -60,6 +60,7 @@ pub fn init_overlay_layer_shell(gtk_window: &gtk::ApplicationWindow) {
 /// Layer surfaces are positioned via margins from their anchor edges.
 /// Since we anchor Top+Left, we set left-margin = x and top-margin = y
 /// relative to the target monitor.
+#[allow(dead_code)]
 pub fn position_layer_surface(gtk_window: &gtk::ApplicationWindow, x: i32, y: i32) {
     let display = match gdk::Display::default() {
         Some(d) => d,
