@@ -209,7 +209,34 @@ fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
     None
 }
 
-/// Send Ctrl+Alt+C keystroke to PoE via enigo.
+/// Send Ctrl+Alt+C keystroke to PoE via xdotool (Linux) or enigo (other).
+///
+/// On Linux, enigo's Wayland and xdo backends are unreliable for delivering
+/// keystrokes to XWayland/Wine applications. xdotool's direct XTest calls
+/// work consistently.
+#[cfg(target_os = "linux")]
+pub(crate) fn send_copy_keystroke() -> Result<(), String> {
+    // Wait for the user to release modifier keys from the inspect hotkey
+    // (e.g. Ctrl+I). If we send Ctrl+Alt+C while Ctrl is still physically
+    // held, XTest events get absorbed by the active keyboard grab.
+    std::thread::sleep(std::time::Duration::from_millis(100));
+
+    let output = std::process::Command::new("xdotool")
+        .args(["key", "--clearmodifiers", "ctrl+alt+c"])
+        .output()
+        .map_err(|e| format!("xdotool: {e}"))?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "xdotool failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ))
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
 pub(crate) fn send_copy_keystroke() -> Result<(), String> {
     use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 
