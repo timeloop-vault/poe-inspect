@@ -188,13 +188,22 @@ export function TradeSettings() {
 
 				<div class="setting-row">
 					<div class="setting-label">
-						Online only
+						Listing status
 						<div class="setting-description">
-							Only show listings from players currently online. Requires POESESSID to work
-							accurately.
+							Filter trade results by seller availability. "Instant Buyout and In Person" matches
+							the trade site default.
 						</div>
 					</div>
-					<Toggle checked={settings.onlineOnly} onChange={(v) => update({ onlineOnly: v })} />
+					<select
+						class="setting-select"
+						value={settings.listingStatus ?? "onlb"}
+						onChange={(e) => update({ listingStatus: (e.target as HTMLSelectElement).value })}
+					>
+						<option value="onlb">Instant Buyout and In Person</option>
+						<option value="buyout">Instant Buyout</option>
+						<option value="online">In Person (Online)</option>
+						<option value="any">Any</option>
+					</select>
 				</div>
 			</div>
 
@@ -267,18 +276,5 @@ export function TradeSettings() {
 				)}
 			</div>
 		</>
-	);
-}
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-	return (
-		<label class="setting-toggle">
-			<input
-				type="checkbox"
-				checked={checked}
-				onChange={(e) => onChange((e.target as HTMLInputElement).checked)}
-			/>
-			<span class="toggle-track" />
-		</label>
 	);
 }

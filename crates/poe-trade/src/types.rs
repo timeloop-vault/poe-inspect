@@ -161,8 +161,10 @@ pub struct TradeQueryConfig {
     pub value_relaxation: f64,
     /// Whether to use pseudo stats where available.
     pub use_pseudo_stats: bool,
-    /// Whether to restrict to online listings.
-    pub online_only: bool,
+    /// Listing status filter for trade searches.
+    /// Values: `"onlb"` (instant buyout + in person, default), `"buyout"` (instant buyout),
+    /// `"online"` (in person, online), `"any"` (all listings including offline).
+    pub listing_status: String,
 }
 
 impl TradeQueryConfig {
@@ -173,7 +175,7 @@ impl TradeQueryConfig {
             league: league.into(),
             value_relaxation: 0.85,
             use_pseudo_stats: false,
-            online_only: true,
+            listing_status: "onlb".into(),
         }
     }
 }

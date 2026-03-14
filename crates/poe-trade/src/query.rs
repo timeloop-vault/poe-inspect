@@ -317,12 +317,12 @@ pub fn build_query(
 
     let body = TradeSearchBody {
         query: TradeQuery {
-            status: if config.online_only {
-                Some(StatusFilter {
-                    option: "online".to_string(),
-                })
-            } else {
+            status: if config.listing_status == "any" {
                 None
+            } else {
+                Some(StatusFilter {
+                    option: config.listing_status.clone(),
+                })
             },
             name: match item.header.rarity {
                 Rarity::Unique => item.header.name.clone(),

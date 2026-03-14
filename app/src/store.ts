@@ -131,7 +131,8 @@ export interface ChatMacro {
 export interface TradeSettings {
 	league: string;
 	valueRelaxation: number;
-	onlineOnly: boolean;
+	/** Trade listing status filter. Values: "onlb", "buyout", "online", "any". */
+	listingStatus: string;
 	poesessid: string;
 }
 
@@ -171,7 +172,7 @@ export const defaultGeneral: GeneralSettings = {
 export const defaultTrade: TradeSettings = {
 	league: "",
 	valueRelaxation: 0.85,
-	onlineOnly: true,
+	listingStatus: "onlb",
 	poesessid: "",
 };
 

@@ -217,18 +217,24 @@ fn value_relaxation_applied() {
 }
 
 #[test]
-fn online_only_sets_status() {
+fn listing_status_sets_status() {
     let item = parse_fixture("rare-belt-crafted.txt");
 
-    // Online only (default)
+    // Default: instant buyout + in person
     let result = build_query(&item, trade_index(), &default_config(), None);
-    assert_eq!(result.body.query.status.as_ref().unwrap().option, "online");
+    assert_eq!(result.body.query.status.as_ref().unwrap().option, "onlb");
 
-    // Offline mode
+    // Any mode: no status filter
     let mut config = default_config();
-    config.online_only = false;
+    config.listing_status = "any".into();
     let result = build_query(&item, trade_index(), &config, None);
     assert!(result.body.query.status.is_none());
+
+    // Online only
+    let mut config = default_config();
+    config.listing_status = "online".into();
+    let result = build_query(&item, trade_index(), &config, None);
+    assert_eq!(result.body.query.status.as_ref().unwrap().option, "online");
 }
 
 #[test]
