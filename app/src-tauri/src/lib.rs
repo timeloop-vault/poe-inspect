@@ -5,7 +5,7 @@ mod wayland;
 #[cfg(target_os = "linux")]
 mod x11_input;
 
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use poe_data::GameData;
@@ -36,6 +36,11 @@ struct ProfileState(Mutex<ProfileSet>);
 
 /// Monotonic counter for toast deduplication — prevents stale hide timers.
 struct ToastCounter(AtomicU64);
+
+/// When enabled, gameplay hotkeys (inspect, cycle profile) only fire when PoE
+/// is the foreground window. Toggleable in Settings for platforms where the
+/// foreground-window check isn't implemented (Linux/macOS).
+struct PoeFocusGate(AtomicBool);
 
 /// Trade API client + stats index, managed as Tauri state.
 ///
@@ -272,6 +277,48 @@ fn get_cursor_position() -> (i32, i32) {
     }
     // Fallback for X11 / non-Hyprland compositors
     (100, 100)
+}
+
+// ── PoE foreground detection ─────────────────────────────────────────────
+
+/// Check whether a Path of Exile window is the current foreground window.
+#[cfg(target_os = "windows")]
+fn is_poe_focused() -> bool {
+    extern "system" {
+        fn GetForegroundWindow() -> isize;
+        fn GetWindowTextW(hwnd: isize, string: *mut u16, max_count: i32) -> i32;
+    }
+
+    let hwnd = unsafe { GetForegroundWindow() };
+    if hwnd == 0 {
+        return false;
+    }
+
+    let mut buf = [0u16; 256];
+    let len = unsafe { GetWindowTextW(hwnd, buf.as_mut_ptr(), buf.len() as i32) };
+    if len <= 0 {
+        return false;
+    }
+
+    let title = String::from_utf16_lossy(&buf[..len as usize]);
+    // PoE 1 uses "Path of Exile", PoE 2 uses "Path of Exile 2"
+    title.starts_with("Path of Exile")
+}
+
+/// Foreground detection not implemented — always returns true.
+#[cfg(not(target_os = "windows"))]
+fn is_poe_focused() -> bool {
+    true
+}
+
+/// Returns true if the hotkey should proceed (either PoE is focused,
+/// or the focus gate is disabled in settings).
+fn should_allow_hotkey(app: &tauri::AppHandle) -> bool {
+    let gate = app.state::<PoeFocusGate>();
+    if !gate.0.load(Ordering::Relaxed) {
+        return true; // gate disabled in settings
+    }
+    is_poe_focused()
 }
 
 /// Force WebKitGTK to reallocate its rendering buffers.
@@ -527,6 +574,9 @@ fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
             }
             match action.as_str() {
                 "inspect" => {
+                    if !should_allow_hotkey(app) {
+                        return;
+                    }
                     let settings_focused = app
                         .get_webview_window("settings")
                         .and_then(|w| w.is_focused().ok())
@@ -537,6 +587,9 @@ fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
                 }
                 "settings" => show_settings(app),
                 "cycle_profile" => {
+                    if !should_allow_hotkey(app) {
+                        return;
+                    }
                     let _ = app.emit("cycle-profile", ());
                 }
                 _ => {}
@@ -595,6 +648,12 @@ fn set_autostart(app: tauri::AppHandle, enabled: bool) {
     } else {
         let _ = launcher.disable();
     }
+}
+
+/// Update the PoE focus gate from frontend settings.
+#[tauri::command]
+fn set_require_poe_focus(app: tauri::AppHandle, enabled: bool) {
+    app.state::<PoeFocusGate>().0.store(enabled, Ordering::Relaxed);
 }
 
 /// Parse and evaluate item text from clipboard.
@@ -1156,6 +1215,7 @@ pub fn run() {
 
     builder
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
+        .manage(PoeFocusGate(AtomicBool::new(true))) // loaded from store in setup()
         .manage(GameDataState(Arc::new(load_game_data())))
         .manage(ProfileState(Mutex::new(ProfileSet {
             primary: default_profile(),
@@ -1171,6 +1231,7 @@ pub fn run() {
             resume_hotkeys,
             get_autostart,
             set_autostart,
+            set_require_poe_focus,
             evaluate_item,
             set_active_profile,
             get_default_profile,
@@ -1262,6 +1323,22 @@ pub fn run() {
                         app.manage(watcher);
                     }
                 }
+            }
+
+            // --- PoE focus gate from stored settings ---
+            {
+                let require_focus = app
+                    .store("settings.json")
+                    .ok()
+                    .and_then(|store| {
+                        store
+                            .get("general")
+                            .and_then(|v| v.get("requirePoeFocus").and_then(|v| v.as_bool()))
+                    })
+                    .unwrap_or(true);
+                app.state::<PoeFocusGate>()
+                    .0
+                    .store(require_focus, Ordering::Relaxed);
             }
 
             // --- Global hotkeys from stored settings (or defaults) ---

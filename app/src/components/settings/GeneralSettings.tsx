@@ -25,6 +25,10 @@ export function GeneralSettings() {
 		if (patch.launchOnBoot !== undefined) {
 			invoke("set_autostart", { enabled: patch.launchOnBoot });
 		}
+		// If toggling requirePoeFocus, sync with backend gate
+		if (patch.requirePoeFocus !== undefined) {
+			invoke("set_require_poe_focus", { enabled: patch.requirePoeFocus });
+		}
 		setSettings((prev) => {
 			const next = { ...prev, ...patch };
 			saveGeneral(next);
@@ -169,6 +173,24 @@ export function GeneralSettings() {
 				<div class="setting-row">
 					<div class="setting-label">Launch on system startup</div>
 					<Toggle checked={settings.launchOnBoot} onChange={(v) => update({ launchOnBoot: v })} />
+				</div>
+			</div>
+
+			<div class="setting-group">
+				<h3>Behavior</h3>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Only respond when PoE is focused
+						<div class="setting-description">
+							Hotkeys like inspect and cycle profile will only fire when Path of Exile is
+							the active window. Disable this if the check doesn't work on your platform.
+						</div>
+					</div>
+					<Toggle
+						checked={settings.requirePoeFocus}
+						onChange={(v) => update({ requirePoeFocus: v })}
+					/>
 				</div>
 			</div>
 
