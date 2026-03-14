@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
 	type MarketplaceSettings as MarketplaceConfig,
 	defaultMarketplace,
@@ -285,47 +285,47 @@ export function MarketplaceSettings() {
 	const [queries, setQueries] = useState<StoredQuery[]>([]);
 	const [loaded, setLoaded] = useState(false);
 	const [editing, setEditing] = useState<StoredQuery | "new" | null>(null);
+	const [fetchCount, setFetchCount] = useState(0);
 
-	// Load saved settings on mount
+	// Load settings + fetch server data. Re-runs on fetchCount change.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fetchCount is an intentional re-trigger
 	useEffect(() => {
-		loadMarketplace().then((s) => {
+		let cancelled = false;
+
+		loadMarketplace().then(async (s) => {
+			if (cancelled) return;
 			setSettings(s);
 			setLoaded(true);
+
+			if (!s.accountName) return;
+
+			try {
+				const hr = await fetch(`${s.serverUrl}/health`);
+				if (!cancelled && hr.ok) setHealth(await hr.json());
+				else if (!cancelled) setHealth(null);
+			} catch {
+				if (!cancelled) setHealth(null);
+			}
+
+			try {
+				const qr = await fetch(`${s.serverUrl}/queries?owner=${encodeURIComponent(s.accountName)}`);
+				if (!cancelled && qr.ok) setQueries(await qr.json());
+			} catch {
+				// leave queries as-is
+			}
 		});
-	}, []);
 
-	// Fetch health + queries when logged in
-	const refreshData = useCallback(async (s: MarketplaceConfig) => {
-		if (!s.accountName) return;
-		try {
-			const url = s.serverUrl;
-			const healthResp = await fetch(`${url}/health`);
-			if (healthResp.ok) {
-				setHealth(await healthResp.json());
-			} else {
-				setHealth(null);
-			}
+		return () => {
+			cancelled = true;
+		};
+	}, [fetchCount]);
 
-			const queryResp = await fetch(`${url}/queries?owner=${encodeURIComponent(s.accountName)}`);
-			if (queryResp.ok) {
-				setQueries(await queryResp.json());
-			}
-		} catch {
-			setHealth(null);
-		}
-	}, []);
-
-	// Auto-refresh: on login, on returning from editor, and on mount
-	useEffect(() => {
-		if (settings?.accountName && editing === null) {
-			refreshData(settings);
-		}
-	}, [settings, editing, refreshData]);
+	const refreshData = useCallback(() => setFetchCount((n) => n + 1), []);
 
 	const handleLogin = useCallback(
 		(s: MarketplaceConfig) => {
 			setSettings(s);
-			refreshData(s);
+			refreshData();
 		},
 		[refreshData],
 	);
@@ -336,6 +336,7 @@ export function MarketplaceSettings() {
 		setSettings(cleared);
 		setHealth(null);
 		setQueries([]);
+		setEditing(null);
 	}, []);
 
 	const handleDelete = useCallback(
@@ -386,7 +387,7 @@ export function MarketplaceSettings() {
 					editingQuery={editing !== "new" ? editing : null}
 					onSave={() => {
 						setEditing(null);
-						refreshData(settings);
+						refreshData();
 					}}
 					onCancel={() => setEditing(null)}
 				/>
@@ -405,7 +406,7 @@ export function MarketplaceSettings() {
 			/>
 			<QueryList
 				queries={queries}
-				onRefresh={() => refreshData(settings)}
+				onRefresh={() => refreshData()}
 				onEdit={(q) => setEditing(q)}
 				onDelete={handleDelete}
 			/>
