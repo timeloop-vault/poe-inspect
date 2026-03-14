@@ -1413,3 +1413,22 @@ body,
 		opacity: 0;
 	}
 }
+
+/* --- Demand badge (RQE match count) --- */
+
+.demand-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 22px;
+	height: 22px;
+	padding: 0 6px;
+	margin-top: 6px;
+	border-radius: 11px;
+	background: var(--demand-color, #f1c40f);
+	color: #000;
+	font-size: 12px;
+	font-weight: 700;
+	font-family: "Fontin SmallCaps", sans-serif;
+	letter-spacing: 0.5px;
+}

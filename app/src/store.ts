@@ -144,6 +144,8 @@ export interface MarketplaceSettings {
 	apiKey: string | null;
 	/** Whether to run RQE check on item inspect. */
 	enabled: boolean;
+	/** Badge color for demand count in the overlay. */
+	badgeColor: string;
 }
 
 // ── Defaults ──────────────────────────────────────────────────────────────
@@ -178,6 +180,7 @@ export const defaultMarketplace: MarketplaceSettings = {
 	serverUrl: "http://localhost:8080",
 	apiKey: null,
 	enabled: true,
+	badgeColor: "#f1c40f",
 };
 
 export const defaultHotkeys: HotkeySettings = {
