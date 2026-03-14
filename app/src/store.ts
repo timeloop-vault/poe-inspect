@@ -41,6 +41,8 @@ export interface GeneralSettings {
 	startMinimized: boolean;
 	launchOnBoot: boolean;
 	requirePoeFocus: boolean;
+	stashScroll: boolean;
+	stashScrollModifier: string;
 	showRollBars: boolean;
 	showTierBadges: boolean;
 	showTypeBadges: boolean;
@@ -132,6 +134,8 @@ export const defaultGeneral: GeneralSettings = {
 	startMinimized: true,
 	launchOnBoot: false,
 	requirePoeFocus: true,
+	stashScroll: false,
+	stashScrollModifier: "Ctrl",
 	showRollBars: true,
 	showTierBadges: true,
 	showTypeBadges: true,

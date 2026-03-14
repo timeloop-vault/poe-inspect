@@ -1,5 +1,6 @@
 #[cfg(target_os = "linux")]
 mod clipboard;
+mod stash_scroll;
 #[cfg(target_os = "linux")]
 mod wayland;
 #[cfg(target_os = "linux")]
@@ -41,6 +42,9 @@ struct ToastCounter(AtomicU64);
 /// is the foreground window. Toggleable in Settings for platforms where the
 /// foreground-window check isn't implemented (Linux/macOS).
 struct PoeFocusGate(AtomicBool);
+
+/// Handle to the stash-scroll mouse hook thread.
+struct StashScrollState(stash_scroll::StashScrollHandle);
 
 /// Trade API client + stats index, managed as Tauri state.
 ///
@@ -651,9 +655,27 @@ fn set_autostart(app: tauri::AppHandle, enabled: bool) {
 }
 
 /// Update the PoE focus gate from frontend settings.
+/// Applies to both keyboard hotkeys and stash scroll.
 #[tauri::command]
 fn set_require_poe_focus(app: tauri::AppHandle, enabled: bool) {
     app.state::<PoeFocusGate>().0.store(enabled, Ordering::Relaxed);
+    app.state::<StashScrollState>()
+        .0
+        .set_require_poe_focus(enabled);
+}
+
+/// Enable or disable stash tab scrolling.
+#[tauri::command]
+fn set_stash_scroll(app: tauri::AppHandle, enabled: bool) {
+    app.state::<StashScrollState>().0.set_enabled(enabled);
+}
+
+/// Set the modifier key for stash tab scrolling.
+#[tauri::command]
+fn set_stash_scroll_modifier(app: tauri::AppHandle, modifier: String) {
+    app.state::<StashScrollState>()
+        .0
+        .set_modifier(stash_scroll::ScrollModifier::from_str(&modifier));
 }
 
 /// Parse and evaluate item text from clipboard.
@@ -1216,6 +1238,7 @@ pub fn run() {
     builder
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
         .manage(PoeFocusGate(AtomicBool::new(true))) // loaded from store in setup()
+        .manage(StashScrollState(stash_scroll::start()))
         .manage(GameDataState(Arc::new(load_game_data())))
         .manage(ProfileState(Mutex::new(ProfileSet {
             primary: default_profile(),
@@ -1232,6 +1255,8 @@ pub fn run() {
             get_autostart,
             set_autostart,
             set_require_poe_focus,
+            set_stash_scroll,
+            set_stash_scroll_modifier,
             evaluate_item,
             set_active_profile,
             get_default_profile,
@@ -1325,20 +1350,39 @@ pub fn run() {
                 }
             }
 
-            // --- PoE focus gate from stored settings ---
+            // --- PoE focus gate + stash scroll from stored settings ---
             {
-                let require_focus = app
+                let general = app
                     .store("settings.json")
                     .ok()
-                    .and_then(|store| {
-                        store
-                            .get("general")
-                            .and_then(|v| v.get("requirePoeFocus").and_then(|v| v.as_bool()))
-                    })
+                    .and_then(|store| store.get("general"));
+
+                let require_focus = general
+                    .as_ref()
+                    .and_then(|v| v.get("requirePoeFocus").and_then(|v| v.as_bool()))
                     .unwrap_or(true);
                 app.state::<PoeFocusGate>()
                     .0
                     .store(require_focus, Ordering::Relaxed);
+                app.state::<StashScrollState>()
+                    .0
+                    .set_require_poe_focus(require_focus);
+
+                let stash_scroll = general
+                    .as_ref()
+                    .and_then(|v| v.get("stashScroll").and_then(|v| v.as_bool()))
+                    .unwrap_or(false);
+                let scroll_modifier = general
+                    .as_ref()
+                    .and_then(|v| v.get("stashScrollModifier").and_then(|v| v.as_str()))
+                    .unwrap_or("Ctrl");
+                let scroll_state = &app.state::<StashScrollState>().0;
+                scroll_state.set_enabled(stash_scroll);
+                scroll_state
+                    .set_modifier(stash_scroll::ScrollModifier::from_str(scroll_modifier));
+                if stash_scroll {
+                    eprintln!("[stash-scroll] Enabled (modifier: {scroll_modifier})");
+                }
             }
 
             // --- Global hotkeys from stored settings (or defaults) ---
