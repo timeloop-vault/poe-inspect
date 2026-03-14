@@ -14,6 +14,11 @@ interface IndexStatus {
 	mappedCount: number;
 }
 
+interface ListingStatusOption {
+	id: string;
+	label: string;
+}
+
 export function TradeSettings() {
 	const [settings, setSettings] = useState<TradeSettingsType>(defaultTrade);
 	const [loaded, setLoaded] = useState(false);
@@ -24,6 +29,7 @@ export function TradeSettings() {
 	const [statsRefreshing, setStatsRefreshing] = useState(false);
 	const [statsResult, setStatsResult] = useState<string | null>(null);
 	const [indexStatus, setIndexStatus] = useState<IndexStatus | null>(null);
+	const [listingStatuses, setListingStatuses] = useState<ListingStatusOption[]>([]);
 
 	useEffect(() => {
 		loadTrade().then((s) => {
@@ -32,10 +38,11 @@ export function TradeSettings() {
 		});
 	}, []);
 
-	// Fetch leagues + index status on mount.
+	// Fetch leagues, listing statuses, + index status on mount.
 	useEffect(() => {
 		fetchLeagues();
 		refreshIndexStatus();
+		invoke<ListingStatusOption[]>("get_listing_statuses").then(setListingStatuses);
 	}, []);
 
 	const update = useCallback((patch: Partial<TradeSettingsType>) => {
@@ -199,10 +206,11 @@ export function TradeSettings() {
 						value={settings.listingStatus ?? "available"}
 						onChange={(e) => update({ listingStatus: (e.target as HTMLSelectElement).value })}
 					>
-						<option value="available">Instant Buyout and In Person</option>
-						<option value="securable">Instant Buyout</option>
-						<option value="online">In Person (Online)</option>
-						<option value="any">Any</option>
+						{listingStatuses.map((s) => (
+							<option key={s.id} value={s.id}>
+								{s.label}
+							</option>
+						))}
 					</select>
 				</div>
 			</div>

@@ -1276,6 +1276,12 @@ async fn get_trade_index_status(
     }
 }
 
+/// Return the valid listing status options for trade searches.
+#[tauri::command]
+fn get_listing_statuses() -> Vec<poe_trade::ListingStatus> {
+    poe_trade::listing_statuses()
+}
+
 /// Fetch the list of active leagues from GGG.
 #[tauri::command]
 async fn fetch_leagues(
@@ -1528,6 +1534,7 @@ pub fn run() {
             price_check,
             trade_search_url,
             refresh_trade_stats,
+            get_listing_statuses,
             fetch_leagues,
             open_url,
             set_trade_session,
