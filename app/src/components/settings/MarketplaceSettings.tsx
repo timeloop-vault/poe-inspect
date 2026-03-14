@@ -68,6 +68,7 @@ function LoginGate({
 				serverUrl: url,
 				apiKey: apiKey || null,
 				enabled: true,
+				badgeColor: "#f1c40f",
 			};
 			await saveMarketplace(settings);
 			onLogin(settings);
@@ -416,6 +417,25 @@ export function MarketplaceSettings() {
 			>
 				+ Add Want List
 			</button>
+			<div class="setting-group" style={{ marginTop: 16 }}>
+				<h3>Display</h3>
+				<label class="setting-row">
+					<span class="setting-label">Badge color</span>
+					<input
+						type="color"
+						value={settings.badgeColor ?? "#f1c40f"}
+						onInput={(e) => {
+							const next = { ...settings, badgeColor: (e.target as HTMLInputElement).value };
+							setSettings(next);
+							saveMarketplace(next);
+						}}
+						style={{ width: 40, height: 28, padding: 0, border: "none", cursor: "pointer" }}
+					/>
+				</label>
+				<p class="setting-description">
+					Color of the demand badge shown in the overlay when players want an item.
+				</p>
+			</div>
 		</div>
 	);
 }
