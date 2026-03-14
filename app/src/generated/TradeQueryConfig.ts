@@ -21,7 +21,10 @@ valueRelaxation: number,
 usePseudoStats: boolean, 
 /**
  * Listing status filter for trade searches.
- * Values: `"onlb"` (instant buyout + in person, default), `"buyout"` (instant buyout),
- * `"online"` (in person, online), `"any"` (all listings including offline).
+ * Values match the GGG trade site dropdown:
+ * - `"available"` — Instant Buyout and In Person (trade site default)
+ * - `"securable"` — Instant Buyout only
+ * - `"online"` — In Person (Online)
+ * - `"any"` — Any (including offline)
  */
 listingStatus: string, };
