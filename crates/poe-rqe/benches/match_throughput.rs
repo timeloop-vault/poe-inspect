@@ -3,10 +3,10 @@
 //! Run with: `cargo bench -p poe-rqe`
 //!
 //! Two benchmark suites:
-//! 1. **Synthetic** — uniform queries, maximum sharing (best-case for DAG)
-//! 2. **Realistic** — models real PoE player behavior with diverse query shapes,
-//!    stat distributions, NOT/COUNT/boolean conditions, and varying complexity
+//! 1. **Synthetic** — generated queries with realistic archetypes
+//! 2. **Fixtures** — real PoE items parsed from `fixtures/items/*.txt`
 
+use std::collections::HashMap;
 use std::hint::black_box;
 use std::time::Instant;
 
@@ -16,110 +16,334 @@ use poe_rqe::predicate::Condition;
 use poe_rqe::store::QueryStore;
 
 // ---------------------------------------------------------------------------
-// Shared data pools
+// Fixture parser — lightweight Ctrl+Alt+C text → Entry converter
 // ---------------------------------------------------------------------------
 
-const ITEM_CATEGORIES: &[&str] = &[
-    "Crimson Jewel",
-    "Cobalt Jewel",
-    "Viridian Jewel",
-    "Boots",
-    "Gloves",
-    "Helmet",
-    "Body Armour",
-    "Ring",
-    "Amulet",
-    "Belt",
-    "Wand",
-    "Dagger",
-    "Sword",
-    "Axe",
-    "Mace",
-    "Staff",
-    "Bow",
-    "Quiver",
-    "Shield",
-    "Flask",
-];
+/// Parse a Ctrl+Alt+C fixture file into a flat Entry for RQE matching.
+/// Returns None for items that don't have meaningful stats (currency, fragments, etc.)
+fn parse_fixture_to_entry(text: &str) -> Option<Entry> {
+    let mut map: HashMap<String, serde_json::Value> = HashMap::new();
+    let sections: Vec<&str> = text.split("--------\n").collect();
 
-/// Weighted category distribution — armor/weapons/jewelry are far more popular
-/// than flasks/quivers. Each entry is (category_index, relative_weight).
-const CATEGORY_WEIGHTS: &[(usize, u32)] = &[
-    (0, 3),  // Crimson Jewel
-    (1, 3),  // Cobalt Jewel
-    (2, 3),  // Viridian Jewel
-    (3, 10), // Boots
-    (4, 8),  // Gloves
-    (5, 10), // Helmet
-    (6, 15), // Body Armour
-    (7, 12), // Ring
-    (8, 10), // Amulet
-    (9, 8),  // Belt
-    (10, 5), // Wand
-    (11, 4), // Dagger
-    (12, 6), // Sword
-    (13, 3), // Axe
-    (14, 3), // Mace
-    (15, 2), // Staff
-    (16, 5), // Bow
-    (17, 1), // Quiver
-    (18, 6), // Shield
-    (19, 1), // Flask
-];
+    if sections.is_empty() {
+        return None;
+    }
 
-/// 40 realistic stat template strings — 4x the original pool
-const STAT_POOL: &[&str] = &[
-    // Defences
-    "+# to maximum Life",
-    "+# to maximum Mana",
-    "+# to maximum Energy Shield",
-    "% increased maximum Life",
-    "% increased Armour",
-    "% increased Evasion Rating",
-    "+# to Armour",
-    "+# to Evasion Rating",
-    // Resistances
-    "+#% to Fire Resistance",
-    "+#% to Cold Resistance",
-    "+#% to Lightning Resistance",
-    "+#% to Chaos Resistance",
-    "+#% to all Elemental Resistances",
-    "+#% to Fire and Cold Resistances",
-    "+#% to Fire and Lightning Resistances",
-    "+#% to Cold and Lightning Resistances",
-    // Offence — physical
-    "% increased Physical Damage",
-    "Adds # to # Physical Damage",
-    "% increased Attack Speed",
-    "% increased Critical Strike Chance",
-    "+#% to Critical Strike Multiplier",
-    "#% increased Accuracy Rating",
-    // Offence — elemental
-    "Adds # to # Fire Damage",
-    "Adds # to # Cold Damage",
-    "Adds # to # Lightning Damage",
-    "% increased Elemental Damage",
-    "% increased Spell Damage",
-    "% increased Cast Speed",
-    "+# to Level of all Spell Skill Gems",
-    // Utility
-    "% increased Movement Speed",
-    "% increased Rarity of Items found",
-    "#% reduced Mana Cost of Skills",
-    "+# Mana gained on Kill",
-    "+# Life gained on Kill",
-    "% increased Stun Duration on Enemies",
-    "#% chance to Block",
-    "Regenerate # Life per second",
-    "Regenerate #% of Life per second",
-    "+# to Strength",
-    "+# to Dexterity",
-    "+# to Intelligence",
-    "+# to all Attributes",
-];
+    // --- Header section (always first) ---
+    let header_lines: Vec<&str> = sections[0].lines().collect();
+    let mut item_class = None;
+    let mut rarity = None;
 
-/// Rarity values (Non-Unique is most common in searches).
-const RARITIES: &[&str] = &["Non-Unique", "Rare", "Magic"];
+    for line in &header_lines {
+        if let Some(rest) = line.strip_prefix("Item Class: ") {
+            item_class = Some(rest.trim().to_owned());
+        }
+        if let Some(rest) = line.strip_prefix("Rarity: ") {
+            rarity = Some(rest.trim().to_owned());
+        }
+    }
+
+    let item_class = item_class?;
+    let rarity = rarity?;
+
+    // Skip non-equipment items
+    let dominated_categories = [
+        "Currency",
+        "Stackable Currency",
+        "Divination Cards",
+        "Map Fragments",
+        "Hideout Doodads",
+        "Microtransactions",
+        "Quest Items",
+        "Labyrinth",
+    ];
+    if dominated_categories.iter().any(|c| item_class.contains(c)) {
+        return None;
+    }
+
+    map.insert("item_class".into(), serde_json::json!(item_class));
+    map.insert("rarity".into(), serde_json::json!(rarity));
+
+    // Rarity classification for matching
+    let is_unique = rarity == "Unique";
+    map.insert(
+        "rarity_class".into(),
+        serde_json::json!(if is_unique { "Unique" } else { "Non-Unique" }),
+    );
+
+    // Name and base type from remaining header lines (after Item Class + Rarity)
+    let name_lines: Vec<&&str> = header_lines
+        .iter()
+        .filter(|l| !l.starts_with("Item Class:") && !l.starts_with("Rarity:") && !l.is_empty())
+        .collect();
+
+    if name_lines.len() >= 2 {
+        // Rare/Unique: name + base_type
+        map.insert("name".into(), serde_json::json!(name_lines[0]));
+        map.insert("base_type".into(), serde_json::json!(name_lines[1]));
+    } else if name_lines.len() == 1 {
+        // Normal/Magic: just base_type (or name for magic)
+        map.insert("base_type".into(), serde_json::json!(name_lines[0]));
+    }
+
+    // --- Parse remaining sections ---
+    for section in &sections[1..] {
+        let lines: Vec<&str> = section.lines().collect();
+        if lines.is_empty() {
+            continue;
+        }
+
+        // Item Level
+        for line in &lines {
+            if let Some(rest) = line.strip_prefix("Item Level: ") {
+                if let Ok(ilvl) = rest.trim().parse::<i64>() {
+                    map.insert("item_level".into(), serde_json::json!(ilvl));
+                }
+            }
+        }
+
+        // Sockets
+        for line in &lines {
+            if let Some(rest) = line.strip_prefix("Sockets: ") {
+                let socket_count = rest.chars().filter(|c| c.is_alphabetic()).count();
+                let link_groups: Vec<&str> = rest.split(' ').collect();
+                let max_link = link_groups
+                    .iter()
+                    .map(|g| g.chars().filter(|c| c.is_alphabetic()).count())
+                    .max()
+                    .unwrap_or(0);
+                map.insert(
+                    "socket_count".into(),
+                    serde_json::json!(socket_count as i64),
+                );
+                map.insert("max_link".into(), serde_json::json!(max_link as i64));
+            }
+        }
+
+        // Mod sections — lines starting with { ... } are mod headers
+        let mut current_source = "explicit"; // default
+        for line in &lines {
+            let trimmed = line.trim();
+
+            // Mod header: { Prefix Modifier ... } or { Implicit Modifier ... }
+            if trimmed.starts_with('{') && trimmed.ends_with('}') {
+                if trimmed.contains("Implicit") {
+                    current_source = "implicit";
+                } else if trimmed.contains("Enchant") || trimmed.contains("enchant") {
+                    current_source = "enchant";
+                } else if trimmed.contains("Crafted") {
+                    current_source = "crafted";
+                } else {
+                    current_source = "explicit";
+                }
+                continue;
+            }
+
+            // Skip reminder text (parenthesized)
+            if trimmed.starts_with('(') && trimmed.ends_with(')') {
+                continue;
+            }
+
+            // Skip non-stat lines
+            if trimmed.is_empty()
+                || trimmed.starts_with("Requirements:")
+                || trimmed.starts_with("Level:")
+                || trimmed.starts_with("Str:")
+                || trimmed.starts_with("Dex:")
+                || trimmed.starts_with("Int:")
+                || trimmed.starts_with("Quality:")
+                || trimmed.starts_with("Sockets:")
+                || trimmed.starts_with("Item Level:")
+                || trimmed.starts_with("Place into")
+                || trimmed.starts_with("Right click")
+                || trimmed.ends_with("Item") // "Shaper Item", "Elder Item", etc.
+                || trimmed.starts_with("In a blaze")
+            // flavor text start
+            {
+                continue;
+            }
+
+            // Try to extract stat value and template from this line
+            if let Some((template, value)) = extract_stat_template(trimmed) {
+                let key = format!("{current_source}.{template}");
+                map.insert(key, serde_json::json!(value));
+            }
+        }
+    }
+
+    // Only return entries that have at least one stat
+    let has_stats = map.keys().any(|k| k.contains('.'));
+    if !has_stats {
+        return None;
+    }
+
+    let json = serde_json::to_string(&map).ok()?;
+    serde_json::from_str(&json).ok()
+}
+
+/// Extract a stat template and numeric value from a stat line.
+///
+/// Examples:
+///   "+87(80-130) to Accuracy Rating" → ("+# to Accuracy Rating", 87)
+///   "9(8-12)% increased Spell Damage" → ("#% increased Spell Damage", 9)
+///   "+1 to Level of all Physical Spell Skill Gems" → ("+# to Level of all Physical Spell Skill Gems", 1)
+///   "Regenerate 41.1(32.1-48) Life per second" → ("Regenerate # Life per second", 41)
+///   "30% increased Movement Speed" → ("#% increased Movement Speed", 30)
+fn extract_stat_template(line: &str) -> Option<(String, i64)> {
+    // Strip common suffixes that aren't part of the stat template
+    let line = line
+        .trim_end_matches(" (implicit)")
+        .trim_end_matches(" (crafted)")
+        .trim_end_matches(" (enchant)");
+
+    // Find all numbers (with optional leading +/-, optional decimal, optional range)
+    // Pattern: optional sign, digits, optional decimal, optional (min-max) range
+    let mut template = String::with_capacity(line.len());
+    let mut first_value: Option<i64> = None;
+    let chars: Vec<char> = line.chars().collect();
+    let mut i = 0;
+
+    while i < chars.len() {
+        // Check if we're at the start of a number
+        let is_sign = (chars[i] == '+' || chars[i] == '-')
+            && i + 1 < chars.len()
+            && chars[i + 1].is_ascii_digit();
+        let is_digit = chars[i].is_ascii_digit();
+
+        if is_sign || is_digit {
+            let num_start = i;
+            let sign = if chars[i] == '-' {
+                i += 1;
+                -1i64
+            } else if chars[i] == '+' {
+                template.push('+');
+                i += 1;
+                1i64
+            } else {
+                1i64
+            };
+
+            // Read digits (integer part)
+            let digit_start = i;
+            while i < chars.len() && chars[i].is_ascii_digit() {
+                i += 1;
+            }
+
+            if i == digit_start {
+                // Sign with no digits following — just push the sign
+                if num_start < chars.len() {
+                    template.push(chars[num_start]);
+                }
+                continue;
+            }
+
+            let int_str: String = chars[digit_start..i].iter().collect();
+            let int_val: i64 = int_str.parse().unwrap_or(0) * sign;
+
+            // Skip decimal part if present
+            if i < chars.len() && chars[i] == '.' {
+                i += 1;
+                while i < chars.len() && chars[i].is_ascii_digit() {
+                    i += 1;
+                }
+            }
+
+            // Skip range annotation (min-max) if present
+            if i < chars.len() && chars[i] == '(' {
+                let paren_start = i;
+                i += 1;
+                // Find matching )
+                while i < chars.len() && chars[i] != ')' {
+                    i += 1;
+                }
+                if i < chars.len() {
+                    i += 1; // skip ')'
+                }
+                // Verify this looks like a range (contains digits and -)
+                let paren_content: String =
+                    chars[paren_start + 1..i.saturating_sub(1)].iter().collect();
+                if !paren_content.chars().any(|c| c.is_ascii_digit()) {
+                    // Not a range — put back
+                    i = paren_start;
+                }
+            }
+
+            template.push('#');
+            if first_value.is_none() {
+                first_value = Some(int_val);
+            }
+        } else {
+            template.push(chars[i]);
+            i += 1;
+        }
+    }
+
+    let value = first_value?;
+    let template = template.trim().to_owned();
+    if template.is_empty() || template == "#" {
+        return None;
+    }
+    Some((template, value))
+}
+
+/// Load all fixture files that can be parsed into Entry.
+fn load_fixture_entries() -> Vec<Entry> {
+    let fixtures_dir = format!(
+        "{}/fixtures/items",
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
+    );
+
+    let mut entries = Vec::new();
+    if let Ok(dir) = std::fs::read_dir(&fixtures_dir) {
+        for entry in dir.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "txt") {
+                if let Ok(text) = std::fs::read_to_string(&path) {
+                    if let Some(entry) = parse_fixture_to_entry(&text) {
+                        entries.push(entry);
+                    }
+                }
+            }
+        }
+    }
+    entries
+}
+
+/// Collect all stat keys that appear in a set of entries.
+fn collect_stat_keys(_entries: &[Entry]) -> Vec<String> {
+    let mut keys = std::collections::HashSet::new();
+
+    // Collect stat keys by re-parsing fixtures and tracking emitted keys.
+    let fixtures_dir = format!(
+        "{}/fixtures/items",
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
+    );
+
+    if let Ok(dir) = std::fs::read_dir(&fixtures_dir) {
+        for dir_entry in dir.flatten() {
+            let path = dir_entry.path();
+            if path.extension().is_some_and(|e| e == "txt") {
+                if let Ok(text) = std::fs::read_to_string(&path) {
+                    let sections: Vec<&str> = text.split("--------\n").collect();
+                    for section in &sections {
+                        for line in section.lines() {
+                            let trimmed = line.trim();
+                            if trimmed.starts_with('{') || trimmed.starts_with('(') {
+                                continue;
+                            }
+                            if let Some((template, _)) = extract_stat_template(trimmed) {
+                                // Determine source from context (simplified)
+                                keys.insert(format!("explicit.{template}"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    keys.into_iter().collect()
+}
 
 // ---------------------------------------------------------------------------
 // Deterministic PRNG — simple xorshift for reproducible benchmarks
@@ -146,68 +370,58 @@ impl Rng {
     fn next_range(&mut self, min: i64, max: i64) -> i64 {
         min + (self.next_u64() % (max - min + 1) as u64) as i64
     }
-
-    /// Pick from a weighted distribution. Returns the index from the weights table.
-    fn weighted_pick(&mut self, weights: &[(usize, u32)]) -> usize {
-        let total: u32 = weights.iter().map(|(_, w)| w).sum();
-        let mut roll = (self.next_u64() % u64::from(total)) as u32;
-        for &(idx, weight) in weights {
-            if roll < weight {
-                return idx;
-            }
-            roll -= weight;
-        }
-        weights.last().unwrap().0
-    }
 }
 
 // ---------------------------------------------------------------------------
-// Realistic query generator
+// Query generators using real stat keys
 // ---------------------------------------------------------------------------
 
-/// Query archetype — models different player search behaviors
-#[derive(Clone, Copy)]
-enum Archetype {
-    /// Casual shopper: category + rarity + 1-2 loose stat checks
-    Simple,
-    /// Gearing a build: category + rarity + 3-4 stat requirements
-    Moderate,
-    /// Min-maxer: category + rarity + 4-6 stats + NOT conditions + booleans
-    Complex,
-    /// Crafter: category + rarity + NOT(bad mods) + COUNT conditions
-    Crafter,
-    /// Broad hunter: rarity only (no category) or wildcard category + stats
-    Broad,
+const ITEM_CLASSES: &[&str] = &[
+    "Boots",
+    "Gloves",
+    "Helmets",
+    "Body Armours",
+    "Rings",
+    "Amulets",
+    "Belts",
+    "Wands",
+    "Daggers",
+    "One Hand Swords",
+    "Two Hand Swords",
+    "Bows",
+    "Quivers",
+    "Shields",
+    "Sceptres",
+    "Staves",
+    "Jewels",
+];
+
+fn category_json(cat: &str) -> String {
+    format!(r#"{{"key": "item_class", "value": "{cat}", "type": "string", "typeOptions": null}}"#)
 }
 
-fn pick_archetype(rng: &mut Rng) -> Archetype {
-    match rng.next_usize(100) {
-        0..30 => Archetype::Simple,
-        30..60 => Archetype::Moderate,
-        60..80 => Archetype::Complex,
-        80..90 => Archetype::Crafter,
-        _ => Archetype::Broad,
-    }
-}
-
-/// Build a condition JSON string for a single stat range check.
-fn stat_range_json(stat: &str, min: i64, max: i64) -> String {
+fn rarity_class_json(rarity: &str) -> String {
     format!(
-        r#"{{"key": "list", "value": [
-            {{"key": "{stat}", "value": {min}, "type": "integer", "typeOptions": {{"operator": "<"}}}},
-            {{"key": "{stat}", "value": {max}, "type": "integer", "typeOptions": {{"operator": ">"}}}}
-        ], "type": "list", "typeOptions": {{"operator": "and"}}}}"#
+        r#"{{"key": "rarity_class", "value": "{rarity}", "type": "string", "typeOptions": null}}"#
     )
 }
 
-/// Build a condition JSON string for a simple integer threshold.
 fn stat_threshold_json(stat: &str, value: i64, op: &str) -> String {
+    // Escape any quotes in stat keys
+    let escaped = stat.replace('"', r#"\""#);
     format!(
-        r#"{{"key": "{stat}", "value": {value}, "type": "integer", "typeOptions": {{"operator": "{op}"}}}}"#
+        r#"{{"key": "{escaped}", "value": {value}, "type": "integer", "typeOptions": {{"operator": "{op}"}}}}"#
     )
 }
 
-/// Build a NOT list condition.
+fn stat_range_json(stat: &str, min: i64, max: i64) -> String {
+    let lo = stat_threshold_json(stat, min, "<");
+    let hi = stat_threshold_json(stat, max, ">");
+    format!(
+        r#"{{"key": "list", "value": [{lo},{hi}], "type": "list", "typeOptions": {{"operator": "and"}}}}"#
+    )
+}
+
 fn not_list_json(inner: &[String]) -> String {
     let joined = inner.join(",");
     format!(
@@ -215,150 +429,99 @@ fn not_list_json(inner: &[String]) -> String {
     )
 }
 
-/// Build a COUNT list condition.
-fn count_list_json(inner: &[String], count: u32) -> String {
-    let joined = inner.join(",");
-    format!(
-        r#"{{"key": "list", "value": [{joined}], "type": "list", "typeOptions": {{"operator": "count", "count": {count}}}}}"#
-    )
-}
-
-fn category_json(cat: &str) -> String {
-    format!(
-        r#"{{"key": "item_category", "value": "{cat}", "type": "string", "typeOptions": null}}"#
-    )
-}
-
-fn rarity_json(rarity: &str) -> String {
-    format!(
-        r#"{{"key": "item_rarity_2", "value": "{rarity}", "type": "string", "typeOptions": null}}"#
-    )
-}
-
 fn boolean_json(key: &str, value: bool) -> String {
-    format!(
-        r#"{{"key": "{key}", "value": {value}, "type": "boolean", "typeOptions": null}}"#
-    )
+    format!(r#"{{"key": "{key}", "value": {value}, "type": "boolean", "typeOptions": null}}"#)
 }
 
-fn wildcard_json(key: &str) -> String {
-    format!(
-        r#"{{"key": "{key}", "value": "_", "type": "string", "typeOptions": null}}"#
-    )
-}
-
-/// Pick N unique stats from the pool.
-fn pick_stats(rng: &mut Rng, count: usize) -> Vec<usize> {
+/// Pick N unique items from a slice.
+fn pick_unique<'a>(rng: &mut Rng, items: &'a [String], count: usize) -> Vec<&'a String> {
+    let count = count.min(items.len());
     let mut chosen = Vec::with_capacity(count);
+    let mut indices = Vec::with_capacity(count);
     while chosen.len() < count {
-        let idx = rng.next_usize(STAT_POOL.len());
-        if !chosen.contains(&idx) {
-            chosen.push(idx);
+        let idx = rng.next_usize(items.len());
+        if !indices.contains(&idx) {
+            indices.push(idx);
+            chosen.push(&items[idx]);
         }
     }
     chosen
 }
 
-/// Generate a single realistic query based on archetype.
-fn generate_realistic_query(rng: &mut Rng) -> Vec<Condition> {
-    let archetype = pick_archetype(rng);
+/// Generate a query using real stat keys extracted from fixtures.
+fn generate_query_from_real_stats(rng: &mut Rng, stat_keys: &[String]) -> Vec<Condition> {
+    if stat_keys.is_empty() {
+        return Vec::new();
+    }
+
     let mut parts: Vec<String> = Vec::new();
 
-    match archetype {
-        Archetype::Simple => {
-            // Category + rarity + 1-2 stat thresholds
-            let cat_idx = rng.weighted_pick(CATEGORY_WEIGHTS);
-            parts.push(category_json(ITEM_CATEGORIES[cat_idx]));
-            parts.push(rarity_json(RARITIES[rng.next_usize(RARITIES.len())]));
+    // 80% have a category filter
+    if rng.next_usize(100) < 80 {
+        let cat = ITEM_CLASSES[rng.next_usize(ITEM_CLASSES.len())];
+        parts.push(category_json(cat));
+    }
 
-            let stat_count = 1 + rng.next_usize(2); // 1-2
-            for &si in &pick_stats(rng, stat_count) {
-                let threshold = rng.next_range(10, 80);
-                parts.push(stat_threshold_json(STAT_POOL[si], threshold, "<"));
+    // 90% have a rarity filter
+    if rng.next_usize(100) < 90 {
+        parts.push(rarity_class_json("Non-Unique"));
+    }
+
+    // Archetype determines stat count and complexity
+    match rng.next_usize(100) {
+        0..30 => {
+            // Simple: 1-2 stat thresholds
+            let count = 1 + rng.next_usize(2);
+            for stat in pick_unique(rng, stat_keys, count) {
+                let threshold = rng.next_range(10, 60);
+                parts.push(stat_threshold_json(stat, threshold, "<"));
             }
         }
-        Archetype::Moderate => {
-            // Category + rarity + 3-4 stat ranges
-            let cat_idx = rng.weighted_pick(CATEGORY_WEIGHTS);
-            parts.push(category_json(ITEM_CATEGORIES[cat_idx]));
-            parts.push(rarity_json("Non-Unique"));
-
-            let stat_count = 3 + rng.next_usize(2); // 3-4
-            for &si in &pick_stats(rng, stat_count) {
-                let min = rng.next_range(5, 40);
-                let max = min + rng.next_range(20, 60);
-                parts.push(stat_range_json(STAT_POOL[si], min, max));
+        30..60 => {
+            // Moderate: 2-4 stat ranges
+            let count = 2 + rng.next_usize(3);
+            for stat in pick_unique(rng, stat_keys, count) {
+                let min = rng.next_range(5, 30);
+                let max = min + rng.next_range(20, 50);
+                parts.push(stat_range_json(stat, min, max));
             }
         }
-        Archetype::Complex => {
-            // Category + rarity + 4-6 stats + boolean + NOT
-            let cat_idx = rng.weighted_pick(CATEGORY_WEIGHTS);
-            parts.push(category_json(ITEM_CATEGORIES[cat_idx]));
-            parts.push(rarity_json("Non-Unique"));
-
-            // Boolean condition (corrupted, identified, etc.)
+        60..80 => {
+            // Complex: 3-5 stats + boolean
+            let count = 3 + rng.next_usize(3);
+            for stat in pick_unique(rng, stat_keys, count) {
+                let min = rng.next_range(10, 40);
+                let max = min + rng.next_range(25, 60);
+                parts.push(stat_range_json(stat, min, max));
+            }
             if rng.next_usize(2) == 0 {
                 parts.push(boolean_json("corrupted", false));
-            } else {
-                parts.push(boolean_json("identified", true));
             }
-
-            // 4-6 stat requirements
-            let stat_count = 4 + rng.next_usize(3); // 4-6
-            let stats = pick_stats(rng, stat_count);
-            for &si in &stats[..stat_count.min(stats.len())] {
-                let min = rng.next_range(10, 50);
-                let max = min + rng.next_range(30, 80);
-                parts.push(stat_range_json(STAT_POOL[si], min, max));
-            }
-
-            // NOT condition — exclude a bad mod
-            let bad_stat = STAT_POOL[rng.next_usize(STAT_POOL.len())];
-            let not_inner = vec![stat_threshold_json(bad_stat, 5, "<")];
-            parts.push(not_list_json(&not_inner));
         }
-        Archetype::Crafter => {
-            // Category + rarity + NOT(bad mods) + COUNT(n of stats)
-            let cat_idx = rng.weighted_pick(CATEGORY_WEIGHTS);
-            parts.push(category_json(ITEM_CATEGORIES[cat_idx]));
-            parts.push(rarity_json("Non-Unique"));
-
-            // NOT: exclude 2 bad mods
-            let bad_stats = pick_stats(rng, 2);
+        80..90 => {
+            // NOT pattern: want stats, exclude bad stats
+            let count = 2 + rng.next_usize(2);
+            for stat in pick_unique(rng, stat_keys, count) {
+                let threshold = rng.next_range(15, 50);
+                parts.push(stat_threshold_json(stat, threshold, "<"));
+            }
+            // NOT condition
+            let bad_count = 1 + rng.next_usize(2);
+            let bad_stats = pick_unique(rng, stat_keys, bad_count);
             let not_inner: Vec<String> = bad_stats
                 .iter()
-                .map(|&si| stat_threshold_json(STAT_POOL[si], rng.next_range(5, 20), "<"))
+                .map(|s| stat_threshold_json(s, rng.next_range(5, 20), "<"))
                 .collect();
             parts.push(not_list_json(&not_inner));
-
-            // COUNT: at least 2 of these 4 desired stats
-            let desired = pick_stats(rng, 4);
-            let count_inner: Vec<String> = desired
-                .iter()
-                .map(|&si| stat_threshold_json(STAT_POOL[si], rng.next_range(20, 60), "<"))
-                .collect();
-            let need = 1 + rng.next_usize(3) as u32; // COUNT 1-3
-            parts.push(count_list_json(&count_inner, need));
-
-            // 1-2 hard requirements
-            let hard_count = 1 + rng.next_usize(2);
-            for &si in &pick_stats(rng, hard_count) {
-                let threshold = rng.next_range(30, 70);
-                parts.push(stat_threshold_json(STAT_POOL[si], threshold, "<"));
-            }
         }
-        Archetype::Broad => {
-            // No category or wildcard + rarity + 1-3 stats
-            if rng.next_usize(2) == 0 {
-                parts.push(wildcard_json("item_category"));
-            }
-            // else: no category at all
-            parts.push(rarity_json("Non-Unique"));
-
-            let stat_count = 1 + rng.next_usize(3); // 1-3
-            for &si in &pick_stats(rng, stat_count) {
-                let threshold = rng.next_range(20, 80);
-                parts.push(stat_threshold_json(STAT_POOL[si], threshold, "<"));
+        _ => {
+            // Broad: just 1-2 stats, no category
+            parts.clear();
+            parts.push(rarity_class_json("Non-Unique"));
+            let count = 1 + rng.next_usize(2);
+            for stat in pick_unique(rng, stat_keys, count) {
+                let threshold = rng.next_range(20, 70);
+                parts.push(stat_threshold_json(stat, threshold, "<"));
             }
         }
     }
@@ -367,39 +530,11 @@ fn generate_realistic_query(rng: &mut Rng) -> Vec<Condition> {
     serde_json::from_str(&json).unwrap()
 }
 
-/// Generate a realistic item entry with multiple stats.
-fn make_realistic_entry(rng: &mut Rng) -> Entry {
-    let cat_idx = rng.weighted_pick(CATEGORY_WEIGHTS);
-    let category = ITEM_CATEGORIES[cat_idx];
-
-    // Pick 4-8 random stats with realistic values
-    let stat_count = 4 + rng.next_usize(5);
-    let stats = pick_stats(rng, stat_count);
-
-    let mut parts = vec![
-        format!(r#""item_category": "{category}""#),
-        format!(r#""item_level": {}"#, rng.next_range(60, 85)),
-        r#""item_rarity": "Rare""#.to_owned(),
-        r#""item_rarity_2": "Non-Unique""#.to_owned(),
-        r#""name": "Benchmark Rare Item""#.to_owned(),
-        r#""identified": true"#.to_owned(),
-        r#""corrupted": false"#.to_owned(),
-    ];
-
-    for &si in &stats {
-        let value = rng.next_range(5, 100);
-        parts.push(format!(r#""{}": {value}"#, STAT_POOL[si]));
-    }
-
-    let json = format!("{{{}}}", parts.join(","));
-    serde_json::from_str(&json).unwrap()
-}
-
 // ---------------------------------------------------------------------------
 // Benchmark runners
 // ---------------------------------------------------------------------------
 
-fn bench_brute_force(queries: &[Vec<Condition>], entry: &Entry, iterations: u64) {
+fn bench_brute_force(queries: &[Vec<Condition>], entries: &[Entry], iterations: u64) {
     let mut store = QueryStore::new();
     for rq in queries {
         store.add(rq.clone(), vec![]);
@@ -407,21 +542,26 @@ fn bench_brute_force(queries: &[Vec<Condition>], entry: &Entry, iterations: u64)
 
     let start = Instant::now();
     for _ in 0..iterations {
-        black_box(store.match_item(entry));
+        for entry in entries {
+            black_box(store.match_item(entry));
+        }
     }
     let elapsed = start.elapsed();
 
-    let query_count = queries.len();
-    let us_per_match = (elapsed.as_secs_f64() * 1_000_000.0) / iterations as f64;
-    let matches = store.match_item(entry);
+    let total_matches = entries.len() as u64 * iterations;
+    let us_per_match = (elapsed.as_secs_f64() * 1_000_000.0) / total_matches as f64;
+    let total_hits: usize = entries.iter().map(|e| store.match_item(e).len()).sum();
 
     println!(
-        "  brute-force | {:>7} queries | {:>9.1}μs/match | {} matches",
-        query_count, us_per_match, matches.len(),
+        "  brute-force | {:>7} queries | {:>9.1}μs/match | {} total hits across {} items",
+        queries.len(),
+        us_per_match,
+        total_hits,
+        entries.len(),
     );
 }
 
-fn bench_indexed(queries: &[Vec<Condition>], entry: &Entry, iterations: u64) {
+fn bench_indexed(queries: &[Vec<Condition>], entries: &[Entry], iterations: u64) {
     let mut store = IndexedStore::new();
     for rq in queries {
         store.add(rq.clone(), vec![]);
@@ -429,19 +569,22 @@ fn bench_indexed(queries: &[Vec<Condition>], entry: &Entry, iterations: u64) {
 
     let start = Instant::now();
     for _ in 0..iterations {
-        black_box(store.match_item(entry));
+        for entry in entries {
+            black_box(store.match_item(entry));
+        }
     }
     let elapsed = start.elapsed();
 
-    let query_count = queries.len();
-    let us_per_match = (elapsed.as_secs_f64() * 1_000_000.0) / iterations as f64;
-    let matches = store.match_item(entry);
+    let total_matches = entries.len() as u64 * iterations;
+    let us_per_match = (elapsed.as_secs_f64() * 1_000_000.0) / total_matches as f64;
+    let total_hits: usize = entries.iter().map(|e| store.match_item(e).len()).sum();
 
     println!(
-        "  indexed     | {:>7} queries | {:>9.1}μs/match | {} matches | {:>6} nodes, depth {}",
-        query_count,
+        "  indexed     | {:>7} queries | {:>9.1}μs/match | {} total hits across {} items | {} nodes, depth {}",
+        queries.len(),
         us_per_match,
-        matches.len(),
+        total_hits,
+        entries.len(),
         store.node_count(),
         store.max_depth(),
     );
@@ -449,63 +592,11 @@ fn bench_indexed(queries: &[Vec<Condition>], entry: &Entry, iterations: u64) {
 
 fn iterations_for(query_count: usize) -> u64 {
     match query_count {
-        n if n <= 1_000 => 10_000,
-        n if n <= 10_000 => 1_000,
-        n if n <= 100_000 => 100,
-        _ => 10,
+        n if n <= 1_000 => 1_000,
+        n if n <= 10_000 => 100,
+        n if n <= 100_000 => 10,
+        _ => 2,
     }
-}
-
-// ---------------------------------------------------------------------------
-// Synthetic benchmark (original — uniform queries, max sharing)
-// ---------------------------------------------------------------------------
-
-fn make_synthetic_rq(
-    category_idx: usize,
-    stat_idx: usize,
-    min_val: i64,
-    max_val: i64,
-) -> Vec<Condition> {
-    let category = ITEM_CATEGORIES[category_idx % ITEM_CATEGORIES.len()];
-    let stat = STAT_POOL[stat_idx % STAT_POOL.len()];
-    let json = format!(
-        r#"[
-            {{"key": "item_category", "value": "{category}", "type": "string", "typeOptions": null}},
-            {{"key": "item_rarity_2", "value": "Non-Unique", "type": "string", "typeOptions": null}},
-            {{"key": "list", "value": [
-                {{"key": "{stat}", "value": {min_val}, "type": "integer", "typeOptions": {{"operator": "<"}}}},
-                {{"key": "{stat}", "value": {max_val}, "type": "integer", "typeOptions": {{"operator": ">"}}}}
-            ], "type": "list", "typeOptions": {{"operator": "and"}}}}
-        ]"#
-    );
-    serde_json::from_str(&json).unwrap()
-}
-
-fn make_synthetic_entry() -> Entry {
-    let json = r#"{
-        "item_category": "Crimson Jewel",
-        "item_level": 75,
-        "item_rarity": "Rare",
-        "item_rarity_2": "Non-Unique",
-        "name": "Benchmark Item",
-        "+# to maximum Life": 40,
-        "+# to maximum Mana": 30,
-        "% increased Armour": 15,
-        "+#% to Fire and Cold Resistances": 11,
-        "% increased Attack Speed": 6,
-        "identified": true,
-        "corrupted": false
-    }"#;
-    serde_json::from_str(json).unwrap()
-}
-
-fn generate_synthetic(count: usize) -> Vec<Vec<Condition>> {
-    (0..count)
-        .map(|i| {
-            #[allow(clippy::cast_possible_wrap)]
-            make_synthetic_rq(i, i, (i % 20) as i64, ((i % 20) + 30) as i64)
-        })
-        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -513,37 +604,38 @@ fn generate_synthetic(count: usize) -> Vec<Vec<Condition>> {
 // ---------------------------------------------------------------------------
 
 fn main() {
-    let counts = &[100, 1_000, 10_000, 50_000, 100_000, 500_000, 1_000_000];
+    // Load real item fixtures
+    let fixture_entries = load_fixture_entries();
+    let stat_keys = collect_stat_keys(&fixture_entries);
 
-    // --- Synthetic (uniform queries, best-case sharing) ---
-    println!("=== SYNTHETIC (uniform queries, best-case sharing) ===");
+    println!(
+        "Loaded {} real items from fixtures, found {} unique stat templates",
+        fixture_entries.len(),
+        stat_keys.len(),
+    );
     println!();
 
-    let entry = make_synthetic_entry();
-    for &count in counts {
-        let queries = generate_synthetic(count);
-        let iters = iterations_for(count);
-        bench_brute_force(&queries, &entry, iters);
-        bench_indexed(&queries, &entry, iters);
-        println!();
+    if fixture_entries.is_empty() || stat_keys.is_empty() {
+        println!("ERROR: No fixtures found. Run from workspace root.");
+        return;
     }
 
-    // --- Realistic (diverse queries, real PoE behavior) ---
-    println!("=== REALISTIC (diverse archetypes, 42 stats, NOT/COUNT/boolean) ===");
+    let counts = &[100, 1_000, 10_000, 50_000, 100_000, 500_000, 1_000_000];
+
+    println!("=== REAL FIXTURES + REAL STAT KEYS ===");
+    println!("  Queries use stat templates extracted from fixture items.");
+    println!("  Items are real Ctrl+Alt+C copies from PoE.");
     println!();
 
     for &count in counts {
-        let mut rng = Rng::new(0xDEAD_BEEF_CAFE_1234); // fixed seed for reproducibility
-        let queries: Vec<Vec<Condition>> =
-            (0..count).map(|_| generate_realistic_query(&mut rng)).collect();
-
-        // Generate a realistic item to match against
-        let mut entry_rng = Rng::new(0x1234_5678_9ABC_DEF0);
-        let realistic_entry = make_realistic_entry(&mut entry_rng);
+        let mut rng = Rng::new(0xDEAD_BEEF_CAFE_1234);
+        let queries: Vec<Vec<Condition>> = (0..count)
+            .map(|_| generate_query_from_real_stats(&mut rng, &stat_keys))
+            .collect();
 
         let iters = iterations_for(count);
-        bench_brute_force(&queries, &realistic_entry, iters);
-        bench_indexed(&queries, &realistic_entry, iters);
+        bench_brute_force(&queries, &fixture_entries, iters);
+        bench_indexed(&queries, &fixture_entries, iters);
         println!();
     }
 }
