@@ -9,8 +9,14 @@ import type { ResolvedItem } from "./generated/ResolvedItem";
 import type { ResolvedMod } from "./generated/ResolvedMod";
 import type { MarketplaceSettings } from "./store";
 
-interface RqeMatchResult {
+interface MatchDetail {
+	id: number;
+	owner: string | null;
+}
+
+export interface RqeMatchResult {
 	count: number;
+	matches: MatchDetail[];
 	matchUs: number;
 }
 
@@ -118,8 +124,10 @@ export async function checkDemand(
 		if (!resp.ok) return null;
 
 		const data = await resp.json();
+		const matches = (data.matches ?? []) as MatchDetail[];
 		return {
-			count: (data.matches as unknown[]).length,
+			count: matches.length,
+			matches,
 			matchUs: data.match_us ?? 0,
 		};
 	} catch {

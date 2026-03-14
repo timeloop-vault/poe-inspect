@@ -7,7 +7,7 @@ import { type DisplaySettings, ItemOverlay, type ProfileSummary } from "./compon
 import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
-import { checkDemand } from "./rqe";
+import { type RqeMatchResult, checkDemand } from "./rqe";
 import {
 	type DangerLevel,
 	type MapDangerConfig,
@@ -139,7 +139,7 @@ export function App() {
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
 	const [inspectMode, setInspectMode] = useState<"full" | "compact" | "trade" | null>(null);
 	const [compactFading, setCompactFading] = useState(false);
-	const [demandCount, setDemandCount] = useState<number | null>(null);
+	const [demandResult, setDemandResult] = useState<RqeMatchResult | null>(null);
 	const [marketplaceSettings, setMarketplaceSettings] =
 		useState<MarketplaceSettings>(defaultMarketplace);
 	const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(null);
@@ -169,7 +169,7 @@ export function App() {
 		setShowMock(false);
 		setInspectMode(null);
 		setCompactFading(false);
-		setDemandCount(null);
+		setDemandResult(null);
 		if (compactTimerRef.current) {
 			clearTimeout(compactTimerRef.current);
 			compactTimerRef.current = null;
@@ -385,10 +385,10 @@ export function App() {
 	// Async RQE demand check — runs when a new evaluated item arrives
 	useEffect(() => {
 		if (!evaluatedItem) return;
-		setDemandCount(null);
+		setDemandResult(null);
 		checkDemand(evaluatedItem.item, marketplaceSettings).then((result) => {
 			if (result && result.count > 0) {
-				setDemandCount(result.count);
+				setDemandResult(result);
 			}
 		});
 	}, [evaluatedItem, marketplaceSettings]);
@@ -492,13 +492,16 @@ export function App() {
 					profiles={profileSummaries}
 					onSwitchProfile={handleSwitchProfile}
 				/>
-				{demandCount != null && demandCount > 0 && (
+				{demandResult != null && demandResult.count > 0 && (
 					<div
 						class="demand-badge"
 						style={{ "--demand-color": marketplaceSettings.badgeColor }}
-						title={`${demandCount} player${demandCount !== 1 ? "s" : ""} want this item`}
+						title={demandResult.matches
+							.map((m) => m.owner ?? "anonymous")
+							.filter((v, i, a) => a.indexOf(v) === i)
+							.join(", ")}
 					>
-						{demandCount}
+						{demandResult.count}
 					</div>
 				)}
 			</div>
