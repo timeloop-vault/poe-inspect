@@ -35,6 +35,9 @@ struct AddQueryResponse {
 pub struct MatchResponse {
     pub matches: Vec<QueryId>,
     pub query_count: usize,
+    /// Time spent in DAG matching on the server, in microseconds.
+    #[serde(default)]
+    pub match_us: u64,
 }
 
 #[derive(Debug, Deserialize)]

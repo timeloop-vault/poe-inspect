@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex, RwLock};
+use std::time::Instant;
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
@@ -37,10 +38,14 @@ async fn main() {
 
     let db_path = std::env::var("RQE_DB_PATH").ok();
     let db = db::Db::open(db_path.as_deref());
+
+    let t0 = Instant::now();
     let store = db.load_all();
+    let load_ms = t0.elapsed().as_secs_f64() * 1000.0;
     tracing::info!(
         queries = store.len(),
         nodes = store.node_count(),
+        load_ms = format!("{load_ms:.1}"),
         "loaded queries into indexed store"
     );
 
@@ -93,6 +98,8 @@ struct AddQueryResponse {
 struct MatchResponse {
     matches: Vec<QueryId>,
     query_count: usize,
+    /// Time spent in DAG matching, in microseconds.
+    match_us: u64,
 }
 
 // --- Handlers ---
@@ -113,9 +120,12 @@ async fn add_query(
     State(state): State<SharedState>,
     Json(req): Json<AddQueryRequest>,
 ) -> (StatusCode, Json<AddQueryResponse>) {
-    let id = {
+    let t0 = Instant::now();
+
+    let (id, nodes) = {
         let mut store = state.store.write().expect("store lock poisoned");
-        store.add(req.conditions.clone(), req.labels.clone())
+        let id = store.add(req.conditions.clone(), req.labels.clone());
+        (id, store.node_count())
     };
 
     {
@@ -123,7 +133,14 @@ async fn add_query(
         db.insert(id, &req.conditions, &req.labels);
     }
 
-    tracing::info!(id, "query added");
+    let elapsed_us = t0.elapsed().as_micros();
+    tracing::info!(
+        id,
+        conditions = req.conditions.len(),
+        nodes,
+        elapsed_us = elapsed_us,
+        "query added"
+    );
     (StatusCode::CREATED, Json(AddQueryResponse { id }))
 }
 
@@ -142,6 +159,8 @@ async fn delete_query(
     State(state): State<SharedState>,
     Path(id): Path<QueryId>,
 ) -> StatusCode {
+    let t0 = Instant::now();
+
     let removed = {
         let mut store = state.store.write().expect("store lock poisoned");
         store.remove(id)
@@ -150,7 +169,8 @@ async fn delete_query(
     if removed {
         let db = state.db.lock().expect("db lock poisoned");
         db.delete(id);
-        tracing::info!(id, "query removed");
+        let elapsed_us = t0.elapsed().as_micros();
+        tracing::info!(id, elapsed_us = elapsed_us, "query removed");
         StatusCode::NO_CONTENT
     } else {
         StatusCode::NOT_FOUND
@@ -163,12 +183,24 @@ async fn match_item(
     State(state): State<SharedState>,
     Json(entry): Json<Entry>,
 ) -> Json<MatchResponse> {
+    let t0 = Instant::now();
+
     let store = state.store.read().expect("store lock poisoned");
     let matches = store.match_item(&entry);
+    let match_us = t0.elapsed().as_micros() as u64;
     let query_count = store.len();
-    tracing::info!(matched = matches.len(), total = query_count, "item matched");
+    drop(store);
+
+    tracing::info!(
+        matched = matches.len(),
+        total = query_count,
+        match_us,
+        "item matched"
+    );
+
     Json(MatchResponse {
         matches,
         query_count,
+        match_us,
     })
 }
