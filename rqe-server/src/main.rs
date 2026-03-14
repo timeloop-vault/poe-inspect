@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
 
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{delete, get, post};
@@ -56,7 +56,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health))
-        .route("/queries", post(add_query))
+        .route("/queries", get(list_queries).post(add_query))
         .route("/queries/{id}", get(get_query))
         .route("/queries/{id}", delete(delete_query))
         .route("/match", post(match_item))
@@ -109,6 +109,11 @@ struct MatchResponse {
     match_us: u64,
 }
 
+#[derive(Deserialize)]
+struct ListQueryParams {
+    owner: Option<String>,
+}
+
 // --- Handlers ---
 
 /// Health check — unauthenticated.
@@ -119,6 +124,16 @@ async fn health(State(state): State<SharedState>) -> Json<HealthResponse> {
         query_count: store.len(),
         node_count: store.node_count(),
     })
+}
+
+/// List stored queries, optionally filtered by owner.
+async fn list_queries(
+    State(state): State<SharedState>,
+    Query(params): Query<ListQueryParams>,
+) -> Json<Vec<poe_rqe::store::StoredQuery>> {
+    let db = state.db.lock().expect("db lock poisoned");
+    let queries = db.list(params.owner.as_deref());
+    Json(queries)
 }
 
 /// Register a reverse query.

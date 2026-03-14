@@ -5,6 +5,19 @@ use rusqlite::Connection;
 
 const DEFAULT_PATH: &str = "rqe.db";
 
+fn parse_query_row(
+    (id, conditions_json, labels_json, owner): (QueryId, String, String, Option<String>),
+) -> Option<poe_rqe::store::StoredQuery> {
+    let conditions = serde_json::from_str(&conditions_json).ok()?;
+    let labels = serde_json::from_str(&labels_json).ok()?;
+    Some(poe_rqe::store::StoredQuery {
+        id,
+        conditions,
+        labels,
+        owner,
+    })
+}
+
 pub struct Db {
     conn: Connection,
 }
@@ -86,6 +99,55 @@ impl Db {
                 rusqlite::params![id, conditions_json, labels_json, owner],
             )
             .expect("failed to insert query");
+    }
+
+    /// List queries, optionally filtered by owner.
+    pub fn list(&self, owner: Option<&str>) -> Vec<poe_rqe::store::StoredQuery> {
+        let mut results = Vec::new();
+
+        if let Some(owner_val) = owner {
+            let mut stmt = self
+                .conn
+                .prepare(
+                    "SELECT id, conditions, labels, owner FROM queries WHERE owner = ?1 ORDER BY id",
+                )
+                .expect("failed to prepare list");
+            let rows = stmt
+                .query_map(rusqlite::params![owner_val], |row| {
+                    let id: QueryId = row.get(0)?;
+                    let cond: String = row.get(1)?;
+                    let lab: String = row.get(2)?;
+                    let own: Option<String> = row.get(3)?;
+                    Ok((id, cond, lab, own))
+                })
+                .expect("failed to query");
+            for row in rows.flatten() {
+                if let Some(q) = parse_query_row(row) {
+                    results.push(q);
+                }
+            }
+        } else {
+            let mut stmt = self
+                .conn
+                .prepare("SELECT id, conditions, labels, owner FROM queries ORDER BY id")
+                .expect("failed to prepare list");
+            let rows = stmt
+                .query_map([], |row| {
+                    let id: QueryId = row.get(0)?;
+                    let cond: String = row.get(1)?;
+                    let lab: String = row.get(2)?;
+                    let own: Option<String> = row.get(3)?;
+                    Ok((id, cond, lab, own))
+                })
+                .expect("failed to query");
+            for row in rows.flatten() {
+                if let Some(q) = parse_query_row(row) {
+                    results.push(q);
+                }
+            }
+        }
+
+        results
     }
 
     pub fn delete(&self, id: QueryId) -> bool {
