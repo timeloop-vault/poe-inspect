@@ -1,6 +1,6 @@
 # Roadmap
 
-Current priorities, ordered. Updated 2026-03-14.
+Current priorities, ordered. Updated 2026-03-15.
 
 ---
 
@@ -48,43 +48,23 @@ Full pipeline: decision DAG engine, domain-free server, client crate, app integr
 
 ---
 
+### ~~`(Local)` Trade Stat Suffix~~ ✅
+
+Trade stats index maps local GGPK stat_ids to `(Local)` trade numbers via `GameData.all_stat_ids_for_template()` + `is_local` filter. Items with local stat_ids from base-type-anchored resolution now produce correct trade queries.
+
+### ~~Parse More Stat Description Files~~ ✅
+
+Added atlas, sanctum relic, heist equipment, and expedition relic stat descriptions. Reverse index: 15,500 → 17,624 patterns (+13.7%). Trade match rate: 87.4% → 94.8%. Remaining 603 unmatched are niche (grafts, wombgifts, legacy, Forbidden).
+
+### ~~HasStatText Deprecation~~ ✅
+
+Removed both `HasStatText` and `HasStatId` predicate variants. All evaluation logic and tests migrated to `StatValue` with proper stat_ids.
+
+---
+
 ## Active Priorities
 
-### 2. `(Local)` Trade Stat Suffix
-
-Trade queries for local stats (e.g., `local_base_evasion_rating`) need the `(Local)` suffix appended to match the trade API's stat text format. Final piece of the local stat ID resolution plan.
-
-- poe-trade query builder: detect local stat_ids, append `(Local)` when building trade stat filters
-- Verify against trade API stat index to confirm which stats need the suffix
-- Test with local defense mods (armour, evasion, energy shield) and local attack mods (phys damage, attack speed)
-
----
-
-### 3. Parse More Stat Description Files
-
-Bumps trade stat match rate above 87.4%. Currently unparsed files:
-
-- Atlas stat descriptions
-- Map stat descriptions (partially done for map danger)
-- Sanctum stat descriptions
-- Heist stat descriptions
-
-Each file adds stat patterns to the reverse index → more trade stats resolve to stat_ids → better trade query coverage.
-
----
-
-### 4. HasStatText Deprecation
-
-Replace remaining `HasStatText` (substring matching) with `HasStatId` (stat ID matching).
-
-- Audit all existing profiles/rules for `HasStatText` usage
-- Migrate to `HasStatId` equivalents
-- Consider removing `HasStatText` from the schema entirely, or marking deprecated
-- Ensures all matching is language-independent and unambiguous
-
----
-
-### 5. Trade Edit Search Improvements
+### 2. Trade Edit Search Improvements
 
 Pain points from real gameplay. The Edit Search UI needs more filters to match what the official trade site offers. Many of these were designed in `docs/trade-query-builder-design.md` (Phase 6c) but not yet implemented.
 
@@ -97,7 +77,7 @@ Pain points from real gameplay. The Edit Search UI needs more filters to match w
 
 ---
 
-### 6. Map Danger Escalation
+### 3. Map Danger Escalation
 
 User-configurable threshold where accumulating lower-tier dangers escalates to a higher tier.
 
@@ -108,7 +88,7 @@ User-configurable threshold where accumulating lower-tier dangers escalates to a
 
 ---
 
-### 7. Auto-Updater
+### 4. Auto-Updater
 
 App should check for updates and offer to install them. CI infrastructure is already in place (`release.yml` generates signed `latest.json`). Design doc: `docs/auto-updater.md`.
 
@@ -125,7 +105,7 @@ App should check for updates and offer to install them. CI infrastructure is alr
 
 ---
 
-### 8. Data Extraction / Update Flow (GitHub Actions)
+### 5. Data Extraction / Update Flow (GitHub Actions)
 
 Automated pipeline to download GGPK from the PoE patch server, extract game data, and regenerate derived files.
 
@@ -146,7 +126,7 @@ Automated pipeline to download GGPK from the PoE patch server, extract game data
 
 ---
 
-### 9. Toast Position Config
+### 6. Toast Position Config
 
 Let user choose toast screen position (top/bottom, left/center/right). Currently hardcoded to top-center.
 
