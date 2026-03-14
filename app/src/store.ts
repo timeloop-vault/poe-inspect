@@ -117,6 +117,14 @@ export interface StoredProfile {
 	mapDanger: MapDangerConfig;
 }
 
+/** A hotkey-bound chat command macro. */
+export interface ChatMacro {
+	id: string;
+	hotkey: string;
+	command: string;
+	send: boolean;
+}
+
 export interface TradeSettings {
 	league: string;
 	valueRelaxation: number;
@@ -191,7 +199,7 @@ let profilesStore: Awaited<ReturnType<typeof load>> | null = null;
 async function getSettingsStore() {
 	if (!settingsStore) {
 		settingsStore = await load("settings.json", {
-			defaults: { general: defaultGeneral, hotkeys: defaultHotkeys },
+			defaults: { general: defaultGeneral, hotkeys: defaultHotkeys, chatMacros: [] },
 			autoSave: true,
 		});
 	}
@@ -245,6 +253,19 @@ export async function loadTrade(): Promise<TradeSettings> {
 export async function saveTrade(settings: TradeSettings): Promise<void> {
 	const store = await getSettingsStore();
 	await store.set("trade", settings);
+}
+
+// ── Chat macros ──────────────────────────────────────────────────────────
+
+export async function loadChatMacros(): Promise<ChatMacro[]> {
+	const store = await getSettingsStore();
+	const val = await store.get<ChatMacro[]>("chatMacros");
+	return val ?? [];
+}
+
+export async function saveChatMacros(macros: ChatMacro[]): Promise<void> {
+	const store = await getSettingsStore();
+	await store.set("chatMacros", macros);
 }
 
 // ── Profile migration ─────────────────────────────────────────────────────
