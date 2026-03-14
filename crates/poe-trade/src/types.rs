@@ -228,7 +228,7 @@ impl TradeQueryConfig {
 ///
 /// Sent from the frontend when in "Edit Search" mode. When `None`, the query
 /// builder uses default behavior (all stats included, exact base type, etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
@@ -253,19 +253,41 @@ pub struct TradeFilterConfig {
     /// `None` = use the item's actual quality value.
     #[serde(default)]
     pub quality_min: Option<u32>,
+    /// Rarity filter override. `None` = use default ("nonunique" for rares).
+    /// `"any"` = remove rarity restriction.
+    #[serde(default)]
+    pub rarity_override: Option<String>,
+    /// Whether to include an item-level minimum filter.
+    #[serde(default)]
+    pub ilvl_enabled: bool,
+    /// Minimum item level (only used when `ilvl_enabled` is true).
+    /// `None` = use the item's actual item level.
+    #[serde(default)]
+    pub ilvl_min: Option<u32>,
+    /// Override for the corrupted misc filter.
+    /// `None` = default (include if item is corrupted).
+    /// `Some(false)` = omit. `Some(true)` = force on.
+    #[serde(default)]
+    pub corrupted_override: Option<bool>,
+    /// Override for the fractured misc filter.
+    /// `None` = default (include if item is fractured).
+    /// `Some(false)` = omit. `Some(true)` = force on.
+    #[serde(default)]
+    pub fractured_override: Option<bool>,
 }
 
 /// How specific the type filter should be in a trade search.
 ///
 /// Matches the GGPK hierarchy: `BaseItemTypes` (e.g., "Demon's Horn")
 /// → `ItemClasses` (e.g., "Wands") → no restriction.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts", ts(export))]
 pub enum TypeSearchScope {
     /// Filter by exact base item type (GGPK `BaseItemTypes`, e.g., "Demon's Horn").
     /// Sets `query.type` to the base type string.
+    #[default]
     BaseType,
     /// Filter by item class only (GGPK `ItemClasses`, e.g., "Wands" → trade category `"weapon.wand"`).
     /// Omits `query.type`, sets `filters.type_filters.filters.category`.
