@@ -126,6 +126,34 @@ User-configurable threshold where accumulating lower-tier dangers escalates to a
 
 ---
 
+## 10. Hotkeys Swallow Keys Outside PoE
+
+Global shortcuts consume key events even when PoE isn't the foreground window. E.g., `Ctrl+T` (trade inspect) blocks "new tab" in Chrome. The `requirePoeFocus` setting gates the *action* but the shortcut is still registered globally and eats the keypress.
+
+**Fix options:**
+- Only register gameplay hotkeys when PoE is foreground, unregister when it loses focus (needs foreground window change listener)
+- Use a low-level keyboard hook (like stash scroll) that checks foreground window before consuming the event
+- On Windows: `WH_KEYBOARD_LL` hook with `GetForegroundWindow` check — pass through if not PoE
+
+---
+
+## 11. Auto-Updater
+
+App should check for updates and offer to install them. CI infrastructure is already in place (`release.yml` generates signed `latest.json`). Design doc: `docs/auto-updater.md`.
+
+**What's done:** tauri.conf.json config (pubkey + endpoint), release workflow (signing + `includeUpdaterJson`), design doc.
+
+**What's needed:**
+1. Add `tauri-plugin-updater` (Cargo.toml + package.json)
+2. Initialize plugin in `lib.rs`
+3. Add updater capability permissions
+4. Startup: silent check → toast if update available
+5. Settings > General: "Check for Updates" button
+6. Update dialog: version + release notes, Install / Later
+7. Schema versioning for profile migration (`schemaVersion` field)
+
+---
+
 ## Backlog (Unordered)
 
 These are known gaps and future features, not currently prioritized.
