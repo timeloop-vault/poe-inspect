@@ -7,6 +7,57 @@ use crate::store::{QueryId, StoredQuery};
 
 type NodeId = u32;
 
+/// User-supplied selectivity ranking for condition keys.
+/// Keys listed earlier are evaluated first (higher selectivity = more pruning).
+/// Keys not in the list use default type-based priority.
+#[derive(Clone, Default)]
+pub struct SelectivityConfig {
+    /// Keys ranked by selectivity, highest first.
+    /// Entries can be exact matches or prefix patterns (trailing `*`).
+    entries: Vec<SelectivityPattern>,
+}
+
+#[derive(Clone)]
+enum SelectivityPattern {
+    Exact(String),
+    Prefix(String),
+}
+
+impl SelectivityConfig {
+    /// Create a config with the given high-selectivity keys.
+    /// Keys are evaluated in order — first key gets highest priority.
+    /// Append `*` for prefix matching (e.g., `"item_rarity*"`).
+    #[must_use]
+    pub fn new(keys: &[&str]) -> Self {
+        let entries = keys
+            .iter()
+            .map(|k| {
+                if let Some(prefix) = k.strip_suffix('*') {
+                    SelectivityPattern::Prefix(prefix.to_owned())
+                } else {
+                    SelectivityPattern::Exact((*k).to_owned())
+                }
+            })
+            .collect();
+        Self { entries }
+    }
+
+    /// Returns the priority for a key if it matches a ranked entry.
+    /// Lower number = higher priority (evaluated first).
+    fn priority_for(&self, key: &str) -> Option<u8> {
+        for (i, entry) in self.entries.iter().enumerate() {
+            let matches = match entry {
+                SelectivityPattern::Exact(k) => key == k,
+                SelectivityPattern::Prefix(p) => key.starts_with(p),
+            };
+            if matches {
+                return Some(i as u8);
+            }
+        }
+        None
+    }
+}
+
 /// A single node in the decision DAG.
 struct DagNode {
     /// Condition to test. `None` for the root and for threshold-group children
@@ -42,12 +93,15 @@ struct ThresholdEntry {
 /// Indexed query store using a decision DAG for shared condition evaluation.
 ///
 /// Drop-in replacement for [`crate::store::QueryStore`]. Internally builds a DAG
-/// of shared condition nodes so that common prefixes (e.g., `item_category = "Crimson Jewel"`)
-/// are evaluated once regardless of how many queries share them.
+/// of shared condition nodes so that common prefixes are evaluated once regardless
+/// of how many queries share them.
 ///
 /// Integer conditions are further optimized: conditions sharing the same `(key, operator)`
 /// are grouped into sorted threshold arrays. A single `entry.get()` + binary search
 /// replaces N individual node evaluations.
+///
+/// Use [`SelectivityConfig`] to control condition evaluation order based on
+/// domain-specific knowledge of key selectivity.
 #[derive(Default)]
 pub struct IndexedStore {
     /// Arena-allocated DAG nodes.
@@ -61,12 +115,27 @@ pub struct IndexedStore {
 
     /// Next auto-increment ID.
     next_id: QueryId,
+
+    /// Domain-specific selectivity ranking for condition keys.
+    selectivity: SelectivityConfig,
 }
 
 impl IndexedStore {
     #[must_use]
     pub fn new() -> Self {
         let mut store = Self::default();
+        store.ensure_root();
+        store
+    }
+
+    /// Create an indexed store with a domain-specific selectivity config.
+    /// Keys listed in the config are evaluated first for maximum pruning.
+    #[must_use]
+    pub fn with_selectivity(config: SelectivityConfig) -> Self {
+        let mut store = Self {
+            selectivity: config,
+            ..Self::default()
+        };
         store.ensure_root();
         store
     }
@@ -95,7 +164,7 @@ impl IndexedStore {
             return false;
         };
 
-        let canonical = canonicalize(&query.conditions);
+        let canonical = canonicalize(&query.conditions, &self.selectivity);
         self.remove_from_dag(id, &canonical);
         true
     }
@@ -201,7 +270,7 @@ impl IndexedStore {
     fn insert_query(&mut self, id: QueryId, conditions: Vec<Condition>, labels: Vec<String>) {
         self.ensure_root();
 
-        let canonical = canonicalize(&conditions);
+        let canonical = canonicalize(&conditions, &self.selectivity);
 
         // Walk/extend the DAG.
         let mut current = self.root;
@@ -490,10 +559,10 @@ fn passing_range(entries: &[ThresholdEntry], entry_val: i64, op: CompareOp) -> &
 // --- Canonicalization ---
 
 /// Flatten AND lists and sort conditions into canonical order for maximum DAG sharing.
-fn canonicalize(conditions: &[Condition]) -> Vec<Condition> {
+fn canonicalize(conditions: &[Condition], selectivity: &SelectivityConfig) -> Vec<Condition> {
     let mut flat = Vec::new();
     flatten_and(conditions, &mut flat);
-    flat.sort_by(condition_ordering);
+    flat.sort_by(|a, b| condition_ordering(a, b, selectivity));
     flat
 }
 
@@ -513,32 +582,35 @@ fn flatten_and(conditions: &[Condition], out: &mut Vec<Condition>) {
     }
 }
 
-/// Canonical sort key for conditions.
+/// Condition priority using selectivity config.
 ///
-/// Priority scheme (lower = evaluated first):
-///   0: `item_category` string equality (highest selectivity)
-///   1: `item_rarity*` string equality
-///   2: other string equality
-///   3: string wildcard (existence checks)
-///   4: boolean conditions
-///   5: integer conditions
-///   6: compound (NOT/OR/COUNT lists)
-fn condition_priority(cond: &Condition) -> u8 {
+/// If the condition's key matches a ranked entry in the config, that rank is used.
+/// Otherwise, default type-based priorities apply (offset past all config entries):
+///   - string exact match
+///   - string wildcard (existence check)
+///   - boolean
+///   - integer
+///   - compound (NOT/OR/COUNT lists)
+fn condition_priority(cond: &Condition, selectivity: &SelectivityConfig) -> u8 {
+    // Check selectivity config first
+    if let Some(p) = selectivity.priority_for(&cond.key) {
+        return p;
+    }
+    // Default type-based priorities (offset by max possible config entries)
+    let base = selectivity.entries.len() as u8;
     match &cond.value {
-        Value::String(_) if cond.key == "item_category" => 0,
-        Value::String(_) if cond.key.starts_with("item_rarity") => 1,
-        Value::String(crate::predicate::StringMatch::Exact(_)) => 2,
-        Value::String(crate::predicate::StringMatch::Wildcard) => 3,
-        Value::Boolean(_) => 4,
-        Value::Integer { .. } => 5,
-        Value::List { .. } => 6,
+        Value::String(crate::predicate::StringMatch::Exact(_)) => base,
+        Value::String(crate::predicate::StringMatch::Wildcard) => base + 1,
+        Value::Boolean(_) => base + 2,
+        Value::Integer { .. } => base + 3,
+        Value::List { .. } => base + 4,
     }
 }
 
 /// Ordering function for canonical condition sort.
-fn condition_ordering(a: &Condition, b: &Condition) -> Ordering {
-    let pa = condition_priority(a);
-    let pb = condition_priority(b);
+fn condition_ordering(a: &Condition, b: &Condition, selectivity: &SelectivityConfig) -> Ordering {
+    let pa = condition_priority(a, selectivity);
+    let pb = condition_priority(b, selectivity);
     pa.cmp(&pb)
         .then_with(|| a.key.cmp(&b.key))
         .then_with(|| value_sort_key(&a.value).cmp(&value_sort_key(&b.value)))
@@ -559,35 +631,89 @@ fn value_sort_key(value: &Value) -> (u8, i64, String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::predicate::{CompareOp, StringMatch};
+    use crate::store::QueryStore;
 
-    fn load_rq(filename: &str) -> Vec<Condition> {
-        let path = format!(
-            "{}/_reference/rqe/test/data/rq/{filename}",
-            concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
-        );
-        let data =
-            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
-        serde_json::from_str(&data).unwrap()
+    // --- Product marketplace helpers ---
+
+    /// Cheap electronics product: category=Electronics, in_stock=true, price=299, weight=2, rating=4
+    fn electronics_entry() -> Entry {
+        serde_json::from_str(
+            r#"{"category": "Electronics", "in_stock": true, "on_sale": false, "price": 299, "weight": 2, "rating": 4, "color": "Black"}"#,
+        )
+        .unwrap()
     }
 
-    fn load_entry(filename: &str) -> Entry {
-        let path = format!(
-            "{}/_reference/rqe/test/data/entry/{filename}",
-            concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
-        );
-        let data =
-            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
-        serde_json::from_str(&data).unwrap()
+    /// Clothing product: category=Clothing, in_stock=true, on_sale=true, price=49, weight=1, rating=5
+    fn clothing_entry() -> Entry {
+        serde_json::from_str(
+            r#"{"category": "Clothing", "in_stock": true, "on_sale": true, "price": 49, "weight": 1, "rating": 5, "color": "Red"}"#,
+        )
+        .unwrap()
     }
 
-    // --- Same tests as QueryStore ---
+    /// Book product: category=Books, in_stock=false, price=15, weight=1, rating=3
+    fn book_entry() -> Entry {
+        serde_json::from_str(
+            r#"{"category": "Books", "in_stock": false, "on_sale": false, "price": 15, "weight": 1, "rating": 3}"#,
+        )
+        .unwrap()
+    }
+
+    /// Query: category=Electronics, in_stock=true
+    fn want_electronics_in_stock() -> Vec<Condition> {
+        serde_json::from_str(
+            r#"[
+                {"key": "category", "value": "Electronics", "type": "string", "typeOptions": null},
+                {"key": "in_stock", "value": true, "type": "boolean", "typeOptions": null}
+            ]"#,
+        )
+        .unwrap()
+    }
+
+    /// Query: category=Electronics, price < 500 (Erlang: 500 < entry_price, i.e. price under 500)
+    fn want_cheap_electronics() -> Vec<Condition> {
+        serde_json::from_str(
+            r#"[
+                {"key": "category", "value": "Electronics", "type": "string", "typeOptions": null},
+                {"key": "price", "value": 500, "type": "integer", "typeOptions": {"operator": ">"}}
+            ]"#,
+        )
+        .unwrap()
+    }
+
+    /// Query: category=Clothing, on_sale=true
+    fn want_clothing_on_sale() -> Vec<Condition> {
+        serde_json::from_str(
+            r#"[
+                {"key": "category", "value": "Clothing", "type": "string", "typeOptions": null},
+                {"key": "on_sale", "value": true, "type": "boolean", "typeOptions": null}
+            ]"#,
+        )
+        .unwrap()
+    }
+
+    /// Query: category=Clothing, NOT(on_sale=true) — wants non-sale clothing
+    fn want_clothing_not_on_sale() -> Vec<Condition> {
+        serde_json::from_str(
+            r#"[
+                {"key": "category", "value": "Clothing", "type": "string", "typeOptions": null},
+                {"key": "list", "value": [
+                    {"key": "on_sale", "value": true, "type": "boolean", "typeOptions": null}
+                ], "type": "list", "typeOptions": {"operator": "not"}}
+            ]"#,
+        )
+        .unwrap()
+    }
+
+    // --- CRUD tests ---
 
     #[test]
     fn add_and_remove() {
         let mut store = IndexedStore::new();
         assert!(store.is_empty());
 
-        let id = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![]);
         assert_eq!(store.len(), 1);
         assert!(store.get(id).is_some());
 
@@ -599,25 +725,27 @@ mod tests {
     #[test]
     fn match_single_query() {
         let mut store = IndexedStore::new();
-        let id = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![]);
 
-        let matches = store.match_item(&load_entry("crimson_w_mods_1.json"));
+        let matches = store.match_item(&electronics_entry());
         assert_eq!(matches, vec![id]);
 
-        let matches = store.match_item(&load_entry("crimson_magic.json"));
+        // Book is not electronics
+        let matches = store.match_item(&book_entry());
         assert!(matches.is_empty());
     }
 
     #[test]
     fn match_multiple_queries() {
         let mut store = IndexedStore::new();
-        let id_rare = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-        let id_mod = store.add(load_rq("wanted_crimson_mod.json"), vec![]);
-        let _id_not = store.add(load_rq("wanted_crimson_mod_not.json"), vec![]);
+        let id_stock = store.add(want_electronics_in_stock(), vec![]);
+        let id_cheap = store.add(want_cheap_electronics(), vec![]);
+        let _id_clothing = store.add(want_clothing_on_sale(), vec![]);
 
-        let mut matches = store.match_item(&load_entry("crimson_w_mods_1.json"));
+        // Electronics entry matches both electronics queries but not clothing
+        let mut matches = store.match_item(&electronics_entry());
         matches.sort_unstable();
-        let mut expected = vec![id_rare, id_mod];
+        let mut expected = vec![id_stock, id_cheap];
         expected.sort_unstable();
         assert_eq!(matches, expected);
     }
@@ -625,10 +753,11 @@ mod tests {
     #[test]
     fn match_no_queries_for_unrelated_item() {
         let mut store = IndexedStore::new();
-        store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-        store.add(load_rq("wanted_crimson_mod.json"), vec![]);
+        store.add(want_electronics_in_stock(), vec![]);
+        store.add(want_cheap_electronics(), vec![]);
 
-        let matches = store.match_item(&load_entry("paua_ring_rare.json"));
+        // Book is not electronics
+        let matches = store.match_item(&book_entry());
         assert!(matches.is_empty());
     }
 
@@ -636,58 +765,43 @@ mod tests {
     fn match_with_labels() {
         let mut store = IndexedStore::new();
         let id = store.add(
-            load_rq("wanted_crimson_rare.json"),
-            vec!["build:cyclone".into(), "priority:high".into()],
+            want_electronics_in_stock(),
+            vec!["wishlist:gaming".into(), "priority:high".into()],
         );
 
         let query = store.get(id).unwrap();
-        assert_eq!(query.labels, vec!["build:cyclone", "priority:high"]);
+        assert_eq!(query.labels, vec!["wishlist:gaming", "priority:high"]);
     }
 
     #[test]
     fn ids_are_unique_and_sequential() {
         let mut store = IndexedStore::new();
-        let id0 = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-        let id1 = store.add(load_rq("wanted_crimson_mod.json"), vec![]);
-        let id2 = store.add(load_rq("wanted_crimson_mod_not.json"), vec![]);
+        let id0 = store.add(want_electronics_in_stock(), vec![]);
+        let id1 = store.add(want_cheap_electronics(), vec![]);
+        let id2 = store.add(want_clothing_on_sale(), vec![]);
         assert_eq!(id0, 0);
         assert_eq!(id1, 1);
         assert_eq!(id2, 2);
     }
 
     #[test]
-    fn match_all_rqs_against_all_entries() {
-        let rq_files = [
-            "wanted_crimson_rare.json",
-            "wanted_crimson_mod.json",
-            "wanted_crimson_mod_not.json",
-            "wanted_crimson_mod_count.json",
-            "wanted_crimson_mod_count_2.json",
-            "wanted_crimson_mod_and_not.json",
-            "wanted_mod_and_not_count.json",
-            "wanted_boots_unique.json",
-            "wanted_boots_unique_new_format.json",
+    fn match_all_combinations() {
+        let queries: Vec<Vec<Condition>> = vec![
+            want_electronics_in_stock(),
+            want_cheap_electronics(),
+            want_clothing_on_sale(),
+            want_clothing_not_on_sale(),
         ];
-        let entry_files = [
-            "crimson_w_mods_1.json",
-            "crimson_w_mods_2.json",
-            "crimson_magic.json",
-            "crimson_unique.json",
-            "paua_ring_rare.json",
-            "two_handed_weapon_rare.json",
-            "item_socket_4_link_3.json",
-            "item_socket_2_link_0.json",
-        ];
+        let entries = vec![electronics_entry(), clothing_entry(), book_entry()];
 
         let mut store = IndexedStore::new();
-        for rq_file in &rq_files {
-            store.add(load_rq(rq_file), vec![]);
+        for q in &queries {
+            store.add(q.clone(), vec![]);
         }
-        assert_eq!(store.len(), 9);
+        assert_eq!(store.len(), 4);
 
-        for entry_file in &entry_files {
-            let entry = load_entry(entry_file);
-            let matches = store.match_item(&entry);
+        for entry in &entries {
+            let matches = store.match_item(entry);
             for id in &matches {
                 assert!(store.get(*id).is_some());
             }
@@ -698,51 +812,49 @@ mod tests {
 
     #[test]
     fn equivalence_with_brute_force() {
-        use crate::store::QueryStore;
-
-        let rq_files = [
-            "wanted_crimson_rare.json",
-            "wanted_crimson_mod.json",
-            "wanted_crimson_mod_not.json",
-            "wanted_crimson_mod_count.json",
-            "wanted_crimson_mod_count_2.json",
-            "wanted_crimson_mod_and_not.json",
-            "wanted_mod_and_not_count.json",
-            "wanted_boots_unique.json",
-            "wanted_boots_unique_new_format.json",
+        let queries: Vec<Vec<Condition>> = vec![
+            want_electronics_in_stock(),
+            want_cheap_electronics(),
+            want_clothing_on_sale(),
+            want_clothing_not_on_sale(),
+            // Additional queries for broader coverage
+            serde_json::from_str(
+                r#"[{"key": "rating", "value": 3, "type": "integer", "typeOptions": {"operator": "<"}}]"#,
+            ).unwrap(),
+            serde_json::from_str(
+                r#"[{"key": "price", "value": 20, "type": "integer", "typeOptions": {"operator": "<"}},
+                    {"key": "weight", "value": 2, "type": "integer", "typeOptions": {"operator": ">"}}]"#,
+            ).unwrap(),
+            serde_json::from_str(
+                r#"[{"key": "color", "value": "_", "type": "string", "typeOptions": null}]"#,
+            ).unwrap(),
+            serde_json::from_str(
+                r#"[{"key": "list", "value": [
+                        {"key": "price", "value": 100, "type": "integer", "typeOptions": {"operator": "<"}},
+                        {"key": "rating", "value": 4, "type": "integer", "typeOptions": {"operator": "<"}}
+                    ], "type": "list", "typeOptions": {"operator": "count", "count": 1}}]"#,
+            ).unwrap(),
         ];
-        let entry_files = [
-            "crimson_w_mods_1.json",
-            "crimson_w_mods_2.json",
-            "crimson_magic.json",
-            "crimson_unique.json",
-            "paua_ring_rare.json",
-            "two_handed_weapon_rare.json",
-            "item_socket_4_link_3.json",
-            "item_socket_2_link_0.json",
-        ];
+        let entries = vec![electronics_entry(), clothing_entry(), book_entry()];
 
         let mut brute = QueryStore::new();
         let mut indexed = IndexedStore::new();
 
-        for rq_file in &rq_files {
-            let conditions = load_rq(rq_file);
-            brute.add(conditions.clone(), vec![]);
-            indexed.add(conditions, vec![]);
+        for q in &queries {
+            brute.add(q.clone(), vec![]);
+            indexed.add(q.clone(), vec![]);
         }
 
-        for entry_file in &entry_files {
-            let entry = load_entry(entry_file);
-
-            let mut brute_matches = brute.match_item(&entry);
-            let mut indexed_matches = indexed.match_item(&entry);
+        for (i, entry) in entries.iter().enumerate() {
+            let mut brute_matches = brute.match_item(entry);
+            let mut indexed_matches = indexed.match_item(entry);
 
             brute_matches.sort_unstable();
             indexed_matches.sort_unstable();
 
             assert_eq!(
                 brute_matches, indexed_matches,
-                "mismatch for entry {entry_file}"
+                "mismatch for entry index {i}"
             );
         }
     }
@@ -755,8 +867,8 @@ mod tests {
         assert_eq!(store.node_count(), 1); // root only
         assert_eq!(store.max_depth(), 0);
 
-        store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-        store.add(load_rq("wanted_crimson_mod.json"), vec![]);
+        store.add(want_electronics_in_stock(), vec![]);
+        store.add(want_cheap_electronics(), vec![]);
 
         assert!(store.node_count() > 1);
         assert!(store.max_depth() >= 2);
@@ -776,7 +888,7 @@ mod tests {
     #[test]
     fn remove_prunes_dag() {
         let mut store = IndexedStore::new();
-        let id = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![]);
 
         let nodes_before = store.node_count();
         assert!(nodes_before > 1);
@@ -798,16 +910,16 @@ mod tests {
 
         let q1: Vec<Condition> = serde_json::from_str(
             r#"[
-            {"key": "life", "value": 40, "type": "integer", "typeOptions": {"operator": "<"}},
-            {"key": "resist", "value": 20, "type": "integer", "typeOptions": {"operator": "<"}}
+            {"key": "price", "value": 40, "type": "integer", "typeOptions": {"operator": "<"}},
+            {"key": "weight", "value": 20, "type": "integer", "typeOptions": {"operator": "<"}}
         ]"#,
         )
         .unwrap();
 
         let q2: Vec<Condition> = serde_json::from_str(
             r#"[
-            {"key": "life", "value": 60, "type": "integer", "typeOptions": {"operator": "<"}},
-            {"key": "resist", "value": 30, "type": "integer", "typeOptions": {"operator": "<"}}
+            {"key": "price", "value": 60, "type": "integer", "typeOptions": {"operator": "<"}},
+            {"key": "weight", "value": 30, "type": "integer", "typeOptions": {"operator": "<"}}
         ]"#,
         )
         .unwrap();
@@ -815,9 +927,6 @@ mod tests {
         store.add(q1, vec![]);
         store.add(q2, vec![]);
 
-        // Without grouping: root → life<40 → resist<20, root → life<60 → resist<30 = 5 nodes
-        // With grouping: root has threshold group for (life, Lt) with [40, 60], each → resist group
-        // Fewer nodes because integer conditions don't create separate child nodes.
         assert!(store.threshold_group_count() > 0);
         println!(
             "Threshold test: {} nodes, {} groups",
@@ -830,26 +939,26 @@ mod tests {
     fn threshold_binary_search_correctness() {
         let mut store = IndexedStore::new();
 
-        // Add queries with various life thresholds
+        // Add queries with various price thresholds
         for threshold in [10, 20, 30, 40, 50, 60, 70, 80] {
             let q: Vec<Condition> = serde_json::from_str(&format!(
-                r#"[{{"key": "life", "value": {threshold}, "type": "integer", "typeOptions": {{"operator": "<"}}}}]"#
+                r#"[{{"key": "price", "value": {threshold}, "type": "integer", "typeOptions": {{"operator": "<"}}}}]"#
             )).unwrap();
             store.add(q, vec![]);
         }
 
-        // Entry with life=45 should match thresholds < 45: [10, 20, 30, 40]
-        let entry: Entry = serde_json::from_str(r#"{"life": 45}"#).unwrap();
+        // Entry with price=45 should match thresholds < 45: [10, 20, 30, 40]
+        let entry: Entry = serde_json::from_str(r#"{"price": 45}"#).unwrap();
         let matches = store.match_item(&entry);
         assert_eq!(matches.len(), 4, "should match thresholds 10,20,30,40");
 
-        // Entry with life=100 should match all 8
-        let entry: Entry = serde_json::from_str(r#"{"life": 100}"#).unwrap();
+        // Entry with price=100 should match all 8
+        let entry: Entry = serde_json::from_str(r#"{"price": 100}"#).unwrap();
         let matches = store.match_item(&entry);
         assert_eq!(matches.len(), 8, "should match all thresholds");
 
-        // Entry with life=5 should match none (no threshold < 5)
-        let entry: Entry = serde_json::from_str(r#"{"life": 5}"#).unwrap();
+        // Entry with price=5 should match none (no threshold < 5)
+        let entry: Entry = serde_json::from_str(r#"{"price": 5}"#).unwrap();
         let matches = store.match_item(&entry);
         assert_eq!(matches.len(), 0, "should match no thresholds");
     }
@@ -858,12 +967,23 @@ mod tests {
 
     #[test]
     fn and_flattening_shares_conditions() {
-        let mut store = IndexedStore::new();
-        store.add(load_rq("wanted_crimson_mod.json"), vec![]);
+        // AND list with two price conditions should be flattened into threshold groups
+        let q: Vec<Condition> = serde_json::from_str(
+            r#"[
+                {"key": "category", "value": "Electronics", "type": "string", "typeOptions": null},
+                {"key": "list", "value": [
+                    {"key": "price", "value": 100, "type": "integer", "typeOptions": {"operator": "<"}},
+                    {"key": "price", "value": 500, "type": "integer", "typeOptions": {"operator": ">"}}
+                ], "type": "list", "typeOptions": {"operator": "and"}}
+            ]"#,
+        )
+        .unwrap();
 
-        // The AND list [armor < 4, armor > 20] is flattened.
+        let mut store = IndexedStore::new();
+        store.add(q, vec![]);
+
+        // The AND list [price < 100, price > 500] is flattened.
         // Integer conditions go into threshold groups, not regular children.
-        // Path: root → item_category(child) → item_rarity_2(child) → armor thresholds(groups)
         assert!(store.threshold_group_count() > 0);
     }
 
@@ -871,40 +991,73 @@ mod tests {
 
     #[test]
     fn canonicalize_sorts_by_priority() {
-        use crate::predicate::{CompareOp, StringMatch};
+        // With SelectivityConfig, ranked keys come first, then type-based defaults.
+        let config = SelectivityConfig::new(&["category", "color"]);
 
         let conditions = vec![
             Condition {
-                key: "armor".into(),
+                key: "price".into(),
                 value: Value::Integer {
                     value: 50,
                     op: CompareOp::Gt,
                 },
             },
             Condition {
-                key: "corrupted".into(),
+                key: "in_stock".into(),
                 value: Value::Boolean(true),
             },
             Condition {
-                key: "item_category".into(),
-                value: Value::String(StringMatch::Exact("Ring".into())),
+                key: "category".into(),
+                value: Value::String(StringMatch::Exact("Electronics".into())),
             },
             Condition {
-                key: "item_rarity".into(),
-                value: Value::String(StringMatch::Exact("Rare".into())),
+                key: "color".into(),
+                value: Value::String(StringMatch::Exact("Red".into())),
             },
         ];
 
-        let result = canonicalize(&conditions);
-        assert_eq!(result[0].key, "item_category");
-        assert_eq!(result[1].key, "item_rarity");
-        assert_eq!(result[2].key, "corrupted");
-        assert_eq!(result[3].key, "armor");
+        let result = canonicalize(&conditions, &config);
+        // category has config priority 0, color has config priority 1
+        assert_eq!(result[0].key, "category");
+        assert_eq!(result[1].key, "color");
+        // Then type-based: boolean before integer
+        assert_eq!(result[2].key, "in_stock");
+        assert_eq!(result[3].key, "price");
+    }
+
+    #[test]
+    fn canonicalize_default_sorts_by_type() {
+        // With empty SelectivityConfig, all keys use type-based defaults.
+        let config = SelectivityConfig::default();
+
+        let conditions = vec![
+            Condition {
+                key: "price".into(),
+                value: Value::Integer {
+                    value: 50,
+                    op: CompareOp::Gt,
+                },
+            },
+            Condition {
+                key: "in_stock".into(),
+                value: Value::Boolean(true),
+            },
+            Condition {
+                key: "category".into(),
+                value: Value::String(StringMatch::Exact("Electronics".into())),
+            },
+        ];
+
+        let result = canonicalize(&conditions, &config);
+        // Type-based: string exact (0) → boolean (2) → integer (3)
+        assert_eq!(result[0].key, "category");
+        assert_eq!(result[1].key, "in_stock");
+        assert_eq!(result[2].key, "price");
     }
 
     #[test]
     fn canonicalize_flattens_nested_and() {
-        use crate::predicate::CompareOp;
+        let config = SelectivityConfig::default();
 
         let conditions = vec![Condition {
             key: "list".into(),
@@ -944,7 +1097,7 @@ mod tests {
             },
         }];
 
-        let result = canonicalize(&conditions);
+        let result = canonicalize(&conditions, &config);
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].key, "a");
         assert_eq!(result[1].key, "b");
@@ -953,14 +1106,14 @@ mod tests {
 
     #[test]
     fn canonicalize_preserves_not_list() {
-        use crate::predicate::CompareOp;
+        let config = SelectivityConfig::default();
 
         let not_list = Condition {
             key: "list".into(),
             value: Value::List {
                 op: ListOp::Not,
                 conditions: vec![Condition {
-                    key: "armor".into(),
+                    key: "weight".into(),
                     value: Value::Integer {
                         value: 10,
                         op: CompareOp::Gt,
@@ -970,8 +1123,28 @@ mod tests {
         };
 
         let not_vec = vec![not_list.clone()];
-        let result = canonicalize(&not_vec);
+        let result = canonicalize(&not_vec, &config);
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], not_list);
+    }
+
+    #[test]
+    fn selectivity_config_prefix_matching() {
+        let config = SelectivityConfig::new(&["category", "color*"]);
+        // Exact match
+        assert_eq!(config.priority_for("category"), Some(0));
+        // Prefix match
+        assert_eq!(config.priority_for("color"), Some(1));
+        assert_eq!(config.priority_for("color_primary"), Some(1));
+        // No match
+        assert!(config.priority_for("price").is_none());
+    }
+
+    #[test]
+    fn with_selectivity_constructor() {
+        let config = SelectivityConfig::new(&["category"]);
+        let store = IndexedStore::with_selectivity(config);
+        assert!(store.is_empty());
+        assert_eq!(store.node_count(), 1); // root allocated
     }
 }

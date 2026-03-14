@@ -11,7 +11,7 @@ use std::hint::black_box;
 use std::time::Instant;
 
 use poe_rqe::eval::Entry;
-use poe_rqe::index::IndexedStore;
+use poe_rqe::index::{IndexedStore, SelectivityConfig};
 use poe_rqe::predicate::Condition;
 use poe_rqe::store::QueryStore;
 
@@ -562,7 +562,8 @@ fn bench_brute_force(queries: &[Vec<Condition>], entries: &[Entry], iterations: 
 }
 
 fn bench_indexed(queries: &[Vec<Condition>], entries: &[Entry], iterations: u64) {
-    let mut store = IndexedStore::new();
+    let mut store =
+        IndexedStore::with_selectivity(SelectivityConfig::new(&["item_class", "rarity_class"]));
     for rq in queries {
         store.add(rq.clone(), vec![]);
     }

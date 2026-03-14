@@ -215,12 +215,13 @@ mod tests {
 
     #[test]
     fn deserialize_string_condition() {
-        let json = r#"{"key": "item_category", "value": "Crimson Jewel", "type": "string", "typeOptions": null}"#;
+        let json =
+            r#"{"key": "category", "value": "Electronics", "type": "string", "typeOptions": null}"#;
         let cond: Condition = serde_json::from_str(json).unwrap();
-        assert_eq!(cond.key, "item_category");
+        assert_eq!(cond.key, "category");
         assert_eq!(
             cond.value,
-            Value::String(StringMatch::Exact("Crimson Jewel".into()))
+            Value::String(StringMatch::Exact("Electronics".into()))
         );
     }
 
@@ -233,8 +234,7 @@ mod tests {
 
     #[test]
     fn deserialize_integer_with_operator() {
-        let json =
-            r#"{"key": "armor", "value": 20, "type": "integer", "typeOptions": {"operator": ">"}}"#;
+        let json = r#"{"key": "weight", "value": 20, "type": "integer", "typeOptions": {"operator": ">"}}"#;
         let cond: Condition = serde_json::from_str(json).unwrap();
         assert_eq!(
             cond.value,
@@ -247,8 +247,7 @@ mod tests {
 
     #[test]
     fn deserialize_boolean() {
-        let json =
-            r#"{"key": "rarity rare", "value": true, "type": "boolean", "typeOptions": null}"#;
+        let json = r#"{"key": "in_stock", "value": true, "type": "boolean", "typeOptions": null}"#;
         let cond: Condition = serde_json::from_str(json).unwrap();
         assert_eq!(cond.value, Value::Boolean(true));
     }
@@ -258,8 +257,8 @@ mod tests {
         let json = r#"{
             "key": "list",
             "value": [
-                {"key": "armor", "value": 4, "type": "integer", "typeOptions": {"operator": "<"}},
-                {"key": "armor", "value": 20, "type": "integer", "typeOptions": {"operator": ">"}}
+                {"key": "weight", "value": 4, "type": "integer", "typeOptions": {"operator": "<"}},
+                {"key": "weight", "value": 20, "type": "integer", "typeOptions": {"operator": ">"}}
             ],
             "type": "list",
             "typeOptions": {"operator": "and"}
@@ -279,7 +278,7 @@ mod tests {
         let json = r#"{
             "key": "list",
             "value": [
-                {"key": "stat_a", "value": 10, "type": "integer", "typeOptions": {"operator": ">"}}
+                {"key": "rating", "value": 10, "type": "integer", "typeOptions": {"operator": ">"}}
             ],
             "type": "list",
             "typeOptions": {"operator": "count", "count": 1}
@@ -295,41 +294,15 @@ mod tests {
     }
 
     #[test]
-    fn round_trip_all_rq_files() {
-        let rq_files = [
-            "wanted_crimson_rare.json",
-            "wanted_crimson_mod.json",
-            "wanted_crimson_mod_not.json",
-            "wanted_crimson_mod_count.json",
-            "wanted_crimson_mod_count_2.json",
-            "wanted_crimson_mod_and_not.json",
-            "wanted_mod_and_not_count.json",
-            "wanted_boots_unique.json",
-            "wanted_boots_unique_new_format.json",
-        ];
-        for file in &rq_files {
-            let path = format!(
-                "{}/_reference/rqe/test/data/rq/{file}",
-                concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
-            );
-            let json = std::fs::read_to_string(&path).unwrap();
-            let conditions: Vec<Condition> = serde_json::from_str(&json).unwrap();
-            // Serialize back to JSON and deserialize again
-            let serialized = serde_json::to_string(&conditions).unwrap();
-            let round_tripped: Vec<Condition> = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(conditions, round_tripped, "round-trip failed for {file}");
-        }
-    }
-
-    #[test]
-    fn deserialize_full_rq_file() {
-        let path = format!(
-            "{}/_reference/rqe/test/data/rq/wanted_crimson_mod.json",
-            concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
-        );
-        let json =
-            std::fs::read_to_string(&path).expect("test data file should exist at _reference/rqe/");
-        let conditions: Vec<Condition> = serde_json::from_str(&json).unwrap();
-        assert_eq!(conditions.len(), 3);
+    fn round_trip_inline_conditions() {
+        let json = r#"[
+            {"key": "category", "value": "Electronics", "type": "string", "typeOptions": null},
+            {"key": "in_stock", "value": true, "type": "boolean", "typeOptions": null},
+            {"key": "price", "value": 100, "type": "integer", "typeOptions": {"operator": "<"}}
+        ]"#;
+        let conditions: Vec<Condition> = serde_json::from_str(json).unwrap();
+        let serialized = serde_json::to_string(&conditions).unwrap();
+        let round_tripped: Vec<Condition> = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(conditions, round_tripped);
     }
 }

@@ -123,212 +123,255 @@ fn evaluate_list(op: &ListOp, conditions: &[Condition], entry: &Entry) -> bool {
 mod tests {
     use super::*;
 
-    fn load_rq(filename: &str) -> Vec<Condition> {
-        let path = format!(
-            "{}/_reference/rqe/test/data/rq/{filename}",
-            concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
-        );
-        let data =
-            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
-        serde_json::from_str(&data).unwrap()
+    // --- Product marketplace entries ---
+
+    fn electronics_entry() -> Entry {
+        serde_json::from_str(
+            r#"{"category": "Electronics", "in_stock": true, "on_sale": false, "price": 299, "weight": 2, "rating": 4, "color": "Black"}"#,
+        )
+        .unwrap()
     }
 
-    fn load_entry(filename: &str) -> Entry {
-        let path = format!(
-            "{}/_reference/rqe/test/data/entry/{filename}",
-            concat!(env!("CARGO_MANIFEST_DIR"), "/../..")
-        );
-        let data =
-            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"));
-        serde_json::from_str(&data).unwrap()
+    fn clothing_entry() -> Entry {
+        serde_json::from_str(
+            r#"{"category": "Clothing", "in_stock": true, "on_sale": true, "price": 49, "weight": 1, "rating": 5, "color": "Red"}"#,
+        )
+        .unwrap()
     }
 
-    // --- The key test case from the Erlang suite ---
+    fn book_entry() -> Entry {
+        serde_json::from_str(
+            r#"{"category": "Books", "in_stock": false, "on_sale": false, "price": 15, "weight": 1, "rating": 3}"#,
+        )
+        .unwrap()
+    }
+
+    // --- String matching ---
 
     #[test]
-    fn erlang_suite_mod_and_not_count_matches_mods_2() {
-        let rq = load_rq("wanted_mod_and_not_count.json");
-        let entry = load_entry("crimson_w_mods_2.json");
-        assert!(evaluate(&rq, &entry), "should match crimson_w_mods_2");
-    }
-
-    #[test]
-    fn erlang_suite_mod_and_not_count_rejects_mods_1() {
-        let rq = load_rq("wanted_mod_and_not_count.json");
-        let entry = load_entry("crimson_w_mods_1.json");
-        assert!(!evaluate(&rq, &entry), "should NOT match crimson_w_mods_1");
-    }
-
-    // --- wanted_crimson_rare ---
-
-    #[test]
-    fn crimson_rare_matches_rare_crimson() {
-        let rq = load_rq("wanted_crimson_rare.json");
-        let entry = load_entry("crimson_w_mods_1.json");
-        assert!(evaluate(&rq, &entry));
+    fn string_exact_match() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "category", "value": "Electronics", "type": "string", "typeOptions": null}]"#,
+        ).unwrap();
+        assert!(evaluate(&rq, &electronics_entry()));
     }
 
     #[test]
-    fn crimson_rare_rejects_magic() {
-        let rq = load_rq("wanted_crimson_rare.json");
-        let entry = load_entry("crimson_magic.json");
-        assert!(!evaluate(&rq, &entry));
+    fn string_exact_mismatch() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "category", "value": "Electronics", "type": "string", "typeOptions": null}]"#,
+        ).unwrap();
+        assert!(!evaluate(&rq, &clothing_entry()));
     }
 
     #[test]
-    fn crimson_rare_rejects_unique() {
-        let rq = load_rq("wanted_crimson_rare.json");
-        let entry = load_entry("crimson_unique.json");
-        // Unique items don't have item_rarity_2 = "Non-Unique"
-        assert!(!evaluate(&rq, &entry));
+    fn wildcard_matches_any_value() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "category", "value": "_", "type": "string", "typeOptions": null}]"#,
+        )
+        .unwrap();
+        assert!(evaluate(&rq, &electronics_entry()));
+        assert!(evaluate(&rq, &clothing_entry()));
+        assert!(evaluate(&rq, &book_entry()));
     }
 
-    // --- wanted_crimson_mod (AND list: armor between 4 and 20) ---
+    // --- Boolean semantics ---
 
     #[test]
-    fn crimson_mod_matches_armor_15() {
-        // crimson_w_mods_1 has armor=15, which is between 4 and 20
-        let rq = load_rq("wanted_crimson_mod.json");
-        let entry = load_entry("crimson_w_mods_1.json");
-        assert!(evaluate(&rq, &entry));
-    }
-
-    #[test]
-    fn crimson_mod_rejects_no_armor() {
-        // crimson_w_mods_2 has no armor stat
-        let rq = load_rq("wanted_crimson_mod.json");
-        let entry = load_entry("crimson_w_mods_2.json");
-        assert!(!evaluate(&rq, &entry));
-    }
-
-    // --- wanted_crimson_mod_not (NOT list: armor must NOT be between 4 and 20) ---
-
-    #[test]
-    fn crimson_mod_not_rejects_armor_15() {
-        // crimson_w_mods_1 has armor=15 which IS in the NOT range
-        let rq = load_rq("wanted_crimson_mod_not.json");
-        let entry = load_entry("crimson_w_mods_1.json");
-        assert!(!evaluate(&rq, &entry));
+    fn boolean_true_matches_true() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "in_stock", "value": true, "type": "boolean", "typeOptions": null}]"#,
+        )
+        .unwrap();
+        assert!(evaluate(&rq, &electronics_entry())); // in_stock=true
     }
 
     #[test]
-    fn crimson_mod_not_matches_no_armor() {
-        // crimson_w_mods_2 has no armor → NOT conditions don't trigger
-        let rq = load_rq("wanted_crimson_mod_not.json");
-        let entry = load_entry("crimson_w_mods_2.json");
-        assert!(evaluate(&rq, &entry));
-    }
-
-    // --- wanted_crimson_mod_count (COUNT=1 of 4 integer conditions) ---
-
-    #[test]
-    fn crimson_mod_count_matches_mods_1() {
-        // crimson_w_mods_1 has armor=15: both armor conditions match (4<15, 20>15),
-        // no lightning stat, so exactly 2 match. COUNT=1 expects exactly 1, so fails? Let's check.
-        // Actually: conditions are 4 items:
-        //   armor < 4  → 15 is not < 4... wait.
-        // Erlang semantics: compare_integer_value(Value=4, EntryValue=15, '<') → 4 < 15 → true
-        // So: armor cond1 (val=4, op=<): 4 < 15 = true
-        //     armor cond2 (val=20, op=>): 20 > 15 = true
-        //     lightning cond3 (val=60, op=>): no entry → false
-        //     lightning cond4 (val=30, op=<): no entry → false
-        // Count = 2, but COUNT=1 expected → false
-        let rq = load_rq("wanted_crimson_mod_count.json");
-        let entry = load_entry("crimson_w_mods_1.json");
-        assert!(!evaluate(&rq, &entry));
+    fn boolean_true_rejects_false() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "in_stock", "value": true, "type": "boolean", "typeOptions": null}]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &book_entry())); // in_stock=false
     }
 
     #[test]
-    fn crimson_mod_count_rejects_no_armor_no_lightning() {
-        // crimson_w_mods_2: no armor, no lightning → 0 match, COUNT=1 expects 1 → false
-        let rq = load_rq("wanted_crimson_mod_count.json");
-        let entry = load_entry("crimson_w_mods_2.json");
-        assert!(!evaluate(&rq, &entry));
-    }
-
-    // --- wanted_crimson_mod_count_2 (COUNT=1 of 3 conditions) ---
-
-    #[test]
-    fn crimson_mod_count_2_matches_mods_2() {
-        // crimson_w_mods_2: no armor, fire_cold_res=11
-        // Conditions: armor<4 (false, no armor), armor>20 (false), fire_cold_res<10 (10<11=true)
-        // Count=1, matched=1 → true
-        let rq = load_rq("wanted_crimson_mod_count_2.json");
-        let entry = load_entry("crimson_w_mods_2.json");
-        assert!(evaluate(&rq, &entry));
-    }
-
-    // --- wanted_crimson_mod_and_not (AND list + NOT list) ---
-
-    #[test]
-    fn crimson_mod_and_not_matches_mods_2() {
-        // NOT list: armor NOT between 4-20 → mods_2 has no armor → NOT passes
-        // AND list: fire_cold_res between 4-20 → 11 is in range → passes
-        let rq = load_rq("wanted_crimson_mod_and_not.json");
-        let entry = load_entry("crimson_w_mods_2.json");
-        assert!(evaluate(&rq, &entry));
+    fn boolean_false_matches_non_true() {
+        // Erlang semantics: expected=false matches anything that isn't true
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "on_sale", "value": false, "type": "boolean", "typeOptions": null}]"#,
+        )
+        .unwrap();
+        assert!(evaluate(&rq, &electronics_entry())); // on_sale=false
+        assert!(evaluate(&rq, &book_entry())); // on_sale=false
     }
 
     #[test]
-    fn crimson_mod_and_not_rejects_mods_1() {
-        // NOT list: armor NOT between 4-20 → mods_1 has armor=15 which IS in range → NOT fails
-        let rq = load_rq("wanted_crimson_mod_and_not.json");
-        let entry = load_entry("crimson_w_mods_1.json");
-        assert!(!evaluate(&rq, &entry));
+    fn boolean_false_rejects_true() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "on_sale", "value": false, "type": "boolean", "typeOptions": null}]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &clothing_entry())); // on_sale=true
     }
 
-    // --- Cross-category tests ---
+    // --- Integer operators (Erlang semantics: rq_value <op> entry_value) ---
 
     #[test]
-    fn crimson_rq_rejects_ring() {
-        let rq = load_rq("wanted_crimson_rare.json");
-        let entry = load_entry("paua_ring_rare.json");
-        assert!(!evaluate(&rq, &entry));
-    }
-
-    #[test]
-    fn crimson_rq_rejects_weapon() {
-        let rq = load_rq("wanted_crimson_mod.json");
-        let entry = load_entry("two_handed_weapon_rare.json");
-        assert!(!evaluate(&rq, &entry));
-    }
-
-    // --- Boots/sockets tests ---
-
-    #[test]
-    fn boots_unique_matches_4_socket_3_link() {
-        let rq = load_rq("wanted_boots_unique.json");
-        let entry = load_entry("item_socket_4_link_3.json");
-        assert!(evaluate(&rq, &entry));
+    fn integer_lt() {
+        // rq_value=100 < entry_value → entry must be > 100
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "price", "value": 100, "type": "integer", "typeOptions": {"operator": "<"}}]"#,
+        ).unwrap();
+        assert!(evaluate(&rq, &electronics_entry())); // 100 < 299
+        assert!(!evaluate(&rq, &book_entry())); // 100 < 15 = false
     }
 
     #[test]
-    fn boots_unique_rejects_2_socket_wand() {
-        let rq = load_rq("wanted_boots_unique.json");
-        let entry = load_entry("item_socket_2_link_0.json");
-        // Wand, not boots category
-        assert!(!evaluate(&rq, &entry));
-    }
-
-    // --- New format RQ tests ---
-    // wanted_boots_unique_new_format requires: category=_ (any), NOT(mana>10),
-    // AND(lightning_dmg_1<=1, lightning_dmg_2<10), lightning_res<15.
-    // It's really a ring-oriented query despite the filename.
-
-    #[test]
-    fn new_format_rejects_boots_no_lightning() {
-        // Boots have no lightning damage or resistance stats → AND list and direct condition fail
-        let rq = load_rq("wanted_boots_unique_new_format.json");
-        let entry = load_entry("item_socket_4_link_3.json");
-        assert!(!evaluate(&rq, &entry));
+    fn integer_gt() {
+        // rq_value=100 > entry_value → entry must be < 100
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "price", "value": 100, "type": "integer", "typeOptions": {"operator": ">"}}]"#,
+        ).unwrap();
+        assert!(evaluate(&rq, &clothing_entry())); // 100 > 49
+        assert!(!evaluate(&rq, &electronics_entry())); // 100 > 299 = false
     }
 
     #[test]
-    fn new_format_matches_paua_ring() {
-        // Paua ring: no armor (NOT passes), lightning_dmg_1=1 (1<=1), lightning_dmg_2=18 (10<18),
-        // lightning_res=23 (15<23). All conditions pass.
-        let rq = load_rq("wanted_boots_unique_new_format.json");
-        let entry = load_entry("paua_ring_rare.json");
-        assert!(evaluate(&rq, &entry));
+    fn integer_lte() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "rating", "value": 4, "type": "integer", "typeOptions": {"operator": "<="}}]"#,
+        ).unwrap();
+        assert!(evaluate(&rq, &electronics_entry())); // 4 <= 4
+        assert!(evaluate(&rq, &clothing_entry())); // 4 <= 5
+        assert!(!evaluate(&rq, &book_entry())); // 4 <= 3 = false
+    }
+
+    #[test]
+    fn integer_gte() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "rating", "value": 4, "type": "integer", "typeOptions": {"operator": ">="}}]"#,
+        ).unwrap();
+        assert!(evaluate(&rq, &electronics_entry())); // 4 >= 4
+        assert!(!evaluate(&rq, &clothing_entry())); // 4 >= 5 = false
+        assert!(evaluate(&rq, &book_entry())); // 4 >= 3
+    }
+
+    #[test]
+    fn integer_eq() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "weight", "value": 1, "type": "integer", "typeOptions": null}]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &electronics_entry())); // 1 == 2 = false
+        assert!(evaluate(&rq, &clothing_entry())); // 1 == 1
+    }
+
+    // --- Missing key fails ---
+
+    #[test]
+    fn missing_key_fails() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "nonexistent", "value": "anything", "type": "string", "typeOptions": null}]"#,
+        ).unwrap();
+        assert!(!evaluate(&rq, &electronics_entry()));
+    }
+
+    // --- AND list ---
+
+    #[test]
+    fn and_list_all_pass() {
+        // price between 10 and 500 (Erlang: 10 < entry AND 500 > entry)
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "list", "value": [
+                {"key": "price", "value": 10, "type": "integer", "typeOptions": {"operator": "<"}},
+                {"key": "price", "value": 500, "type": "integer", "typeOptions": {"operator": ">"}}
+            ], "type": "list", "typeOptions": {"operator": "and"}}]"#,
+        )
+        .unwrap();
+        assert!(evaluate(&rq, &electronics_entry())); // 10 < 299 AND 500 > 299
+    }
+
+    #[test]
+    fn and_list_partial_fail() {
+        // price between 10 and 40 — electronics at 299 fails the upper bound
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "list", "value": [
+                {"key": "price", "value": 10, "type": "integer", "typeOptions": {"operator": "<"}},
+                {"key": "price", "value": 40, "type": "integer", "typeOptions": {"operator": ">"}}
+            ], "type": "list", "typeOptions": {"operator": "and"}}]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &electronics_entry())); // 40 > 299 = false
+    }
+
+    // --- NOT list ---
+
+    #[test]
+    fn not_list_passes_when_none_match() {
+        // NOT(on_sale=true) — electronics has on_sale=false, so NOT passes
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "list", "value": [
+                {"key": "on_sale", "value": true, "type": "boolean", "typeOptions": null}
+            ], "type": "list", "typeOptions": {"operator": "not"}}]"#,
+        )
+        .unwrap();
+        assert!(evaluate(&rq, &electronics_entry()));
+    }
+
+    #[test]
+    fn not_list_fails_when_any_match() {
+        // NOT(on_sale=true) — clothing has on_sale=true, so NOT fails
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "list", "value": [
+                {"key": "on_sale", "value": true, "type": "boolean", "typeOptions": null}
+            ], "type": "list", "typeOptions": {"operator": "not"}}]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &clothing_entry()));
+    }
+
+    // --- COUNT list ---
+
+    #[test]
+    fn count_list_exact_match() {
+        // COUNT=1: exactly 1 of these conditions must match
+        // price < 50 (50 < entry), weight < 2 (2 < entry)
+        // Electronics: price=299 (50<299=true), weight=2 (2<2=false) → count=1 = true
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "list", "value": [
+                {"key": "price", "value": 50, "type": "integer", "typeOptions": {"operator": "<"}},
+                {"key": "weight", "value": 2, "type": "integer", "typeOptions": {"operator": "<"}}
+            ], "type": "list", "typeOptions": {"operator": "count", "count": 1}}]"#,
+        )
+        .unwrap();
+        assert!(evaluate(&rq, &electronics_entry()));
+    }
+
+    #[test]
+    fn count_list_wrong_count() {
+        // COUNT=1 but both match for clothing: price=49 (50<49=false), weight=1 (2<1=false) → count=0
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[{"key": "list", "value": [
+                {"key": "price", "value": 50, "type": "integer", "typeOptions": {"operator": "<"}},
+                {"key": "weight", "value": 2, "type": "integer", "typeOptions": {"operator": "<"}}
+            ], "type": "list", "typeOptions": {"operator": "count", "count": 1}}]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &clothing_entry())); // count=0, expected 1
+    }
+
+    // --- Cross-category rejection ---
+
+    #[test]
+    fn cross_category_rejection() {
+        let rq: Vec<Condition> = serde_json::from_str(
+            r#"[
+                {"key": "category", "value": "Electronics", "type": "string", "typeOptions": null},
+                {"key": "in_stock", "value": true, "type": "boolean", "typeOptions": null}
+            ]"#,
+        )
+        .unwrap();
+        assert!(!evaluate(&rq, &book_entry())); // Books != Electronics
     }
 }
