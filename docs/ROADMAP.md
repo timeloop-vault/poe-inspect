@@ -31,21 +31,17 @@ Automated pipeline to download GGPK from the PoE patch server, extract game data
 
 ---
 
-## 3. Compact Overlay Mode
+## ~~3. Compact Overlay Mode~~ ✅
 
-Score-only pill for speed-scanning stash tabs.
+Done. Score-only pill for speed-scanning stash tabs.
 
-**UX:**
-- Separate hotkey (or modifier key) triggers compact mode instead of full overlay
-- Shows: profile name + score + tier color as a small pill near cursor
-- Expand: press full-overlay hotkey to see detailed stats/trade/mods
-- Use case: hovering items quickly in stash — just need pass/fail signal
-
-**Implementation:**
-- New hotkey binding in settings (e.g., `Ctrl+Shift+I` or configurable)
-- Compact CSS layout (minimal pill component)
-- Setting to choose default mode (compact vs full)
-- Reuses existing evaluation — just a different rendering path
+- Compact inspect hotkey (default `Ctrl+Shift+I`) — small pill near cursor, click-through, auto-dismisses after 2.5s
+- Shows item name + score % (color-coded) + watching profile dots
+- Maps show DEADLY/CAUTION/SAFE/UNRATED verdict instead of score
+- Press full inspect hotkey while pill showing → expands to full overlay (no re-parse)
+- Independent compact position setting (cursor vs panel)
+- DOM-measured panel positioning replaces hardcoded size estimates
+- "Not bound" placeholder UX for unset hotkeys
 
 ---
 
@@ -126,3 +122,4 @@ These are known gaps and future features, not currently prioritized.
 | CSS split (overlay vs settings) | app | Separate entry points. Low priority — class-scoping works. |
 | Overlay sprites | app | Foil/Quest/Prophecy headers, Div Card separator, influence overlays. |
 | Item browser for rule building | app | Browsable poe-data database for looking up base types, mods. |
+| Inspect + Trade Edit hotkey | app | New hotkey that opens full overlay with trade edit mode already active. Emits inspect-mode with trade-edit flag. |
