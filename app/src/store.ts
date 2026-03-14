@@ -40,6 +40,7 @@ export interface GeneralSettings {
 	poeVersion: "poe1" | "poe2";
 	startMinimized: boolean;
 	launchOnBoot: boolean;
+	requirePoeFocus: boolean;
 	showRollBars: boolean;
 	showTierBadges: boolean;
 	showTypeBadges: boolean;
@@ -130,6 +131,7 @@ export const defaultGeneral: GeneralSettings = {
 	poeVersion: "poe1",
 	startMinimized: true,
 	launchOnBoot: false,
+	requirePoeFocus: true,
 	showRollBars: true,
 	showTierBadges: true,
 	showTypeBadges: true,
