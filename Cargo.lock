@@ -800,6 +800,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "poe-rqe-client"
+version = "0.1.0"
+dependencies = [
+ "poe-item",
+ "poe-rqe",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "poe-trade"
 version = "0.1.0"
 dependencies = [

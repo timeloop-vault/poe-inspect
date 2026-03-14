@@ -6,6 +6,7 @@ members = [
     "crates/poe-data",
     "crates/poe-eval",
     "crates/poe-rqe",
+    "crates/poe-rqe-client",
     "crates/poe-trade",
     "rqe-server",
 ]
