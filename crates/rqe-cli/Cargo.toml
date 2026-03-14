@@ -1,0 +1,22 @@
+[package]
+name = "rqe-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "CLI for the Reverse Query Engine — parse items, manage queries, match against rqe-server"
+
+[dependencies]
+poe-item = { path = "../poe-item", features = ["serde"] }
+poe-data = { path = "../poe-data" }
+poe-rqe = { path = "../poe-rqe" }
+poe-rqe-client = { path = "../poe-rqe-client" }
+clap = { version = "4", features = ["derive", "env"] }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[lints]
+workspace = true
