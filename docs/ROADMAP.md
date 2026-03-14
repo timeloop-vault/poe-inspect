@@ -104,14 +104,14 @@ Done. Both features implemented with Settings UI.
 
 ## 8. Trade Edit Search Improvements
 
-Pain points from real gameplay. The Edit Search UI needs more filters to match what the official trade site offers.
+Pain points from real gameplay. The Edit Search UI needs more filters to match what the official trade site offers. Many of these were designed in `docs/trade-query-builder-design.md` (Phase 6c) but not yet implemented.
 
-1. **Rarity toggle** — filter by rarity (may have existed before, got lost)
-2. **Level/attribute requirements** — level req, str/dex/int req, item level filters
-3. **Defenses & sockets** — quality, armour/evasion/energy shield, socket/link filters
-4. **Open prefixes** — filter for items with open prefix slots
-5. **"Base item" button** — strips all stat filters but keeps base type + fractured mods. Quick way to price-check the base itself
-6. **Fractured affix support** — fractured mods should be recognized and filterable in Edit Search
+1. **Rarity toggle** — filter by rarity. Designed in query builder doc §7 (`rarity: "nonunique"` / omit). Small toggle near header
+2. **Level/attribute requirements** — level req, str/dex/int req, item level. Designed in §2-3 (`ilvl.min` filter). Attr reqs display-only for now (no trade API filter)
+3. **Defenses & sockets** — quality, armour/evasion/energy shield, socket/link filters. Quality + sockets partially implemented already
+4. **Open prefixes** — filter for items with open prefix slots. Designed in §4 (`pseudo.open_prefix`/`pseudo.open_suffix`). Needs trade API pseudo stat ID research
+5. **"Base item" button** — strips all stat filters but keeps base type + fractured mods. Quick way to price-check the base itself. NEW — not in existing design docs
+6. **Fractured affix support** — fractured mods should be recognized and filterable in Edit Search. Partially designed in §8 (auto-detected, make toggleable)
 
 ---
 
