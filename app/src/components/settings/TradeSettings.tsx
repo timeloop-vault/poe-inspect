@@ -196,11 +196,11 @@ export function TradeSettings() {
 					</div>
 					<select
 						class="setting-select"
-						value={settings.listingStatus ?? "onlb"}
+						value={settings.listingStatus ?? "available"}
 						onChange={(e) => update({ listingStatus: (e.target as HTMLSelectElement).value })}
 					>
-						<option value="onlb">Instant Buyout and In Person</option>
-						<option value="buyout">Instant Buyout</option>
+						<option value="available">Instant Buyout and In Person</option>
+						<option value="securable">Instant Buyout</option>
 						<option value="online">In Person (Online)</option>
 						<option value="any">Any</option>
 					</select>

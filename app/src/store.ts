@@ -172,7 +172,7 @@ export const defaultGeneral: GeneralSettings = {
 export const defaultTrade: TradeSettings = {
 	league: "",
 	valueRelaxation: 0.85,
-	listingStatus: "onlb",
+	listingStatus: "available",
 	poesessid: "",
 };
 

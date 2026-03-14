@@ -449,7 +449,7 @@ export function App() {
 		league: tradeSettings.league,
 		valueRelaxation: tradeSettings.valueRelaxation,
 		usePseudoStats: false,
-		listingStatus: tradeSettings.listingStatus ?? "onlb",
+		listingStatus: tradeSettings.listingStatus ?? "available",
 	};
 
 	const tradeFilters = useTradeFilters(
