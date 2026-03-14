@@ -237,8 +237,6 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                 },
             }],
         },
-        // HasStatText and HasStatId are deprecated — use StatValue instead.
-        // They still evaluate correctly (backward compat) but are hidden from the UI.
         PredicateSchema {
             type_name: "ModTier".into(),
             label: "Mod Tier".into(),
@@ -471,7 +469,6 @@ mod tests {
     #[test]
     fn schema_has_all_predicates() {
         let schema = predicate_schema();
-        // 17 active predicates (HasStatText + HasStatId deprecated, hidden from UI).
         assert_eq!(schema.len(), 17, "schema should have exactly 17 predicates");
     }
 
@@ -499,7 +496,6 @@ mod tests {
             r#"{"type":"ModCount","slot":"Prefix","op":"Ge","value":1}"#,
             r#"{"type":"OpenMods","slot":"Suffix","op":"Ge","value":1}"#,
             r#"{"type":"HasModNamed","name":"Test"}"#,
-            // HasStatText and HasStatId deprecated — still deserialize, just not in schema
             r#"{"type":"ModTier","name":"Test","op":"Le","value":3}"#,
             r#"{"type":"StatValue","conditions":[{"stat_ids":["base_maximum_life"],"value_index":0,"op":"Ge","value":50}]}"#,
             r#"{"type":"RollPercent","text":"Life","stat_ids":["base_maximum_life"],"value_index":0,"op":"Ge","value":80}"#,
@@ -512,7 +508,6 @@ mod tests {
         ];
 
         let schema = predicate_schema();
-        // test_cases covers all schema entries plus deprecated HasStatText/HasStatId
         assert_eq!(
             test_cases.len(),
             schema.len(),
