@@ -135,6 +135,17 @@ export interface TradeSettings {
 	poesessid: string;
 }
 
+export interface MarketplaceSettings {
+	/** PoE account name in "Name#0000" format. null = not logged in. */
+	accountName: string | null;
+	/** RQE server URL. */
+	serverUrl: string;
+	/** API key for authenticated endpoints. */
+	apiKey: string | null;
+	/** Whether to run RQE check on item inspect. */
+	enabled: boolean;
+}
+
 // ── Defaults ──────────────────────────────────────────────────────────────
 
 export const defaultGeneral: GeneralSettings = {
@@ -160,6 +171,13 @@ export const defaultTrade: TradeSettings = {
 	valueRelaxation: 0.85,
 	onlineOnly: true,
 	poesessid: "",
+};
+
+export const defaultMarketplace: MarketplaceSettings = {
+	accountName: null,
+	serverUrl: "http://localhost:8080",
+	apiKey: null,
+	enabled: true,
 };
 
 export const defaultHotkeys: HotkeySettings = {
@@ -259,6 +277,24 @@ export async function loadTrade(): Promise<TradeSettings> {
 export async function saveTrade(settings: TradeSettings): Promise<void> {
 	const store = await getSettingsStore();
 	await store.set("trade", settings);
+}
+
+// ── Marketplace settings ─────────────────────────────────────────────────
+
+export async function loadMarketplace(): Promise<MarketplaceSettings> {
+	const store = await getSettingsStore();
+	const val = await store.get<MarketplaceSettings>("marketplace");
+	return val ?? { ...defaultMarketplace };
+}
+
+export async function saveMarketplace(settings: MarketplaceSettings): Promise<void> {
+	const store = await getSettingsStore();
+	await store.set("marketplace", settings);
+}
+
+/** Validate PoE account name format: Name#0000 */
+export function isValidAccountName(name: string): boolean {
+	return /^[A-Za-z0-9_-]+#\d{4}$/.test(name);
 }
 
 // ── Chat macros ──────────────────────────────────────────────────────────

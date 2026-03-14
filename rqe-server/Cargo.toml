@@ -9,6 +9,7 @@ description = "HTTP server for the Reverse Query Engine"
 [dependencies]
 poe-rqe = { path = "../crates/poe-rqe" }
 axum = { workspace = true }
+tower-http = { version = "0.6", features = ["cors"] }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
