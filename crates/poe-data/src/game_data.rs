@@ -370,6 +370,18 @@ impl GameData {
         self.stat_id_to_templates.get(stat_id).map(Vec::as_slice)
     }
 
+    /// Get all stat IDs for a display template (including local equivalents).
+    ///
+    /// E.g., `"+# to maximum Life"` → `["base_maximum_life"]`
+    /// E.g., `"# to Armour"` → `["base_physical_damage_reduction_rating", "local_base_physical_damage_reduction_rating"]`
+    ///
+    /// Requires `set_reverse_index()` to have been called.
+    pub fn all_stat_ids_for_template(&self, template: &str) -> Option<&[String]> {
+        self.template_to_all_stat_ids
+            .get(template)
+            .map(Vec::as_slice)
+    }
+
     /// Return all map/area mod templates with their stat IDs.
     ///
     /// Filters the template index for entries where any associated stat ID

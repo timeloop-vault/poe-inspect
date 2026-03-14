@@ -7,7 +7,10 @@ use poe_dat::stat_desc;
 /// Extract from GGPK with: cargo run --example extract_utf8 -- <poe_path> <file_path> > <out>
 const ADDITIONAL_STAT_FILES: &[&str] = &[
     "map_stat_desc_utf8.txt",
-    // Future: "atlas_stat_desc_utf8.txt", "sanctum_relic_stat_desc_utf8.txt", etc.
+    "atlas_stat_desc_utf8.txt",
+    "sanctum_relic_stat_desc_utf8.txt",
+    "heist_equipment_stat_desc_utf8.txt",
+    "expedition_relic_stat_desc_utf8.txt",
 ];
 
 fn load_index() -> Option<stat_desc::ReverseIndex> {
@@ -30,14 +33,20 @@ fn load_index() -> Option<stat_desc::ReverseIndex> {
         if extra_path.exists() {
             let extra_input =
                 std::fs::read_to_string(&extra_path).expect("failed to read extra file");
-            let extra_file = stat_desc::parse(&extra_input).expect("failed to parse extra file");
-            let before = index.len();
-            index.merge(&extra_file);
-            eprintln!(
-                "Merged {filename}: +{} patterns (total: {})",
-                index.len() - before,
-                index.len()
-            );
+            match stat_desc::parse(&extra_input) {
+                Ok(extra_file) => {
+                    let before = index.len();
+                    index.merge(&extra_file);
+                    eprintln!(
+                        "Merged {filename}: +{} patterns (total: {})",
+                        index.len() - before,
+                        index.len()
+                    );
+                }
+                Err(e) => {
+                    eprintln!("Warning: failed to parse {filename}, skipping: {e}");
+                }
+            }
         } else {
             eprintln!("Note: {filename} not found, skipping (extract from GGPK to include)");
         }

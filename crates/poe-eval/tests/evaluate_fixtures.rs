@@ -268,12 +268,19 @@ fn has_mod_named() {
 }
 
 #[test]
-fn has_stat_text() {
-    let gd = test_game_data(&[]);
+fn has_stat_presence_via_stat_value() {
+    let gd = full_game_data();
     let item = resolve("rare-belt-crafted.txt", &gd);
 
-    let rule = Rule::pred(Predicate::HasStatText {
-        text: "maximum Life".to_string(),
+    // Presence check: StatValue with Ge 0 (any non-negative value)
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: Some("maximum Life".to_string()),
+            stat_ids: vec!["base_maximum_life".to_string()],
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 0,
+        }],
     });
     assert!(evaluate(&item, &rule, &gd));
 }
@@ -464,7 +471,7 @@ fn not_combinator() {
 
 #[test]
 fn complex_rule() {
-    let gd = test_game_data(&[]);
+    let gd = full_game_data();
     let item = resolve("rare-belt-crafted.txt", &gd);
 
     // "Is a rare belt with ilvl >= 50 AND has life AND is not corrupted"
@@ -480,8 +487,14 @@ fn complex_rule() {
             op: Cmp::Ge,
             value: 50,
         }),
-        Rule::pred(Predicate::HasStatText {
-            text: "maximum Life".to_string(),
+        Rule::pred(Predicate::StatValue {
+            conditions: vec![StatCondition {
+                text: Some("maximum Life".to_string()),
+                stat_ids: vec!["base_maximum_life".to_string()],
+                value_index: 0,
+                op: Cmp::Ge,
+                value: 0,
+            }],
         }),
         Rule::negate(Rule::pred(Predicate::HasStatus {
             status: StatusValue::Corrupted,
@@ -525,22 +538,60 @@ fn belt_profile() -> Profile {
             ScoringRule {
                 label: "Has life".to_string(),
                 weight: 10.0,
-                rule: Rule::pred(Predicate::HasStatText {
-                    text: "maximum Life".to_string(),
+                rule: Rule::pred(Predicate::StatValue {
+                    conditions: vec![StatCondition {
+                        text: Some("maximum Life".to_string()),
+                        stat_ids: vec!["base_maximum_life".to_string()],
+                        value_index: 0,
+                        op: Cmp::Ge,
+                        value: 0,
+                    }],
                 }),
             },
             ScoringRule {
                 label: "Has resistances".to_string(),
                 weight: 5.0,
-                rule: Rule::pred(Predicate::HasStatText {
-                    text: "Resistance".to_string(),
-                }),
+                rule: Rule::any(vec![
+                    Rule::pred(Predicate::StatValue {
+                        conditions: vec![StatCondition {
+                            text: Some("Fire Resistance".to_string()),
+                            stat_ids: vec!["base_fire_damage_resistance_%".to_string()],
+                            value_index: 0,
+                            op: Cmp::Ge,
+                            value: 0,
+                        }],
+                    }),
+                    Rule::pred(Predicate::StatValue {
+                        conditions: vec![StatCondition {
+                            text: Some("Cold Resistance".to_string()),
+                            stat_ids: vec!["base_cold_damage_resistance_%".to_string()],
+                            value_index: 0,
+                            op: Cmp::Ge,
+                            value: 0,
+                        }],
+                    }),
+                    Rule::pred(Predicate::StatValue {
+                        conditions: vec![StatCondition {
+                            text: Some("Lightning Resistance".to_string()),
+                            stat_ids: vec!["base_lightning_damage_resistance_%".to_string()],
+                            value_index: 0,
+                            op: Cmp::Ge,
+                            value: 0,
+                        }],
+                    }),
+                ]),
             },
             ScoringRule {
                 label: "Has armour".to_string(),
                 weight: 3.0,
-                rule: Rule::pred(Predicate::HasStatText {
-                    text: "Armour".to_string(),
+                rule: Rule::pred(Predicate::StatValue {
+                    conditions: vec![StatCondition {
+                        text: Some("Armour".to_string()),
+                        stat_ids: vec!["base_physical_damage_reduction_rating".to_string()],
+                        value_index: 0,
+                        op: Cmp::Ge,
+                        value: 0,
+                    }],
                 }),
             },
             ScoringRule {
@@ -556,7 +607,7 @@ fn belt_profile() -> Profile {
 
 #[test]
 fn score_matching_profile() {
-    let gd = test_game_data(&[]);
+    let gd = full_game_data();
     let item = resolve("rare-belt-crafted.txt", &gd);
 
     let result = score(&item, &belt_profile(), &gd);
@@ -569,7 +620,7 @@ fn score_matching_profile() {
 
 #[test]
 fn score_filter_rejects() {
-    let gd = test_game_data(&[]);
+    let gd = full_game_data();
     let item = resolve("unique-ring-ventors-gamble.txt", &gd);
 
     let result = score(&item, &belt_profile(), &gd);
@@ -582,7 +633,7 @@ fn score_filter_rejects() {
 
 #[test]
 fn score_detailed_breakdown() {
-    let gd = test_game_data(&[]);
+    let gd = full_game_data();
     let item = resolve("rare-belt-crafted.txt", &gd);
 
     let result = score(&item, &belt_profile(), &gd);
@@ -600,7 +651,7 @@ fn score_detailed_breakdown() {
 
 #[test]
 fn profile_no_filter() {
-    let gd = test_game_data(&[]);
+    let gd = full_game_data();
     let item = resolve("unique-ring-ventors-gamble.txt", &gd);
 
     // Profile with no filter — applies to everything
@@ -611,8 +662,14 @@ fn profile_no_filter() {
         scoring: vec![ScoringRule {
             label: "life".to_string(),
             weight: 10.0,
-            rule: Rule::pred(Predicate::HasStatText {
-                text: "maximum Life".to_string(),
+            rule: Rule::pred(Predicate::StatValue {
+                conditions: vec![StatCondition {
+                    text: Some("maximum Life".to_string()),
+                    stat_ids: vec!["base_maximum_life".to_string()],
+                    value_index: 0,
+                    op: Cmp::Ge,
+                    value: 0,
+                }],
             }),
         }],
     };

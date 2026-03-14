@@ -58,8 +58,6 @@ tests/
 | `ModCount` | Count of prefix/suffix/implicit mods |
 | `OpenMods` | Available mod slots (uses GameData for max) |
 | `HasModNamed` | Whether any mod has a specific name |
-| `HasStatText` | ~~Whether any stat line contains text~~ **Deprecated** — use `StatValue` |
-| `HasStatId` | ~~Whether any stat has a resolved stat ID~~ **Deprecated** — use `StatValue` |
 | `ModTier` | Mod tier comparison by name |
 | `StatValue` | Rolled value of a matching stat (1 condition = any mod; 2+ = same mod) |
 | `RollPercent` | How close a roll is to max (0-100%) |

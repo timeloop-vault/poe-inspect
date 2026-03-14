@@ -76,18 +76,53 @@ impl TradeStatsIndex {
                 // Cross-reference: only for stat_ entries (not pseudo/named)
                 if let Some(trade_num) = extract_stat_number(&entry.id) {
                     if let Some(ri) = &game_data.reverse_index {
-                        // Try exact match first, then fallback with +# → # substitution.
-                        // stat_descriptions.txt uses `{0:+d}` format specifier for signed
-                        // values. The `+` is NOT literal text, so our template key has
-                        // just `#`, while the trade API shows `+#`.
-                        let stat_ids = resolve_template(&normalized, &ri_case_map, ri);
+                        let result = resolve_template(&normalized, &ri_case_map, ri);
 
-                        if let Some(stat_ids) = stat_ids {
+                        if let Some(result) = result {
                             matched += 1;
-                            for stat_id in &stat_ids {
-                                ggpk_to_trade.insert(stat_id.clone(), trade_num);
+
+                            if result.suffix_stripped {
+                                // This is a "(Local)" trade entry. Map LOCAL stat_ids to
+                                // this trade number so items with local stat_ids (from
+                                // base-type-anchored resolution) resolve correctly.
+                                for stat_id in &result.stat_ids {
+                                    // The reverse index returns non-local stat_ids. Use
+                                    // GameData to find the local equivalents that share
+                                    // the same template text.
+                                    if let Some(templates) =
+                                        game_data.templates_for_stat(stat_id)
+                                    {
+                                        for tmpl in templates {
+                                            if let Some(all_ids) =
+                                                game_data.all_stat_ids_for_template(tmpl)
+                                            {
+                                                for id in all_ids {
+                                                    if game_data
+                                                        .stat(id)
+                                                        .is_some_and(|s| s.is_local)
+                                                    {
+                                                        ggpk_to_trade
+                                                            .insert(id.clone(), trade_num);
+                                                        trade_to_ggpk
+                                                            .entry(trade_num)
+                                                            .or_default()
+                                                            .push(id.clone());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Normal (non-local) entry: map as before.
+                                for stat_id in &result.stat_ids {
+                                    ggpk_to_trade.insert(stat_id.clone(), trade_num);
+                                }
+                                trade_to_ggpk
+                                    .entry(trade_num)
+                                    .or_default()
+                                    .extend(result.stat_ids);
                             }
-                            trade_to_ggpk.entry(trade_num).or_default().extend(stat_ids);
                         } else {
                             unmatched_templates.push(entry.text.clone());
                         }
@@ -202,6 +237,14 @@ impl TradeStatsIndex {
     }
 }
 
+/// Result of resolving a trade API template against the reverse index.
+struct ResolveResult {
+    /// GGPK stat IDs that matched.
+    stat_ids: Vec<String>,
+    /// Whether a trade API suffix like `(Local)` was stripped to achieve the match.
+    suffix_stripped: bool,
+}
+
 /// Try to resolve a trade API template against the reverse index.
 ///
 /// Tries multiple normalizations in order:
@@ -213,13 +256,16 @@ fn resolve_template(
     normalized: &str,
     ri_case_map: &HashMap<String, String>,
     ri: &ReverseIndex,
-) -> Option<Vec<String>> {
+) -> Option<ResolveResult> {
     // 1. Exact
     if let Some(ids) = ri_case_map
         .get(normalized)
         .and_then(|orig| ri.stat_ids_for_template(orig))
     {
-        return Some(ids);
+        return Some(ResolveResult {
+            stat_ids: ids,
+            suffix_stripped: false,
+        });
     }
 
     // 2. Strip +# → #
@@ -229,7 +275,10 @@ fn resolve_template(
             .get(&without_plus)
             .and_then(|orig| ri.stat_ids_for_template(orig))
         {
-            return Some(ids);
+            return Some(ResolveResult {
+                stat_ids: ids,
+                suffix_stripped: false,
+            });
         }
     }
 
@@ -244,7 +293,10 @@ fn resolve_template(
             .get(&stripped)
             .and_then(|orig| ri.stat_ids_for_template(orig))
         {
-            return Some(ids);
+            return Some(ResolveResult {
+                stat_ids: ids,
+                suffix_stripped: true,
+            });
         }
 
         // 4. Both: strip +# AND (local)
@@ -254,7 +306,10 @@ fn resolve_template(
                 .get(&both)
                 .and_then(|orig| ri.stat_ids_for_template(orig))
             {
-                return Some(ids);
+                return Some(ResolveResult {
+                    stat_ids: ids,
+                    suffix_stripped: true,
+                });
             }
         }
     }
