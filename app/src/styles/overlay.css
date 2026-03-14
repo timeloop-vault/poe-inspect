@@ -1349,6 +1349,30 @@ body,
 	font-weight: normal;
 }
 
+.compact-pill-verdict {
+	font-size: 13px;
+	font-weight: bold;
+	font-family: "Fontin SmallCaps", "FrizQuadrata", sans-serif;
+	letter-spacing: 1px;
+	flex-shrink: 0;
+}
+
+.compact-pill-verdict.danger-deadly {
+	color: #e05040;
+}
+
+.compact-pill-verdict.danger-warning {
+	color: #e8a020;
+}
+
+.compact-pill-verdict.danger-good {
+	color: #38d838;
+}
+
+.compact-pill-verdict.danger-unclassified {
+	color: var(--poe-text-dim);
+}
+
 .compact-pill-dots {
 	display: flex;
 	gap: 4px;

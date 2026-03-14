@@ -413,7 +413,7 @@ export function App() {
 		showDismiss = false;
 		content = (
 			<div class={compactFading ? "compact-pill-fading" : ""}>
-				<CompactPill item={evaluatedItem} profiles={profileSummaries} />
+				<CompactPill item={evaluatedItem} profiles={profileSummaries} mapDanger={mapDanger} />
 			</div>
 		);
 	} else if (evaluatedItem && !showMock) {

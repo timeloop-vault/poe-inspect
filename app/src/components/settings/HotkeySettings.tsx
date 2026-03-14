@@ -145,9 +145,7 @@ export function HotkeySettings() {
 									}
 								}}
 							>
-								{capturing === field.key
-								? "Press keys..."
-								: settings[field.key] || "Not bound"}
+								{capturing === field.key ? "Press keys..." : settings[field.key] || "Not bound"}
 							</button>
 							{capturing === field.key ? (
 								<button type="button" class="hotkey-reset" onClick={cancelCapture}>
