@@ -237,11 +237,14 @@ fn resolve_mod(
         }
     }
 
-    // Detect fractured from raw text suffix "(fractured)" on any stat line
-    let is_fractured = group
-        .body_lines
-        .iter()
-        .any(|line| line.ends_with("(fractured)"));
+    // Detect fractured from either:
+    // 1. Header source: { Fractured Prefix Modifier ... }
+    // 2. Body line suffix: +19 to Armour (fractured)
+    let is_fractured = group.header.source == ModSource::Fractured
+        || group
+            .body_lines
+            .iter()
+            .any(|line| line.ends_with("(fractured)"));
 
     let display_type = ResolvedMod::compute_display_type(group.header.slot, group.header.source);
     ResolvedMod {

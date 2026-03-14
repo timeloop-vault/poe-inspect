@@ -1,0 +1,40 @@
+Item Class: Helmets
+Rarity: Rare
+Rift Peak
+Eternal Burgonet
+--------
+Quality: +20% (augmented)
+Armour: 1299 (augmented)
+--------
+Requirements:
+Level: 70
+Str: 138
+Dex: 48
+Int: 151 (unmet)
+--------
+Sockets: B-B-B B
+--------
+Item Level: 87
+--------
+{ Searing Exarch Implicit Modifier (Lesser) — Elemental, Lightning, Resistance }
++1% to maximum Lightning Resistance
+(Maximum Resistances cannot be raised above 90%)
+{ Eater of Worlds Implicit Modifier (Lesser) — Mana }
+5% increased Mana Regeneration Rate per Power Charge
+--------
+{ Fractured Prefix Modifier "Encased" (Tier: 2) — Defences, Armour }
++147(121-150) to Armour
+{ Prefix Modifier "Athlete's" (Tier: 2) — Life }
++129(115-129) to maximum Life
+{ Prefix Modifier "Girded" (Tier: 2) — Defences, Armour }
+88(80-91)% increased Armour
+{ Suffix Modifier "of Expulsion" (Tier: 3) — Chaos, Resistance }
++24(21-25)% to Chaos Resistance
+{ Suffix Modifier "of the Polar Bear" (Tier: 3) — Elemental, Cold, Resistance }
++40(36-41)% to Cold Resistance
+{ Suffix Modifier "of the Sage" (Tier: 5) — Attribute }
++37(33-37) to Intelligence
+Searing Exarch Item
+Eater of Worlds Item
+--------
+Fractured Item
