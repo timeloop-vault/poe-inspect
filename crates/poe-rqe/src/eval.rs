@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::predicate::{CompareOp, Condition, ListOp, StringMatch, Value};
 
@@ -8,7 +8,7 @@ use crate::predicate::{CompareOp, Condition, ListOp, StringMatch, Value};
 ///
 /// Entries are flat key-value maps where values can be strings, integers, or booleans.
 /// This mirrors the Erlang RQE's entry format: `#{"key" => value}`.
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum EntryValue {
     String(String),
@@ -19,7 +19,7 @@ pub enum EntryValue {
 /// An item entry to match against reverse queries.
 ///
 /// Flat map of property names to values, deserialized directly from JSON.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entry(HashMap<String, EntryValue>);
 
 impl Entry {
