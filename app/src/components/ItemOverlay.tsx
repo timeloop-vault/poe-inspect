@@ -821,8 +821,8 @@ export function ItemOverlay({
 				</div>
 			)}
 
-			{/* Profile switch pills */}
-			{profiles && profiles.length > 1 && onSwitchProfile && (
+			{/* Profile switch pills — only show when watching profiles have scores */}
+			{profiles && profiles.length > 1 && onSwitchProfile && watchingScores.length > 0 && (
 				<div class="profile-switch-pills">
 					{profiles.map((p) => (
 						<button
