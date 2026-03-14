@@ -29,6 +29,14 @@ export function GeneralSettings() {
 		if (patch.requirePoeFocus !== undefined) {
 			invoke("set_require_poe_focus", { enabled: patch.requirePoeFocus });
 		}
+		// If toggling stashScroll, sync with backend hook
+		if (patch.stashScroll !== undefined) {
+			invoke("set_stash_scroll", { enabled: patch.stashScroll });
+		}
+		// If changing stashScrollModifier, sync with backend hook
+		if (patch.stashScrollModifier !== undefined) {
+			invoke("set_stash_scroll_modifier", { modifier: patch.stashScrollModifier });
+		}
 		setSettings((prev) => {
 			const next = { ...prev, ...patch };
 			saveGeneral(next);
@@ -192,6 +200,38 @@ export function GeneralSettings() {
 						onChange={(v) => update({ requirePoeFocus: v })}
 					/>
 				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Stash tab scrolling
+						<div class="setting-description">
+							Scroll wheel navigates between stash tabs when Path of Exile is focused.
+							Scroll up goes left, scroll down goes right.
+						</div>
+					</div>
+					<Toggle
+						checked={settings.stashScroll}
+						onChange={(v) => update({ stashScroll: v })}
+					/>
+				</div>
+
+				{settings.stashScroll && (
+					<div class="setting-row">
+						<div class="setting-label">Scroll modifier key</div>
+						<select
+							class="setting-select"
+							value={settings.stashScrollModifier}
+							onChange={(e) =>
+								update({ stashScrollModifier: (e.target as HTMLSelectElement).value })
+							}
+						>
+							<option value="Ctrl">Ctrl + Scroll</option>
+							<option value="Shift">Shift + Scroll</option>
+							<option value="Alt">Alt + Scroll</option>
+							<option value="None">Scroll (no modifier)</option>
+						</select>
+					</div>
+				)}
 			</div>
 
 			<div class="setting-group">
