@@ -662,3 +662,34 @@ fn superior_quality_prefix_stripped() {
     assert_eq!(item.header.base_type, "Ezomyte Tower Shield");
     assert_eq!(item.header.item_class, "Shields");
 }
+
+#[test]
+fn fractured_mod_from_header_source() {
+    let gd = test_game_data(&["Eternal Burgonet"]);
+    let item = resolve_fixture("rare-helmet-fractured-dual-influence.txt", &gd);
+
+    assert!(item.is_fractured, "item should be fractured");
+
+    // The first explicit mod has { Fractured Prefix Modifier } in the header
+    let encased = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Encased"))
+        .expect("should find Encased mod");
+    assert!(
+        encased.is_fractured,
+        "Encased mod should be fractured (from header source)"
+    );
+    assert_eq!(encased.header.source, ModSource::Fractured);
+
+    // Other mods should NOT be fractured
+    let athletes = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Athlete's"))
+        .expect("should find Athlete's mod");
+    assert!(
+        !athletes.is_fractured,
+        "Athlete's mod should not be fractured"
+    );
+}
