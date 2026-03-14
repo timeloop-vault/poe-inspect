@@ -1,0 +1,8 @@
+{
+    "conditions": [
+        {"key": "item_class", "value": "Body Armours", "type": "string", "typeOptions": null},
+        {"key": "rarity_class", "value": "Non-Unique", "type": "string", "typeOptions": null},
+        {"key": "explicit.base_maximum_life", "value": 100, "type": "integer", "typeOptions": {"operator": "<"}}
+    ],
+    "labels": ["build:rf-jugg"]
+}

@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 
 use clap::{Parser, Subcommand};
 use poe_rqe::store::QueryId;
@@ -120,13 +121,29 @@ fn parse_item_file(
     cli: &Cli,
     file: &PathBuf,
 ) -> Result<poe_rqe::eval::Entry, Box<dyn std::error::Error>> {
+    let t0 = Instant::now();
     let text = std::fs::read_to_string(file)?;
     let raw = poe_item::parse(&text)?;
+    let parse_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
+    let t1 = Instant::now();
     let gd = load_game_data(cli)?;
-    let resolved = poe_item::resolve(&raw, &gd);
+    let load_ms = t1.elapsed().as_secs_f64() * 1000.0;
 
-    Ok(poe_rqe_client::item_to_entry(&resolved))
+    let t2 = Instant::now();
+    let resolved = poe_item::resolve(&raw, &gd);
+    let resolve_ms = t2.elapsed().as_secs_f64() * 1000.0;
+
+    let t3 = Instant::now();
+    let entry = poe_rqe_client::item_to_entry(&resolved);
+    let convert_ms = t3.elapsed().as_secs_f64() * 1000.0;
+
+    eprintln!(
+        "  parse: {parse_ms:.1}ms | load_data: {load_ms:.0}ms | resolve: {resolve_ms:.1}ms | convert: {convert_ms:.1}ms | total: {:.0}ms",
+        t0.elapsed().as_secs_f64() * 1000.0
+    );
+
+    Ok(entry)
 }
 
 fn cmd_parse(cli: &Cli, file: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
@@ -142,12 +159,19 @@ async fn cmd_match(
     file: &PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let entry = parse_item_file(cli, file)?;
+
+    let t0 = Instant::now();
     let result = client.match_item(&entry).await?;
+    let roundtrip_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
     println!(
         "Matched {} of {} stored queries",
         result.matches.len(),
         result.query_count
+    );
+    eprintln!(
+        "  server match: {}μs | roundtrip: {roundtrip_ms:.1}ms",
+        result.match_us
     );
     if !result.matches.is_empty() {
         println!("Matching query IDs: {:?}", result.matches);

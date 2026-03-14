@@ -1,0 +1,9 @@
+{
+    "conditions": [
+        {"key": "item_class", "value": "Boots", "type": "string", "typeOptions": null},
+        {"key": "rarity_class", "value": "Non-Unique", "type": "string", "typeOptions": null},
+        {"key": "explicit.base_cold_damage_resistance_%", "value": 30, "type": "integer", "typeOptions": {"operator": "<"}},
+        {"key": "explicit.base_movement_velocity_+%", "value": 25, "type": "integer", "typeOptions": {"operator": "<"}}
+    ],
+    "labels": ["build:ci-flicker", "priority:high"]
+}
