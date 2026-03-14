@@ -6,6 +6,8 @@ interface CompactPillProps {
 	item: ItemPayload;
 	profiles: ProfileSummary[];
 	mapDanger: MapDangerConfig;
+	demandCount?: number | null;
+	demandColor?: string;
 }
 
 function scoreClass(pct: number): string {
@@ -47,7 +49,13 @@ function computeMapVerdict(
 	return { label: "UNRATED", cls: "danger-unclassified" };
 }
 
-export function CompactPill({ item, profiles, mapDanger }: CompactPillProps) {
+export function CompactPill({
+	item,
+	profiles,
+	mapDanger,
+	demandCount,
+	demandColor,
+}: CompactPillProps) {
 	const name = item.item.header.name ?? item.item.header.baseType;
 	const truncatedName = name.length > 28 ? `${name.slice(0, 26)}...` : name;
 
@@ -85,6 +93,15 @@ export function CompactPill({ item, profiles, mapDanger }: CompactPillProps) {
 							/>
 						);
 					})}
+				</span>
+			)}
+			{demandCount != null && demandCount > 0 && (
+				<span
+					class="compact-pill-demand"
+					style={{ background: demandColor ?? "#f1c40f" }}
+					title={`${demandCount} want ${demandCount === 1 ? "list" : "lists"} match`}
+				>
+					{demandCount}
 				</span>
 			)}
 		</div>
