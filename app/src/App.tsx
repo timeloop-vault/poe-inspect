@@ -7,16 +7,20 @@ import { type DisplaySettings, ItemOverlay, type ProfileSummary } from "./compon
 import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
+import { checkDemand } from "./rqe";
 import {
 	type DangerLevel,
 	type MapDangerConfig,
+	type MarketplaceSettings,
 	type QualityColors,
 	type StoredProfile,
 	type TradeSettings,
+	defaultMarketplace,
 	defaultTrade,
 	loadActiveQualityColors,
 	loadGeneral,
 	loadHotkeys,
+	loadMarketplace,
 	loadProfiles,
 	loadTrade,
 	saveProfiles,
@@ -135,6 +139,9 @@ export function App() {
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
 	const [inspectMode, setInspectMode] = useState<"full" | "compact" | "trade" | null>(null);
 	const [compactFading, setCompactFading] = useState(false);
+	const [demandCount, setDemandCount] = useState<number | null>(null);
+	const [marketplaceSettings, setMarketplaceSettings] =
+		useState<MarketplaceSettings>(defaultMarketplace);
 	const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(null);
 	const compactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const panelRef = useRef<HTMLDivElement>(null);
@@ -162,6 +169,7 @@ export function App() {
 		setShowMock(false);
 		setInspectMode(null);
 		setCompactFading(false);
+		setDemandCount(null);
 		if (compactTimerRef.current) {
 			clearTimeout(compactTimerRef.current);
 			compactTimerRef.current = null;
@@ -229,6 +237,7 @@ export function App() {
 			});
 			loadActiveQualityColors().then(setQualityColors);
 			loadTrade().then(setTradeSettings);
+			loadMarketplace().then(setMarketplaceSettings);
 			loadProfiles().then((profiles) => {
 				syncProfileState(profiles);
 				if (!startupToastShown.current) {
@@ -373,6 +382,17 @@ export function App() {
 		return () => cancelAnimationFrame(id);
 	}, [panelReady]);
 
+	// Async RQE demand check — runs when a new evaluated item arrives
+	useEffect(() => {
+		if (!evaluatedItem) return;
+		setDemandCount(null);
+		checkDemand(evaluatedItem.item, marketplaceSettings).then((result) => {
+			if (result && result.count > 0) {
+				setDemandCount(result.count);
+			}
+		});
+	}, [evaluatedItem, marketplaceSettings]);
+
 	// Auto-dismiss compact mode after 2.5s (fade out at 2.2s, dismiss at 2.5s)
 	const hasCompactContent = inspectMode === "compact" && (evaluatedItem || parseError);
 	useEffect(() => {
@@ -472,6 +492,15 @@ export function App() {
 					profiles={profileSummaries}
 					onSwitchProfile={handleSwitchProfile}
 				/>
+				{demandCount != null && demandCount > 0 && (
+					<div
+						class="demand-badge"
+						style={{ "--demand-color": marketplaceSettings.badgeColor }}
+						title={`${demandCount} player${demandCount !== 1 ? "s" : ""} want this item`}
+					>
+						{demandCount}
+					</div>
+				)}
 			</div>
 		);
 		const tradeCol = (
