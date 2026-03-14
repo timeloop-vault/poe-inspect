@@ -201,6 +201,8 @@ pub struct MiscFilters {
 #[cfg_attr(feature = "ts", ts(export))]
 pub struct MiscFilterValues {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub ilvl: Option<FilterValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub corrupted: Option<OptionFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub identified: Option<OptionFilter>,
@@ -491,7 +493,7 @@ fn build_item_filters(
     quality: Option<u32>,
     filter_config: Option<&TradeFilterConfig>,
 ) -> Option<QueryFilters> {
-    let type_filters = build_type_filters(item, type_scope);
+    let type_filters = build_type_filters(item, type_scope, filter_config);
     let misc_filters = build_misc_filters(item, config, quality, filter_config);
     let socket_filters = build_socket_filters(socket_info, filter_config);
 
@@ -506,13 +508,22 @@ fn build_item_filters(
     })
 }
 
-fn build_type_filters(item: &ResolvedItem, type_scope: TypeSearchScope) -> Option<TypeFilters> {
-    let rarity = match item.header.rarity {
-        Rarity::Rare | Rarity::Magic | Rarity::Normal => Some(OptionFilter {
-            option: "nonunique".to_string(),
-        }),
+fn build_type_filters(
+    item: &ResolvedItem,
+    type_scope: TypeSearchScope,
+    filter_config: Option<&TradeFilterConfig>,
+) -> Option<TypeFilters> {
+    let default_rarity = match item.header.rarity {
+        Rarity::Rare | Rarity::Magic | Rarity::Normal => Some("nonunique".to_string()),
         _ => None,
     };
+    // Override: "any" removes the rarity filter entirely.
+    let rarity_option = match filter_config.and_then(|fc| fc.rarity_override.as_deref()) {
+        Some("any") => None,
+        Some(other) => Some(other.to_string()),
+        None => default_rarity,
+    };
+    let rarity = rarity_option.map(|opt| OptionFilter { option: opt });
 
     // Category filter: always set for Exact/Category modes, omitted for Any.
     let category = match type_scope {
@@ -541,12 +552,33 @@ fn build_misc_filters(
     quality: Option<u32>,
     filter_config: Option<&TradeFilterConfig>,
 ) -> Option<MiscFilters> {
-    let corrupted = if item.is_corrupted {
-        Some(OptionFilter {
+    // Item level: only when user explicitly enables in edit mode.
+    let ilvl = match filter_config {
+        Some(fc) if fc.ilvl_enabled => {
+            let min = fc.ilvl_min.or(item.item_level).map(f64::from);
+            min.map(|m| FilterValue {
+                min: Some(m),
+                max: None,
+            })
+        }
+        _ => None,
+    };
+
+    // Corrupted: default = include if item is corrupted. Override can force on/off.
+    let corrupted = match filter_config.and_then(|fc| fc.corrupted_override) {
+        Some(true) => Some(OptionFilter {
             option: "true".to_string(),
-        })
-    } else {
-        None
+        }),
+        Some(false) => None,
+        None => {
+            if item.is_corrupted {
+                Some(OptionFilter {
+                    option: "true".to_string(),
+                })
+            } else {
+                None
+            }
+        }
     };
 
     let identified = if item.is_unidentified {
@@ -557,12 +589,21 @@ fn build_misc_filters(
         None
     };
 
-    let fractured_item = if item.is_fractured {
-        Some(OptionFilter {
+    // Fractured: default = include if item is fractured. Override can force on/off.
+    let fractured_item = match filter_config.and_then(|fc| fc.fractured_override) {
+        Some(true) => Some(OptionFilter {
             option: "true".to_string(),
-        })
-    } else {
-        None
+        }),
+        Some(false) => None,
+        None => {
+            if item.is_fractured {
+                Some(OptionFilter {
+                    option: "true".to_string(),
+                })
+            } else {
+                None
+            }
+        }
     };
 
     // Quality filter: only included when user explicitly enables it in edit mode.
@@ -577,7 +618,8 @@ fn build_misc_filters(
         _ => None,
     };
 
-    if corrupted.is_none()
+    if ilvl.is_none()
+        && corrupted.is_none()
         && identified.is_none()
         && fractured_item.is_none()
         && quality_filter.is_none()
@@ -587,6 +629,7 @@ fn build_misc_filters(
 
     Some(MiscFilters {
         filters: MiscFilterValues {
+            ilvl,
             corrupted,
             identified,
             fractured_item,
@@ -934,6 +977,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -963,6 +1007,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -982,6 +1027,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1008,6 +1054,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1036,6 +1083,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1196,6 +1244,7 @@ mod tests {
             min_links: Some(3),
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1222,6 +1271,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1278,6 +1328,7 @@ mod tests {
             min_links: None,
             quality_enabled: true,
             quality_min: None, // use item's actual quality
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1309,6 +1360,7 @@ mod tests {
             min_links: None,
             quality_enabled: true,
             quality_min: Some(15),
+        ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
