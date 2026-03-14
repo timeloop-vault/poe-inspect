@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 ///
 /// Mirrors the Erlang RQE's `rq_item` protobuf message.
 /// JSON format: `{ "key": "...", "value": ..., "type": "...", "typeOptions": ... }`
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
 #[serde(from = "RawCondition")]
 pub struct Condition {
     pub key: String,
@@ -12,7 +12,7 @@ pub struct Condition {
 }
 
 /// Typed value with comparison semantics.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Value {
     Boolean(bool),
     String(StringMatch),
@@ -27,14 +27,14 @@ pub enum Value {
 }
 
 /// String matching mode.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum StringMatch {
     Exact(String),
     Wildcard,
 }
 
 /// Comparison operator for integer values.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CompareOp {
     Eq,
     Gt,
@@ -44,7 +44,7 @@ pub enum CompareOp {
 }
 
 /// List composition operator.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ListOp {
     And,
     Or,

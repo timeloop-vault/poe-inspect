@@ -38,7 +38,7 @@ pub fn evaluate(conditions: &[Condition], entry: &Entry) -> bool {
     conditions.iter().all(|cond| evaluate_one(cond, entry))
 }
 
-fn evaluate_one(condition: &Condition, entry: &Entry) -> bool {
+pub fn evaluate_one(condition: &Condition, entry: &Entry) -> bool {
     match &condition.value {
         Value::List { op, conditions } => evaluate_list(op, conditions, entry),
         Value::Boolean(expected) => {
