@@ -137,6 +137,35 @@ export function GeneralSettings() {
 						</label>
 					</div>
 				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Compact inspect position
+						<div class="setting-description">
+							Where to show the compact pill. Defaults to "At cursor" since the pill is small.
+						</div>
+					</div>
+					<div class="setting-radio-group">
+						<label class="setting-radio">
+							<input
+								type="radio"
+								name="compact-position"
+								checked={(settings.compactPosition ?? "cursor") === "cursor"}
+								onChange={() => update({ compactPosition: "cursor" })}
+							/>
+							At cursor
+						</label>
+						<label class="setting-radio">
+							<input
+								type="radio"
+								name="compact-position"
+								checked={(settings.compactPosition ?? "cursor") === "panel"}
+								onChange={() => update({ compactPosition: "panel" })}
+							/>
+							Next to panel
+						</label>
+					</div>
+				</div>
 			</div>
 
 			<div class="setting-group">

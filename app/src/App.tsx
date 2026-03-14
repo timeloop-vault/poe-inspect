@@ -31,16 +31,19 @@ type PanelPosition =
 
 /** Calculate panel position within the fullscreen overlay.
  *  Handles cursor mode (offset from cursor, flip if overflow)
- *  and panel mode (beside PoE inventory/stash panel). */
+ *  and panel mode (beside PoE inventory/stash panel).
+ *  When `panelSize` is provided (measured from DOM), uses actual dimensions
+ *  instead of estimates for accurate overflow detection. */
 function computePanelPosition(
 	cursor: { x: number; y: number },
 	mode: string,
 	zoom: number,
+	panelSize?: { width: number; height: number },
 ): PanelPosition {
 	const vpW = window.innerWidth;
 	const vpH = window.innerHeight;
-	const panelW = 440 * zoom;
-	const panelEstH = 600 * zoom;
+	const panelW = panelSize ? panelSize.width : 440 * zoom;
+	const panelH = panelSize ? panelSize.height : 600 * zoom;
 
 	if (mode === "panel") {
 		// PoE's inventory/stash panel width is proportional to screen height.
@@ -57,16 +60,22 @@ function computePanelPosition(
 		return { anchor: "left", left: poePanelW, top: 0 };
 	}
 
-	// Cursor mode: small offset from cursor, flip if overflow
-	const offset = 10;
-	let x = cursor.x + offset;
-	let y = cursor.y + offset;
+	// Cursor mode: position near cursor, avoiding overlap with the cursor icon.
+	// Cursor hotspot is top-left; icon is ~32px tall, ~16px wide.
+	// X: prefer right of cursor (+20 to clear icon width), flip left if no room (-6 gap).
+	// Y: prefer above cursor (-6 gap above hotspot), flip below if at top of screen (+24 to clear icon).
+	const cursorClearX = 20;
+	const cursorClearY = 24;
+	const gap = 6;
 
-	if (x + panelW > vpW) x = cursor.x - offset - panelW;
-	if (y + panelEstH > vpH) y = cursor.y - offset - panelEstH;
+	let x = cursor.x + cursorClearX;
+	if (x + panelW > vpW) x = cursor.x - gap - panelW;
+
+	let y = cursor.y - gap - panelH;
+	if (y < 0) y = cursor.y + cursorClearY;
 
 	x = Math.max(0, Math.min(x, vpW - panelW));
-	y = Math.max(0, y);
+	y = Math.max(0, Math.min(y, vpH - panelH));
 
 	return { anchor: "left", left: x, top: y };
 }
@@ -105,6 +114,7 @@ export function App() {
 	const [showMock, setShowMock] = useState(import.meta.env.DEV);
 	const [overlayScale, setOverlayScale] = useState(100);
 	const [overlayMode, setOverlayMode] = useState("cursor");
+	const [compactMode, setCompactMode] = useState("cursor");
 	const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
 		showRollBars: true,
 		showTierBadges: true,
@@ -122,7 +132,9 @@ export function App() {
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
 	const [inspectMode, setInspectMode] = useState<"full" | "compact" | null>(null);
 	const [compactFading, setCompactFading] = useState(false);
+	const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(null);
 	const compactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const panelRef = useRef<HTMLDivElement>(null);
 	const profilesRef = useRef<StoredProfile[]>([]);
 	const startupToastShown = useRef(false);
 
@@ -200,6 +212,7 @@ export function App() {
 			loadGeneral().then((s) => {
 				setOverlayScale(s.overlayScale);
 				setOverlayMode(s.overlayPosition);
+				setCompactMode(s.compactPosition ?? "cursor");
 				setDisplaySettings({
 					showRollBars: s.showRollBars,
 					showTierBadges: s.showTierBadges,
@@ -245,6 +258,7 @@ export function App() {
 		const unlistenEvaluated = listen<ItemPayload>("item-evaluated", (event) => {
 			reloadSettings();
 			setPanelReady(false);
+			setPanelSize(null);
 			setEvaluatedItem(event.payload);
 			setItemText(null);
 			setParseError(null);
@@ -254,6 +268,7 @@ export function App() {
 		const unlistenCapture = listen<string>("item-captured", (event) => {
 			reloadSettings();
 			setPanelReady(false);
+			setPanelSize(null);
 			setItemText(event.payload);
 			setEvaluatedItem(null);
 			setParseError(null);
@@ -265,6 +280,7 @@ export function App() {
 			(event) => {
 				reloadSettings();
 				setPanelReady(false);
+				setPanelSize(null);
 				setParseError(event.payload);
 				setEvaluatedItem(null);
 				setItemText(null);
@@ -281,6 +297,7 @@ export function App() {
 		const unlistenDebug = listen("show-debug-overlay", () => {
 			reloadSettings();
 			setPanelReady(false);
+			setPanelSize(null);
 			setShowMock(true);
 		});
 
@@ -341,7 +358,14 @@ export function App() {
 	useEffect(() => {
 		if (panelReady) return;
 		const id = requestAnimationFrame(() => {
-			requestAnimationFrame(() => setPanelReady(true));
+			requestAnimationFrame(() => {
+				// Measure actual panel size before making visible
+				if (panelRef.current) {
+					const rect = panelRef.current.getBoundingClientRect();
+					setPanelSize({ width: rect.width, height: rect.height });
+				}
+				setPanelReady(true);
+			});
 		});
 		return () => cancelAnimationFrame(id);
 	}, [panelReady]);
@@ -364,7 +388,9 @@ export function App() {
 	}, [hasCompactContent, dismiss]);
 
 	const zoom = overlayScale / 100;
-	const pos = computePanelPosition(cursorPos, overlayMode, zoom);
+	const isCompact = inspectMode === "compact";
+	const activeMode = isCompact ? compactMode : overlayMode;
+	const pos = computePanelPosition(cursorPos, activeMode, zoom, panelSize ?? undefined);
 
 	// Build style object: scale + tier color CSS custom properties + absolute position
 	// Use transform instead of CSS zoom — zoom affects layout and breaks
@@ -535,7 +561,7 @@ export function App() {
 			}}
 		>
 			{content && (
-				<div class="overlay-panel" style={panelStyle}>
+				<div ref={panelRef} class="overlay-panel" style={panelStyle}>
 					{showDismiss && (
 						<button
 							type="button"
