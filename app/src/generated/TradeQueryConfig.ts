@@ -20,6 +20,8 @@ valueRelaxation: number,
  */
 usePseudoStats: boolean, 
 /**
- * Whether to restrict to online listings.
+ * Listing status filter for trade searches.
+ * Values: `"onlb"` (instant buyout + in person, default), `"buyout"` (instant buyout),
+ * `"online"` (in person, online), `"any"` (all listings including offline).
  */
-onlineOnly: boolean, };
+listingStatus: string, };

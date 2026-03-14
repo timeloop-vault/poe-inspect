@@ -523,8 +523,8 @@ fn show_toast(app: tauri::AppHandle, profile_name: String, color: String) {
         "show-toast",
         serde_json::json!({ "profileName": profile_name, "color": color, "zoom": zoom }),
     );
-    let _ = window.show();
     let _ = window.set_ignore_cursor_events(true);
+    let _ = window.show();
 
     // Bump toast counter — only the latest toast's timer will hide the window
     let generation = app

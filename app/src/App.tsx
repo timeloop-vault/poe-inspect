@@ -244,7 +244,8 @@ export function App() {
 					const primary = profiles.find((p) => p.role === "primary");
 					if (primary) {
 						startupToastShown.current = true;
-						showProfileToast(primary);
+						// Delay startup toast to avoid stealing focus from PoE
+						setTimeout(() => showProfileToast(primary), 2000);
 					}
 				}
 			});
@@ -448,7 +449,7 @@ export function App() {
 		league: tradeSettings.league,
 		valueRelaxation: tradeSettings.valueRelaxation,
 		usePseudoStats: false,
-		onlineOnly: tradeSettings.onlineOnly,
+		listingStatus: tradeSettings.listingStatus ?? "onlb",
 	};
 
 	const tradeFilters = useTradeFilters(
