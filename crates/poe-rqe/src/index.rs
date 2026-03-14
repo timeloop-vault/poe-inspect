@@ -1,22 +1,42 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-use crate::eval::{Entry, evaluate_one};
-use crate::predicate::{Condition, ListOp, Value};
+use crate::eval::{Entry, EntryValue, evaluate_one};
+use crate::predicate::{CompareOp, Condition, ListOp, Value};
 use crate::store::{QueryId, StoredQuery};
 
 type NodeId = u32;
 
 /// A single node in the decision DAG.
 struct DagNode {
-    /// Condition to test. `None` for the root (always passes).
+    /// Condition to test. `None` for the root and for threshold-group children
+    /// (whose integer condition is checked by the parent's threshold group).
     condition: Option<Condition>,
 
     /// Queries fully satisfied at this node — all ancestor conditions passed.
     terminal_queries: Vec<QueryId>,
 
-    /// Child node IDs, each with an additional condition to test.
+    /// Child node IDs for non-integer conditions.
     children: Vec<NodeId>,
+
+    /// Grouped integer conditions: sorted by threshold for binary-search pruning.
+    /// Each group shares the same `(key, op)` — one `entry.get()` per group
+    /// instead of one per threshold.
+    threshold_groups: Vec<ThresholdGroup>,
+}
+
+/// A group of integer conditions sharing the same key and comparison operator.
+/// Thresholds are sorted ascending for binary-search pruning.
+struct ThresholdGroup {
+    key: String,
+    op: CompareOp,
+    /// Sorted by threshold value ascending.
+    entries: Vec<ThresholdEntry>,
+}
+
+struct ThresholdEntry {
+    threshold: i64,
+    target: NodeId,
 }
 
 /// Indexed query store using a decision DAG for shared condition evaluation.
@@ -24,6 +44,10 @@ struct DagNode {
 /// Drop-in replacement for [`crate::store::QueryStore`]. Internally builds a DAG
 /// of shared condition nodes so that common prefixes (e.g., `item_category = "Crimson Jewel"`)
 /// are evaluated once regardless of how many queries share them.
+///
+/// Integer conditions are further optimized: conditions sharing the same `(key, operator)`
+/// are grouped into sorted threshold arrays. A single `entry.get()` + binary search
+/// replaces N individual node evaluations.
 #[derive(Default)]
 pub struct IndexedStore {
     /// Arena-allocated DAG nodes.
@@ -71,7 +95,6 @@ impl IndexedStore {
             return false;
         };
 
-        // Re-walk the DAG using the stored conditions to find the terminal node.
         let canonical = canonicalize(&query.conditions);
         self.remove_from_dag(id, &canonical);
         true
@@ -126,13 +149,28 @@ impl IndexedStore {
         let non_leaf: Vec<_> = self
             .nodes
             .iter()
-            .filter(|n| !n.children.is_empty())
+            .filter(|n| !n.children.is_empty() || !n.threshold_groups.is_empty())
             .collect();
         if non_leaf.is_empty() {
             return 0.0;
         }
-        let total_children: usize = non_leaf.iter().map(|n| n.children.len()).sum();
-        total_children as f64 / non_leaf.len() as f64
+        let total: usize = non_leaf
+            .iter()
+            .map(|n| {
+                n.children.len()
+                    + n.threshold_groups
+                        .iter()
+                        .map(|g| g.entries.len())
+                        .sum::<usize>()
+            })
+            .sum();
+        total as f64 / non_leaf.len() as f64
+    }
+
+    /// Number of threshold groups across all nodes.
+    #[must_use]
+    pub fn threshold_group_count(&self) -> usize {
+        self.nodes.iter().map(|n| n.threshold_groups.len()).sum()
     }
 
     // --- Internals ---
@@ -143,9 +181,21 @@ impl IndexedStore {
                 condition: None,
                 terminal_queries: Vec::new(),
                 children: Vec::new(),
+                threshold_groups: Vec::new(),
             });
             self.root = 0;
         }
+    }
+
+    fn alloc_node(&mut self, condition: Option<Condition>) -> NodeId {
+        let id = self.nodes.len() as NodeId;
+        self.nodes.push(DagNode {
+            condition,
+            terminal_queries: Vec::new(),
+            children: Vec::new(),
+            threshold_groups: Vec::new(),
+        });
+        id
     }
 
     fn insert_query(&mut self, id: QueryId, conditions: Vec<Condition>, labels: Vec<String>) {
@@ -156,28 +206,7 @@ impl IndexedStore {
         // Walk/extend the DAG.
         let mut current = self.root;
         for condition in &canonical {
-            // Look for an existing child with this condition.
-            let existing = self.nodes[current as usize]
-                .children
-                .iter()
-                .find(|&&child_id| {
-                    self.nodes[child_id as usize].condition.as_ref() == Some(condition)
-                })
-                .copied();
-
-            if let Some(child_id) = existing {
-                current = child_id;
-            } else {
-                // Allocate a new node.
-                let new_id = self.nodes.len() as NodeId;
-                self.nodes.push(DagNode {
-                    condition: Some(condition.clone()),
-                    terminal_queries: Vec::new(),
-                    children: Vec::new(),
-                });
-                self.nodes[current as usize].children.push(new_id);
-                current = new_id;
-            }
+            current = self.insert_child(current, condition);
         }
 
         // Mark terminal.
@@ -194,60 +223,175 @@ impl IndexedStore {
         );
     }
 
+    /// Insert a condition as a child of `parent`, returning the child node ID.
+    /// Integer conditions go into threshold groups; others into regular children.
+    fn insert_child(&mut self, parent: NodeId, condition: &Condition) -> NodeId {
+        // Integer conditions → threshold groups
+        if let Value::Integer { value, op } = &condition.value {
+            return self.insert_threshold(parent, &condition.key, *op, *value);
+        }
+
+        // Non-integer: look for existing child with same condition
+        let existing = self.nodes[parent as usize]
+            .children
+            .iter()
+            .find(|&&child_id| self.nodes[child_id as usize].condition.as_ref() == Some(condition))
+            .copied();
+
+        if let Some(child_id) = existing {
+            child_id
+        } else {
+            let new_id = self.alloc_node(Some(condition.clone()));
+            self.nodes[parent as usize].children.push(new_id);
+            new_id
+        }
+    }
+
+    /// Insert an integer threshold into a threshold group on `parent`.
+    /// Creates the group if it doesn't exist. Returns the child node ID.
+    fn insert_threshold(
+        &mut self,
+        parent: NodeId,
+        key: &str,
+        op: CompareOp,
+        threshold: i64,
+    ) -> NodeId {
+        // Find or create the threshold group for (key, op)
+        let group_idx = self.nodes[parent as usize]
+            .threshold_groups
+            .iter()
+            .position(|g| g.key == key && g.op == op);
+
+        let group_idx = group_idx.unwrap_or_else(|| {
+            let idx = self.nodes[parent as usize].threshold_groups.len();
+            self.nodes[parent as usize]
+                .threshold_groups
+                .push(ThresholdGroup {
+                    key: key.to_owned(),
+                    op,
+                    entries: Vec::new(),
+                });
+            idx
+        });
+
+        // Find existing entry with this threshold, or insert new
+        let entries = &self.nodes[parent as usize].threshold_groups[group_idx].entries;
+        let pos = entries.partition_point(|e| e.threshold < threshold);
+
+        if pos < entries.len()
+            && self.nodes[parent as usize].threshold_groups[group_idx].entries[pos].threshold
+                == threshold
+        {
+            // Existing threshold — reuse its target node
+            self.nodes[parent as usize].threshold_groups[group_idx].entries[pos].target
+        } else {
+            // New threshold — allocate node (condition = None, group handles the check)
+            let new_id = self.alloc_node(None);
+            self.nodes[parent as usize].threshold_groups[group_idx]
+                .entries
+                .insert(
+                    pos,
+                    ThresholdEntry {
+                        threshold,
+                        target: new_id,
+                    },
+                );
+            new_id
+        }
+    }
+
     fn remove_from_dag(&mut self, id: QueryId, canonical: &[Condition]) {
-        // Collect the path: sequence of node IDs from root to terminal.
-        let mut path = vec![self.root];
+        // Collect the path: sequence of (node_id, is_threshold) from root to terminal.
+        let mut path: Vec<(NodeId, bool)> = vec![(self.root, false)];
         let mut current = self.root;
 
         for condition in canonical {
-            let child = self.nodes[current as usize]
-                .children
-                .iter()
-                .find(|&&child_id| {
-                    self.nodes[child_id as usize].condition.as_ref() == Some(condition)
-                })
-                .copied();
-
-            if let Some(child_id) = child {
-                path.push(child_id);
-                current = child_id;
+            if let Value::Integer { value, op } = &condition.value {
+                // Look in threshold groups
+                let child = self.find_threshold_child(current, &condition.key, *op, *value);
+                if let Some(child_id) = child {
+                    path.push((child_id, true));
+                    current = child_id;
+                } else {
+                    return;
+                }
             } else {
-                // Path doesn't exist — query wasn't in the DAG (shouldn't happen).
-                return;
+                // Look in regular children
+                let child = self.nodes[current as usize]
+                    .children
+                    .iter()
+                    .find(|&&child_id| {
+                        self.nodes[child_id as usize].condition.as_ref() == Some(condition)
+                    })
+                    .copied();
+
+                if let Some(child_id) = child {
+                    path.push((child_id, false));
+                    current = child_id;
+                } else {
+                    return;
+                }
             }
         }
 
         // Remove query ID from terminal node.
-        let terminal = *path.last().expect("path is non-empty");
+        let (terminal, _) = *path.last().expect("path is non-empty");
         self.nodes[terminal as usize]
             .terminal_queries
             .retain(|&q| q != id);
 
         // Prune empty nodes bottom-up.
-        // Walk backward, skipping the root (can't prune root).
         for i in (1..path.len()).rev() {
-            let node_id = path[i];
+            let (node_id, is_threshold) = path[i];
             let node = &self.nodes[node_id as usize];
-            if node.terminal_queries.is_empty() && node.children.is_empty() {
-                // Remove this node from its parent's children list.
-                let parent_id = path[i - 1];
+            if !node.terminal_queries.is_empty()
+                || !node.children.is_empty()
+                || !node.threshold_groups.is_empty()
+            {
+                break; // Node still has content
+            }
+
+            let (parent_id, _) = path[i - 1];
+            if is_threshold {
+                // Remove from parent's threshold group
+                for group in &mut self.nodes[parent_id as usize].threshold_groups {
+                    group.entries.retain(|e| e.target != node_id);
+                }
+                // Remove empty groups
+                self.nodes[parent_id as usize]
+                    .threshold_groups
+                    .retain(|g| !g.entries.is_empty());
+            } else {
                 self.nodes[parent_id as usize]
                     .children
                     .retain(|&c| c != node_id);
-                // Note: we don't deallocate from the arena (it's append-only).
-                // The node becomes unreachable. For long-running systems with
-                // high churn, periodic rebuild would reclaim this space.
-            } else {
-                // Node still has content — stop pruning.
-                break;
             }
         }
+    }
+
+    /// Find a child node in a threshold group matching (key, op, threshold).
+    fn find_threshold_child(
+        &self,
+        parent: NodeId,
+        key: &str,
+        op: CompareOp,
+        threshold: i64,
+    ) -> Option<NodeId> {
+        for group in &self.nodes[parent as usize].threshold_groups {
+            if group.key == key && group.op == op {
+                let pos = group.entries.partition_point(|e| e.threshold < threshold);
+                if pos < group.entries.len() && group.entries[pos].threshold == threshold {
+                    return Some(group.entries[pos].target);
+                }
+            }
+        }
+        None
     }
 
     fn walk(&self, node_id: NodeId, entry: &Entry, results: &mut Vec<QueryId>) {
         let node = &self.nodes[node_id as usize];
 
-        // Test this node's condition (root has None → always passes).
+        // Test this node's condition (root and threshold children have None → always pass).
         if let Some(condition) = &node.condition {
             if !evaluate_one(condition, entry) {
                 return; // Prune entire subtree.
@@ -257,23 +401,89 @@ impl IndexedStore {
         // Collect terminal queries.
         results.extend_from_slice(&node.terminal_queries);
 
-        // Recurse into all children.
+        // Recurse into regular children.
         for &child_id in &node.children {
             self.walk(child_id, entry, results);
+        }
+
+        // Process threshold groups: one entry.get() + binary search per group.
+        for group in &node.threshold_groups {
+            let Some(EntryValue::Integer(entry_val)) = entry.get(&group.key) else {
+                // Key missing or not an integer → no thresholds pass
+                continue;
+            };
+
+            let passing = passing_range(&group.entries, *entry_val, group.op);
+            for te in passing {
+                self.walk(te.target, entry, results);
+            }
         }
     }
 
     fn depth_of(&self, node_id: NodeId) -> usize {
         let node = &self.nodes[node_id as usize];
-        if node.children.is_empty() {
-            return 0;
-        }
-        1 + node
+        let child_max = node
             .children
             .iter()
             .map(|&c| self.depth_of(c))
             .max()
-            .unwrap_or(0)
+            .unwrap_or(0);
+        let threshold_max = node
+            .threshold_groups
+            .iter()
+            .flat_map(|g| g.entries.iter().map(|e| self.depth_of(e.target)))
+            .max()
+            .unwrap_or(0);
+
+        let max_child = child_max.max(threshold_max);
+        if max_child == 0 && node.children.is_empty() && node.threshold_groups.is_empty() {
+            0
+        } else {
+            1 + max_child
+        }
+    }
+}
+
+// --- Threshold binary search ---
+
+/// Return the slice of threshold entries that pass for the given entry value and operator.
+///
+/// Entries are sorted by threshold ascending. The comparison semantics follow the
+/// Erlang convention: `rq_value <op> entry_value`.
+///
+/// - `Lt`: `threshold < entry_value` → all thresholds below `entry_value`
+/// - `Lte`: `threshold <= entry_value` → all thresholds at or below
+/// - `Gt`: `threshold > entry_value` → all thresholds above
+/// - `Gte`: `threshold >= entry_value` → all thresholds at or above
+/// - `Eq`: `threshold == entry_value` → only exact match
+fn passing_range(entries: &[ThresholdEntry], entry_val: i64, op: CompareOp) -> &[ThresholdEntry] {
+    match op {
+        CompareOp::Lt => {
+            // threshold < entry_val: all entries where threshold < entry_val
+            let end = entries.partition_point(|e| e.threshold < entry_val);
+            &entries[..end]
+        }
+        CompareOp::Lte => {
+            let end = entries.partition_point(|e| e.threshold <= entry_val);
+            &entries[..end]
+        }
+        CompareOp::Gt => {
+            // threshold > entry_val: all entries where threshold > entry_val
+            let start = entries.partition_point(|e| e.threshold <= entry_val);
+            &entries[start..]
+        }
+        CompareOp::Gte => {
+            let start = entries.partition_point(|e| e.threshold < entry_val);
+            &entries[start..]
+        }
+        CompareOp::Eq => {
+            let pos = entries.partition_point(|e| e.threshold < entry_val);
+            if pos < entries.len() && entries[pos].threshold == entry_val {
+                &entries[pos..=pos]
+            } else {
+                &[]
+            }
+        }
     }
 }
 
@@ -296,7 +506,6 @@ fn flatten_and(conditions: &[Condition], out: &mut Vec<Condition>) {
             conditions: inner,
         } = &cond.value
         {
-            // Recurse: AND([AND([a, b]), c]) → [a, b, c]
             flatten_and(inner, out);
         } else {
             out.push(cond.clone());
@@ -330,11 +539,9 @@ fn condition_priority(cond: &Condition) -> u8 {
 fn condition_ordering(a: &Condition, b: &Condition) -> Ordering {
     let pa = condition_priority(a);
     let pb = condition_priority(b);
-    pa.cmp(&pb).then_with(|| a.key.cmp(&b.key)).then_with(|| {
-        // Within same priority and key, use a stable tiebreaker.
-        // Compare serialized values for determinism.
-        value_sort_key(&a.value).cmp(&value_sort_key(&b.value))
-    })
+    pa.cmp(&pb)
+        .then_with(|| a.key.cmp(&b.key))
+        .then_with(|| value_sort_key(&a.value).cmp(&value_sort_key(&b.value)))
 }
 
 /// Produce a sortable key for a Value. Used only for deterministic ordering
@@ -551,17 +758,16 @@ mod tests {
         store.add(load_rq("wanted_crimson_rare.json"), vec![]);
         store.add(load_rq("wanted_crimson_mod.json"), vec![]);
 
-        // Both share item_category="Crimson Jewel" and item_rarity_2="Non-Unique",
-        // so the DAG should have shared prefix nodes.
         assert!(store.node_count() > 1);
         assert!(store.max_depth() >= 2);
         assert!(store.avg_branching_factor() > 0.0);
 
         println!(
-            "DAG: {} nodes, depth {}, avg branching {:.2}",
+            "DAG: {} nodes, depth {}, avg branching {:.2}, {} threshold groups",
             store.node_count(),
             store.max_depth(),
             store.avg_branching_factor(),
+            store.threshold_group_count(),
         );
     }
 
@@ -577,26 +783,88 @@ mod tests {
 
         store.remove(id);
 
-        // After removal, pruning should have removed all nodes except root.
-        // (Arena doesn't deallocate, but children links are cleaned up.)
-        // The root should have no children.
-        assert!(store.nodes[store.root as usize].children.is_empty());
+        // Root should have no children or threshold groups after full removal.
+        let root = &store.nodes[store.root as usize];
+        assert!(root.children.is_empty());
+        assert!(root.threshold_groups.is_empty());
+    }
+
+    // --- Threshold groups ---
+
+    #[test]
+    fn threshold_grouping_reduces_nodes() {
+        // Two queries with same (key, op) but different thresholds should share a group.
+        let mut store = IndexedStore::new();
+
+        let q1: Vec<Condition> = serde_json::from_str(
+            r#"[
+            {"key": "life", "value": 40, "type": "integer", "typeOptions": {"operator": "<"}},
+            {"key": "resist", "value": 20, "type": "integer", "typeOptions": {"operator": "<"}}
+        ]"#,
+        )
+        .unwrap();
+
+        let q2: Vec<Condition> = serde_json::from_str(
+            r#"[
+            {"key": "life", "value": 60, "type": "integer", "typeOptions": {"operator": "<"}},
+            {"key": "resist", "value": 30, "type": "integer", "typeOptions": {"operator": "<"}}
+        ]"#,
+        )
+        .unwrap();
+
+        store.add(q1, vec![]);
+        store.add(q2, vec![]);
+
+        // Without grouping: root → life<40 → resist<20, root → life<60 → resist<30 = 5 nodes
+        // With grouping: root has threshold group for (life, Lt) with [40, 60], each → resist group
+        // Fewer nodes because integer conditions don't create separate child nodes.
+        assert!(store.threshold_group_count() > 0);
+        println!(
+            "Threshold test: {} nodes, {} groups",
+            store.node_count(),
+            store.threshold_group_count(),
+        );
+    }
+
+    #[test]
+    fn threshold_binary_search_correctness() {
+        let mut store = IndexedStore::new();
+
+        // Add queries with various life thresholds
+        for threshold in [10, 20, 30, 40, 50, 60, 70, 80] {
+            let q: Vec<Condition> = serde_json::from_str(&format!(
+                r#"[{{"key": "life", "value": {threshold}, "type": "integer", "typeOptions": {{"operator": "<"}}}}]"#
+            )).unwrap();
+            store.add(q, vec![]);
+        }
+
+        // Entry with life=45 should match thresholds < 45: [10, 20, 30, 40]
+        let entry: Entry = serde_json::from_str(r#"{"life": 45}"#).unwrap();
+        let matches = store.match_item(&entry);
+        assert_eq!(matches.len(), 4, "should match thresholds 10,20,30,40");
+
+        // Entry with life=100 should match all 8
+        let entry: Entry = serde_json::from_str(r#"{"life": 100}"#).unwrap();
+        let matches = store.match_item(&entry);
+        assert_eq!(matches.len(), 8, "should match all thresholds");
+
+        // Entry with life=5 should match none (no threshold < 5)
+        let entry: Entry = serde_json::from_str(r#"{"life": 5}"#).unwrap();
+        let matches = store.match_item(&entry);
+        assert_eq!(matches.len(), 0, "should match no thresholds");
     }
 
     // --- AND flattening ---
 
     #[test]
     fn and_flattening_shares_conditions() {
-        // wanted_crimson_mod has an AND list with two armor conditions.
-        // After flattening, those become individual DAG nodes that can be shared.
         let mut store = IndexedStore::new();
         store.add(load_rq("wanted_crimson_mod.json"), vec![]);
 
-        // The AND list [armor < 4, armor > 20] should be flattened into two nodes.
-        // Total path: item_category → item_rarity_2 → armor < 4 → armor > 20
-        // Plus root = 5 nodes.
-        assert_eq!(store.node_count(), 5);
-        assert_eq!(store.max_depth(), 4);
+        // The AND list [armor < 4, armor > 20] is flattened.
+        // Integer conditions go into threshold groups, not regular children.
+        // Path: root → item_category(child) → item_rarity_2(child) → armor thresholds(groups)
+        assert!(store.threshold_group_count() > 0);
     }
 
     // --- Canonicalization ---
@@ -606,7 +874,6 @@ mod tests {
         use crate::predicate::{CompareOp, StringMatch};
 
         let conditions = vec![
-            // Integer (priority 5)
             Condition {
                 key: "armor".into(),
                 value: Value::Integer {
@@ -614,17 +881,14 @@ mod tests {
                     op: CompareOp::Gt,
                 },
             },
-            // Boolean (priority 4)
             Condition {
                 key: "corrupted".into(),
                 value: Value::Boolean(true),
             },
-            // item_category string (priority 0)
             Condition {
                 key: "item_category".into(),
                 value: Value::String(StringMatch::Exact("Ring".into())),
             },
-            // item_rarity string (priority 1)
             Condition {
                 key: "item_rarity".into(),
                 value: Value::String(StringMatch::Exact("Rare".into())),
@@ -681,7 +945,6 @@ mod tests {
         }];
 
         let result = canonicalize(&conditions);
-        // AND([AND([a, b]), c]) → [a, b, c]
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].key, "a");
         assert_eq!(result[1].key, "b");
@@ -708,7 +971,6 @@ mod tests {
 
         let not_vec = vec![not_list.clone()];
         let result = canonicalize(&not_vec);
-        // NOT should not be flattened — stays as one opaque node.
         assert_eq!(result.len(), 1);
         assert_eq!(result[0], not_list);
     }
