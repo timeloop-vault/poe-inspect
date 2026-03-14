@@ -12,6 +12,7 @@ async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 	await invoke("update_hotkeys", {
 		inspectItem: settings.inspectItem.toLowerCase().replace(/\+/g, "+"),
 		compactInspect: settings.compactInspect.toLowerCase().replace(/\+/g, "+"),
+		tradeInspect: settings.tradeInspect.toLowerCase().replace(/\+/g, "+"),
 		dismissOverlay: settings.dismissOverlay.toLowerCase().replace(/\+/g, "+"),
 		openSettings: settings.openSettings.toLowerCase().replace(/\+/g, "+"),
 		cycleProfile: settings.cycleProfile.toLowerCase().replace(/\+/g, "+"),
@@ -21,6 +22,7 @@ async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 const hotkeyFields: { label: string; key: keyof HotkeySettingsType }[] = [
 	{ label: "Inspect Item", key: "inspectItem" },
 	{ label: "Compact Inspect", key: "compactInspect" },
+	{ label: "Trade Inspect", key: "tradeInspect" },
 	{ label: "Dismiss Overlay", key: "dismissOverlay" },
 	{ label: "Open Settings", key: "openSettings" },
 	{ label: "Cycle Profile", key: "cycleProfile" },

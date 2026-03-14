@@ -39,7 +39,11 @@ export interface TradeFilters {
  * Calls `preview_trade_query` (no HTTP) to discover which stats are mappable
  * and their default min values, then lets the user toggle/adjust them.
  */
-export function useTradeFilters(itemText: string, config: TradeQueryConfig): TradeFilters {
+export function useTradeFilters(
+	itemText: string,
+	config: TradeQueryConfig,
+	autoEdit?: boolean,
+): TradeFilters {
 	const [editMode, setEditMode] = useState(false);
 	const [mappedStats, setMappedStats] = useState<MappedStat[]>([]);
 	const [typeScope, setTypeScope] = useState<TypeSearchScope>("baseType");
@@ -50,8 +54,9 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 	const [quality, setQuality] = useState<number | null>(null);
 	const [qualityEnabled, setQualityEnabled] = useState(false);
 	const [qualityMin, setQualityMin] = useState<number | null>(null);
+	const [pendingAutoEdit, setPendingAutoEdit] = useState(false);
 
-	// Reset when item changes
+	// Reset when item changes; queue auto-edit if requested
 	// biome-ignore lint/correctness/useExhaustiveDependencies: itemText change triggers reset intentionally
 	useEffect(() => {
 		setEditMode(false);
@@ -64,7 +69,45 @@ export function useTradeFilters(itemText: string, config: TradeQueryConfig): Tra
 		setQuality(null);
 		setQualityEnabled(false);
 		setQualityMin(null);
+		if (autoEdit && itemText) {
+			setPendingAutoEdit(true);
+		}
 	}, [itemText]);
+
+	// Auto-enter edit mode when triggered by trade-inspect hotkey
+	useEffect(() => {
+		if (!pendingAutoEdit || !itemText) return;
+		setPendingAutoEdit(false);
+
+		(async () => {
+			try {
+				const result = await invoke<QueryBuildResult>("preview_trade_query", {
+					itemText,
+					config,
+				});
+				setMappedStats(result.mappedStats);
+				setStatOverrides(new Map());
+				setTypeScope("baseType");
+
+				const si = result.socketInfo;
+				setSocketInfo(si);
+				if (si && si.maxLink >= 5) {
+					setLinksEnabled(true);
+					setLinksMin(si.maxLink);
+				} else {
+					setLinksEnabled(false);
+					setLinksMin(si?.maxLink ?? null);
+				}
+
+				setQuality(result.quality);
+				setQualityEnabled(false);
+				setQualityMin(result.quality);
+				setEditMode(true);
+			} catch (e) {
+				console.error("Failed to auto-enter trade edit:", e);
+			}
+		})();
+	}, [pendingAutoEdit, itemText, config]);
 
 	const toggleEditMode = useCallback(async () => {
 		if (!editMode) {
