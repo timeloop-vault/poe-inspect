@@ -54,12 +54,15 @@ async fn main() {
         db: Mutex::new(db),
     });
 
+    let cors = tower_http::cors::CorsLayer::permissive();
+
     let app = Router::new()
         .route("/health", get(health))
         .route("/queries", get(list_queries).post(add_query))
         .route("/queries/{id}", get(get_query))
         .route("/queries/{id}", delete(delete_query))
         .route("/match", post(match_item))
+        .layer(cors)
         .with_state(state);
 
     let port: u16 = std::env::var("PORT")
