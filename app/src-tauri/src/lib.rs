@@ -1,5 +1,7 @@
 #[cfg(target_os = "linux")]
 mod clipboard;
+#[cfg(target_os = "windows")]
+mod hotkey_hook;
 mod stash_scroll;
 #[cfg(target_os = "linux")]
 mod wayland;
@@ -45,6 +47,10 @@ struct PoeFocusGate(AtomicBool);
 
 /// Handle to the stash-scroll mouse hook thread.
 struct StashScrollState(stash_scroll::StashScrollHandle);
+
+/// Handle to the keyboard hook thread (Windows only: WH_KEYBOARD_LL).
+#[cfg(target_os = "windows")]
+struct HotkeyHookState(hotkey_hook::HotkeyHookHandle);
 
 /// Chat macro configuration, synced from the frontend.
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -369,7 +375,10 @@ fn get_cursor_position() -> (i32, i32) {
 // ── PoE foreground detection ─────────────────────────────────────────────
 
 /// Check whether a Path of Exile window is the current foreground window.
+/// On Windows, only used by stash_scroll via its own `get_poe_foreground_hwnd`.
+/// Gameplay hotkeys use the keyboard hook which checks focus internally.
 #[cfg(target_os = "windows")]
+#[allow(dead_code)]
 fn is_poe_focused() -> bool {
     extern "system" {
         fn GetForegroundWindow() -> isize;
@@ -400,6 +409,8 @@ fn is_poe_focused() -> bool {
 
 /// Returns true if the hotkey should proceed (either PoE is focused,
 /// or the focus gate is disabled in settings).
+/// On Windows, gameplay hotkeys use the keyboard hook (checks focus internally).
+#[cfg(not(target_os = "windows"))]
 fn should_allow_hotkey(app: &tauri::AppHandle) -> bool {
     let gate = app.state::<PoeFocusGate>();
     if !gate.0.load(Ordering::Relaxed) {
@@ -667,7 +678,74 @@ fn load_chat_macros(app: &tauri::AppHandle) -> Vec<ChatMacroConfig> {
     serde_json::from_value(val).unwrap_or_default()
 }
 
+/// Dispatch a hotkey action by name. Shared between hook-based and
+/// global-shortcut-based hotkey paths.
+fn dispatch_hotkey_action(app: &tauri::AppHandle, action: &str) {
+    match action {
+        "inspect" => {
+            let settings_focused = app
+                .get_webview_window("settings")
+                .and_then(|w| w.is_focused().ok())
+                .unwrap_or(false);
+            if !settings_focused {
+                // If overlay is already visible (compact mode showing),
+                // expand to full without re-parsing
+                let overlay_visible = app
+                    .get_webview_window("overlay")
+                    .and_then(|w| w.is_visible().ok())
+                    .unwrap_or(false);
+                if overlay_visible {
+                    let _ = app.emit("inspect-mode", "full");
+                    if let Some(w) = app.get_webview_window("overlay") {
+                        let _ = w.set_ignore_cursor_events(false);
+                        let _ = w.set_focus();
+                    }
+                } else {
+                    handle_inspect(app);
+                }
+            }
+        }
+        "compact_inspect" => {
+            let settings_focused = app
+                .get_webview_window("settings")
+                .and_then(|w| w.is_focused().ok())
+                .unwrap_or(false);
+            if !settings_focused {
+                handle_inspect_with_mode(app, "compact");
+            }
+        }
+        "trade_inspect" => {
+            let settings_focused = app
+                .get_webview_window("settings")
+                .and_then(|w| w.is_focused().ok())
+                .unwrap_or(false);
+            if !settings_focused {
+                handle_inspect_with_mode(app, "trade");
+            }
+        }
+        "settings" => show_settings(app),
+        "cycle_profile" => {
+            let _ = app.emit("cycle-profile", ());
+        }
+        other => {
+            // Chat macro: action format is "macro:<command>:<send>"
+            if let Some(rest) = other.strip_prefix("macro:") {
+                if let Some((command, send_str)) = rest.rsplit_once(':') {
+                    let send = send_str == "1";
+                    execute_chat_macro(app, command, send);
+                }
+            }
+        }
+    }
+}
+
 /// Register all global shortcuts: core hotkeys + chat macros.
+///
+/// On Windows, gameplay hotkeys use `WH_KEYBOARD_LL` (only fires when PoE is
+/// focused, passes keys through to other apps). The "settings" hotkey uses
+/// `global_shortcut` since it should work regardless of focused app.
+///
+/// On non-Windows, all hotkeys use `global_shortcut` (passthrough not available).
 fn register_hotkeys(
     app: &tauri::AppHandle,
     config: &HotkeyConfig,
@@ -676,104 +754,64 @@ fn register_hotkeys(
     let gs = app.global_shortcut();
     let _ = gs.unregister_all();
 
-    // Core hotkeys
-    let entries: [(&str, &str); 5] = [
-        (&config.inspect_item, "inspect"),
-        (&config.compact_inspect, "compact_inspect"),
-        (&config.trade_inspect, "trade_inspect"),
-        (&config.open_settings, "settings"),
-        (&config.cycle_profile, "cycle_profile"),
+    // Build the list of PoE-only gameplay hotkeys for the keyboard hook
+    let mut hook_entries: Vec<(&str, String)> = vec![
+        (&config.inspect_item, "inspect".into()),
+        (&config.compact_inspect, "compact_inspect".into()),
+        (&config.trade_inspect, "trade_inspect".into()),
+        (&config.cycle_profile, "cycle_profile".into()),
     ];
 
-    for (shortcut_str, action_name) in entries {
-        let action = action_name.to_string();
-        if let Err(e) = gs.on_shortcut(shortcut_str, move |app, _shortcut, event| {
-            if event.state != ShortcutState::Pressed {
-                return;
-            }
-            match action.as_str() {
-                "inspect" => {
-                    if !should_allow_hotkey(app) {
-                        return;
-                    }
-                    let settings_focused = app
-                        .get_webview_window("settings")
-                        .and_then(|w| w.is_focused().ok())
-                        .unwrap_or(false);
-                    if !settings_focused {
-                        // If overlay is already visible (compact mode showing),
-                        // expand to full without re-parsing
-                        let overlay_visible = app
-                            .get_webview_window("overlay")
-                            .and_then(|w| w.is_visible().ok())
-                            .unwrap_or(false);
-                        if overlay_visible {
-                            let _ = app.emit("inspect-mode", "full");
-                            if let Some(w) = app.get_webview_window("overlay") {
-                                let _ = w.set_ignore_cursor_events(false);
-                                let _ = w.set_focus();
-                            }
-                        } else {
-                            handle_inspect(app);
-                        }
-                    }
-                }
-                "compact_inspect" => {
-                    if !should_allow_hotkey(app) {
-                        return;
-                    }
-                    let settings_focused = app
-                        .get_webview_window("settings")
-                        .and_then(|w| w.is_focused().ok())
-                        .unwrap_or(false);
-                    if !settings_focused {
-                        handle_inspect_with_mode(app, "compact");
-                    }
-                }
-                "trade_inspect" => {
-                    if !should_allow_hotkey(app) {
-                        return;
-                    }
-                    let settings_focused = app
-                        .get_webview_window("settings")
-                        .and_then(|w| w.is_focused().ok())
-                        .unwrap_or(false);
-                    if !settings_focused {
-                        handle_inspect_with_mode(app, "trade");
-                    }
-                }
-                "settings" => show_settings(app),
-                "cycle_profile" => {
-                    if !should_allow_hotkey(app) {
-                        return;
-                    }
-                    let _ = app.emit("cycle-profile", ());
-                }
-                _ => {}
-            }
-        }) {
-            eprintln!("Failed to register shortcut '{shortcut_str}': {e}");
-        }
-    }
-
-    // Chat macro hotkeys
+    // Chat macros — encode command+send into the action string
     for m in macros {
         if m.hotkey.is_empty() || m.command.is_empty() {
             continue;
         }
-        let command = m.command.clone();
-        let send = m.send;
-        let hotkey = m.hotkey.to_lowercase();
-        if let Err(e) = gs.on_shortcut(hotkey.as_str(), move |app, _shortcut, event| {
+        let action = format!("macro:{}:{}", m.command, if m.send { "1" } else { "0" });
+        hook_entries.push((&m.hotkey, action));
+    }
+
+    // On Windows, register gameplay hotkeys via the keyboard hook
+    #[cfg(target_os = "windows")]
+    {
+        if let Some(hook_state) = app.try_state::<HotkeyHookState>() {
+            let entries_ref: Vec<(&str, &str)> = hook_entries
+                .iter()
+                .map(|(k, v)| (*k, v.as_str()))
+                .collect();
+            hook_state.0.set_bindings(&entries_ref);
+        }
+    }
+
+    // On non-Windows, register gameplay hotkeys via global_shortcut (fallback)
+    #[cfg(not(target_os = "windows"))]
+    {
+        for (shortcut_str, action_name) in &hook_entries {
+            let action = action_name.clone();
+            if let Err(e) = gs.on_shortcut(*shortcut_str, move |app, _shortcut, event| {
+                if event.state != ShortcutState::Pressed {
+                    return;
+                }
+                if !should_allow_hotkey(app) {
+                    return;
+                }
+                dispatch_hotkey_action(app, &action);
+            }) {
+                eprintln!("Failed to register shortcut '{shortcut_str}': {e}");
+            }
+        }
+    }
+
+    // "Settings" hotkey always uses global_shortcut (works in any app)
+    {
+        let shortcut = config.open_settings.clone();
+        if let Err(e) = gs.on_shortcut(shortcut.as_str(), move |app, _shortcut, event| {
             if event.state != ShortcutState::Pressed {
                 return;
             }
-            if !should_allow_hotkey(app) {
-                return;
-            }
-            execute_chat_macro(app, &command, send);
+            show_settings(app);
         }) {
-            eprintln!("Failed to register macro shortcut '{}': {e}", m.hotkey);
+            eprintln!("Failed to register settings shortcut: {e}");
         }
     }
 }
@@ -807,11 +845,19 @@ fn update_hotkeys(
 #[tauri::command]
 fn pause_hotkeys(app: tauri::AppHandle) {
     let _ = app.global_shortcut().unregister_all();
+    #[cfg(target_os = "windows")]
+    if let Some(hook) = app.try_state::<HotkeyHookState>() {
+        hook.0.set_enabled(false);
+    }
 }
 
 /// Re-register global hotkeys from saved config (used after hotkey capture).
 #[tauri::command]
 fn resume_hotkeys(app: tauri::AppHandle) {
+    #[cfg(target_os = "windows")]
+    if let Some(hook) = app.try_state::<HotkeyHookState>() {
+        hook.0.set_enabled(true);
+    }
     let config = app.state::<HotkeyState>().0.lock().unwrap().clone();
     let macros = app.state::<ChatMacroState>().0.lock().unwrap().clone();
     register_hotkeys(&app, &config, &macros);
@@ -851,6 +897,10 @@ fn set_require_poe_focus(app: tauri::AppHandle, enabled: bool) {
     app.state::<StashScrollState>()
         .0
         .set_require_poe_focus(enabled);
+    #[cfg(target_os = "windows")]
+    if let Some(hook) = app.try_state::<HotkeyHookState>() {
+        hook.0.set_require_poe_focus(enabled);
+    }
 }
 
 /// Enable or disable stash tab scrolling.
@@ -1600,6 +1650,24 @@ pub fn run() {
             {
                 let handle = app.handle().clone();
                 handle.plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
+
+                // Start keyboard hook (Windows) and action dispatch thread
+                #[cfg(target_os = "windows")]
+                {
+                    let (hook_handle, action_rx) = hotkey_hook::start();
+                    app.manage(HotkeyHookState(hook_handle));
+
+                    // Spawn thread to read actions from the hook and dispatch them
+                    let app_handle = app.handle().clone();
+                    std::thread::Builder::new()
+                        .name("hotkey-dispatch".into())
+                        .spawn(move || {
+                            while let Ok(action) = action_rx.recv() {
+                                dispatch_hotkey_action(&app_handle, &action);
+                            }
+                        })
+                        .expect("failed to spawn hotkey-dispatch thread");
+                }
 
                 // Load saved hotkeys + chat macros from the store
                 let config = load_hotkey_config(app.handle());
