@@ -467,7 +467,13 @@ export function App() {
 		showDismiss = false;
 		content = (
 			<div class={compactFading ? "compact-pill-fading" : ""}>
-				<CompactPill item={evaluatedItem} profiles={profileSummaries} mapDanger={mapDanger} />
+				<CompactPill
+					item={evaluatedItem}
+					profiles={profileSummaries}
+					mapDanger={mapDanger}
+					demandCount={demandResult?.count}
+					demandColor={marketplaceSettings.badgeColor}
+				/>
 			</div>
 		);
 	} else if (evaluatedItem && !showMock) {
