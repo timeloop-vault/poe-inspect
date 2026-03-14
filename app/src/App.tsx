@@ -493,37 +493,38 @@ export function App() {
 					profiles={profileSummaries}
 					onSwitchProfile={handleSwitchProfile}
 				/>
-				{demandResult != null && demandResult.count > 0 && (
-					<div class="demand-badge-wrap">
-						<div class="demand-badge" style={{ "--demand-color": marketplaceSettings.badgeColor }}>
-							{demandResult.count}
-						</div>
-						<div class="demand-tooltip">
-							<div class="demand-tooltip-header">
-								Wanted by{" "}
-								{
-									demandResult.matches
-										.map((m) => m.owner ?? "anonymous")
-										.filter((v, i, a) => a.indexOf(v) === i).length
-								}{" "}
-								player
-								{demandResult.matches
-									.map((m) => m.owner ?? "anonymous")
-									.filter((v, i, a) => a.indexOf(v) === i).length !== 1
-									? "s"
-									: ""}
-							</div>
-							{demandResult.matches
-								.map((m) => m.owner ?? "anonymous")
-								.filter((v, i, a) => a.indexOf(v) === i)
-								.map((owner) => (
-									<div key={owner} class="demand-tooltip-row">
-										{owner}
+				{demandResult != null &&
+					demandResult.count > 0 &&
+					(() => {
+						const owners = demandResult.matches
+							.map((m) => m.owner)
+							.filter((o): o is string => o != null)
+							.filter((v, i, a) => a.indexOf(v) === i);
+						const shown = owners.slice(0, 3);
+						const remaining = owners.length - shown.length;
+
+						return (
+							<div class="demand-badge-wrap">
+								<div
+									class="demand-badge"
+									style={{ "--demand-color": marketplaceSettings.badgeColor }}
+								>
+									{demandResult.count}
+								</div>
+								<div class="demand-tooltip">
+									<div class="demand-tooltip-header">
+										{demandResult.count} want {demandResult.count === 1 ? "list" : "lists"} match
 									</div>
-								))}
-						</div>
-					</div>
-				)}
+									{shown.map((owner) => (
+										<div key={owner} class="demand-tooltip-row">
+											{owner}
+										</div>
+									))}
+									{remaining > 0 && <div class="demand-tooltip-more">+{remaining} more</div>}
+								</div>
+							</div>
+						);
+					})()}
 			</div>
 		);
 		const tradeCol = (
