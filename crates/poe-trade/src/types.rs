@@ -144,6 +144,45 @@ pub(crate) struct ApiLeagueRule {
     pub id: String,
 }
 
+// ── Listing Status ──────────────────────────────────────────────────────────
+
+/// A valid trade listing status option.
+/// Matches the GGG trade site's status dropdown.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct ListingStatus {
+    /// API value sent in the query body (e.g., `"available"`).
+    pub id: String,
+    /// Human-readable label for the UI (e.g., `"Instant Buyout and In Person"`).
+    pub label: String,
+}
+
+/// Returns all valid listing status options for the trade search API.
+/// The first entry is the recommended default.
+#[must_use]
+pub fn listing_statuses() -> Vec<ListingStatus> {
+    vec![
+        ListingStatus {
+            id: "available".into(),
+            label: "Instant Buyout and In Person".into(),
+        },
+        ListingStatus {
+            id: "securable".into(),
+            label: "Instant Buyout".into(),
+        },
+        ListingStatus {
+            id: "online".into(),
+            label: "In Person (Online)".into(),
+        },
+        ListingStatus {
+            id: "any".into(),
+            label: "Any".into(),
+        },
+    ]
+}
+
 // ── Query Config ────────────────────────────────────────────────────────────
 
 /// Configuration for trade query construction.
