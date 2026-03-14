@@ -109,7 +109,7 @@ impl Db {
             let mut stmt = self
                 .conn
                 .prepare(
-                    "SELECT id, conditions, labels, owner FROM queries WHERE owner = ?1 ORDER BY id",
+                    "SELECT id, conditions, labels, owner FROM queries WHERE LOWER(owner) = LOWER(?1) ORDER BY id",
                 )
                 .expect("failed to prepare list");
             let rows = stmt
