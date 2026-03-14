@@ -87,6 +87,7 @@ struct AddQueryRequest {
     conditions: Vec<Condition>,
     #[serde(default)]
     labels: Vec<String>,
+    owner: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -95,8 +96,14 @@ struct AddQueryResponse {
 }
 
 #[derive(Serialize)]
+struct MatchDetail {
+    id: QueryId,
+    owner: Option<String>,
+}
+
+#[derive(Serialize)]
 struct MatchResponse {
-    matches: Vec<QueryId>,
+    matches: Vec<MatchDetail>,
     query_count: usize,
     /// Time spent in DAG matching, in microseconds.
     match_us: u64,
@@ -124,13 +131,17 @@ async fn add_query(
 
     let (id, nodes) = {
         let mut store = state.store.write().expect("store lock poisoned");
-        let id = store.add(req.conditions.clone(), req.labels.clone());
+        let id = store.add(
+            req.conditions.clone(),
+            req.labels.clone(),
+            req.owner.clone(),
+        );
         (id, store.node_count())
     };
 
     {
         let db = state.db.lock().expect("db lock poisoned");
-        db.insert(id, &req.conditions, &req.labels);
+        db.insert(id, &req.conditions, &req.labels, req.owner.as_deref());
     }
 
     let elapsed_us = t0.elapsed().as_micros();
@@ -186,9 +197,17 @@ async fn match_item(
     let t0 = Instant::now();
 
     let store = state.store.read().expect("store lock poisoned");
-    let matches = store.match_item(&entry);
+    let match_ids = store.match_item(&entry);
     let match_us = t0.elapsed().as_micros() as u64;
     let query_count = store.len();
+
+    let matches: Vec<MatchDetail> = match_ids
+        .iter()
+        .map(|&id| {
+            let owner = store.get(id).and_then(|q| q.owner.clone());
+            MatchDetail { id, owner }
+        })
+        .collect();
     drop(store);
 
     tracing::info!(

@@ -141,16 +141,27 @@ impl IndexedStore {
     }
 
     /// Add a reverse query. Returns its assigned ID.
-    pub fn add(&mut self, conditions: Vec<Condition>, labels: Vec<String>) -> QueryId {
+    pub fn add(
+        &mut self,
+        conditions: Vec<Condition>,
+        labels: Vec<String>,
+        owner: Option<String>,
+    ) -> QueryId {
         let id = self.next_id;
         self.next_id += 1;
-        self.insert_query(id, conditions, labels);
+        self.insert_query(id, conditions, labels, owner);
         id
     }
 
     /// Add a reverse query with a specific ID. Used when restoring from persistence.
-    pub fn add_with_id(&mut self, id: QueryId, conditions: Vec<Condition>, labels: Vec<String>) {
-        self.insert_query(id, conditions, labels);
+    pub fn add_with_id(
+        &mut self,
+        id: QueryId,
+        conditions: Vec<Condition>,
+        labels: Vec<String>,
+        owner: Option<String>,
+    ) {
+        self.insert_query(id, conditions, labels, owner);
     }
 
     /// Set the next auto-increment ID. Used when restoring from persistence.
@@ -267,7 +278,13 @@ impl IndexedStore {
         id
     }
 
-    fn insert_query(&mut self, id: QueryId, conditions: Vec<Condition>, labels: Vec<String>) {
+    fn insert_query(
+        &mut self,
+        id: QueryId,
+        conditions: Vec<Condition>,
+        labels: Vec<String>,
+        owner: Option<String>,
+    ) {
         self.ensure_root();
 
         let canonical = canonicalize(&conditions, &self.selectivity);
@@ -288,6 +305,7 @@ impl IndexedStore {
                 id,
                 conditions,
                 labels,
+                owner,
             },
         );
     }
@@ -713,7 +731,7 @@ mod tests {
         let mut store = IndexedStore::new();
         assert!(store.is_empty());
 
-        let id = store.add(want_electronics_in_stock(), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![], None);
         assert_eq!(store.len(), 1);
         assert!(store.get(id).is_some());
 
@@ -725,7 +743,7 @@ mod tests {
     #[test]
     fn match_single_query() {
         let mut store = IndexedStore::new();
-        let id = store.add(want_electronics_in_stock(), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![], None);
 
         let matches = store.match_item(&electronics_entry());
         assert_eq!(matches, vec![id]);
@@ -738,9 +756,9 @@ mod tests {
     #[test]
     fn match_multiple_queries() {
         let mut store = IndexedStore::new();
-        let id_stock = store.add(want_electronics_in_stock(), vec![]);
-        let id_cheap = store.add(want_cheap_electronics(), vec![]);
-        let _id_clothing = store.add(want_clothing_on_sale(), vec![]);
+        let id_stock = store.add(want_electronics_in_stock(), vec![], None);
+        let id_cheap = store.add(want_cheap_electronics(), vec![], None);
+        let _id_clothing = store.add(want_clothing_on_sale(), vec![], None);
 
         // Electronics entry matches both electronics queries but not clothing
         let mut matches = store.match_item(&electronics_entry());
@@ -753,8 +771,8 @@ mod tests {
     #[test]
     fn match_no_queries_for_unrelated_item() {
         let mut store = IndexedStore::new();
-        store.add(want_electronics_in_stock(), vec![]);
-        store.add(want_cheap_electronics(), vec![]);
+        store.add(want_electronics_in_stock(), vec![], None);
+        store.add(want_cheap_electronics(), vec![], None);
 
         // Book is not electronics
         let matches = store.match_item(&book_entry());
@@ -767,6 +785,7 @@ mod tests {
         let id = store.add(
             want_electronics_in_stock(),
             vec!["wishlist:gaming".into(), "priority:high".into()],
+            None,
         );
 
         let query = store.get(id).unwrap();
@@ -776,9 +795,9 @@ mod tests {
     #[test]
     fn ids_are_unique_and_sequential() {
         let mut store = IndexedStore::new();
-        let id0 = store.add(want_electronics_in_stock(), vec![]);
-        let id1 = store.add(want_cheap_electronics(), vec![]);
-        let id2 = store.add(want_clothing_on_sale(), vec![]);
+        let id0 = store.add(want_electronics_in_stock(), vec![], None);
+        let id1 = store.add(want_cheap_electronics(), vec![], None);
+        let id2 = store.add(want_clothing_on_sale(), vec![], None);
         assert_eq!(id0, 0);
         assert_eq!(id1, 1);
         assert_eq!(id2, 2);
@@ -796,7 +815,7 @@ mod tests {
 
         let mut store = IndexedStore::new();
         for q in &queries {
-            store.add(q.clone(), vec![]);
+            store.add(q.clone(), vec![], None);
         }
         assert_eq!(store.len(), 4);
 
@@ -841,8 +860,8 @@ mod tests {
         let mut indexed = IndexedStore::new();
 
         for q in &queries {
-            brute.add(q.clone(), vec![]);
-            indexed.add(q.clone(), vec![]);
+            brute.add(q.clone(), vec![], None);
+            indexed.add(q.clone(), vec![], None);
         }
 
         for (i, entry) in entries.iter().enumerate() {
@@ -867,8 +886,8 @@ mod tests {
         assert_eq!(store.node_count(), 1); // root only
         assert_eq!(store.max_depth(), 0);
 
-        store.add(want_electronics_in_stock(), vec![]);
-        store.add(want_cheap_electronics(), vec![]);
+        store.add(want_electronics_in_stock(), vec![], None);
+        store.add(want_cheap_electronics(), vec![], None);
 
         assert!(store.node_count() > 1);
         assert!(store.max_depth() >= 2);
@@ -888,7 +907,7 @@ mod tests {
     #[test]
     fn remove_prunes_dag() {
         let mut store = IndexedStore::new();
-        let id = store.add(want_electronics_in_stock(), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![], None);
 
         let nodes_before = store.node_count();
         assert!(nodes_before > 1);
@@ -924,8 +943,8 @@ mod tests {
         )
         .unwrap();
 
-        store.add(q1, vec![]);
-        store.add(q2, vec![]);
+        store.add(q1, vec![], None);
+        store.add(q2, vec![], None);
 
         assert!(store.threshold_group_count() > 0);
         println!(
@@ -944,7 +963,7 @@ mod tests {
             let q: Vec<Condition> = serde_json::from_str(&format!(
                 r#"[{{"key": "price", "value": {threshold}, "type": "integer", "typeOptions": {{"operator": "<"}}}}]"#
             )).unwrap();
-            store.add(q, vec![]);
+            store.add(q, vec![], None);
         }
 
         // Entry with price=45 should match thresholds < 45: [10, 20, 30, 40]
@@ -980,7 +999,7 @@ mod tests {
         .unwrap();
 
         let mut store = IndexedStore::new();
-        store.add(q, vec![]);
+        store.add(q, vec![], None);
 
         // The AND list [price < 100, price > 500] is flattened.
         // Integer conditions go into threshold groups, not regular children.

@@ -173,8 +173,9 @@ async fn cmd_match(
         "  server match: {}μs | roundtrip: {roundtrip_ms:.1}ms",
         result.match_us
     );
-    if !result.matches.is_empty() {
-        println!("Matching query IDs: {:?}", result.matches);
+    for m in &result.matches {
+        let owner_str = m.owner.as_deref().unwrap_or("anonymous");
+        println!("  query {} (owner: {owner_str})", m.id);
     }
     Ok(())
 }
@@ -188,9 +189,9 @@ async fn cmd_add_query(
     // Support both formats: bare conditions array or {conditions, labels} object
     let parsed: serde_json::Value = serde_json::from_str(&text)?;
 
-    let (conditions, labels) = if parsed.is_array() {
+    let (conditions, labels, owner) = if parsed.is_array() {
         let conditions: Vec<poe_rqe::predicate::Condition> = serde_json::from_value(parsed)?;
-        (conditions, vec![])
+        (conditions, vec![], None)
     } else {
         let conditions: Vec<poe_rqe::predicate::Condition> = serde_json::from_value(
             parsed
@@ -202,10 +203,13 @@ async fn cmd_add_query(
             .get("labels")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
-        (conditions, labels)
+        let owner: Option<String> = parsed
+            .get("owner")
+            .and_then(|v| serde_json::from_value(v.clone()).ok());
+        (conditions, labels, owner)
     };
 
-    let id = client.add_query(conditions, labels).await?;
+    let id = client.add_query(conditions, labels, owner).await?;
     println!("Query added with ID: {id}");
     Ok(())
 }
@@ -245,8 +249,9 @@ async fn cmd_match_raw(
         result.matches.len(),
         result.query_count
     );
-    if !result.matches.is_empty() {
-        println!("Matching query IDs: {:?}", result.matches);
+    for m in &result.matches {
+        let owner_str = m.owner.as_deref().unwrap_or("anonymous");
+        println!("  query {} (owner: {owner_str})", m.id);
     }
     Ok(())
 }

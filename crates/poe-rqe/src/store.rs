@@ -12,6 +12,9 @@ pub struct StoredQuery {
     pub id: QueryId,
     pub conditions: Vec<Condition>,
     pub labels: Vec<String>,
+    /// Owner identity (e.g., `"PlayerName#1234"`). `None` for anonymous queries.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub owner: Option<String>,
 }
 
 /// In-memory store of reverse queries. Brute-force matching: every query is
@@ -30,7 +33,12 @@ impl QueryStore {
     }
 
     /// Add a reverse query to the store. Returns its assigned ID.
-    pub fn add(&mut self, conditions: Vec<Condition>, labels: Vec<String>) -> QueryId {
+    pub fn add(
+        &mut self,
+        conditions: Vec<Condition>,
+        labels: Vec<String>,
+        owner: Option<String>,
+    ) -> QueryId {
         let id = self.next_id;
         self.next_id += 1;
         self.queries.insert(
@@ -39,19 +47,27 @@ impl QueryStore {
                 id,
                 conditions,
                 labels,
+                owner,
             },
         );
         id
     }
 
     /// Add a reverse query with a specific ID. Used when restoring from persistence.
-    pub fn add_with_id(&mut self, id: QueryId, conditions: Vec<Condition>, labels: Vec<String>) {
+    pub fn add_with_id(
+        &mut self,
+        id: QueryId,
+        conditions: Vec<Condition>,
+        labels: Vec<String>,
+        owner: Option<String>,
+    ) {
         self.queries.insert(
             id,
             StoredQuery {
                 id,
                 conditions,
                 labels,
+                owner,
             },
         );
     }
@@ -160,7 +176,7 @@ mod tests {
         let mut store = QueryStore::new();
         assert!(store.is_empty());
 
-        let id = store.add(want_electronics_in_stock(), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![], None);
         assert_eq!(store.len(), 1);
         assert!(store.get(id).is_some());
 
@@ -172,7 +188,7 @@ mod tests {
     #[test]
     fn match_single_query() {
         let mut store = QueryStore::new();
-        let id = store.add(want_electronics_in_stock(), vec![]);
+        let id = store.add(want_electronics_in_stock(), vec![], None);
 
         let matches = store.match_item(&electronics_entry());
         assert_eq!(matches, vec![id]);
@@ -185,9 +201,9 @@ mod tests {
     #[test]
     fn match_multiple_queries() {
         let mut store = QueryStore::new();
-        let id_stock = store.add(want_electronics_in_stock(), vec![]);
-        let id_cheap = store.add(want_cheap_electronics(), vec![]);
-        let _id_clothing = store.add(want_clothing_on_sale(), vec![]);
+        let id_stock = store.add(want_electronics_in_stock(), vec![], None);
+        let id_cheap = store.add(want_cheap_electronics(), vec![], None);
+        let _id_clothing = store.add(want_clothing_on_sale(), vec![], None);
 
         // Electronics entry matches both electronics queries but not clothing
         let mut matches = store.match_item(&electronics_entry());
@@ -200,8 +216,8 @@ mod tests {
     #[test]
     fn match_no_queries_for_unrelated_item() {
         let mut store = QueryStore::new();
-        store.add(want_electronics_in_stock(), vec![]);
-        store.add(want_cheap_electronics(), vec![]);
+        store.add(want_electronics_in_stock(), vec![], None);
+        store.add(want_cheap_electronics(), vec![], None);
 
         let matches = store.match_item(&book_entry());
         assert!(matches.is_empty());
@@ -213,6 +229,7 @@ mod tests {
         let id = store.add(
             want_electronics_in_stock(),
             vec!["wishlist:gaming".into(), "priority:high".into()],
+            None,
         );
 
         let query = store.get(id).unwrap();
@@ -222,9 +239,9 @@ mod tests {
     #[test]
     fn ids_are_unique_and_sequential() {
         let mut store = QueryStore::new();
-        let id0 = store.add(want_electronics_in_stock(), vec![]);
-        let id1 = store.add(want_cheap_electronics(), vec![]);
-        let id2 = store.add(want_clothing_on_sale(), vec![]);
+        let id0 = store.add(want_electronics_in_stock(), vec![], None);
+        let id1 = store.add(want_cheap_electronics(), vec![], None);
+        let id2 = store.add(want_clothing_on_sale(), vec![], None);
         assert_eq!(id0, 0);
         assert_eq!(id1, 1);
         assert_eq!(id2, 2);
@@ -241,7 +258,7 @@ mod tests {
 
         let mut store = QueryStore::new();
         for q in &queries {
-            store.add(q.clone(), vec![]);
+            store.add(q.clone(), vec![], None);
         }
         assert_eq!(store.len(), 3);
 
