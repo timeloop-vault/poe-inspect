@@ -537,7 +537,7 @@ fn generate_query_from_real_stats(rng: &mut Rng, stat_keys: &[String]) -> Vec<Co
 fn bench_brute_force(queries: &[Vec<Condition>], entries: &[Entry], iterations: u64) {
     let mut store = QueryStore::new();
     for rq in queries {
-        store.add(rq.clone(), vec![]);
+        store.add(rq.clone(), vec![], None);
     }
 
     let start = Instant::now();
@@ -565,7 +565,7 @@ fn bench_indexed(queries: &[Vec<Condition>], entries: &[Entry], iterations: u64)
     let mut store =
         IndexedStore::with_selectivity(SelectivityConfig::new(&["item_class", "rarity_class"]));
     for rq in queries {
-        store.add(rq.clone(), vec![]);
+        store.add(rq.clone(), vec![], None);
     }
 
     let start = Instant::now();

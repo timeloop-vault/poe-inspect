@@ -24,6 +24,8 @@ struct AddQueryRequest {
     conditions: Vec<Condition>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     labels: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    owner: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -31,9 +33,16 @@ struct AddQueryResponse {
     id: QueryId,
 }
 
+/// A single match result: query ID + owner.
+#[derive(Debug, Deserialize)]
+pub struct MatchDetail {
+    pub id: QueryId,
+    pub owner: Option<String>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct MatchResponse {
-    pub matches: Vec<QueryId>,
+    pub matches: Vec<MatchDetail>,
     pub query_count: usize,
     /// Time spent in DAG matching on the server, in microseconds.
     #[serde(default)]
@@ -83,8 +92,13 @@ impl RqeClient {
         &self,
         conditions: Vec<Condition>,
         labels: Vec<String>,
+        owner: Option<String>,
     ) -> Result<QueryId, RqeError> {
-        let req = AddQueryRequest { conditions, labels };
+        let req = AddQueryRequest {
+            conditions,
+            labels,
+            owner,
+        };
         let resp = self
             .authed(self.http.post(format!("{}/queries", self.base_url)))
             .json(&req)

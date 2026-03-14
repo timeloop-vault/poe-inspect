@@ -16,10 +16,17 @@ impl Db {
             "CREATE TABLE IF NOT EXISTS queries (
                 id    INTEGER PRIMARY KEY,
                 conditions TEXT NOT NULL,
-                labels     TEXT NOT NULL
+                labels     TEXT NOT NULL,
+                owner      TEXT
             )",
         )
         .expect("failed to create table");
+
+        // Add owner column to existing databases that don't have it yet.
+        let has_owner = conn.prepare("SELECT owner FROM queries LIMIT 0").is_ok();
+        if !has_owner {
+            let _ = conn.execute_batch("ALTER TABLE queries ADD COLUMN owner TEXT");
+        }
         Self { conn }
     }
 
@@ -28,7 +35,7 @@ impl Db {
     pub fn load_all(&self) -> IndexedStore {
         let mut stmt = self
             .conn
-            .prepare("SELECT id, conditions, labels FROM queries ORDER BY id")
+            .prepare("SELECT id, conditions, labels, owner FROM queries ORDER BY id")
             .expect("failed to prepare select");
 
         let mut store = IndexedStore::new();
@@ -39,17 +46,18 @@ impl Db {
                 let id: QueryId = row.get(0)?;
                 let conditions_json: String = row.get(1)?;
                 let labels_json: String = row.get(2)?;
-                Ok((id, conditions_json, labels_json))
+                let owner: Option<String> = row.get(3)?;
+                Ok((id, conditions_json, labels_json, owner))
             })
             .expect("failed to query");
 
         for row in rows {
-            let (id, conditions_json, labels_json) = row.expect("failed to read row");
+            let (id, conditions_json, labels_json, owner) = row.expect("failed to read row");
             let conditions: Vec<Condition> =
                 serde_json::from_str(&conditions_json).expect("corrupt conditions JSON in db");
             let labels: Vec<String> =
                 serde_json::from_str(&labels_json).expect("corrupt labels JSON in db");
-            store.add_with_id(id, conditions, labels);
+            store.add_with_id(id, conditions, labels, owner);
             max_id = Some(match max_id {
                 Some(prev) => prev.max(id),
                 None => id,
@@ -63,13 +71,19 @@ impl Db {
         store
     }
 
-    pub fn insert(&self, id: QueryId, conditions: &[Condition], labels: &[String]) {
+    pub fn insert(
+        &self,
+        id: QueryId,
+        conditions: &[Condition],
+        labels: &[String],
+        owner: Option<&str>,
+    ) {
         let conditions_json = serde_json::to_string(conditions).expect("failed to serialize");
         let labels_json = serde_json::to_string(labels).expect("failed to serialize");
         self.conn
             .execute(
-                "INSERT INTO queries (id, conditions, labels) VALUES (?1, ?2, ?3)",
-                rusqlite::params![id, conditions_json, labels_json],
+                "INSERT INTO queries (id, conditions, labels, owner) VALUES (?1, ?2, ?3, ?4)",
+                rusqlite::params![id, conditions_json, labels_json, owner],
             )
             .expect("failed to insert query");
     }

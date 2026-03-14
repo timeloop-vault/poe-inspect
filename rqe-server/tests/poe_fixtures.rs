@@ -182,7 +182,7 @@ fn store_add_and_remove() {
     let mut store = QueryStore::new();
     assert!(store.is_empty());
 
-    let id = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
+    let id = store.add(load_rq("wanted_crimson_rare.json"), vec![], None);
     assert_eq!(store.len(), 1);
     assert!(store.get(id).is_some());
 
@@ -194,7 +194,7 @@ fn store_add_and_remove() {
 #[test]
 fn store_match_single_query() {
     let mut store = QueryStore::new();
-    let id = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
+    let id = store.add(load_rq("wanted_crimson_rare.json"), vec![], None);
 
     let matches = store.match_item(&load_entry("crimson_w_mods_1.json"));
     assert_eq!(matches, vec![id]);
@@ -206,9 +206,9 @@ fn store_match_single_query() {
 #[test]
 fn store_match_multiple_queries() {
     let mut store = QueryStore::new();
-    let id_rare = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-    let id_mod = store.add(load_rq("wanted_crimson_mod.json"), vec![]);
-    let _id_not = store.add(load_rq("wanted_crimson_mod_not.json"), vec![]);
+    let id_rare = store.add(load_rq("wanted_crimson_rare.json"), vec![], None);
+    let id_mod = store.add(load_rq("wanted_crimson_mod.json"), vec![], None);
+    let _id_not = store.add(load_rq("wanted_crimson_mod_not.json"), vec![], None);
 
     let mut matches = store.match_item(&load_entry("crimson_w_mods_1.json"));
     matches.sort_unstable();
@@ -220,8 +220,8 @@ fn store_match_multiple_queries() {
 #[test]
 fn store_match_no_queries_for_unrelated_item() {
     let mut store = QueryStore::new();
-    store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-    store.add(load_rq("wanted_crimson_mod.json"), vec![]);
+    store.add(load_rq("wanted_crimson_rare.json"), vec![], None);
+    store.add(load_rq("wanted_crimson_mod.json"), vec![], None);
 
     let matches = store.match_item(&load_entry("paua_ring_rare.json"));
     assert!(matches.is_empty());
@@ -233,6 +233,7 @@ fn store_match_with_labels() {
     let id = store.add(
         load_rq("wanted_crimson_rare.json"),
         vec!["build:cyclone".into(), "priority:high".into()],
+        None,
     );
 
     let query = store.get(id).unwrap();
@@ -242,9 +243,9 @@ fn store_match_with_labels() {
 #[test]
 fn store_ids_are_unique_and_sequential() {
     let mut store = QueryStore::new();
-    let id0 = store.add(load_rq("wanted_crimson_rare.json"), vec![]);
-    let id1 = store.add(load_rq("wanted_crimson_mod.json"), vec![]);
-    let id2 = store.add(load_rq("wanted_crimson_mod_not.json"), vec![]);
+    let id0 = store.add(load_rq("wanted_crimson_rare.json"), vec![], None);
+    let id1 = store.add(load_rq("wanted_crimson_mod.json"), vec![], None);
+    let id2 = store.add(load_rq("wanted_crimson_mod_not.json"), vec![], None);
     assert_eq!(id0, 0);
     assert_eq!(id1, 1);
     assert_eq!(id2, 2);
@@ -276,7 +277,7 @@ fn store_match_all_rqs_against_all_entries() {
 
     let mut store = QueryStore::new();
     for rq_file in &rq_files {
-        store.add(load_rq(rq_file), vec![]);
+        store.add(load_rq(rq_file), vec![], None);
     }
     assert_eq!(store.len(), 9);
 
@@ -322,8 +323,8 @@ fn index_equivalence_with_brute_force() {
 
     for rq_file in &rq_files {
         let conditions = load_rq(rq_file);
-        brute.add(conditions.clone(), vec![]);
-        indexed.add(conditions, vec![]);
+        brute.add(conditions.clone(), vec![], None);
+        indexed.add(conditions, vec![], None);
     }
 
     for entry_file in &entry_files {
@@ -368,7 +369,7 @@ fn index_match_all_rqs_against_all_entries() {
 
     let mut store = IndexedStore::with_selectivity(poe_config());
     for rq_file in &rq_files {
-        store.add(load_rq(rq_file), vec![]);
+        store.add(load_rq(rq_file), vec![], None);
     }
     assert_eq!(store.len(), 9);
 
