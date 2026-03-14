@@ -218,6 +218,61 @@
 	outline: none;
 }
 
+/* --- Chat macro rows --- */
+
+.macro-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.macro-row .hotkey-display {
+	min-width: 120px;
+	flex-shrink: 0;
+}
+
+.macro-command-input {
+	flex: 1;
+	min-width: 120px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 13px;
+	padding: 4px 8px;
+}
+
+.macro-command-input:focus {
+	border-color: var(--poe-accent);
+	outline: none;
+}
+
+.macro-send-label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--poe-text-dim);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.macro-send-label input[type="checkbox"] {
+	accent-color: var(--poe-accent);
+}
+
+.btn-danger {
+	color: var(--poe-text-dim);
+	border-color: transparent;
+}
+
+.btn-danger:hover {
+	color: #e04040;
+	border-color: #e04040;
+}
+
 .setting-radio-group {
 	display: flex;
 	gap: 16px;

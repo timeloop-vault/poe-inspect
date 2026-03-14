@@ -46,6 +46,17 @@ struct PoeFocusGate(AtomicBool);
 /// Handle to the stash-scroll mouse hook thread.
 struct StashScrollState(stash_scroll::StashScrollHandle);
 
+/// Chat macro configuration, synced from the frontend.
+#[derive(Debug, Clone, serde::Deserialize)]
+struct ChatMacroConfig {
+    hotkey: String,
+    command: String,
+    send: bool,
+}
+
+/// Active chat macros, stored so we can re-register after pause/resume.
+struct ChatMacroState(Mutex<Vec<ChatMacroConfig>>);
+
 /// Trade API client + stats index, managed as Tauri state.
 ///
 /// Uses `tokio::sync::Mutex` because `TradeClient` methods take `&mut self`
@@ -240,6 +251,63 @@ pub(crate) fn send_copy_keystroke() -> Result<(), String> {
     enigo.key(Key::Alt, Direction::Release).map_err(|e| e.to_string())?;
     enigo.key(Key::Control, Direction::Release).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// Execute a chat macro: open chat, paste command, optionally send.
+///
+/// Sequence: save clipboard → write command → Enter (open chat) → wait →
+/// Ctrl+V (paste) → wait → Enter (send, if enabled) → restore clipboard.
+#[cfg(not(target_os = "linux"))]
+fn execute_chat_macro(app: &tauri::AppHandle, command: &str, send: bool) {
+    use enigo::{Direction, Enigo, Key, Keyboard, Settings};
+
+    let app = app.clone();
+    let command = command.to_string();
+    std::thread::spawn(move || {
+        // Save current clipboard
+        let saved = app.clipboard().read_text().unwrap_or_default();
+
+        // Write command to clipboard
+        if app.clipboard().write_text(&command).is_err() {
+            eprintln!("[macro] Failed to write to clipboard");
+            return;
+        }
+
+        let Ok(mut enigo) = Enigo::new(&Settings::default()) else {
+            eprintln!("[macro] Failed to create enigo");
+            return;
+        };
+
+        // Open chat
+        let _ = enigo.key(Key::Return, Direction::Click);
+        std::thread::sleep(std::time::Duration::from_millis(50));
+
+        // Select all existing text (in case chat has leftover text) and paste
+        let _ = enigo.key(Key::Control, Direction::Press);
+        let _ = enigo.key(Key::Unicode('a'), Direction::Click);
+        let _ = enigo.key(Key::Control, Direction::Release);
+        std::thread::sleep(std::time::Duration::from_millis(20));
+
+        let _ = enigo.key(Key::Control, Direction::Press);
+        let _ = enigo.key(Key::Unicode('v'), Direction::Click);
+        let _ = enigo.key(Key::Control, Direction::Release);
+        std::thread::sleep(std::time::Duration::from_millis(30));
+
+        // Send or leave chat open
+        if send {
+            let _ = enigo.key(Key::Return, Direction::Click);
+        }
+
+        // Restore clipboard
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        let _ = app.clipboard().write_text(&saved);
+    });
+}
+
+#[cfg(target_os = "linux")]
+fn execute_chat_macro(_app: &tauri::AppHandle, _command: &str, _send: bool) {
+    // TODO: Linux clipboard write needs wl-copy / xclip
+    eprintln!("[macro] Chat macros not yet supported on Linux");
 }
 
 /// Get the current cursor position (screen coordinates).
@@ -559,11 +627,27 @@ fn load_hotkey_config(app: &tauri::AppHandle) -> HotkeyConfig {
     }
 }
 
-/// Register global shortcuts from config. Only inspect + settings are global.
-fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
+/// Load chat macros from the tauri-plugin-store settings file.
+fn load_chat_macros(app: &tauri::AppHandle) -> Vec<ChatMacroConfig> {
+    let Ok(store) = app.store("settings.json") else {
+        return vec![];
+    };
+    let Some(val) = store.get("chatMacros") else {
+        return vec![];
+    };
+    serde_json::from_value(val).unwrap_or_default()
+}
+
+/// Register all global shortcuts: core hotkeys + chat macros.
+fn register_hotkeys(
+    app: &tauri::AppHandle,
+    config: &HotkeyConfig,
+    macros: &[ChatMacroConfig],
+) {
     let gs = app.global_shortcut();
     let _ = gs.unregister_all();
 
+    // Core hotkeys
     let entries: [(&str, &str); 3] = [
         (&config.inspect_item, "inspect"),
         (&config.open_settings, "settings"),
@@ -602,6 +686,27 @@ fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig) {
             eprintln!("Failed to register shortcut '{shortcut_str}': {e}");
         }
     }
+
+    // Chat macro hotkeys
+    for m in macros {
+        if m.hotkey.is_empty() || m.command.is_empty() {
+            continue;
+        }
+        let command = m.command.clone();
+        let send = m.send;
+        let hotkey = m.hotkey.to_lowercase();
+        if let Err(e) = gs.on_shortcut(hotkey.as_str(), move |app, _shortcut, event| {
+            if event.state != ShortcutState::Pressed {
+                return;
+            }
+            if !should_allow_hotkey(app) {
+                return;
+            }
+            execute_chat_macro(app, &command, send);
+        }) {
+            eprintln!("Failed to register macro shortcut '{}': {e}", m.hotkey);
+        }
+    }
 }
 
 /// Update global hotkeys from frontend when settings change.
@@ -620,7 +725,8 @@ fn update_hotkeys(
         open_settings,
         cycle_profile,
     };
-    register_hotkeys(&app, &config);
+    let macros = app.state::<ChatMacroState>().0.lock().unwrap().clone();
+    register_hotkeys(&app, &config, &macros);
     *app.state::<HotkeyState>().0.lock().unwrap() = config;
 }
 
@@ -634,7 +740,17 @@ fn pause_hotkeys(app: tauri::AppHandle) {
 #[tauri::command]
 fn resume_hotkeys(app: tauri::AppHandle) {
     let config = app.state::<HotkeyState>().0.lock().unwrap().clone();
-    register_hotkeys(&app, &config);
+    let macros = app.state::<ChatMacroState>().0.lock().unwrap().clone();
+    register_hotkeys(&app, &config, &macros);
+}
+
+/// Update chat macros from the frontend. Re-registers all shortcuts.
+#[tauri::command]
+fn update_chat_macros(app: tauri::AppHandle, macros_json: String) {
+    let macros: Vec<ChatMacroConfig> = serde_json::from_str(&macros_json).unwrap_or_default();
+    let config = app.state::<HotkeyState>().0.lock().unwrap().clone();
+    register_hotkeys(&app, &config, &macros);
+    *app.state::<ChatMacroState>().0.lock().unwrap() = macros;
 }
 
 /// Get the current autostart state.
@@ -1239,6 +1355,7 @@ pub fn run() {
         .manage(HotkeyState(std::sync::Mutex::new(HotkeyConfig::default())))
         .manage(PoeFocusGate(AtomicBool::new(true))) // loaded from store in setup()
         .manage(StashScrollState(stash_scroll::start()))
+        .manage(ChatMacroState(Mutex::new(Vec::new())))
         .manage(GameDataState(Arc::new(load_game_data())))
         .manage(ProfileState(Mutex::new(ProfileSet {
             primary: default_profile(),
@@ -1257,6 +1374,7 @@ pub fn run() {
             set_require_poe_focus,
             set_stash_scroll,
             set_stash_scroll_modifier,
+            update_chat_macros,
             evaluate_item,
             set_active_profile,
             get_default_profile,
@@ -1391,10 +1509,12 @@ pub fn run() {
                 let handle = app.handle().clone();
                 handle.plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
 
-                // Load saved hotkeys from the store so custom bindings work on startup
+                // Load saved hotkeys + chat macros from the store
                 let config = load_hotkey_config(app.handle());
-                register_hotkeys(app.handle(), &config);
+                let macros = load_chat_macros(app.handle());
+                register_hotkeys(app.handle(), &config, &macros);
                 *app.state::<HotkeyState>().0.lock().unwrap() = config;
+                *app.state::<ChatMacroState>().0.lock().unwrap() = macros;
             }
 
             // --- Trade state (load cached index + POESESSID if available) ---
