@@ -6,6 +6,7 @@ import {
 	loadMarketplace,
 	saveMarketplace,
 } from "../../store";
+import { QueryEditor } from "./QueryEditor";
 
 // --- Types for RQE server responses ---
 
@@ -271,6 +272,7 @@ export function MarketplaceSettings() {
 	const [health, setHealth] = useState<HealthResponse | null>(null);
 	const [queries, setQueries] = useState<StoredQuery[]>([]);
 	const [loaded, setLoaded] = useState(false);
+	const [editing, setEditing] = useState(false);
 
 	// Load saved settings on mount
 	useEffect(() => {
@@ -357,6 +359,23 @@ export function MarketplaceSettings() {
 	}
 
 	// Logged in → show marketplace panel
+	if (editing) {
+		return (
+			<div>
+				<h2>Demand Marketplace</h2>
+				<AccountBar settings={settings} health={health} onLogout={handleLogout} />
+				<QueryEditor
+					settings={settings}
+					onSave={() => {
+						setEditing(false);
+						refreshData(settings);
+					}}
+					onCancel={() => setEditing(false)}
+				/>
+			</div>
+		);
+	}
+
 	return (
 		<div>
 			<h2>Demand Marketplace</h2>
@@ -366,6 +385,14 @@ export function MarketplaceSettings() {
 				onRefresh={() => refreshData(settings)}
 				onDelete={handleDelete}
 			/>
+			<button
+				type="button"
+				class="btn btn-primary"
+				onClick={() => setEditing(true)}
+				style={{ marginTop: 12 }}
+			>
+				+ Add Want List
+			</button>
 		</div>
 	);
 }
