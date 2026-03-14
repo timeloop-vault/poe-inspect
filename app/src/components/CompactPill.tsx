@@ -43,7 +43,7 @@ function computeMapVerdict(
 	if (levels.some((l) => l === "warning")) {
 		return { label: "CAUTION", cls: "danger-warning" };
 	}
-	if (levels.length > 0 && levels.every((l) => l === "good")) {
+	if (levels.some((l) => l === "good")) {
 		return { label: "SAFE", cls: "danger-good" };
 	}
 	return { label: "UNRATED", cls: "danger-unclassified" };
