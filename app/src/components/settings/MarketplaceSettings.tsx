@@ -155,6 +155,7 @@ function AccountBar({
 }: {
 	settings: MarketplaceConfig;
 	health: HealthResponse | null;
+	queryCount: number;
 	onLogout: () => void;
 }) {
 	const connected = health !== null;
@@ -181,7 +182,7 @@ function AccountBar({
 				<strong>{settings.accountName}</strong>
 				{health ? (
 					<span class="setting-description" style={{ marginLeft: 8 }}>
-						{health.query_count} want {health.query_count === 1 ? "list" : "lists"}
+						{queryCount} want {queryCount === 1 ? "list" : "lists"}
 					</span>
 				) : (
 					<span style={{ marginLeft: 8, color: "#e04040", fontSize: 12 }}>Server unreachable</span>
@@ -374,7 +375,12 @@ export function MarketplaceSettings() {
 		return (
 			<div>
 				<h2>Demand Marketplace</h2>
-				<AccountBar settings={settings} health={health} onLogout={handleLogout} />
+				<AccountBar
+					settings={settings}
+					health={health}
+					queryCount={queries.length}
+					onLogout={handleLogout}
+				/>
 				<QueryEditor
 					settings={settings}
 					editingQuery={editing !== "new" ? editing : null}
@@ -391,7 +397,12 @@ export function MarketplaceSettings() {
 	return (
 		<div>
 			<h2>Demand Marketplace</h2>
-			<AccountBar settings={settings} health={health} onLogout={handleLogout} />
+			<AccountBar
+				settings={settings}
+				health={health}
+				queryCount={queries.length}
+				onLogout={handleLogout}
+			/>
 			<QueryList
 				queries={queries}
 				onRefresh={() => refreshData(settings)}
