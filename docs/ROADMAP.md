@@ -1,29 +1,12 @@
 # Roadmap
 
-Current priorities, ordered. Updated 2026-03-13.
+Current priorities, ordered. Updated 2026-03-14.
 
 ---
 
-## 1. Release Flow (GitHub Actions)
+## ~~1. Release Flow (GitHub Actions)~~ ✅
 
-Build and publish release artifacts via GitHub Actions.
-
-**Artifacts:**
-- Windows: `.exe` installer (or `.msi`)
-- macOS: `.dmg`
-- Linux: `.deb` (and/or `.AppImage`)
-
-**Requirements:**
-- Triggered on git tag push (e.g., `v0.1.0`) or manual dispatch
-- Build in release mode — all debug/mock features disabled
-- Code-sign where possible (macOS notarization, Windows optional)
-- Upload artifacts to GitHub Releases
-- Tauri v2 has built-in bundler support for all three platforms (`tauri build`)
-
-**Key decisions:**
-- How to disable mock/debug features at build time (feature flag, env var, or `cfg`)
-- Whether to cross-compile or use per-platform runners (macOS needs macOS runner)
-- Versioning strategy (Cargo.toml + tauri.conf.json + package.json alignment)
+Done. Multi-platform CI in `.github/workflows/release.yml` — triggered on GitHub Release publish or manual dispatch. Builds Windows (.exe/.msi), macOS (.dmg), Linux (.deb/.AppImage) with signing support. Manual dispatch uploads as workflow artifacts.
 
 ---
 
@@ -100,20 +83,26 @@ Each file adds stat patterns to the reverse index → more trade stats resolve t
 
 ---
 
-## 7. Stash Tab Scrolling & Chat Macros
+## ~~7. Stash Tab Scrolling & Chat Macros~~ ✅
 
-Quality-of-life features that complete the awakened-poe-trade replacement.
+Done. Both features implemented with Settings UI.
 
 ### Stash Tab Scrolling
-- Intercept mouse scroll when cursor is over stash tab header area
-- Convert scroll up/down to stash tab left/right navigation
-- Research awakened-poe-trade's implementation for reference
+- `WH_MOUSE_LL` hook on dedicated thread intercepts scroll when PoE is focused
+- Configurable modifier key (Ctrl/Shift/Alt/None), default Ctrl+scroll
+- Stash area geofencing (like awakened-poe-trade) — lets PoE handle native scroll in tab header area
+- Non-Windows: no-op stub (compiles, parked thread)
 
 ### Chat Macros
-- Custom hotkeys that send chat commands (e.g., F5 → `/hideout`)
-- Configurable in Settings (hotkey + command string)
-- Implementation: global shortcut → enigo sends Enter, types command, sends Enter
-- Chat-only restriction stays within GGG's ToS (one server action per keypress)
+- Hotkey-bound chat commands (e.g., F5 → `/hideout`) in Settings > Chat Macros
+- Clipboard-based injection: save clipboard → Enter → Ctrl+A → Ctrl+V → Enter → restore
+- Per-macro send toggle (auto-send vs leave chat open)
+- Conflict detection against core hotkeys and other macros
+
+### PoE Focus Gate (prerequisite)
+- All gameplay hotkeys (inspect, cycle, macros, scroll) gated on PoE foreground window check
+- Toggleable in Settings > Behavior (for platforms where detection isn't implemented)
+- Windows: `GetForegroundWindow` + window title match; non-Windows: always true (stub)
 
 ---
 
