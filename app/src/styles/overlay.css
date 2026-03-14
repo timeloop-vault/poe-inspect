@@ -1472,3 +1472,10 @@ body,
 	padding: 1px 0;
 	font-family: "Fontin SmallCaps", sans-serif;
 }
+
+.demand-tooltip-more {
+	font-size: 11px;
+	color: var(--poe-text-dim);
+	padding-top: 2px;
+	font-style: italic;
+}
