@@ -37,6 +37,105 @@ const CMP_TO_RQE: Record<string, string | null> = {
 	Ne: null, // RQE doesn't have != directly
 };
 
+// --- Convert RQE Conditions → poe-eval Rules (for editing) ---
+
+const RQE_OP_TO_CMP: Record<string, Cmp> = {
+	"<=": "Ge", // threshold <= entry → entry >= threshold
+	"<": "Gt",
+	">=": "Le",
+	">": "Lt",
+};
+
+function conditionsToRules(conditions: RqeCondition[]): { label: string; rule: Rule }[] {
+	return conditions
+		.map((c) => conditionToRule(c))
+		.filter((r): r is { label: string; rule: Rule } => r !== null);
+}
+
+function conditionToRule(c: RqeCondition): { label: string; rule: Rule } | null {
+	if (c.type === "string") {
+		if (c.key === "item_class") {
+			return {
+				label: `Item Class: ${c.value}`,
+				rule: { rule_type: "Pred", type: "ItemClass", op: "Eq", value: c.value } as Rule,
+			};
+		}
+		if (c.key === "rarity_class") {
+			const rarity = c.value === "Unique" ? "Unique" : "Rare";
+			return {
+				label: `Rarity: ${c.value}`,
+				rule: { rule_type: "Pred", type: "Rarity", op: "Ge", value: rarity } as Rule,
+			};
+		}
+		if (c.key === "base_type") {
+			return {
+				label: `Base Type: ${c.value}`,
+				rule: { rule_type: "Pred", type: "BaseType", op: "Eq", value: c.value } as Rule,
+			};
+		}
+		return null;
+	}
+
+	if (c.type === "boolean") {
+		if (c.key === "corrupted") {
+			return {
+				label: "Corrupted",
+				rule: { rule_type: "Pred", type: "HasStatus", status: "Corrupted" } as Rule,
+			};
+		}
+		if (c.key === "fractured") {
+			return {
+				label: "Fractured",
+				rule: { rule_type: "Pred", type: "HasStatus", status: "Fractured" } as Rule,
+			};
+		}
+		return null;
+	}
+
+	if (c.type === "integer") {
+		const op: Cmp = c.typeOptions?.operator
+			? (RQE_OP_TO_CMP[c.typeOptions.operator] ?? "Eq")
+			: "Eq";
+		const value = c.value as number;
+
+		if (c.key === "item_level") {
+			return {
+				label: `Item Level ${op} ${value}`,
+				rule: { rule_type: "Pred", type: "ItemLevel", op, value } as Rule,
+			};
+		}
+		if (c.key === "socket_count") {
+			return {
+				label: `Sockets ${op} ${value}`,
+				rule: { rule_type: "Pred", type: "SocketCount", op, value } as Rule,
+			};
+		}
+		if (c.key === "max_link") {
+			return {
+				label: `Links ${op} ${value}`,
+				rule: { rule_type: "Pred", type: "LinkCount", op, value } as Rule,
+			};
+		}
+		// Stat value: "explicit.stat_id" → StatValue predicate
+		const statMatch = c.key.match(/^(explicit|implicit|crafted|enchant)\.(.+)$/);
+		if (statMatch) {
+			const statId = statMatch[2];
+			return {
+				label: statId,
+				rule: {
+					rule_type: "Pred",
+					type: "StatValue",
+					conditions: [{ stat_ids: [statId], value_index: 0, op, value }],
+				} as Rule,
+			};
+		}
+		return null;
+	}
+
+	// List conditions — skip for now (compound groups are complex to reverse)
+	return null;
+}
+
 // --- Convert poe-eval Rules → RQE Conditions ---
 
 function ruleToConditions(rule: Rule): RqeCondition[] {
@@ -214,13 +313,25 @@ export function QueryEditor({
 		getSchema().then(setSchema);
 	}, []);
 
-	// Initialize from editing query if provided
+	// Initialize from editing query if provided — reverse-convert conditions to rules
 	useEffect(() => {
-		if (editingQuery) {
+		if (editingQuery && schema.length > 0) {
 			setName(editingQuery.labels[0] ?? "");
 			setLabel(editingQuery.labels[1] ?? "");
+
+			const restored = conditionsToRules(editingQuery.conditions as RqeCondition[]);
+			let keyCounter = 0;
+			setRules(
+				restored.map((r) => ({
+					_key: keyCounter++,
+					label: r.label,
+					weight: 0,
+					rule: r.rule,
+				})),
+			);
+			setNextKey(keyCounter);
 		}
-	}, [editingQuery]);
+	}, [editingQuery, schema]);
 
 	const addCondition = useCallback(() => {
 		const firstSchema = schema[0];
@@ -261,6 +372,14 @@ export function QueryEditor({
 				headers["X-API-Key"] = settings.apiKey;
 			}
 
+			// Edit = delete old + create new
+			if (editingQuery) {
+				await fetch(`${settings.serverUrl}/queries/${editingQuery.id}`, {
+					method: "DELETE",
+					headers,
+				});
+			}
+
 			const resp = await fetch(`${settings.serverUrl}/queries`, {
 				method: "POST",
 				headers,
@@ -283,7 +402,7 @@ export function QueryEditor({
 		} finally {
 			setSaving(false);
 		}
-	}, [rules, name, label, settings, onSave]);
+	}, [rules, name, label, settings, editingQuery, onSave]);
 
 	if (schema.length === 0) {
 		return <p class="setting-description">Loading predicate schema...</p>;

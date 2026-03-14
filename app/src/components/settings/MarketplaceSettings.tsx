@@ -193,10 +193,12 @@ function AccountBar({
 function QueryList({
 	queries,
 	onRefresh,
+	onEdit,
 	onDelete,
 }: {
 	queries: StoredQuery[];
 	onRefresh: () => void;
+	onEdit: (query: StoredQuery) => void;
 	onDelete: (id: number) => void;
 }) {
 	if (queries.length === 0) {
@@ -256,9 +258,14 @@ function QueryList({
 							</span>
 						)}
 					</div>
-					<button type="button" class="btn btn-small btn-danger" onClick={() => onDelete(q.id)}>
-						Delete
-					</button>
+					<div style={{ display: "flex", gap: 4 }}>
+						<button type="button" class="btn btn-small" onClick={() => onEdit(q)}>
+							Edit
+						</button>
+						<button type="button" class="btn btn-small btn-danger" onClick={() => onDelete(q.id)}>
+							Delete
+						</button>
+					</div>
 				</div>
 			))}
 		</div>
@@ -272,7 +279,7 @@ export function MarketplaceSettings() {
 	const [health, setHealth] = useState<HealthResponse | null>(null);
 	const [queries, setQueries] = useState<StoredQuery[]>([]);
 	const [loaded, setLoaded] = useState(false);
-	const [editing, setEditing] = useState(false);
+	const [editing, setEditing] = useState<StoredQuery | "new" | null>(null);
 
 	// Load saved settings on mount
 	useEffect(() => {
@@ -359,18 +366,19 @@ export function MarketplaceSettings() {
 	}
 
 	// Logged in → show marketplace panel
-	if (editing) {
+	if (editing !== null) {
 		return (
 			<div>
 				<h2>Demand Marketplace</h2>
 				<AccountBar settings={settings} health={health} onLogout={handleLogout} />
 				<QueryEditor
 					settings={settings}
+					editingQuery={editing !== "new" ? editing : null}
 					onSave={() => {
-						setEditing(false);
+						setEditing(null);
 						refreshData(settings);
 					}}
-					onCancel={() => setEditing(false)}
+					onCancel={() => setEditing(null)}
 				/>
 			</div>
 		);
@@ -383,12 +391,13 @@ export function MarketplaceSettings() {
 			<QueryList
 				queries={queries}
 				onRefresh={() => refreshData(settings)}
+				onEdit={(q) => setEditing(q)}
 				onDelete={handleDelete}
 			/>
 			<button
 				type="button"
 				class="btn btn-primary"
-				onClick={() => setEditing(true)}
+				onClick={() => setEditing("new")}
 				style={{ marginTop: 12 }}
 			>
 				+ Add Want List
