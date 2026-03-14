@@ -434,7 +434,10 @@ impl ResolvedMod {
             (ModSlot::Prefix, _) => ModDisplayType::Prefix,
             (ModSlot::Suffix, _) => ModDisplayType::Suffix,
             (
-                ModSlot::Implicit | ModSlot::SearingExarchImplicit | ModSlot::EaterOfWorldsImplicit | ModSlot::CorruptionImplicit,
+                ModSlot::Implicit
+                | ModSlot::SearingExarchImplicit
+                | ModSlot::EaterOfWorldsImplicit
+                | ModSlot::CorruptionImplicit,
                 _,
             ) => ModDisplayType::Implicit,
             (ModSlot::Unique, _) => ModDisplayType::Unique,
