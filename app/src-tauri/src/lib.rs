@@ -595,6 +595,7 @@ fn show_settings(app: &tauri::AppHandle) {
 struct HotkeyConfig {
     inspect_item: String,
     compact_inspect: String,
+    trade_inspect: String,
     open_settings: String,
     cycle_profile: String,
 }
@@ -604,6 +605,7 @@ impl Default for HotkeyConfig {
         Self {
             inspect_item: "ctrl+i".into(),
             compact_inspect: "ctrl+shift+i".into(),
+            trade_inspect: "ctrl+t".into(),
             open_settings: "ctrl+shift+s".into(),
             cycle_profile: "ctrl+shift+p".into(),
         }
@@ -636,6 +638,11 @@ fn load_hotkey_config(app: &tauri::AppHandle) -> HotkeyConfig {
             .and_then(|v| v.as_str())
             .map(|s| s.to_lowercase())
             .unwrap_or(defaults.compact_inspect),
+        trade_inspect: hotkeys_val
+            .get("tradeInspect")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or(defaults.trade_inspect),
         open_settings: hotkeys_val
             .get("openSettings")
             .and_then(|v| v.as_str())
@@ -670,9 +677,10 @@ fn register_hotkeys(
     let _ = gs.unregister_all();
 
     // Core hotkeys
-    let entries: [(&str, &str); 4] = [
+    let entries: [(&str, &str); 5] = [
         (&config.inspect_item, "inspect"),
         (&config.compact_inspect, "compact_inspect"),
+        (&config.trade_inspect, "trade_inspect"),
         (&config.open_settings, "settings"),
         (&config.cycle_profile, "cycle_profile"),
     ];
@@ -722,6 +730,18 @@ fn register_hotkeys(
                         handle_inspect_with_mode(app, "compact");
                     }
                 }
+                "trade_inspect" => {
+                    if !should_allow_hotkey(app) {
+                        return;
+                    }
+                    let settings_focused = app
+                        .get_webview_window("settings")
+                        .and_then(|w| w.is_focused().ok())
+                        .unwrap_or(false);
+                    if !settings_focused {
+                        handle_inspect_with_mode(app, "trade");
+                    }
+                }
                 "settings" => show_settings(app),
                 "cycle_profile" => {
                     if !should_allow_hotkey(app) {
@@ -766,6 +786,7 @@ fn update_hotkeys(
     app: tauri::AppHandle,
     inspect_item: String,
     compact_inspect: String,
+    trade_inspect: String,
     #[allow(unused_variables)] dismiss_overlay: String,
     open_settings: String,
     cycle_profile: String,
@@ -773,6 +794,7 @@ fn update_hotkeys(
     let config = HotkeyConfig {
         inspect_item,
         compact_inspect,
+        trade_inspect,
         open_settings,
         cycle_profile,
     };

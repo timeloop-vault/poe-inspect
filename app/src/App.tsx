@@ -50,14 +50,17 @@ function computePanelPosition(
 		// Ratio 986/1600 is derived from PoE's UI layout (confirmed by Awakened Trade).
 		// Do not change unless GGG changes the in-game panel sizing.
 		const poePanelW = vpH * (986 / 1600);
-		const midX = vpW / 2;
 
-		if (cursor.x >= midX) {
-			// Right side (inventory) — anchor panel's right edge to inventory's left edge
+		if (cursor.x < poePanelW) {
+			// Cursor is in the stash area (left edge) — anchor beside stash
+			return { anchor: "left", left: poePanelW, top: 0 };
+		}
+		if (cursor.x >= vpW - poePanelW) {
+			// Cursor is in the inventory area (right edge) — anchor beside inventory
 			return { anchor: "right", right: poePanelW, top: 0 };
 		}
-		// Left side (stash) — anchor panel's left edge to stash's right edge
-		return { anchor: "left", left: poePanelW, top: 0 };
+		// Middle of screen (ritual, vendors, etc.) — anchor beside inventory
+		return { anchor: "right", right: poePanelW, top: 0 };
 	}
 
 	// Cursor mode: position near cursor, avoiding overlap with the cursor icon.
@@ -130,7 +133,7 @@ export function App() {
 	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
 	const [mapDanger, setMapDanger] = useState<MapDangerConfig>({});
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
-	const [inspectMode, setInspectMode] = useState<"full" | "compact" | null>(null);
+	const [inspectMode, setInspectMode] = useState<"full" | "compact" | "trade" | null>(null);
 	const [compactFading, setCompactFading] = useState(false);
 	const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(null);
 	const compactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -245,7 +248,7 @@ export function App() {
 		});
 
 		const unlistenInspectMode = listen<string>("inspect-mode", (event) => {
-			const mode = event.payload as "full" | "compact";
+			const mode = event.payload as "full" | "compact" | "trade";
 			setCompactFading(false);
 			// Clear any existing compact auto-dismiss timer
 			if (compactTimerRef.current) {
@@ -428,7 +431,11 @@ export function App() {
 		onlineOnly: tradeSettings.onlineOnly,
 	};
 
-	const tradeFilters = useTradeFilters(evaluatedItem?.rawText ?? "", tradeConfig);
+	const tradeFilters = useTradeFilters(
+		evaluatedItem?.rawText ?? "",
+		tradeConfig,
+		inspectMode === "trade",
+	);
 
 	// Trade panel goes on the opposite side from the screen edge:
 	// right-anchored overlay → trade on left; left-anchored → trade on right.
