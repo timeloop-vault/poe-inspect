@@ -8,7 +8,8 @@ register what they're looking for and get notified when matching items appear.
 
 ## Status
 
-Steps 1-4 (brute-force): Predicate types, evaluation, Erlang test ports, and brute-force QueryStore with benchmark.
+Steps 1-5 complete: Predicate types, evaluation, Erlang test ports, brute-force QueryStore,
+and **decision DAG indexed matching** (IndexedStore).
 
 ## Architecture
 
@@ -18,9 +19,9 @@ for both local item evaluation (poe-inspect overlay) and remote matching (RQE se
 
 ```
 predicate.rs  — Condition, Value, CompareOp, ListOp types + serde
-eval.rs       — evaluate() function, Entry type
-store.rs      — QueryStore: add/remove/match_item (brute-force baseline)
-index.rs      — (future) Multi-level discrimination index (optimization)
+eval.rs       — evaluate() + evaluate_one(), Entry type
+store.rs      — QueryStore: brute-force baseline (kept for testing)
+index.rs      — IndexedStore: decision DAG with canonical ordering + AND flattening
 ```
 
 ## Design Decisions
@@ -50,24 +51,34 @@ Erlang test fixtures at `_reference/rqe/test/data/`:
 - Key validated case: `wanted_mod_and_not_count` + `crimson_w_mods_2` → match,
   `wanted_mod_and_not_count` + `crimson_w_mods_1` → no match
 
-## Benchmark Baseline (brute-force)
+## Decision DAG Design
 
-Measured on release builds. This is the baseline before indexing optimization.
+See `docs/rqe-decision-dag.md` for the full design document.
 
-| Queries | Evals/sec |
-|---------|-----------|
-| 100 | ~66M |
-| 1,000 | ~55M |
-| 10,000 | ~30M |
-| 50,000 | ~6M |
-| 100,000 | ~5M |
+Key properties:
+- **Alpha network only** — one item vs many queries, no Rete join network needed
+- **AND flattening** — `AND([a, b])` decomposed into individual DAG nodes for sharing
+- **Canonical ordering** — conditions sorted by selectivity (category → rarity → strings → booleans → integers → compounds)
+- **NOT/OR/COUNT stay opaque** — placed last, evaluated on smallest candidate set
+- **Arena-allocated** — `Vec<DagNode>` with `NodeId = u32` for cache-friendly traversal
 
-Drop at 50k+ is CPU cache pressure. Indexing would keep candidate sets small enough
-to stay in the fast range regardless of total query count.
+## Benchmark: Brute-force vs Decision DAG
+
+| Queries | Brute-force | Indexed | Speedup |
+|---------|-------------|---------|---------|
+| 100 | 1.6μs | 0.36μs | 4.5x |
+| 1,000 | 18μs | 0.34μs | 54x |
+| 10,000 | 325μs | 0.50μs | 650x |
+| 50,000 | 13.7ms | 0.6μs | 22,800x |
+| 100,000 | 29.8ms | 1.3μs | 22,900x |
+| 1,000,000 | 344ms | 24μs | 14,300x |
+
+DAG has 81 nodes regardless of query count (synthetic benchmark with high sharing).
+Real data would have more nodes but speedup remains massive.
 
 Run with: `cargo bench -p poe-rqe`
 
 ## Plan
 
-See `docs/RQE_DESIGN.md` for full plan. Next: indexed matching (optimization),
+See `docs/RQE_DESIGN.md` for full plan. Next: server binary (Step 5 in design doc),
 then integration and notifications.
