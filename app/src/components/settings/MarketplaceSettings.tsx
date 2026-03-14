@@ -177,10 +177,12 @@ function AccountBar({
 			/>
 			<div style={{ flex: 1 }}>
 				<strong>{settings.accountName}</strong>
-				{health && (
+				{health ? (
 					<span class="setting-description" style={{ marginLeft: 8 }}>
 						{health.query_count} want {health.query_count === 1 ? "list" : "lists"}
 					</span>
+				) : (
+					<span style={{ marginLeft: 8, color: "#e04040", fontSize: 12 }}>Server unreachable</span>
 				)}
 			</div>
 			<button type="button" class="btn btn-small" onClick={onLogout}>
@@ -310,12 +312,12 @@ export function MarketplaceSettings() {
 		}
 	}, []);
 
-	// Auto-refresh when settings change (login)
+	// Auto-refresh: on login, on returning from editor, and on mount
 	useEffect(() => {
-		if (settings?.accountName) {
+		if (settings?.accountName && editing === null) {
 			refreshData(settings);
 		}
-	}, [settings, refreshData]);
+	}, [settings, editing, refreshData]);
 
 	const handleLogin = useCallback(
 		(s: MarketplaceConfig) => {
@@ -352,7 +354,7 @@ export function MarketplaceSettings() {
 					setHealth(await healthResp.json());
 				}
 			} catch {
-				// silently fail — could show toast
+				setHealth(null); // Mark as disconnected
 			}
 		},
 		[settings],
