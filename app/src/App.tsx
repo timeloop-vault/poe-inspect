@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Component } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { CompactPill, CompactPillNA } from "./components/CompactPill";
 import { type DisplaySettings, ItemOverlay, type ProfileSummary } from "./components/ItemOverlay";
 import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
@@ -119,6 +120,9 @@ export function App() {
 	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
 	const [mapDanger, setMapDanger] = useState<MapDangerConfig>({});
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
+	const [inspectMode, setInspectMode] = useState<"full" | "compact" | null>(null);
+	const [compactFading, setCompactFading] = useState(false);
+	const compactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const profilesRef = useRef<StoredProfile[]>([]);
 	const startupToastShown = useRef(false);
 
@@ -141,6 +145,12 @@ export function App() {
 		setEvaluatedItem(null);
 		setParseError(null);
 		setShowMock(false);
+		setInspectMode(null);
+		setCompactFading(false);
+		if (compactTimerRef.current) {
+			clearTimeout(compactTimerRef.current);
+			compactTimerRef.current = null;
+		}
 		await invoke("dismiss_overlay");
 	}, []);
 
@@ -219,6 +229,17 @@ export function App() {
 
 		const unlistenPosition = listen<{ x: number; y: number }>("overlay-position", (event) => {
 			setCursorPos(event.payload);
+		});
+
+		const unlistenInspectMode = listen<string>("inspect-mode", (event) => {
+			const mode = event.payload as "full" | "compact";
+			setCompactFading(false);
+			// Clear any existing compact auto-dismiss timer
+			if (compactTimerRef.current) {
+				clearTimeout(compactTimerRef.current);
+				compactTimerRef.current = null;
+			}
+			setInspectMode(mode);
 		});
 
 		const unlistenEvaluated = listen<ItemPayload>("item-evaluated", (event) => {
@@ -300,6 +321,7 @@ export function App() {
 
 		return () => {
 			unlistenPosition.then((fn) => fn());
+			unlistenInspectMode.then((fn) => fn());
 			unlistenEvaluated.then((fn) => fn());
 			unlistenCapture.then((fn) => fn());
 			unlistenParseFailed.then((fn) => fn());
@@ -323,6 +345,23 @@ export function App() {
 		});
 		return () => cancelAnimationFrame(id);
 	}, [panelReady]);
+
+	// Auto-dismiss compact mode after 2.5s (fade out at 2.2s, dismiss at 2.5s)
+	const hasCompactContent = inspectMode === "compact" && (evaluatedItem || parseError);
+	useEffect(() => {
+		if (!hasCompactContent) return;
+		const fadeTimer = setTimeout(() => setCompactFading(true), 2200);
+		compactTimerRef.current = setTimeout(() => {
+			dismiss();
+		}, 2500);
+		return () => {
+			clearTimeout(fadeTimer);
+			if (compactTimerRef.current) {
+				clearTimeout(compactTimerRef.current);
+				compactTimerRef.current = null;
+			}
+		};
+	}, [hasCompactContent, dismiss]);
 
 	const zoom = overlayScale / 100;
 	const pos = computePanelPosition(cursorPos, overlayMode, zoom);
@@ -369,7 +408,15 @@ export function App() {
 	// right-anchored overlay → trade on left; left-anchored → trade on right.
 	const tradeSide = pos.anchor === "right" ? "left" : "right";
 
-	if (evaluatedItem && !showMock) {
+	if (evaluatedItem && !showMock && inspectMode === "compact") {
+		// Compact mode: small pill near cursor, no dismiss button, no backdrop click
+		showDismiss = false;
+		content = (
+			<div class={compactFading ? "compact-pill-fading" : ""}>
+				<CompactPill item={evaluatedItem} profiles={profileSummaries} />
+			</div>
+		);
+	} else if (evaluatedItem && !showMock) {
 		const tradeEditProps = tradeFilters.editMode
 			? {
 					mappedStats: tradeFilters.mappedStats,
@@ -418,6 +465,14 @@ export function App() {
 						{tradeCol}
 					</>
 				)}
+			</div>
+		);
+	} else if (parseError && !showMock && inspectMode === "compact") {
+		// Compact mode: show N/A pill for parse errors
+		showDismiss = false;
+		content = (
+			<div class={compactFading ? "compact-pill-fading" : ""}>
+				<CompactPillNA />
 			</div>
 		);
 	} else if (parseError && !showMock) {
@@ -473,10 +528,10 @@ export function App() {
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: backdrop is mouse-only, keyboard dismiss handled via document keydown listener
 		<div
-			class="overlay-backdrop"
+			class={`overlay-backdrop ${inspectMode === "compact" ? "compact-backdrop" : ""}`}
 			onClick={(e) => {
-				// Click on backdrop (not on panel) = dismiss
-				if (e.target === e.currentTarget) dismiss();
+				// Click on backdrop (not on panel) = dismiss (not in compact mode — it's click-through)
+				if (inspectMode !== "compact" && e.target === e.currentTarget) dismiss();
 			}}
 		>
 			{content && (

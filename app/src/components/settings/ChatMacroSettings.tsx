@@ -146,8 +146,8 @@ export function ChatMacroSettings() {
 			<div class="setting-group">
 				<h3>Macros</h3>
 				<div class="setting-description" style={{ marginBottom: "12px" }}>
-					Bind hotkeys to chat commands. When triggered, the command is pasted into PoE's
-					chat. Commands starting with / are sent immediately by default.
+					Bind hotkeys to chat commands. When triggered, the command is pasted into PoE's chat.
+					Commands starting with / are sent immediately by default.
 				</div>
 
 				{macros.map((macro) => (
@@ -166,9 +166,7 @@ export function ChatMacroSettings() {
 								}
 							}}
 						>
-							{capturing === macro.id
-								? "Press keys..."
-								: macro.hotkey || "Click to bind"}
+							{capturing === macro.id ? "Press keys..." : macro.hotkey || "Click to bind"}
 						</button>
 
 						{capturing === macro.id ? (

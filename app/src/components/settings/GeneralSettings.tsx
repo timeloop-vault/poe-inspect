@@ -191,8 +191,8 @@ export function GeneralSettings() {
 					<div class="setting-label">
 						Only respond when PoE is focused
 						<div class="setting-description">
-							Hotkeys like inspect and cycle profile will only fire when Path of Exile is
-							the active window. Disable this if the check doesn't work on your platform.
+							Hotkeys like inspect and cycle profile will only fire when Path of Exile is the active
+							window. Disable this if the check doesn't work on your platform.
 						</div>
 					</div>
 					<Toggle
@@ -205,14 +205,11 @@ export function GeneralSettings() {
 					<div class="setting-label">
 						Stash tab scrolling
 						<div class="setting-description">
-							Scroll wheel navigates between stash tabs when Path of Exile is focused.
-							Scroll up goes left, scroll down goes right.
+							Scroll wheel navigates between stash tabs when Path of Exile is focused. Scroll up
+							goes left, scroll down goes right.
 						</div>
 					</div>
-					<Toggle
-						checked={settings.stashScroll}
-						onChange={(v) => update({ stashScroll: v })}
-					/>
+					<Toggle checked={settings.stashScroll} onChange={(v) => update({ stashScroll: v })} />
 				</div>
 
 				{settings.stashScroll && (

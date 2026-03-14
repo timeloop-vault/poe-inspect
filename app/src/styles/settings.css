@@ -322,6 +322,13 @@
 	color: var(--poe-accent);
 }
 
+.hotkey-display.unbound {
+	color: var(--poe-text-dim);
+	font-style: italic;
+	font-family: inherit;
+	border-style: dashed;
+}
+
 .hotkey-reset {
 	background: none;
 	border: 1px solid var(--poe-border);

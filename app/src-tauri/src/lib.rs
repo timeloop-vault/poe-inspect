@@ -144,7 +144,12 @@ fn setup_fullscreen_overlay(
 /// (retry keystroke, poll for change). Non-Linux: send keystroke → poll
 /// via Tauri clipboard plugin.
 fn handle_inspect(app: &tauri::AppHandle) {
+    handle_inspect_with_mode(app, "full");
+}
+
+fn handle_inspect_with_mode(app: &tauri::AppHandle, mode: &str) {
     let app = app.clone();
+    let mode = mode.to_string();
     std::thread::spawn(move || {
         // Capture cursor position BEFORE sending keystroke (while hovering the item)
         let (cursor_x, cursor_y) = get_cursor_position();
@@ -167,9 +172,19 @@ fn handle_inspect(app: &tauri::AppHandle) {
             #[cfg(target_os = "linux")]
             invalidate_webview_buffer(&window);
             let _ = window.show();
-            let _ = window.set_ignore_cursor_events(false);
-            let _ = window.set_focus();
+
+            if mode == "compact" {
+                // Compact: click-through, no focus steal
+                let _ = window.set_ignore_cursor_events(true);
+            } else {
+                // Full: interactive overlay with focus
+                let _ = window.set_ignore_cursor_events(false);
+                let _ = window.set_focus();
+            }
         }
+
+        // Emit inspect mode before item data
+        let _ = app.emit("inspect-mode", &mode);
 
         // Try to parse and evaluate the item
         let gd = &app.state::<GameDataState>().0;
@@ -579,6 +594,7 @@ fn show_settings(app: &tauri::AppHandle) {
 #[derive(Debug, Clone)]
 struct HotkeyConfig {
     inspect_item: String,
+    compact_inspect: String,
     open_settings: String,
     cycle_profile: String,
 }
@@ -587,7 +603,8 @@ impl Default for HotkeyConfig {
     fn default() -> Self {
         Self {
             inspect_item: "ctrl+i".into(),
-            open_settings: "ctrl+shift+i".into(),
+            compact_inspect: "ctrl+shift+i".into(),
+            open_settings: "ctrl+shift+s".into(),
             cycle_profile: "ctrl+shift+p".into(),
         }
     }
@@ -614,6 +631,11 @@ fn load_hotkey_config(app: &tauri::AppHandle) -> HotkeyConfig {
             .and_then(|v| v.as_str())
             .map(|s| s.to_lowercase())
             .unwrap_or(defaults.inspect_item),
+        compact_inspect: hotkeys_val
+            .get("compactInspect")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or(defaults.compact_inspect),
         open_settings: hotkeys_val
             .get("openSettings")
             .and_then(|v| v.as_str())
@@ -648,8 +670,9 @@ fn register_hotkeys(
     let _ = gs.unregister_all();
 
     // Core hotkeys
-    let entries: [(&str, &str); 3] = [
+    let entries: [(&str, &str); 4] = [
         (&config.inspect_item, "inspect"),
+        (&config.compact_inspect, "compact_inspect"),
         (&config.open_settings, "settings"),
         (&config.cycle_profile, "cycle_profile"),
     ];
@@ -670,7 +693,33 @@ fn register_hotkeys(
                         .and_then(|w| w.is_focused().ok())
                         .unwrap_or(false);
                     if !settings_focused {
-                        handle_inspect(app);
+                        // If overlay is already visible (compact mode showing),
+                        // expand to full without re-parsing
+                        let overlay_visible = app
+                            .get_webview_window("overlay")
+                            .and_then(|w| w.is_visible().ok())
+                            .unwrap_or(false);
+                        if overlay_visible {
+                            let _ = app.emit("inspect-mode", "full");
+                            if let Some(w) = app.get_webview_window("overlay") {
+                                let _ = w.set_ignore_cursor_events(false);
+                                let _ = w.set_focus();
+                            }
+                        } else {
+                            handle_inspect(app);
+                        }
+                    }
+                }
+                "compact_inspect" => {
+                    if !should_allow_hotkey(app) {
+                        return;
+                    }
+                    let settings_focused = app
+                        .get_webview_window("settings")
+                        .and_then(|w| w.is_focused().ok())
+                        .unwrap_or(false);
+                    if !settings_focused {
+                        handle_inspect_with_mode(app, "compact");
                     }
                 }
                 "settings" => show_settings(app),
@@ -716,12 +765,14 @@ fn register_hotkeys(
 fn update_hotkeys(
     app: tauri::AppHandle,
     inspect_item: String,
+    compact_inspect: String,
     #[allow(unused_variables)] dismiss_overlay: String,
     open_settings: String,
     cycle_profile: String,
 ) {
     let config = HotkeyConfig {
         inspect_item,
+        compact_inspect,
         open_settings,
         cycle_profile,
     };
