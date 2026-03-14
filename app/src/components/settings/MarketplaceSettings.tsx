@@ -4,6 +4,7 @@ import {
 	defaultMarketplace,
 	isValidAccountName,
 	loadMarketplace,
+	normalizeAccountName,
 	saveMarketplace,
 } from "../../store";
 import { QueryEditor } from "./QueryEditor";
@@ -64,10 +65,11 @@ function LoginGate({
 			}
 
 			const settings: MarketplaceConfig = {
-				accountName,
+				accountName: normalizeAccountName(accountName),
 				serverUrl: url,
 				apiKey: apiKey || null,
 				enabled: true,
+				badgeColor: "#f1c40f",
 			};
 			await saveMarketplace(settings);
 			onLogin(settings);

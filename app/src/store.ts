@@ -300,6 +300,11 @@ export function isValidAccountName(name: string): boolean {
 	return /^[A-Za-z0-9_-]+#\d{4}$/.test(name);
 }
 
+/** Normalize account name to lowercase for consistent matching. */
+export function normalizeAccountName(name: string): string {
+	return name.toLowerCase();
+}
+
 // ── Chat macros ──────────────────────────────────────────────────────────
 
 export async function loadChatMacros(): Promise<ChatMacro[]> {
