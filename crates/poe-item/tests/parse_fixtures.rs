@@ -1007,11 +1007,9 @@ fn anointed_talisman_parsed() {
 
     // Anointment enchant in generic section
     let has_anoint = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => {
-            lines
-                .iter()
-                .any(|l| l.contains("Allocates Devotion (enchant)"))
-        }
+        Section::Generic(lines) => lines
+            .iter()
+            .any(|l| l.contains("Allocates Devotion (enchant)")),
         _ => false,
     });
     assert!(has_anoint, "should have anointment enchant");
