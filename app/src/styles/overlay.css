@@ -1124,6 +1124,28 @@ body,
 	margin-left: auto;
 }
 
+.rarity-toggle {
+	display: flex;
+	gap: 2px;
+}
+
+.rarity-toggle-btn {
+	padding: 1px 6px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(70, 59, 43, 0.4);
+	border-radius: 2px;
+	color: var(--poe-text-dim);
+	font-family: inherit;
+	font-size: 10px;
+	cursor: pointer;
+}
+
+.rarity-toggle-btn.rarity-active {
+	background: rgba(175, 96, 37, 0.15);
+	border-color: var(--poe-accent);
+	color: var(--poe-header);
+}
+
 /* --- Map danger assessment --- */
 
 .map-danger-section {
