@@ -1,5 +1,6 @@
+use poe_rqe::index::IndexedStore;
 use poe_rqe::predicate::Condition;
-use poe_rqe::store::{QueryId, QueryStore};
+use poe_rqe::store::QueryId;
 use rusqlite::Connection;
 
 const DEFAULT_PATH: &str = "rqe.db";
@@ -22,15 +23,15 @@ impl Db {
         Self { conn }
     }
 
-    /// Load all stored queries into a `QueryStore`, returning the store
-    /// and the next ID to use (max existing ID + 1).
-    pub fn load_all(&self) -> QueryStore {
+    /// Load all stored queries into an `IndexedStore` (decision DAG),
+    /// returning the store with the next ID set to max existing + 1.
+    pub fn load_all(&self) -> IndexedStore {
         let mut stmt = self
             .conn
             .prepare("SELECT id, conditions, labels FROM queries ORDER BY id")
             .expect("failed to prepare select");
 
-        let mut store = QueryStore::new();
+        let mut store = IndexedStore::new();
         let mut max_id: Option<QueryId> = None;
 
         let rows = stmt
