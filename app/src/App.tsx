@@ -494,15 +494,34 @@ export function App() {
 					onSwitchProfile={handleSwitchProfile}
 				/>
 				{demandResult != null && demandResult.count > 0 && (
-					<div
-						class="demand-badge"
-						style={{ "--demand-color": marketplaceSettings.badgeColor }}
-						title={demandResult.matches
-							.map((m) => m.owner ?? "anonymous")
-							.filter((v, i, a) => a.indexOf(v) === i)
-							.join(", ")}
-					>
-						{demandResult.count}
+					<div class="demand-badge-wrap">
+						<div class="demand-badge" style={{ "--demand-color": marketplaceSettings.badgeColor }}>
+							{demandResult.count}
+						</div>
+						<div class="demand-tooltip">
+							<div class="demand-tooltip-header">
+								Wanted by{" "}
+								{
+									demandResult.matches
+										.map((m) => m.owner ?? "anonymous")
+										.filter((v, i, a) => a.indexOf(v) === i).length
+								}{" "}
+								player
+								{demandResult.matches
+									.map((m) => m.owner ?? "anonymous")
+									.filter((v, i, a) => a.indexOf(v) === i).length !== 1
+									? "s"
+									: ""}
+							</div>
+							{demandResult.matches
+								.map((m) => m.owner ?? "anonymous")
+								.filter((v, i, a) => a.indexOf(v) === i)
+								.map((owner) => (
+									<div key={owner} class="demand-tooltip-row">
+										{owner}
+									</div>
+								))}
+						</div>
 					</div>
 				)}
 			</div>
