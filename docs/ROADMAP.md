@@ -102,6 +102,30 @@ Done. Both features implemented with Settings UI.
 
 ---
 
+## 8. Trade Edit Search Improvements
+
+Pain points from real gameplay. The Edit Search UI needs more filters to match what the official trade site offers.
+
+1. **Rarity toggle** — filter by rarity (may have existed before, got lost)
+2. **Level/attribute requirements** — level req, str/dex/int req, item level filters
+3. **Defenses & sockets** — quality, armour/evasion/energy shield, socket/link filters
+4. **Open prefixes** — filter for items with open prefix slots
+5. **"Base item" button** — strips all stat filters but keeps base type + fractured mods. Quick way to price-check the base itself
+6. **Fractured affix support** — fractured mods should be recognized and filterable in Edit Search
+
+---
+
+## 9. Map Danger Escalation
+
+User-configurable threshold where accumulating lower-tier dangers escalates to a higher tier.
+
+- E.g., 3+ caution mods → treat as deadly (or "caution++")
+- Configurable per-profile: number of mods at tier X that escalate to tier Y
+- Affects both full overlay verdict and compact pill display
+- Settings UI in Map Danger section
+
+---
+
 ## Backlog (Unordered)
 
 These are known gaps and future features, not currently prioritized.
@@ -122,4 +146,4 @@ These are known gaps and future features, not currently prioritized.
 | CSS split (overlay vs settings) | app | Separate entry points. Low priority — class-scoping works. |
 | Overlay sprites | app | Foil/Quest/Prophecy headers, Div Card separator, influence overlays. |
 | Item browser for rule building | app | Browsable poe-data database for looking up base types, mods. |
-| Inspect + Trade Edit hotkey | app | New hotkey that opens full overlay with trade edit mode already active. Emits inspect-mode with trade-edit flag. |
+| ~~Inspect + Trade Edit hotkey~~ | ~~app~~ | ✅ Done. `Ctrl+T` opens full overlay with Edit Search pre-activated. |
