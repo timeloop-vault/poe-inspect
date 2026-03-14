@@ -7,6 +7,7 @@
  * poe-eval Rule → poe-rqe Condition conversion is entirely local.
  */
 
+import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import type { Cmp } from "../../generated/Cmp";
 import type { PredicateSchema } from "../../generated/PredicateSchema";
@@ -313,23 +314,60 @@ export function QueryEditor({
 		getSchema().then(setSchema);
 	}, []);
 
-	// Initialize from editing query if provided — reverse-convert conditions to rules
+	// Initialize from editing query if provided — reverse-convert conditions to rules,
+	// then resolve stat_ids to human-readable template text.
 	useEffect(() => {
-		if (editingQuery && schema.length > 0) {
-			setName(editingQuery.labels[0] ?? "");
-			setLabel(editingQuery.labels[1] ?? "");
+		if (!editingQuery || schema.length === 0) return;
 
-			const restored = conditionsToRules(editingQuery.conditions as RqeCondition[]);
+		setName(editingQuery.labels[0] ?? "");
+		setLabel(editingQuery.labels[1] ?? "");
+
+		const restored = conditionsToRules(editingQuery.conditions as RqeCondition[]);
+
+		// Collect all stat_ids that need template resolution
+		const statIds: string[] = [];
+		for (const r of restored) {
+			const pred = r.rule as Record<string, unknown>;
+			if (pred.type === "StatValue") {
+				const conditions = pred.conditions as Array<{ stat_ids?: string[] }>;
+				for (const c of conditions) {
+					if (c.stat_ids) statIds.push(...c.stat_ids);
+				}
+			}
+		}
+
+		// Resolve stat_ids to templates, then update the rules
+		const applyRules = (templateMap: Record<string, string>) => {
 			let keyCounter = 0;
-			setRules(
-				restored.map((r) => ({
-					_key: keyCounter++,
-					label: r.label,
-					weight: 0,
-					rule: r.rule,
-				})),
-			);
+			const withText = restored.map((r) => {
+				const pred = r.rule as Record<string, unknown>;
+				if (pred.type === "StatValue") {
+					const conditions = (pred.conditions as Array<Record<string, unknown>>).map((c) => {
+						const ids = c.stat_ids as string[] | undefined;
+						const template = ids?.[0] ? templateMap[ids[0]] : undefined;
+						return { ...c, text: template ?? ids?.[0] ?? null };
+					});
+					return {
+						_key: keyCounter++,
+						label: r.label,
+						weight: 0,
+						rule: { ...pred, conditions } as Rule,
+					};
+				}
+				return { _key: keyCounter++, label: r.label, weight: 0, rule: r.rule };
+			});
+			setRules(withText);
 			setNextKey(keyCounter);
+		};
+
+		if (statIds.length > 0) {
+			invoke<Record<string, string>>("resolve_stat_templates", {
+				statIds,
+			})
+				.then(applyRules)
+				.catch(() => applyRules({}));
+		} else {
+			applyRules({});
 		}
 	}, [editingQuery, schema]);
 

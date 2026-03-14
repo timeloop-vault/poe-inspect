@@ -1024,6 +1024,24 @@ fn get_stat_suggestions(
     state.0.stat_suggestions_for_query(&query)
 }
 
+/// Resolve stat IDs to their human-readable template text.
+/// Returns a map of stat_id → template (first match). Unknown IDs are omitted.
+#[tauri::command]
+fn resolve_stat_templates(
+    stat_ids: Vec<String>,
+    state: tauri::State<'_, GameDataState>,
+) -> std::collections::HashMap<String, String> {
+    let mut result = std::collections::HashMap::new();
+    for stat_id in &stat_ids {
+        if let Some(templates) = state.0.templates_for_stat(stat_id) {
+            if let Some(first) = templates.first() {
+                result.insert(stat_id.clone(), first.clone());
+            }
+        }
+    }
+    result
+}
+
 // ── Trade commands (async) ──────────────────────────────────────────────────
 
 /// Preview a trade query without executing it (no HTTP, no rate limit cost).
@@ -1454,6 +1472,7 @@ pub fn run() {
             get_predicate_schema,
             get_suggestions,
             get_stat_suggestions,
+            resolve_stat_templates,
             get_map_mod_templates,
             preview_trade_query,
             price_check,
