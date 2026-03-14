@@ -419,19 +419,36 @@ export function MarketplaceSettings() {
 			</button>
 			<div class="setting-group" style={{ marginTop: 16 }}>
 				<h3>Display</h3>
-				<label class="setting-row">
-					<span class="setting-label">Badge color</span>
-					<input
-						type="color"
-						value={settings.badgeColor ?? "#f1c40f"}
-						onInput={(e) => {
-							const next = { ...settings, badgeColor: (e.target as HTMLInputElement).value };
-							setSettings(next);
-							saveMarketplace(next);
-						}}
-						style={{ width: 40, height: 28, padding: 0, border: "none", cursor: "pointer" }}
-					/>
-				</label>
+				<div class="setting-row">
+					<div class="setting-label">Badge color</div>
+					<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+						<input
+							type="color"
+							value={settings.badgeColor ?? "#f1c40f"}
+							onInput={(e) => {
+								const next = { ...settings, badgeColor: (e.target as HTMLInputElement).value };
+								setSettings(next);
+								saveMarketplace(next);
+							}}
+							style={{
+								width: "28px",
+								height: "28px",
+								border: "none",
+								background: "none",
+								cursor: "pointer",
+							}}
+						/>
+						<span
+							style={{
+								fontFamily: "Consolas, monospace",
+								fontSize: "11px",
+								color: "var(--poe-text-dim)",
+							}}
+						>
+							{settings.badgeColor ?? "#f1c40f"}
+						</span>
+					</div>
+				</div>
 				<p class="setting-description">
 					Color of the demand badge shown in the overlay when players want an item.
 				</p>
