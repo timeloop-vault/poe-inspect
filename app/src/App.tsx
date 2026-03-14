@@ -541,6 +541,10 @@ export function App() {
 					filters={tradeFilters}
 					baseType={evaluatedItem.item.header.baseType}
 					itemClass={evaluatedItem.item.header.itemClass}
+					rarity={evaluatedItem.item.header.rarity}
+					itemLevel={evaluatedItem.item.itemLevel}
+					isCorrupted={evaluatedItem.item.isCorrupted}
+					isFractured={evaluatedItem.item.isFractured}
 				/>
 			</div>
 		);

@@ -36,4 +36,30 @@ qualityEnabled: boolean,
  * Minimum quality override (only used when `quality_enabled` is true).
  * `None` = use the item's actual quality value.
  */
-qualityMin: number | null, };
+qualityMin: number | null, 
+/**
+ * Rarity filter override. `None` = use default ("nonunique" for rares).
+ * `"any"` = remove rarity restriction.
+ */
+rarityOverride: string | null, 
+/**
+ * Whether to include an item-level minimum filter.
+ */
+ilvlEnabled: boolean, 
+/**
+ * Minimum item level (only used when `ilvl_enabled` is true).
+ * `None` = use the item's actual item level.
+ */
+ilvlMin: number | null, 
+/**
+ * Override for the corrupted misc filter.
+ * `None` = default (include if item is corrupted).
+ * `Some(false)` = omit. `Some(true)` = force on.
+ */
+corruptedOverride: boolean | null, 
+/**
+ * Override for the fractured misc filter.
+ * `None` = default (include if item is fractured).
+ * `Some(false)` = omit. `Some(true)` = force on.
+ */
+fracturedOverride: boolean | null, };

@@ -30,6 +30,16 @@ export interface TradeFilters {
 	qualityMin: number | null;
 	setQualityEnabled: (enabled: boolean) => void;
 	setQualityMin: (min: number | null) => void;
+	rarityOverride: string | null;
+	setRarityOverride: (v: string | null) => void;
+	ilvlEnabled: boolean;
+	ilvlMin: number | null;
+	setIlvlEnabled: (enabled: boolean) => void;
+	setIlvlMin: (min: number | null) => void;
+	corruptedOverride: boolean | null;
+	setCorruptedOverride: (v: boolean | null) => void;
+	fracturedOverride: boolean | null;
+	setFracturedOverride: (v: boolean | null) => void;
 	filterConfig: TradeFilterConfig | null;
 }
 
@@ -54,6 +64,11 @@ export function useTradeFilters(
 	const [quality, setQuality] = useState<number | null>(null);
 	const [qualityEnabled, setQualityEnabled] = useState(false);
 	const [qualityMin, setQualityMin] = useState<number | null>(null);
+	const [rarityOverride, setRarityOverride] = useState<string | null>(null);
+	const [ilvlEnabled, setIlvlEnabled] = useState(false);
+	const [ilvlMin, setIlvlMin] = useState<number | null>(null);
+	const [corruptedOverride, setCorruptedOverride] = useState<boolean | null>(null);
+	const [fracturedOverride, setFracturedOverride] = useState<boolean | null>(null);
 	const [pendingAutoEdit, setPendingAutoEdit] = useState(false);
 
 	// Reset when item changes; queue auto-edit if requested
@@ -69,6 +84,11 @@ export function useTradeFilters(
 		setQuality(null);
 		setQualityEnabled(false);
 		setQualityMin(null);
+		setRarityOverride(null);
+		setIlvlEnabled(false);
+		setIlvlMin(null);
+		setCorruptedOverride(null);
+		setFracturedOverride(null);
 		if (autoEdit && itemText) {
 			setPendingAutoEdit(true);
 		}
@@ -197,6 +217,11 @@ export function useTradeFilters(
 				minLinks: linksMin,
 				qualityEnabled,
 				qualityMin,
+				rarityOverride,
+				ilvlEnabled,
+				ilvlMin,
+				corruptedOverride,
+				fracturedOverride,
 			}
 		: null;
 
@@ -220,6 +245,16 @@ export function useTradeFilters(
 		qualityMin,
 		setQualityEnabled,
 		setQualityMin,
+		rarityOverride,
+		setRarityOverride,
+		ilvlEnabled,
+		ilvlMin,
+		setIlvlEnabled,
+		setIlvlMin,
+		corruptedOverride,
+		setCorruptedOverride,
+		fracturedOverride,
+		setFracturedOverride,
 		filterConfig,
 	};
 }

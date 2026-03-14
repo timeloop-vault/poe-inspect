@@ -14,6 +14,14 @@ interface TradePanelProps {
 	baseType: string;
 	/** Item class from item header (e.g., "Wands"). */
 	itemClass: string;
+	/** Item rarity (e.g., "Rare"). */
+	rarity: string;
+	/** Item level (for ilvl filter). */
+	itemLevel: number | null;
+	/** Whether the item is corrupted. */
+	isCorrupted: boolean;
+	/** Whether the item is fractured. */
+	isFractured: boolean;
 }
 
 type TradeState =
@@ -32,7 +40,17 @@ const scopeLabels: Record<TypeSearchScope, string> = {
 
 const scopeOrder: TypeSearchScope[] = ["baseType", "itemClass", "any"];
 
-export function TradePanel({ itemText, config, filters, baseType, itemClass }: TradePanelProps) {
+export function TradePanel({
+	itemText,
+	config,
+	filters,
+	baseType,
+	itemClass,
+	rarity,
+	itemLevel,
+	isCorrupted,
+	isFractured,
+}: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
 	const [urlLoading, setUrlLoading] = useState(false);
 
@@ -153,7 +171,7 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 			)}
 
 			{/* Item property filters — shown in edit mode */}
-			{filters.editMode && (filters.socketInfo || filters.quality != null) && (
+			{filters.editMode && (
 				<div class="trade-socket-filters">
 					{filters.socketInfo && (
 						<label class="socket-filter-row">
@@ -201,6 +219,74 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 								}}
 							/>
 							<span class="socket-filter-hint">{filters.quality}%</span>
+						</label>
+					)}
+					{itemLevel != null && (
+						<label class="socket-filter-row">
+							<input
+								type="checkbox"
+								checked={filters.ilvlEnabled}
+								onChange={() => filters.setIlvlEnabled(!filters.ilvlEnabled)}
+							/>
+							<span class="socket-filter-label">Min iLvl</span>
+							<input
+								type="number"
+								class="socket-filter-input"
+								value={filters.ilvlMin ?? itemLevel}
+								min={1}
+								max={100}
+								disabled={!filters.ilvlEnabled}
+								onInput={(e) => {
+									const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
+									filters.setIlvlMin(Number.isNaN(v) ? null : v);
+								}}
+							/>
+							<span class="socket-filter-hint">iLvl {itemLevel}</span>
+						</label>
+					)}
+					{(rarity === "Rare" || rarity === "Magic" || rarity === "Normal") && (
+						<div class="socket-filter-row">
+							<span class="socket-filter-label">Rarity</span>
+							<div class="rarity-toggle">
+								<button
+									type="button"
+									class={`rarity-toggle-btn ${filters.rarityOverride !== "any" ? "rarity-active" : ""}`}
+									onClick={() => filters.setRarityOverride(null)}
+								>
+									Non-Unique
+								</button>
+								<button
+									type="button"
+									class={`rarity-toggle-btn ${filters.rarityOverride === "any" ? "rarity-active" : ""}`}
+									onClick={() => filters.setRarityOverride("any")}
+								>
+									Any
+								</button>
+							</div>
+						</div>
+					)}
+					{isCorrupted && (
+						<label class="socket-filter-row">
+							<input
+								type="checkbox"
+								checked={filters.corruptedOverride !== false}
+								onChange={() =>
+									filters.setCorruptedOverride(filters.corruptedOverride === false ? null : false)
+								}
+							/>
+							<span class="socket-filter-label">Corrupted</span>
+						</label>
+					)}
+					{isFractured && (
+						<label class="socket-filter-row">
+							<input
+								type="checkbox"
+								checked={filters.fracturedOverride !== false}
+								onChange={() =>
+									filters.setFracturedOverride(filters.fracturedOverride === false ? null : false)
+								}
+							/>
+							<span class="socket-filter-label">Fractured</span>
 						</label>
 					)}
 				</div>
