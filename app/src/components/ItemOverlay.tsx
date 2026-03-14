@@ -715,9 +715,9 @@ export function ItemOverlay({
 				</>
 			)}
 
-			{/* Explicit mods — map danger view or normal */}
+			{/* Explicit mods — trade edit supersedes map danger */}
 			{item.explicits.length > 0 &&
-				(isMap && mapDanger && onDangerChange ? (
+				(isMap && mapDanger && onDangerChange && !tradeEdit ? (
 					<MapDangerSection
 						mods={item.explicits}
 						mapDanger={mapDanger}
