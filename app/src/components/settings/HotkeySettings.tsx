@@ -11,6 +11,7 @@ import {
 async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 	await invoke("update_hotkeys", {
 		inspectItem: settings.inspectItem.toLowerCase().replace(/\+/g, "+"),
+		compactInspect: settings.compactInspect.toLowerCase().replace(/\+/g, "+"),
 		dismissOverlay: settings.dismissOverlay.toLowerCase().replace(/\+/g, "+"),
 		openSettings: settings.openSettings.toLowerCase().replace(/\+/g, "+"),
 		cycleProfile: settings.cycleProfile.toLowerCase().replace(/\+/g, "+"),
@@ -19,6 +20,7 @@ async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 
 const hotkeyFields: { label: string; key: keyof HotkeySettingsType }[] = [
 	{ label: "Inspect Item", key: "inspectItem" },
+	{ label: "Compact Inspect", key: "compactInspect" },
 	{ label: "Dismiss Overlay", key: "dismissOverlay" },
 	{ label: "Open Settings", key: "openSettings" },
 	{ label: "Cycle Profile", key: "cycleProfile" },
@@ -131,7 +133,7 @@ export function HotkeySettings() {
 						<div class="hotkey-input">
 							<button
 								type="button"
-								class={`hotkey-display ${capturing === field.key ? "capturing" : ""}`}
+								class={`hotkey-display ${capturing === field.key ? "capturing" : ""} ${!capturing && !settings[field.key] ? "unbound" : ""}`}
 								onClick={() => {
 									if (capturing !== field.key) startCapture(field.key);
 								}}
@@ -143,18 +145,27 @@ export function HotkeySettings() {
 									}
 								}}
 							>
-								{capturing === field.key ? "Press keys..." : settings[field.key]}
+								{capturing === field.key
+								? "Press keys..."
+								: settings[field.key] || "Not bound"}
 							</button>
 							{capturing === field.key ? (
 								<button type="button" class="hotkey-reset" onClick={cancelCapture}>
 									Cancel
 								</button>
 							) : (
-								settings[field.key] !== defaultHotkeys[field.key] && (
-									<button type="button" class="hotkey-reset" onClick={() => resetHotkey(field.key)}>
-										Reset
-									</button>
-								)
+								<button
+									type="button"
+									class="hotkey-reset"
+									style={
+										settings[field.key] === defaultHotkeys[field.key]
+											? { visibility: "hidden" }
+											: undefined
+									}
+									onClick={() => resetHotkey(field.key)}
+								>
+									Reset
+								</button>
 							)}
 						</div>
 					</div>
