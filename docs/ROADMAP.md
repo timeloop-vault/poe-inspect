@@ -4,13 +4,128 @@ Current priorities, ordered. Updated 2026-03-14.
 
 ---
 
-## ~~1. Release Flow (GitHub Actions)~~ ✅
+## Done
 
-Done. Multi-platform CI in `.github/workflows/release.yml` — triggered on GitHub Release publish or manual dispatch. Builds Windows (.exe/.msi), macOS (.dmg), Linux (.deb/.AppImage) with signing support. Manual dispatch uploads as workflow artifacts.
+### ~~1. Release Flow (GitHub Actions)~~ ✅
+
+Multi-platform CI in `.github/workflows/release.yml` — triggered on GitHub Release publish or manual dispatch. Builds Windows (.exe/.msi), macOS (.dmg), Linux (.deb/.AppImage) with signing support. Manual dispatch uploads as workflow artifacts.
+
+### ~~3. Compact Overlay Mode~~ ✅
+
+Score-only pill for speed-scanning stash tabs.
+
+- Compact inspect hotkey (default `Ctrl+Shift+I`) — small pill near cursor, click-through, auto-dismisses after 2.5s
+- Shows item name + score % (color-coded) + watching profile dots + demand badge
+- Maps show DEADLY/CAUTION/SAFE/UNRATED verdict instead of score
+- Press full inspect hotkey while pill showing → expands to full overlay (no re-parse)
+- Independent compact position setting (cursor vs panel)
+- DOM-measured panel positioning replaces hardcoded size estimates
+- "Not bound" placeholder UX for unset hotkeys
+
+### ~~7. Stash Tab Scrolling & Chat Macros~~ ✅
+
+Both features implemented with Settings UI.
+
+- **Stash Tab Scrolling**: `WH_MOUSE_LL` hook, configurable modifier key, stash area geofencing
+- **Chat Macros**: Hotkey-bound chat commands, clipboard-based injection, per-macro send toggle, conflict detection
+- **PoE Focus Gate**: All gameplay hotkeys gated on PoE foreground window check, toggleable in Settings
+
+### ~~10. Hotkeys Swallow Keys Outside PoE~~ ✅
+
+`WH_KEYBOARD_LL` hook (`hotkey_hook.rs`) replaces `tauri-plugin-global-shortcut` for gameplay hotkeys on Windows. Keys pass through to other apps when PoE isn't foreground. Settings hotkey (`Ctrl+Shift+S`) remains globally registered. Toggleable via "Require PoE Focus" setting.
+
+### ~~Local Stat ID Resolution (Phases 1–4)~~ ✅
+
+Base-type-anchored stat_id resolution. Items, suggestions, and evaluation all carry real (possibly local) stat_ids from the GGPK Mods table. Domain filtering for jewels vs equipment. Phase 5 (trade `(Local)` suffix) is roadmap item #4 below.
+
+### ~~Multi-line Stat Lookups~~ ✅
+
+`try_multi_line_resolution()` joins consecutive unresolved stat lines with `\n` for reverse index lookup. Handles stats spanning two visual lines (e.g., flask immunity mods).
+
+### ~~RQE Marketplace~~ ✅
+
+Full pipeline: decision DAG engine, domain-free server, client crate, app integration (login gate, query CRUD, query builder with edit, demand badge in overlay + compact pill, styled tooltip, badge color picker, auto-refresh on tab revisit). Only GGG OAuth remains (long-term, needs approval).
 
 ---
 
-## 2. Data Extraction / Update Flow (GitHub Actions)
+## Active Priorities
+
+### 2. `(Local)` Trade Stat Suffix
+
+Trade queries for local stats (e.g., `local_base_evasion_rating`) need the `(Local)` suffix appended to match the trade API's stat text format. Final piece of the local stat ID resolution plan.
+
+- poe-trade query builder: detect local stat_ids, append `(Local)` when building trade stat filters
+- Verify against trade API stat index to confirm which stats need the suffix
+- Test with local defense mods (armour, evasion, energy shield) and local attack mods (phys damage, attack speed)
+
+---
+
+### 3. Parse More Stat Description Files
+
+Bumps trade stat match rate above 87.4%. Currently unparsed files:
+
+- Atlas stat descriptions
+- Map stat descriptions (partially done for map danger)
+- Sanctum stat descriptions
+- Heist stat descriptions
+
+Each file adds stat patterns to the reverse index → more trade stats resolve to stat_ids → better trade query coverage.
+
+---
+
+### 4. HasStatText Deprecation
+
+Replace remaining `HasStatText` (substring matching) with `HasStatId` (stat ID matching).
+
+- Audit all existing profiles/rules for `HasStatText` usage
+- Migrate to `HasStatId` equivalents
+- Consider removing `HasStatText` from the schema entirely, or marking deprecated
+- Ensures all matching is language-independent and unambiguous
+
+---
+
+### 5. Trade Edit Search Improvements
+
+Pain points from real gameplay. The Edit Search UI needs more filters to match what the official trade site offers. Many of these were designed in `docs/trade-query-builder-design.md` (Phase 6c) but not yet implemented.
+
+1. **Rarity toggle** — filter by rarity. Designed in query builder doc §7 (`rarity: "nonunique"` / omit). Small toggle near header
+2. **Level/attribute requirements** — level req, str/dex/int req, item level. Designed in §2-3 (`ilvl.min` filter). Attr reqs display-only for now (no trade API filter)
+3. **Defenses & sockets** — quality, armour/evasion/energy shield, socket/link filters. Quality + sockets partially implemented already
+4. **Open prefixes** — filter for items with open prefix slots. Designed in §4 (`pseudo.open_prefix`/`pseudo.open_suffix`). Needs trade API pseudo stat ID research
+5. **"Base item" button** — strips all stat filters but keeps base type + fractured mods. Quick way to price-check the base itself
+6. **Fractured affix support** — fractured mods should be recognized and filterable in Edit Search. Partially designed in §8 (auto-detected, make toggleable)
+
+---
+
+### 6. Map Danger Escalation
+
+User-configurable threshold where accumulating lower-tier dangers escalates to a higher tier.
+
+- E.g., 3+ caution mods → treat as deadly (or "caution++")
+- Configurable per-profile: number of mods at tier X that escalate to tier Y
+- Affects both full overlay verdict and compact pill display
+- Settings UI in Map Danger section
+
+---
+
+### 7. Auto-Updater
+
+App should check for updates and offer to install them. CI infrastructure is already in place (`release.yml` generates signed `latest.json`). Design doc: `docs/auto-updater.md`.
+
+**What's done:** tauri.conf.json config (pubkey + endpoint), release workflow (signing + `includeUpdaterJson`), design doc.
+
+**What's needed:**
+1. Add `tauri-plugin-updater` (Cargo.toml + package.json)
+2. Initialize plugin in `lib.rs`
+3. Add updater capability permissions
+4. Startup: silent check → toast if update available
+5. Settings > General: "Check for Updates" button
+6. Update dialog: version + release notes, Install / Later
+7. Schema versioning for profile migration (`schemaVersion` field)
+
+---
+
+### 8. Data Extraction / Update Flow (GitHub Actions)
 
 Automated pipeline to download GGPK from the PoE patch server, extract game data, and regenerate derived files.
 
@@ -31,132 +146,19 @@ Automated pipeline to download GGPK from the PoE patch server, extract game data
 
 ---
 
-## ~~3. Compact Overlay Mode~~ ✅
+### 9. Toast Position Config
 
-Done. Score-only pill for speed-scanning stash tabs.
+Let user choose toast screen position (top/bottom, left/center/right). Currently hardcoded to top-center.
 
-- Compact inspect hotkey (default `Ctrl+Shift+I`) — small pill near cursor, click-through, auto-dismisses after 2.5s
-- Shows item name + score % (color-coded) + watching profile dots
-- Maps show DEADLY/CAUTION/SAFE/UNRATED verdict instead of score
-- Press full inspect hotkey while pill showing → expands to full overlay (no re-parse)
-- Independent compact position setting (cursor vs panel)
-- DOM-measured panel positioning replaces hardcoded size estimates
-- "Not bound" placeholder UX for unset hotkeys
-
----
-
-## 4. HasStatText Deprecation
-
-Replace remaining `HasStatText` (substring matching) with `HasStatId` (stat ID matching).
-
-- Audit all existing profiles/rules for `HasStatText` usage
-- Migrate to `HasStatId` equivalents
-- Consider removing `HasStatText` from the schema entirely, or marking deprecated
-- Ensures all matching is language-independent and unambiguous
-
----
-
-## 5. `(Local)` Trade Stat Suffix
-
-Trade queries for local stats (e.g., `local_base_evasion_rating`) need the `(Local)` suffix appended to match the trade API's stat text format.
-
-- poe-trade query builder: detect local stat_ids, append `(Local)` when building trade stat filters
-- Verify against trade API stat index to confirm which stats need the suffix
-- Test with local defense mods (armour, evasion, energy shield) and local attack mods (phys damage, attack speed)
-
----
-
-## 6. Parse More Stat Description Files
-
-Bumps trade stat match rate above 87.4%. Currently unparsed files:
-
-- Atlas stat descriptions
-- Map stat descriptions (partially done for map danger)
-- Sanctum stat descriptions
-- Heist stat descriptions
-
-Each file adds stat patterns to the reverse index → more trade stats resolve to stat_ids → better trade query coverage.
-
----
-
-## ~~7. Stash Tab Scrolling & Chat Macros~~ ✅
-
-Done. Both features implemented with Settings UI.
-
-### Stash Tab Scrolling
-- `WH_MOUSE_LL` hook on dedicated thread intercepts scroll when PoE is focused
-- Configurable modifier key (Ctrl/Shift/Alt/None), default Ctrl+scroll
-- Stash area geofencing (like awakened-poe-trade) — lets PoE handle native scroll in tab header area
-- Non-Windows: no-op stub (compiles, parked thread)
-
-### Chat Macros
-- Hotkey-bound chat commands (e.g., F5 → `/hideout`) in Settings > Chat Macros
-- Clipboard-based injection: save clipboard → Enter → Ctrl+A → Ctrl+V → Enter → restore
-- Per-macro send toggle (auto-send vs leave chat open)
-- Conflict detection against core hotkeys and other macros
-
-### PoE Focus Gate (prerequisite)
-- All gameplay hotkeys (inspect, cycle, macros, scroll) gated on PoE foreground window check
-- Toggleable in Settings > Behavior (for platforms where detection isn't implemented)
-- Windows: `GetForegroundWindow` + window title match; non-Windows: always true (stub)
-
----
-
-## 8. Trade Edit Search Improvements
-
-Pain points from real gameplay. The Edit Search UI needs more filters to match what the official trade site offers. Many of these were designed in `docs/trade-query-builder-design.md` (Phase 6c) but not yet implemented.
-
-1. **Rarity toggle** — filter by rarity. Designed in query builder doc §7 (`rarity: "nonunique"` / omit). Small toggle near header
-2. **Level/attribute requirements** — level req, str/dex/int req, item level. Designed in §2-3 (`ilvl.min` filter). Attr reqs display-only for now (no trade API filter)
-3. **Defenses & sockets** — quality, armour/evasion/energy shield, socket/link filters. Quality + sockets partially implemented already
-4. **Open prefixes** — filter for items with open prefix slots. Designed in §4 (`pseudo.open_prefix`/`pseudo.open_suffix`). Needs trade API pseudo stat ID research
-5. **"Base item" button** — strips all stat filters but keeps base type + fractured mods. Quick way to price-check the base itself. NEW — not in existing design docs
-6. **Fractured affix support** — fractured mods should be recognized and filterable in Edit Search. Partially designed in §8 (auto-detected, make toggleable)
-
----
-
-## 9. Map Danger Escalation
-
-User-configurable threshold where accumulating lower-tier dangers escalates to a higher tier.
-
-- E.g., 3+ caution mods → treat as deadly (or "caution++")
-- Configurable per-profile: number of mods at tier X that escalate to tier Y
-- Affects both full overlay verdict and compact pill display
-- Settings UI in Map Danger section
-
----
-
-## 10. Hotkeys Swallow Keys Outside PoE
-
-Global shortcuts consume key events even when PoE isn't the foreground window. E.g., `Ctrl+T` (trade inspect) blocks "new tab" in Chrome. The `requirePoeFocus` setting gates the *action* but the shortcut is still registered globally and eats the keypress.
-
-**Fix options:**
-- Only register gameplay hotkeys when PoE is foreground, unregister when it loses focus (needs foreground window change listener)
-- Use a low-level keyboard hook (like stash scroll) that checks foreground window before consuming the event
-- On Windows: `WH_KEYBOARD_LL` hook with `GetForegroundWindow` check — pass through if not PoE
-
----
-
-## 11. Auto-Updater
-
-App should check for updates and offer to install them. CI infrastructure is already in place (`release.yml` generates signed `latest.json`). Design doc: `docs/auto-updater.md`.
-
-**What's done:** tauri.conf.json config (pubkey + endpoint), release workflow (signing + `includeUpdaterJson`), design doc.
-
-**What's needed:**
-1. Add `tauri-plugin-updater` (Cargo.toml + package.json)
-2. Initialize plugin in `lib.rs`
-3. Add updater capability permissions
-4. Startup: silent check → toast if update available
-5. Settings > General: "Check for Updates" button
-6. Update dialog: version + release notes, Install / Later
-7. Schema versioning for profile migration (`schemaVersion` field)
+- Add `toastPosition` to `GeneralSettings` (e.g., "top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right")
+- Settings UI: radio button group or dropdown in General section
+- Parameterize position calculation in `show_toast()`
 
 ---
 
 ## Backlog (Unordered)
 
-These are known gaps and future features, not currently prioritized.
+Known gaps and future features, not currently prioritized.
 
 | Item | Layer | Notes |
 |------|-------|-------|
@@ -167,11 +169,12 @@ These are known gaps and future features, not currently prioritized.
 | Reusable condition templates | app | Save/insert condition templates across rules and profiles. |
 | Craft suggestions | poe-data + app | Extract `CraftingBenchOptions` from GGPK, show "bench-craft X" in overlay. |
 | Rule text DSL | poe-eval + app | Text format compilable to Profile JSON. VS Code extension. |
-| Multi-line stat lookups | poe-item | Some stats span two lines in item text. |
 | Ctrl+C fallback parser | poe-item | Only Ctrl+Alt+C supported; Ctrl+C has less data but is more common. |
 | `{ Foulborn Unique Modifier }` | poe-item | Grammar doesn't handle mod name before "Unique" keyword. |
 | macOS cursor position | app | Currently hardcoded `(100, 100)`. Needs Core Graphics API. |
 | CSS split (overlay vs settings) | app | Separate entry points. Low priority — class-scoping works. |
 | Overlay sprites | app | Foil/Quest/Prophecy headers, Div Card separator, influence overlays. |
 | Item browser for rule building | app | Browsable poe-data database for looking up base types, mods. |
-| ~~Inspect + Trade Edit hotkey~~ | ~~app~~ | ✅ Done. `Ctrl+T` opens full overlay with Edit Search pre-activated. |
+| Profile/rules separation | app | Rethink profile identity vs role (primary/watching/off) — see memory. |
+| GGG OAuth for RQE | app + rqe-server | Replace mock auth with real PoE account OAuth. Needs community mass for approval. |
+| DPS calculations | poe-eval | Use `is_local` from Stats table for weapon/armour base value calculations. |

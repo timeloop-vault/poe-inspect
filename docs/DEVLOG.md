@@ -51,9 +51,6 @@ Status snapshots for picking up where we left off. Newest first.
 | Feature | Description | Blocked By |
 |---------|-------------|------------|
 | Pseudo stats | Sum matching stat lines (e.g., "pseudo max life ≥ 140") | New poe-eval predicate type |
-| Compact overlay mode | Score-only pill for speed-scanning stash tabs | App-only (CSS + hotkey) |
-| Stash tab scrolling | Mouse wheel to cycle stash tabs | App-only (research AWP approach) |
-| Chat macros | Custom hotkeys for chat commands | App-only (enigo) |
 | Map danger assessment | Per-mod danger tagging (deadly / warning / good) with traffic-light overlay. User classifies each map mod per profile — no hardcoded danger list since riskiness is build-dependent. Click-to-cycle in overlay, full searchable mod list in settings. Dedicated hotkey and/or shown in normal overlay when item class is Map. Reference: `_reference/awakened-poe-trade/renderer/src/web/map-check/` | App UX + settings UI; poe-eval profiles already support the evaluation; needs area mod stat list from poe-dat |
 | ~~Character-aware profile switching~~ | ~~Scrapped — client.txt doesn't contain character name on zone entry~~ | — |
 | Rule text DSL | Textual rule format compilable to Profile JSON | Grammar design, VS Code ext |
@@ -67,7 +64,6 @@ Status snapshots for picking up where we left off. Newest first.
 | `(Local)` suffix in trade stat text | poe-trade | Trade queries for local stats may not match correctly |
 | 12.6% unmapped trade stats | poe-dat → poe-trade | Stats from unparsed description files (atlas, sanctum, heist) |
 | `CraftingBenchOptions` table | poe-data | Blocks craft suggestion feature |
-| Multi-line stat lookups | poe-item | Some stats span two lines in item text, not resolved |
 | Ctrl+C fallback parser | poe-item | Only Ctrl+Alt+C format supported, Ctrl+C has less data |
 | `{ Foulborn Unique Modifier }` | poe-item | Mod name before "Unique" keyword — grammar doesn't handle this header pattern |
 
