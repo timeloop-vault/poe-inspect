@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import {
 	type MarketplaceSettings as MarketplaceConfig,
 	defaultMarketplace,
 	isValidAccountName,
 	loadMarketplace,
-	normalizeAccountName,
 	saveMarketplace,
 } from "../../store";
 import { QueryEditor } from "./QueryEditor";
@@ -65,11 +64,10 @@ function LoginGate({
 			}
 
 			const settings: MarketplaceConfig = {
-				accountName: normalizeAccountName(accountName),
+				accountName,
 				serverUrl: url,
 				apiKey: apiKey || null,
 				enabled: true,
-				badgeColor: "#f1c40f",
 			};
 			await saveMarketplace(settings);
 			onLogin(settings);
@@ -151,6 +149,7 @@ function LoginGate({
 function AccountBar({
 	settings,
 	health,
+	queryCount,
 	onLogout,
 }: {
 	settings: MarketplaceConfig;
@@ -285,47 +284,47 @@ export function MarketplaceSettings() {
 	const [queries, setQueries] = useState<StoredQuery[]>([]);
 	const [loaded, setLoaded] = useState(false);
 	const [editing, setEditing] = useState<StoredQuery | "new" | null>(null);
-	const [fetchCount, setFetchCount] = useState(0);
 
-	// Load settings + fetch server data. Re-runs on fetchCount change.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: fetchCount is an intentional re-trigger
+	// Load saved settings on mount
 	useEffect(() => {
-		let cancelled = false;
-
-		loadMarketplace().then(async (s) => {
-			if (cancelled) return;
+		loadMarketplace().then((s) => {
 			setSettings(s);
 			setLoaded(true);
-
-			if (!s.accountName) return;
-
-			try {
-				const hr = await fetch(`${s.serverUrl}/health`);
-				if (!cancelled && hr.ok) setHealth(await hr.json());
-				else if (!cancelled) setHealth(null);
-			} catch {
-				if (!cancelled) setHealth(null);
-			}
-
-			try {
-				const qr = await fetch(`${s.serverUrl}/queries?owner=${encodeURIComponent(s.accountName)}`);
-				if (!cancelled && qr.ok) setQueries(await qr.json());
-			} catch {
-				// leave queries as-is
-			}
 		});
+	}, []);
 
-		return () => {
-			cancelled = true;
-		};
-	}, [fetchCount]);
+	// Fetch health + queries when logged in
+	const refreshData = useCallback(async (s: MarketplaceConfig) => {
+		if (!s.accountName) return;
+		try {
+			const url = s.serverUrl;
+			const healthResp = await fetch(`${url}/health`);
+			if (healthResp.ok) {
+				setHealth(await healthResp.json());
+			} else {
+				setHealth(null);
+			}
 
-	const refreshData = useCallback(() => setFetchCount((n) => n + 1), []);
+			const queryResp = await fetch(`${url}/queries?owner=${encodeURIComponent(s.accountName)}`);
+			if (queryResp.ok) {
+				setQueries(await queryResp.json());
+			}
+		} catch {
+			setHealth(null);
+		}
+	}, []);
+
+	// Auto-refresh when settings change (login)
+	useEffect(() => {
+		if (settings?.accountName) {
+			refreshData(settings);
+		}
+	}, [settings, refreshData]);
 
 	const handleLogin = useCallback(
 		(s: MarketplaceConfig) => {
 			setSettings(s);
-			refreshData();
+			refreshData(s);
 		},
 		[refreshData],
 	);
@@ -336,7 +335,6 @@ export function MarketplaceSettings() {
 		setSettings(cleared);
 		setHealth(null);
 		setQueries([]);
-		setEditing(null);
 	}, []);
 
 	const handleDelete = useCallback(
@@ -358,7 +356,7 @@ export function MarketplaceSettings() {
 					setHealth(await healthResp.json());
 				}
 			} catch {
-				setHealth(null); // Mark as disconnected
+				// silently fail — could show toast
 			}
 		},
 		[settings],
@@ -387,7 +385,7 @@ export function MarketplaceSettings() {
 					editingQuery={editing !== "new" ? editing : null}
 					onSave={() => {
 						setEditing(null);
-						refreshData();
+						refreshData(settings);
 					}}
 					onCancel={() => setEditing(null)}
 				/>
@@ -406,7 +404,7 @@ export function MarketplaceSettings() {
 			/>
 			<QueryList
 				queries={queries}
-				onRefresh={() => refreshData()}
+				onRefresh={() => refreshData(settings)}
 				onEdit={(q) => setEditing(q)}
 				onDelete={handleDelete}
 			/>
