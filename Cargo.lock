@@ -868,6 +868,7 @@ name = "poe-data"
 version = "0.1.0"
 dependencies = [
  "poe-dat",
+ "poe-item",
  "serde",
  "serde_json",
  "thiserror",
