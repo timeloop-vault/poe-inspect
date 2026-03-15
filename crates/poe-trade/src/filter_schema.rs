@@ -507,33 +507,22 @@ fn filter_default(
     is_range: bool,
     item: &ResolvedItem,
 ) -> (Option<EditFilterValue>, bool) {
-    // ── 1. Exception table: dedicated fields + naming mismatches ─────
+    // ── 1. Exception table: trade API conventions that can't be text-matched ──
     //
-    // These are fields that don't match by property/status/influence text
-    // because they're either dedicated ResolvedItem fields, computed values,
-    // or GGG uses a different name in the trade API than in item text.
+    // Only 3 entries remain — everything else is matched by property/status text.
     match filter_id {
-        "ilvl" => return range_default(item.item_level.map(f64::from), false),
         "rarity" => {
+            // Trade API uses "nonunique" as a rarity option value — not a property value.
+            // Trade API convention, not in GGPK (verified 2026-03-15).
             let default = match item.header.rarity {
                 Rarity::Rare | Rarity::Magic | Rarity::Normal => Some("nonunique"),
                 _ => None,
             };
             return option_default_selected(default, default.is_some());
         }
-        "sockets" => {
-            return range_default(
-                item.socket_info.as_ref().map(|si| f64::from(si.total)),
-                false,
-            );
-        }
-        "links" => {
-            let max_link = item.socket_info.as_ref().map(|si| si.max_link);
-            let enabled = max_link.is_some_and(|l| l >= 5);
-            return range_default(max_link.map(f64::from), enabled);
-        }
         "identified" => {
-            // Inverted: trade filter "Identified" = "No" when item is unidentified
+            // Trade API inverts: filter "Identified" = "No" for unidentified items.
+            // Trade API convention, not in GGPK (verified 2026-03-15).
             return if item.is_unidentified {
                 option_default_selected(Some("false"), true)
             } else {
@@ -541,6 +530,8 @@ fn filter_default(
             };
         }
         "gem_vaal" => {
+            // "Vaal Gem" is a trade filter concept — no GGPK status line for it.
+            // Checked: no ItemPopupVaalGem in ClientStrings (verified 2026-03-15).
             let is = item.gem_data.as_ref().is_some_and(|g| g.vaal.is_some());
             return option_default_bool(is);
         }
@@ -557,21 +548,14 @@ fn filter_default(
     if let Some(prop) = item.properties.iter().find(|p| p.name == prop_name) {
         let val = parse_numeric_property_value(&prop.value);
         if let Some(v) = val {
-            // Map Tier and Talisman Tier start enabled (primary search criteria)
-            let enabled = filter_id == "map_tier" || filter_id == "talisman_tier";
+            // Some filters start enabled by default:
+            // - Map Tier / Talisman Tier: primary search criteria
+            // - Links >= 5: significant for trade value (5L/6L items)
+            let enabled = filter_id == "map_tier"
+                || filter_id == "talisman_tier"
+                || (filter_id == "links" && v >= 5.0);
             return range_default(Some(v), enabled);
         }
-    }
-
-    // Also check dedicated fields that match by text
-    if filter_text == "Quality" {
-        return range_default(item.quality.map(f64::from), false);
-    }
-    if filter_text == "Talisman Tier" {
-        return range_default(
-            item.talisman_tier.map(f64::from),
-            item.talisman_tier.is_some(),
-        );
     }
 
     // ── 3. Status matching (for option filters) ──────────────────────
