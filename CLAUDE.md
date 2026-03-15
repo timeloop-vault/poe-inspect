@@ -105,7 +105,7 @@ poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
 - **Always fix biome errors** — even if unrelated to your changes. Run `npx biome check --write --unsafe .` from `app/` and fix any remaining issues before committing.
 
 ### Git / CLI
-- **Never `cd <path> && git <command>`** — the working directory is the repo root. Use git commands directly without `cd`. This applies to all git operations (status, add, commit, diff, log, etc.)
+- **Never chain `cd` with other commands** (`cd path && cmd`) — chained commands don't match allowed permissions and trigger prompts. Use flags when possible (`cargo check -p poe-trade`, `cargo check --manifest-path app/src-tauri/Cargo.toml`). When a tool requires cwd (vite, biome), run `cd app` as a separate Bash call first, then the command in the next call (cwd persists between calls). Always `cd` back to repo root after.
 - **Commit all Cargo.lock files** when dependencies change — both `app/src-tauri/Cargo.lock` and workspace `Cargo.lock` are tracked
 
 ### Documentation
