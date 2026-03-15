@@ -1402,3 +1402,68 @@ fn abyss_jewel_resolves_non_local_stat_ids() {
         "Jewel accuracy should be non-local (accuracy_rating)"
     );
 }
+
+// ── Pseudo stat tests ───────────────────────────────────────────────────────
+
+#[test]
+fn pseudo_physical_damage_computed() {
+    let item = resolve_full("rare-warstaff-sol-pile.txt");
+
+    // Item has two physical damage mods: 44% + 19% = 63%
+    let phys_pseudo = item.pseudo_mods.iter().find(|m| {
+        m.stat_lines.iter().any(|sl| {
+            sl.stat_ids
+                .as_ref()
+                .is_some_and(|ids| ids.iter().any(|id| id == "pseudo_increased_physical_damage"))
+        })
+    });
+
+    assert!(
+        phys_pseudo.is_some(),
+        "should have pseudo_increased_physical_damage mod. All explicits: {:?}",
+        item.explicits
+            .iter()
+            .flat_map(|m| m.stat_lines.iter())
+            .map(|sl| format!("{} → {:?}", sl.display_text, sl.stat_ids))
+            .collect::<Vec<_>>()
+    );
+
+    let value = phys_pseudo.unwrap().stat_lines[0].values[0].current;
+    assert_eq!(value, 63, "44% + 19% = 63% total physical damage");
+}
+
+#[test]
+fn pseudo_stat_value_predicate_works() {
+    use poe_eval::predicate::{Cmp, Predicate, StatCondition};
+    use poe_eval::rule::Rule;
+
+    let item = resolve_full("rare-warstaff-sol-pile.txt");
+
+    // StatValue with pseudo stat_id should match via all_mods()
+    let rule = Rule::Pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: Some("(Pseudo) #% total increased Physical Damage".to_string()),
+            stat_ids: vec!["pseudo_increased_physical_damage".to_string()],
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 60,
+        }],
+    });
+
+    let result = poe_eval::evaluate(&item, &rule, full_game_data());
+    assert!(result, "pseudo physical damage 63 >= 60 should match");
+
+    // Should NOT match with higher threshold
+    let rule_high = Rule::Pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: Some("(Pseudo) #% total increased Physical Damage".to_string()),
+            stat_ids: vec!["pseudo_increased_physical_damage".to_string()],
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 100,
+        }],
+    });
+
+    let result_high = poe_eval::evaluate(&item, &rule_high, full_game_data());
+    assert!(!result_high, "pseudo physical damage 63 < 100 should not match");
+}

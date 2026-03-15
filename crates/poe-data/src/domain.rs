@@ -619,7 +619,10 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     PseudoDefinition {
         id: "pseudo_increased_physical_damage",
         label: "(Pseudo) #% total increased Physical Damage",
-        components: &[comp("PhysicalDamage", 1.0, false)],
+        components: &[
+            comp("PhysicalDamagePercent", 1.0, false),
+            comp("PhysicalDamagePercentPrefix", 1.0, false),
+        ],
     },
 ];
 
