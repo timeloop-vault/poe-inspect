@@ -257,6 +257,24 @@ impl InfluenceKind {
             _ => None,
         }
     }
+
+    /// Text as it appears in `PoE` item text (used for trade filter matching).
+    #[must_use]
+    pub fn as_item_text(self) -> &'static str {
+        match self {
+            Self::Shaper => "Shaper Item",
+            Self::Elder => "Elder Item",
+            Self::Crusader => "Crusader Item",
+            Self::Hunter => "Hunter Item",
+            Self::Redeemer => "Redeemer Item",
+            Self::Warlord => "Warlord Item",
+            Self::SearingExarch => "Searing Exarch Item",
+            Self::EaterOfWorlds => "Eater of Worlds Item",
+            Self::Synthesised => "Synthesised Item",
+            Self::Fractured => "Fractured Item",
+            Self::RelicUnique => "Relic Unique",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -283,6 +301,19 @@ impl StatusKind {
             "Transfigured" => Some(Self::Transfigured),
             "Unidentified" => Some(Self::Unidentified),
             _ => None,
+        }
+    }
+
+    /// Text as it appears in `PoE` item text (used for trade filter matching).
+    #[must_use]
+    pub fn as_item_text(self) -> &'static str {
+        match self {
+            Self::Corrupted => "Corrupted",
+            Self::Mirrored => "Mirrored",
+            Self::Unmodifiable => "Unmodifiable",
+            Self::Split => "Split",
+            Self::Transfigured => "Transfigured",
+            Self::Unidentified => "Unidentified",
         }
     }
 }
