@@ -432,6 +432,23 @@ impl GameData {
         &self.resolved_pseudos
     }
 
+    /// All stat template texts for autocomplete (GGPK templates + pseudo labels).
+    ///
+    /// Returns a sorted list combining reverse index templates with pseudo stat
+    /// labels so the profile editor autocomplete finds both.
+    pub fn all_stat_templates(&self) -> Vec<String> {
+        let mut keys = self
+            .reverse_index
+            .as_ref()
+            .map(|ri| ri.template_keys())
+            .unwrap_or_default();
+        for pseudo in &self.resolved_pseudos {
+            keys.push(pseudo.label.to_string());
+        }
+        keys.sort();
+        keys
+    }
+
     /// Get the set of `stat_ids` associated with a mod family.
     pub fn family_stat_ids(&self, family: &str) -> Option<&HashSet<String>> {
         self.family_stat_ids.get(family)

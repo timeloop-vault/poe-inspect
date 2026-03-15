@@ -1020,19 +1020,7 @@ fn get_suggestions(source: String, state: tauri::State<'_, GameDataState>) -> Ve
             }
             names.into_iter().collect()
         }
-        "stat_texts" => {
-            let mut keys = gd
-                .reverse_index
-                .as_ref()
-                .map(|ri| ri.template_keys())
-                .unwrap_or_default();
-            // Include pseudo stat templates so they appear in autocomplete
-            for pseudo in gd.pseudo_definitions() {
-                keys.push(pseudo.label.to_string());
-            }
-            keys.sort();
-            keys
-        }
+        "stat_texts" => gd.all_stat_templates(),
         "stat_ids" => {
             let mut ids: Vec<String> = gd.stats.iter().map(|s| s.id.clone()).collect();
             ids.sort();
