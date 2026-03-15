@@ -314,3 +314,51 @@ fn local_stat_template_fallback() {
         single.stat_ids
     );
 }
+
+// ── ClientStrings ───────────────────────────────────────────────────────────
+
+#[test]
+fn client_strings_loaded() {
+    let Some(gd) = load_test_data() else { return };
+
+    // ClientStrings is optional — only loaded if the file exists in the dat dir.
+    // Our extract_dat only extracts core tables by default, so this test
+    // requires clientstrings.datc64 in %TEMP%/poe-dat/.
+    let corrupted = gd.client_string("ItemPopupCorrupted");
+    if corrupted.is_none() {
+        eprintln!("Skipping client_strings test: clientstrings.datc64 not in dat dir");
+        return;
+    }
+
+    assert_eq!(corrupted, Some("Corrupted"));
+    assert_eq!(
+        gd.client_string("ItemPopupFracturedItem"),
+        Some("Fractured Item")
+    );
+    assert_eq!(
+        gd.client_string("ItemDisplayArmourEvasionRating"),
+        Some("Evasion Rating")
+    );
+    // GGG uses smart quotes (U+201C, U+201D) in mod header templates
+    let prefix_template = gd.client_string("ModDescriptionLinePrefix").unwrap();
+    assert!(
+        prefix_template.contains("{0}"),
+        "Prefix template should contain {{0}}, got: {prefix_template}"
+    );
+    assert_eq!(
+        gd.client_string("ModDescriptionLineBrequelMutated"),
+        Some("Foulborn Unique Modifier")
+    );
+
+    // Test prefix lookup
+    let popups = gd.client_strings_with_prefix("ItemPopup");
+    assert!(
+        popups.len() >= 10,
+        "expected >=10 ItemPopup entries, got {}",
+        popups.len()
+    );
+    println!("ItemPopup entries: {}", popups.len());
+    for (id, text) in &popups {
+        println!("  {id} = \"{text}\"");
+    }
+}
