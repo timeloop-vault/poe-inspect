@@ -20,6 +20,12 @@ const CORE_TABLES: &[&str] = &[
     "modtype",
     "mods",
     "rarity",
+    // Base item type stat tables (DPS/defence calculations)
+    "armourtypes",
+    "weapontypes",
+    "shieldtypes",
+    // Display text (data-driven validation, property names, status/influence text)
+    "clientstrings",
 ];
 
 #[derive(clap::Parser)]
