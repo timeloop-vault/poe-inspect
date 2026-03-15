@@ -202,6 +202,10 @@ pub const TRADE_STAT_SUFFIXES: &[&str] = &[" (Local)", " (Shields)"];
 /// Map an item class string (from Ctrl+Alt+C `Item Class:` header) to the
 /// trade API category filter string.
 ///
+/// Trade API convention, not in GGPK (verified 2026-03-15).
+/// Checked: `BaseItemTypes` (no `TradeMarketCategory` field), `ItemClasses`,
+/// `ItemClassCategories`. GGG's trade site uses its own category URL scheme.
+///
 /// Returns `None` for item classes that don't have a trade category filter
 /// (currency, gems, quest items, etc.).
 #[must_use]
@@ -272,6 +276,11 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
 }
 
 /// Whether an item class is a weapon (has weapon filters on trade site).
+///
+/// TODO: Replace with `ItemClasses` capability flags from GGPK.
+/// The `ItemClasses` table has `CanHaveInfluence`, `CanBeFractured`, etc.
+/// and the `ItemClassCategories` FK distinguishes weapon/armour/accessory.
+/// See `docs/data-driven-plan.md` Phase 2.
 #[must_use]
 pub fn is_weapon_class(item_class: &str) -> bool {
     item_class_trade_category(item_class)
@@ -279,6 +288,9 @@ pub fn is_weapon_class(item_class: &str) -> bool {
 }
 
 /// Whether an item class is armour/shield/quiver (has armour filters on trade site).
+///
+/// TODO: Replace with `ItemClasses` capability flags from GGPK.
+/// See `is_weapon_class` comment above.
 #[must_use]
 pub fn is_armour_class(item_class: &str) -> bool {
     item_class_trade_category(item_class)
@@ -373,6 +385,11 @@ pub fn strip_quality_prefix(name: &str) -> &str {
 }
 
 /// Map a mod's display type to the trade API stat category prefix.
+///
+/// Trade API convention, not in GGPK (verified 2026-03-15).
+/// The trade API's `stats.json` organizes stat filters by category
+/// (explicit, implicit, fractured, crafted, enchant). This mapping
+/// determines which category prefix to use when building trade stat IDs.
 ///
 /// `display_type` is one of: `"prefix"`, `"suffix"`, `"implicit"`, `"crafted"`,
 /// `"enchant"`, `"unique"` (matching `poe-item`'s `ModDisplayType` serialization).
