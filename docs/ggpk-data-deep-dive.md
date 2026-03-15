@@ -260,6 +260,37 @@ Internal names like `UulNetolGraft1`, `XophGraft1`. Contains art paths and AI sc
 
 ---
 
+## Full Inventory
+
+All 911 tables have been string-probed. The full inventory with row counts, row sizes,
+and sample strings is at `_reference/ggpk-data-3.28/TABLE_INVENTORY.txt`.
+
+### Tables With Data We Could Extract
+
+| Table | Rows | What it contains | Priority |
+|---|---|---|---|
+| `clientstrings` | 8,264 | ALL UI display text (authoritative) | **High** — automates property names, status/influence text, mod headers |
+| `itemclasses` | 99 | `CanBeCorrupted/Influenced/Fractured` flags | **High** — replaces hardcoded `is_group_relevant()` |
+| `armourtypes` | 481 | Base AR/EV/ES per base item | **Medium** — DPS/defence calculations |
+| `weapontypes` | 365 | Base crit/speed/damage per weapon | **Medium** — DPS calculations |
+| `shieldtypes` | 98 | Block chance per shield | **Medium** — trade filter defaults |
+| `componentattributerequirements` | 861 | Str/Dex/Int per base | **Low** — already parsed from item text |
+| `characterpanelstats` | 384 | Stat display names (long + short forms) | **Medium** — may resolve naming mismatches |
+| `itemframetype` | 14 | Rarity RGB colors + header art | **Low** — nice to have, currently hardcoded in CSS |
+| `craftingbenchoptions` | 838 | Bench craft recipes | **Future** — Phase 2 crafting |
+| `essencetype` | 26 | Essence names | **Future** — essence identification |
+| `flasks` | 51 | Flask base data | **Future** — flask evaluation |
+| `words` | 4,068 | Magic item name word lists | **Low** — magic item name parsing |
+| `currencyitems` | 1,925 | Currency descriptions | **Future** — bulk exchange |
+| `influencetags` | 144 | 6 original influence → tag mappings | **Have** — already probed, low priority |
+
+### Tables NOT Useful (visual/audio/art/meta only)
+
+Most of the 911 tables are: monster AI, area definitions, hideout decorations,
+achievement tracking, league mechanics internals, UI art paths, sound effects,
+animation data, battle pass rewards, etc. These have no relevance to item
+evaluation or trade.
+
 ## Next Steps
 
 1. **Extract ClientStrings as a data source** — parse `ItemPopup*`, `ItemDisplay*`,
