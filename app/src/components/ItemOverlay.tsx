@@ -1348,7 +1348,7 @@ export function ItemOverlay({
 			)}
 
 			{/* Pseudo stats — collapsible, auto-expands in trade edit mode */}
-			{item.pseudoMods.length > 0 && (
+			{item.pseudoMods && item.pseudoMods.length > 0 && (
 				<PseudoSection
 					mods={item.pseudoMods}
 					rarity={rarity}
