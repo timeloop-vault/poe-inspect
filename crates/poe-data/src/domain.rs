@@ -283,8 +283,7 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
 /// See `docs/data-driven-plan.md` Phase 2.
 #[must_use]
 pub fn is_weapon_class(item_class: &str) -> bool {
-    item_class_trade_category(item_class)
-        .is_some_and(|cat| cat.starts_with("weapon."))
+    item_class_trade_category(item_class).is_some_and(|cat| cat.starts_with("weapon."))
 }
 
 /// Whether an item class is armour/shield/quiver (has armour filters on trade site).
@@ -293,8 +292,7 @@ pub fn is_weapon_class(item_class: &str) -> bool {
 /// See `is_weapon_class` comment above.
 #[must_use]
 pub fn is_armour_class(item_class: &str) -> bool {
-    item_class_trade_category(item_class)
-        .is_some_and(|cat| cat.starts_with("armour."))
+    item_class_trade_category(item_class).is_some_and(|cat| cat.starts_with("armour."))
 }
 
 // ── Mod domain mapping ───────────────────────────────────────────────────
@@ -404,6 +402,7 @@ pub fn mod_trade_category(display_type: &str, is_fractured: bool) -> &'static st
         "implicit" => "implicit",
         "crafted" => "crafted",
         "enchant" => "enchant",
+        "pseudo" => "pseudo",
         // prefix, suffix, unique, and any unknown → explicit
         _ => "explicit",
     }
@@ -480,7 +479,7 @@ mod tests {
 /// A component of a pseudo stat — one mod family that contributes to the aggregate.
 #[derive(Debug, Clone)]
 pub struct PseudoComponent {
-    /// ModFamily name from GGPK (e.g., `"Strength"`).
+    /// `ModFamily` name from GGPK (e.g., `"Strength"`).
     pub family: &'static str,
     /// Multiplier applied to the stat value (e.g., 0.5 for Strength → Life).
     pub multiplier: f64,
@@ -509,8 +508,8 @@ const fn comp(family: &'static str, multiplier: f64, required: bool) -> PseudoCo
 
 /// Phase 1 pseudo stat definitions (~20 commonly used for pricing).
 ///
-/// Each definition maps a pseudo stat to one or more ModFamily groups.
-/// At load time, families are resolved to concrete stat_ids via the Mods table.
+/// Each definition maps a pseudo stat to one or more `ModFamily` groups.
+/// At load time, families are resolved to concrete `stat_ids` via the Mods table.
 pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Resistances ──────────────────────────────────────────────────
     PseudoDefinition {
@@ -601,9 +600,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     PseudoDefinition {
         id: "pseudo_total_energy_shield",
         label: "(Pseudo) +# total maximum Energy Shield",
-        components: &[
-            comp("IncreasedEnergyShield", 1.0, false),
-        ],
+        components: &[comp("IncreasedEnergyShield", 1.0, false)],
     },
     PseudoDefinition {
         id: "pseudo_increased_energy_shield",
@@ -616,17 +613,13 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     PseudoDefinition {
         id: "pseudo_increased_movement_speed",
         label: "(Pseudo) #% increased Movement Speed",
-        components: &[
-            comp("MovementVelocity", 1.0, false),
-        ],
+        components: &[comp("MovementVelocity", 1.0, false)],
     },
     // ── Damage ───────────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_increased_physical_damage",
         label: "(Pseudo) #% total increased Physical Damage",
-        components: &[
-            comp("PhysicalDamage", 1.0, false),
-        ],
+        components: &[comp("PhysicalDamage", 1.0, false)],
     },
 ];
 

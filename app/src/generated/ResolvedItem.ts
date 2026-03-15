@@ -2,7 +2,6 @@
 import type { GemData } from "./GemData";
 import type { InfluenceKind } from "./InfluenceKind";
 import type { ItemProperty } from "./ItemProperty";
-import type { PseudoStat } from "./PseudoStat";
 import type { Requirement } from "./Requirement";
 import type { ResolvedHeader } from "./ResolvedHeader";
 import type { ResolvedMod } from "./ResolvedMod";
@@ -71,10 +70,11 @@ flavorText: string | null,
  */
 gemData: GemData | null, 
 /**
- * Computed pseudo stats (aggregated from multiple mods).
- * E.g., "(Pseudo) +# total maximum Life" summing life mod + strength × 0.5.
+ * Computed pseudo mods (aggregated from multiple mods).
+ * E.g., "(Pseudo) +142 total maximum Life" summing life mod + strength × 0.5.
+ * These are synthetic `ResolvedMod` entries with `display_type: Pseudo`.
  */
-pseudoStats: Array<PseudoStat>, 
+pseudoMods: Array<ResolvedMod>, 
 /**
  * Remaining unclassified generic sections.
  */

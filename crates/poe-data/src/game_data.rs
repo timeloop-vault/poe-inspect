@@ -16,18 +16,18 @@ use poe_dat::tables::{
 
 use crate::domain::{self, LOCAL_STAT_NONLOCAL_FALLBACKS};
 
-/// A resolved pseudo stat definition — families expanded to concrete stat_ids.
+/// A resolved pseudo stat definition — families expanded to concrete `stat_ids`.
 #[derive(Debug, Clone)]
 pub struct ResolvedPseudo {
     /// Pseudo stat ID (e.g., `"pseudo_total_life"`).
     pub id: &'static str,
     /// Display label template (e.g., `"+# total maximum Life"`).
     pub label: &'static str,
-    /// Component stat_ids with multipliers and required flags.
+    /// Component `stat_ids` with multipliers and required flags.
     pub components: Vec<ResolvedPseudoComponent>,
 }
 
-/// A single stat_id that contributes to a pseudo stat.
+/// A single `stat_id` that contributes to a pseudo stat.
 #[derive(Debug, Clone)]
 pub struct ResolvedPseudoComponent {
     /// GGPK stat ID (e.g., `"base_maximum_life"`).
@@ -174,9 +174,7 @@ impl GameData {
             }
             for &family_fk in &m.families {
                 if let Some(family_row) = mod_families.get(family_fk as usize) {
-                    let entry = family_stat_ids
-                        .entry(family_row.id.clone())
-                        .or_default();
+                    let entry = family_stat_ids.entry(family_row.id.clone()).or_default();
                     for stat_fk in m.stat_keys.iter().flatten() {
                         if let Some(stat_row) = stats.get(*stat_fk as usize) {
                             entry.insert(stat_row.id.clone());
@@ -428,13 +426,13 @@ impl GameData {
 
     /// Get all resolved pseudo stat definitions.
     ///
-    /// Each definition has its component families resolved to concrete stat_ids.
+    /// Each definition has its component families resolved to concrete `stat_ids`.
     /// Used by poe-item's resolver to compute pseudo values on items.
     pub fn pseudo_definitions(&self) -> &[ResolvedPseudo] {
         &self.resolved_pseudos
     }
 
-    /// Get the set of stat_ids associated with a mod family.
+    /// Get the set of `stat_ids` associated with a mod family.
     pub fn family_stat_ids(&self, family: &str) -> Option<&HashSet<String>> {
         self.family_stat_ids.get(family)
     }
@@ -591,6 +589,9 @@ impl GameData {
     /// in those templates, also returns `Hybrid` suggestions for prefix/suffix
     /// mods that combine that stat with other stats.
     ///
+    /// Also includes pseudo stat templates (e.g., "(Pseudo) +# total maximum Life")
+    /// so the profile editor autocomplete can find them.
+    ///
     /// Requires `set_reverse_index()` to have been called.
     pub fn stat_suggestions_for_query(&self, query: &str) -> Vec<StatSuggestion> {
         let Some(ri) = &self.reverse_index else {
@@ -601,6 +602,17 @@ impl GameData {
         let mut results = Vec::new();
         // Dedup hybrids by (sorted stat_id combo, generation_type).
         let mut seen_hybrids: HashSet<(String, u32)> = HashSet::new();
+
+        // Include matching pseudo stat templates as Single suggestions.
+        for pseudo in &self.resolved_pseudos {
+            if pseudo.label.to_lowercase().contains(&query_lower) {
+                results.push(StatSuggestion {
+                    template: pseudo.label.to_string(),
+                    stat_ids: vec![pseudo.id.to_string()],
+                    kind: StatSuggestionKind::Single,
+                });
+            }
+        }
 
         for template in ri.template_keys() {
             if !template.to_lowercase().contains(&query_lower) {
@@ -758,12 +770,12 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
     }
 
     // Load base type tables if available (optional — enables DPS/defence calculations)
-    let armour_types = load_table(dat_dir, "armourtypes", tables::extract_armour_types)
-        .unwrap_or_default();
-    let weapon_types = load_table(dat_dir, "weapontypes", tables::extract_weapon_types)
-        .unwrap_or_default();
-    let shield_types = load_table(dat_dir, "shieldtypes", tables::extract_shield_types)
-        .unwrap_or_default();
+    let armour_types =
+        load_table(dat_dir, "armourtypes", tables::extract_armour_types).unwrap_or_default();
+    let weapon_types =
+        load_table(dat_dir, "weapontypes", tables::extract_weapon_types).unwrap_or_default();
+    let shield_types =
+        load_table(dat_dir, "shieldtypes", tables::extract_shield_types).unwrap_or_default();
     if !armour_types.is_empty() || !weapon_types.is_empty() || !shield_types.is_empty() {
         tracing::info!(
             armour = armour_types.len(),

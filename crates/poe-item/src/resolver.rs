@@ -14,8 +14,8 @@ use regex::Regex;
 
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
-    ModSource, PseudoStat, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
-    ResolvedStatLine, Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
+    ModSource, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine,
+    Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -69,9 +69,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                         | ModSlot::CorruptionImplicit => {
                             implicits.push(resolved);
                         }
-                        ModSlot::Enchant => {
-                            // Shouldn't appear from grammar (enchants come from generic sections),
-                            // but handle for completeness.
+                        ModSlot::Enchant | ModSlot::Pseudo => {
+                            // Enchant: shouldn't appear from grammar (enchants come from generic sections).
+                            // Pseudo: never appears from grammar (computed after resolution).
                         }
                         ModSlot::Prefix | ModSlot::Suffix | ModSlot::Unique => {
                             explicits.push(resolved);
@@ -189,8 +189,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         });
     }
 
-    // Compute pseudo stats by scanning all mod stat lines against pseudo definitions.
-    let pseudo_stats = compute_pseudo_stats(&implicits, &explicits, &enchants, game_data);
+    // Compute pseudo mods by scanning all mod stat lines against pseudo definitions.
+    let pseudo_mods = compute_pseudo_stats(&implicits, &explicits, &enchants, game_data);
 
     ResolvedItem {
         header,
@@ -215,7 +215,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         description: classified.description,
         flavor_text: classified.flavor_text,
         gem_data,
-        pseudo_stats,
+        pseudo_mods,
         unclassified_sections: classified.unclassified,
     }
 }
@@ -819,12 +819,13 @@ fn parse_socket_info(socket_str: &str) -> SocketInfo {
 ///
 /// For each pseudo definition, sums values from matching `stat_ids` across all mods,
 /// applying multipliers. Skips pseudos where a required component has no match.
+/// Returns synthetic `ResolvedMod` entries with `display_type: Pseudo`.
 fn compute_pseudo_stats(
     implicits: &[ResolvedMod],
     explicits: &[ResolvedMod],
     enchants: &[ResolvedMod],
     game_data: &GameData,
-) -> Vec<PseudoStat> {
+) -> Vec<ResolvedMod> {
     let definitions = game_data.pseudo_definitions();
     if definitions.is_empty() {
         return Vec::new();
@@ -861,9 +862,10 @@ fn compute_pseudo_stats(
                     if sl.is_reminder {
                         continue;
                     }
-                    let matches = sl.stat_ids.as_ref().is_some_and(|ids| {
-                        ids.iter().any(|id| id == &comp.stat_id)
-                    });
+                    let matches = sl
+                        .stat_ids
+                        .as_ref()
+                        .is_some_and(|ids| ids.iter().any(|id| id == &comp.stat_id));
                     if matches && !sl.values.is_empty() {
                         // Use the first value (most stats are single-value)
                         comp_value += sl.values[0].current as f64;
@@ -887,10 +889,44 @@ fn compute_pseudo_stats(
 
         // Only include pseudos with a non-zero value
         if total.abs() > f64::EPSILON {
-            results.push(PseudoStat {
-                id: def.id.to_string(),
-                label: def.label.to_string(),
-                value: total,
+            // Round to nearest integer for display (pseudo stats are always whole numbers
+            // in PoE — life, resistances, attributes are all integer).
+            #[allow(clippy::cast_possible_truncation)]
+            let value = total.round() as i64;
+
+            // Substitute the computed value into the template label:
+            // "(Pseudo) +# total maximum Life" → "(Pseudo) +142 total maximum Life"
+            // "(Pseudo) +#% total to Fire Resistance" → "(Pseudo) +45% total to Fire Resistance"
+            let display_text = def.label.replacen("#%", &format!("{value}%"), 1).replacen(
+                '#',
+                &format!("{value}"),
+                1,
+            );
+
+            results.push(ResolvedMod {
+                header: ModHeader {
+                    source: ModSource::Computed,
+                    slot: ModSlot::Pseudo,
+                    influence_tier: None,
+                    name: None,
+                    tier: None,
+                    tags: vec![],
+                },
+                stat_lines: vec![ResolvedStatLine {
+                    raw_text: def.label.to_string(),
+                    display_text,
+                    values: vec![ValueRange {
+                        current: value,
+                        min: 0,
+                        max: 0,
+                    }],
+                    stat_ids: Some(vec![def.id.to_string()]),
+                    stat_values: None,
+                    is_reminder: false,
+                    is_unscalable: false,
+                }],
+                is_fractured: false,
+                display_type: ModDisplayType::Pseudo,
             });
         }
     }

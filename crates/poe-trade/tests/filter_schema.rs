@@ -45,7 +45,11 @@ fn corrupted_is_option() {
         .expect("corrupted filter should exist");
     assert!(!f.min_max, "corrupted should not be a range filter");
     let opt = f.option.as_ref().expect("corrupted should have options");
-    assert_eq!(opt.options.len(), 3, "corrupted should have 3 options (Any/Yes/No)");
+    assert_eq!(
+        opt.options.len(),
+        3,
+        "corrupted should have 3 options (Any/Yes/No)"
+    );
 }
 
 #[test]

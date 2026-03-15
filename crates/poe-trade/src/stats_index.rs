@@ -89,9 +89,7 @@ impl TradeStatsIndex {
                                     // The reverse index returns non-local stat_ids. Use
                                     // GameData to find the local equivalents that share
                                     // the same template text.
-                                    if let Some(templates) =
-                                        game_data.templates_for_stat(stat_id)
-                                    {
+                                    if let Some(templates) = game_data.templates_for_stat(stat_id) {
                                         for tmpl in templates {
                                             if let Some(all_ids) =
                                                 game_data.all_stat_ids_for_template(tmpl)
@@ -101,8 +99,7 @@ impl TradeStatsIndex {
                                                         .stat(id)
                                                         .is_some_and(|s| s.is_local)
                                                     {
-                                                        ggpk_to_trade
-                                                            .insert(id.clone(), trade_num);
+                                                        ggpk_to_trade.insert(id.clone(), trade_num);
                                                         trade_to_ggpk
                                                             .entry(trade_num)
                                                             .or_default()
