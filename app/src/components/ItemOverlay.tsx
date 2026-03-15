@@ -905,6 +905,50 @@ function mapVerdict(levels: (DangerLevel | null)[]): {
 	return { label: "UNRATED", cls: "danger-unclassified" };
 }
 
+/** Collapsible pseudo stats section. Collapsed by default, auto-expands in edit mode. */
+function PseudoSection({
+	mods,
+	rarity,
+	forceOpen,
+	tradeEdit,
+}: {
+	mods: ResolvedMod[];
+	rarity: Rarity;
+	forceOpen: boolean;
+	tradeEdit?: TradeEditOverlay | undefined;
+}) {
+	const [userOpen, setUserOpen] = useState(false);
+	const isOpen = forceOpen || userOpen;
+
+	return (
+		<>
+			<Separator rarity={rarity} />
+			<div class="pseudo-section">
+				<button type="button" class="pseudo-header" onClick={() => setUserOpen((v) => !v)}>
+					<span class="pseudo-chevron">{isOpen ? "\u25be" : "\u25b8"}</span>
+					<span class="pseudo-title">Pseudo</span>
+					<span class="pseudo-count">{mods.length}</span>
+				</button>
+				{isOpen && (
+					<div class="pseudo-body">
+						{mods.map((mod) => {
+							const sl = mod.statLines[0];
+							if (!sl) return null;
+							const value = sl.values[0]?.current ?? 0;
+							return (
+								<div key={sl.displayText} class="pseudo-line">
+									<span class="pseudo-label">{sl.displayText}</span>
+									<span class="pseudo-value">{value}</span>
+								</div>
+							);
+						})}
+					</div>
+				)}
+			</div>
+		</>
+	);
+}
+
 function MapDangerSection({
 	mods,
 	mapDanger,
@@ -1301,6 +1345,16 @@ export function ItemOverlay({
 					<Separator rarity={rarity} />
 					<div class="flavor-text">{item.flavorText}</div>
 				</>
+			)}
+
+			{/* Pseudo stats — collapsible, auto-expands in trade edit mode */}
+			{item.pseudoMods.length > 0 && (
+				<PseudoSection
+					mods={item.pseudoMods}
+					rarity={rarity}
+					forceOpen={!!tradeEdit}
+					tradeEdit={tradeEdit}
+				/>
 			)}
 
 			{/* Profile score (primary or swapped watching) */}
