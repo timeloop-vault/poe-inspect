@@ -540,8 +540,8 @@ function findPropertyFilter(
 	return null;
 }
 
-/** Inline checkbox + input for a schema filter. */
-function InlineFilterControl({
+/** Inline checkbox for a schema filter (left side of line). */
+function InlineFilterCheckbox({
 	filter,
 	override,
 	onOverride,
@@ -555,7 +555,7 @@ function InlineFilterControl({
 	const currentMin = override?.rangeMin ?? defaultMin;
 
 	return (
-		<span class="inline-filter-control">
+		<span class="inline-filter-checkbox">
 			<input
 				type="checkbox"
 				checked={enabled}
@@ -567,12 +567,30 @@ function InlineFilterControl({
 					})
 				}
 			/>
-			<InlineInput
-				value={currentMin}
-				disabled={!enabled}
-				onChange={(v) => onOverride(filter.id, { enabled, rangeMin: v })}
-			/>
 		</span>
+	);
+}
+
+/** Inline value input for a schema filter (right side of line). */
+function InlineFilterInput({
+	filter,
+	override,
+	onOverride,
+}: {
+	filter: EditFilter;
+	override: FilterOverride | undefined;
+	onOverride: (filterId: string, ov: FilterOverride) => void;
+}) {
+	const enabled = override ? override.enabled : filter.enabled;
+	const defaultMin = filter.defaultValue?.type === "range" ? filter.defaultValue.min : null;
+	const currentMin = override?.rangeMin ?? defaultMin;
+
+	return (
+		<InlineInput
+			value={currentMin}
+			disabled={!enabled}
+			onChange={(v) => onOverride(filter.id, { enabled, rangeMin: v })}
+		/>
 	);
 }
 
@@ -928,7 +946,7 @@ export function ItemOverlay({
 										class={`property-line ${prop.augmented ? "augmented" : ""} ${propFilter && tradeEdit ? "property-line-editable" : ""}`}
 									>
 										{propFilter && tradeEdit ? (
-											<InlineFilterControl
+											<InlineFilterCheckbox
 												filter={propFilter}
 												override={tradeEdit.filterOverrides.get(propFilter.id)}
 												onOverride={tradeEdit.onFilterOverride}
@@ -936,6 +954,13 @@ export function ItemOverlay({
 										) : null}
 										<span class="prop-label">{prop.name}: </span>
 										<span class="prop-value">{prop.value}</span>
+										{propFilter && tradeEdit ? (
+											<InlineFilterInput
+												filter={propFilter}
+												override={tradeEdit.filterOverrides.get(propFilter.id)}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
 									</div>
 								);
 							})}
@@ -970,13 +995,20 @@ export function ItemOverlay({
 								return (
 									<div class="item-sockets meta-line-editable">
 										{linksFilter && tradeEdit ? (
-											<InlineFilterControl
+											<InlineFilterCheckbox
 												filter={linksFilter}
 												override={tradeEdit.filterOverrides.get("links")}
 												onOverride={tradeEdit.onFilterOverride}
 											/>
 										) : null}
-										Sockets: {item.sockets}
+										<span class="meta-text">Sockets: {item.sockets}</span>
+										{linksFilter && tradeEdit ? (
+											<InlineFilterInput
+												filter={linksFilter}
+												override={tradeEdit.filterOverrides.get("links")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
 									</div>
 								);
 							})()}
@@ -986,13 +1018,20 @@ export function ItemOverlay({
 								return (
 									<div class="item-level meta-line-editable">
 										{ilvlFilter && tradeEdit ? (
-											<InlineFilterControl
+											<InlineFilterCheckbox
 												filter={ilvlFilter}
 												override={tradeEdit.filterOverrides.get("ilvl")}
 												onOverride={tradeEdit.onFilterOverride}
 											/>
 										) : null}
-										Item Level: {item.itemLevel}
+										<span class="meta-text">Item Level: {item.itemLevel}</span>
+										{ilvlFilter && tradeEdit ? (
+											<InlineFilterInput
+												filter={ilvlFilter}
+												override={tradeEdit.filterOverrides.get("ilvl")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
 									</div>
 								);
 							})()}
