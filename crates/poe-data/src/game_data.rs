@@ -10,8 +10,8 @@ use std::path::Path;
 use poe_dat::dat_reader::DatFile;
 use poe_dat::stat_desc::ReverseIndex;
 use poe_dat::tables::{
-    self, BaseItemTypeRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow, ModRow, ModTypeRow,
-    RarityRow, StatRow, TagRow,
+    self, BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow,
+    ModRow, ModTypeRow, RarityRow, StatRow, TagRow,
 };
 
 use crate::domain::LOCAL_STAT_NONLOCAL_FALLBACKS;
@@ -62,6 +62,11 @@ pub struct GameData {
     // Stat description reverse index (display text → stat IDs + values).
     // Optional because loading it requires the raw stat_descriptions.txt.
     pub reverse_index: Option<ReverseIndex>,
+
+    // Client strings: GGG's master display text table (ItemPopup*, ItemDisplay*, etc.).
+    // Indexed by string ID for O(1) lookup.
+    client_string_by_id: HashMap<String, usize>,
+    client_strings: Vec<ClientStringRow>,
 }
 
 impl GameData {
@@ -147,7 +152,40 @@ impl GameData {
             stat_id_to_templates: HashMap::new(),
             template_to_all_stat_ids: HashMap::new(),
             reverse_index: None,
+            client_string_by_id: HashMap::new(),
+            client_strings: Vec::new(),
         }
+    }
+
+    /// Set the client strings table (GGG's master display text).
+    ///
+    /// Called separately from `new()` because the client strings table
+    /// is optional (not needed for core item parsing, but enables
+    /// data-driven text validation).
+    pub fn set_client_strings(&mut self, strings: Vec<ClientStringRow>) {
+        self.client_string_by_id = index_by(&strings, |s| s.id.clone());
+        self.client_strings = strings;
+    }
+
+    /// Look up a client string by its internal ID.
+    ///
+    /// E.g., `client_string("ItemPopupCorrupted")` → `Some("Corrupted")`
+    #[must_use]
+    pub fn client_string(&self, id: &str) -> Option<&str> {
+        self.client_string_by_id
+            .get(id)
+            .map(|&i| self.client_strings[i].text.as_str())
+    }
+
+    /// Get all client strings matching a prefix.
+    ///
+    /// E.g., `client_strings_with_prefix("ItemPopup")` returns all status/influence display texts.
+    pub fn client_strings_with_prefix(&self, prefix: &str) -> Vec<(&str, &str)> {
+        self.client_strings
+            .iter()
+            .filter(|s| s.id.starts_with(prefix))
+            .map(|s| (s.id.as_str(), s.text.as_str()))
+            .collect()
     }
 
     /// Set the stat description reverse index.
@@ -565,6 +603,17 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
         }
         Err(e) => {
             tracing::warn!("No reverse index at {}: {e}", ri_path.display());
+        }
+    }
+
+    // Load client strings if available (optional — enables data-driven text validation)
+    match load_table(dat_dir, "clientstrings", tables::extract_client_strings) {
+        Ok(strings) => {
+            tracing::info!(count = strings.len(), "Client strings loaded");
+            gd.set_client_strings(strings);
+        }
+        Err(e) => {
+            tracing::debug!("No client strings: {e}");
         }
     }
 

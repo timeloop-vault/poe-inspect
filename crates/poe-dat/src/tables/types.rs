@@ -101,6 +101,19 @@ pub struct ItemClassCategoryRow {
     pub text: String,
 }
 
+/// A client string from `ClientStrings.datc64`.
+///
+/// GGG's master localization table containing ALL display text used in the
+/// game client — property names, status lines, mod header templates, UI labels.
+/// This is the authoritative source for item display text.
+#[derive(Debug, Clone)]
+pub struct ClientStringRow {
+    /// Internal string ID (e.g., `"ItemPopupCorrupted"`, `"ItemDisplayArmourArmour"`).
+    pub id: String,
+    /// Display text (e.g., `"Corrupted"`, `"Armour"`).
+    pub text: String,
+}
+
 /// A mod entry from `Mods.datc64`.
 #[derive(Debug, Clone)]
 pub struct ModRow {

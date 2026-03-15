@@ -5,8 +5,8 @@
 //! the first u64 (row index). Lists are 16 bytes (u64 length + u64 offset).
 
 use super::types::{
-    BaseItemTypeRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow, ModRow, ModTypeRow,
-    RarityRow, StatRow, TagRow,
+    BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow, ModRow,
+    ModTypeRow, RarityRow, StatRow, TagRow,
 };
 use crate::dat_reader::DatFile;
 
@@ -32,6 +32,27 @@ pub fn extract_stats(dat: &DatFile) -> Vec<StatRow> {
                 is_local: dat.read_bool(row, stats_offsets::IS_LOCAL)?,
                 is_weapon_local: dat.read_bool(row, stats_offsets::IS_WEAPON_LOCAL)?,
                 is_virtual: dat.read_bool(row, stats_offsets::IS_VIRTUAL)?,
+            })
+        })
+        .collect()
+}
+
+// ── ClientStrings ───────────────────────────────────────────────────────────
+// type ClientStrings { Id: string, Text: string, XBoxText: string,
+//   XBoxText2: string, HASH32: i32 }
+// Row size: 52 bytes (8+8+8+8+4+16 extra). We only read Id and Text.
+mod client_string_offsets {
+    pub const ID: usize = 0; // ref|string (8)
+    pub const TEXT: usize = 8; // ref|string (8)
+}
+
+/// Extract all rows from `ClientStrings.datc64`.
+pub fn extract_client_strings(dat: &DatFile) -> Vec<ClientStringRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(ClientStringRow {
+                id: dat.read_string(row, client_string_offsets::ID)?,
+                text: dat.read_string(row, client_string_offsets::TEXT)?,
             })
         })
         .collect()
