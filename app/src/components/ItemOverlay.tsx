@@ -1,4 +1,6 @@
 import { useCallback, useState } from "preact/hooks";
+import type { EditFilter } from "../generated/EditFilter";
+import type { FilterOverride } from "../hooks/useTradeFilters";
 import type { DangerLevel, MapDangerConfig } from "../store";
 import type {
 	ItemEvaluation,
@@ -162,6 +164,30 @@ function influenceDisplay(kind: string): string {
 	}
 }
 
+/** Map influence display name to trade API filter ID. */
+function influenceFilterId(display: string): string | null {
+	switch (display) {
+		case "Shaper":
+			return "shaper_item";
+		case "Elder":
+			return "elder_item";
+		case "Crusader":
+			return "crusader_item";
+		case "Redeemer":
+			return "redeemer_item";
+		case "Hunter":
+			return "hunter_item";
+		case "Warlord":
+			return "warlord_item";
+		case "Searing Exarch":
+			return "searing_exarch_item";
+		case "Eater of Worlds":
+			return "eater_of_worlds_item";
+		default:
+			return null;
+	}
+}
+
 function Separator({ rarity }: { rarity: Rarity }) {
 	return (
 		<div class="item-separator">
@@ -231,10 +257,14 @@ interface ModTradeEdit {
 	isStatEnabled: (statIndex: number) => boolean;
 	/** Current min value for each stat. */
 	getStatMin: (statIndex: number) => number | null;
+	/** Current max value for each stat. */
+	getStatMax: (statIndex: number) => number | null;
 	/** Toggle a stat on/off. */
 	toggleStat: (statIndex: number) => void;
 	/** Set the min value for a stat. */
 	setStatMin: (statIndex: number, min: number | null) => void;
+	/** Set the max value for a stat. */
+	setStatMax: (statIndex: number, max: number | null) => void;
 }
 
 function ModLine({
@@ -269,10 +299,13 @@ function ModLine({
 		}
 	}, [tradeEdit]);
 
-	// Min value from first stat that has one
+	// Min/max values from first stat that has a trade mapping
 	const firstMappedStat = tradeEdit?.stats.find((s) => s.tradeId != null);
 	const minValue = firstMappedStat
 		? (tradeEdit?.getStatMin(firstMappedStat.statIndex) ?? null)
+		: null;
+	const maxValue = firstMappedStat
+		? (tradeEdit?.getStatMax(firstMappedStat.statIndex) ?? null)
 		: null;
 
 	return (
@@ -311,10 +344,14 @@ function ModLine({
 				)}
 			</div>
 			{isEditable && isMappable && isChecked ? (
-				<MinInput
-					value={minValue}
-					onChange={(v) => {
+				<StatRangeInputs
+					min={minValue}
+					max={maxValue}
+					onMinChange={(v) => {
 						if (firstMappedStat) tradeEdit.setStatMin(firstMappedStat.statIndex, v);
+					}}
+					onMaxChange={(v) => {
+						if (firstMappedStat) tradeEdit.setStatMax(firstMappedStat.statIndex, v);
 					}}
 				/>
 			) : (
@@ -335,25 +372,157 @@ function ModLine({
 	);
 }
 
-/** Compact numeric input for min stat value. */
-function MinInput({
-	value,
-	onChange,
-}: { value: number | null; onChange: (v: number | null) => void }) {
+/** Side-by-side min/max inputs for stat range. */
+function StatRangeInputs({
+	min,
+	max,
+	onMinChange,
+	onMaxChange,
+}: {
+	min: number | null;
+	max: number | null;
+	onMinChange: (v: number | null) => void;
+	onMaxChange: (v: number | null) => void;
+}) {
 	return (
-		<div class="stat-min-input">
+		<div class="stat-range-inputs">
 			<input
 				type="number"
 				class="min-value-input"
-				value={value != null ? Math.round(value) : ""}
-				placeholder="-"
+				value={min != null ? Math.round(min) : ""}
+				placeholder="min"
 				onInput={(e) => {
 					const raw = (e.target as HTMLInputElement).value;
-					onChange(raw === "" ? null : Number(raw));
+					onMinChange(raw === "" ? null : Number(raw));
+				}}
+				onClick={(e) => (e.target as HTMLInputElement).select()}
+			/>
+			<input
+				type="number"
+				class="min-value-input"
+				value={max != null ? Math.round(max) : ""}
+				placeholder="max"
+				onInput={(e) => {
+					const raw = (e.target as HTMLInputElement).value;
+					onMaxChange(raw === "" ? null : Number(raw));
 				}}
 				onClick={(e) => (e.target as HTMLInputElement).select()}
 			/>
 		</div>
+	);
+}
+
+/** Compact numeric input for a single value (used by inline property/meta controls). */
+function InlineInput({
+	value,
+	onChange,
+	disabled,
+}: { value: number | null; onChange: (v: number | null) => void; disabled?: boolean }) {
+	return (
+		<input
+			type="number"
+			class="socket-filter-input"
+			value={value != null ? Math.round(value) : ""}
+			disabled={disabled}
+			onInput={(e) => {
+				const raw = (e.target as HTMLInputElement).value;
+				onChange(raw === "" ? null : Number(raw));
+			}}
+			onClick={(e) => (e.target as HTMLInputElement).select()}
+		/>
+	);
+}
+
+/** Alias table for matching property names to schema filter IDs. */
+const PROPERTY_ALIASES: Record<string, string> = {
+	"Evasion Rating": "ev",
+	"Chance to Block": "block",
+	"Energy Shield": "es",
+	Armour: "ar",
+};
+
+/** Look up a schema filter by property name. */
+function findPropertyFilter(
+	propName: string,
+	filterMap: Map<string, EditFilter>,
+): EditFilter | null {
+	// Try alias first, then lowercase property name
+	const aliasId = PROPERTY_ALIASES[propName];
+	if (aliasId) {
+		const f = filterMap.get(aliasId);
+		if (f) return f;
+	}
+	// Direct match by filter text (case-insensitive)
+	for (const filter of filterMap.values()) {
+		if (filter.text.toLowerCase() === propName.toLowerCase()) {
+			return filter;
+		}
+	}
+	return null;
+}
+
+/** Inline checkbox + input for a schema filter. */
+function InlineFilterControl({
+	filter,
+	override,
+	onOverride,
+}: {
+	filter: EditFilter;
+	override: FilterOverride | undefined;
+	onOverride: (filterId: string, ov: FilterOverride) => void;
+}) {
+	const enabled = override ? override.enabled : filter.enabled;
+	const defaultMin = filter.defaultValue?.type === "range" ? filter.defaultValue.min : null;
+	const currentMin = override?.rangeMin ?? defaultMin;
+
+	return (
+		<span class="inline-filter-control">
+			<input
+				type="checkbox"
+				checked={enabled}
+				onChange={() =>
+					onOverride(filter.id, {
+						...override,
+						enabled: !enabled,
+						rangeMin: currentMin,
+					})
+				}
+			/>
+			<InlineInput
+				value={currentMin}
+				disabled={!enabled}
+				onChange={(v) => onOverride(filter.id, { enabled, rangeMin: v })}
+			/>
+		</span>
+	);
+}
+
+/** Inline checkbox for a boolean/option filter (corrupted, fractured, etc.). */
+function InlineToggleControl({
+	filter,
+	override,
+	onOverride,
+}: {
+	filter: EditFilter;
+	override: FilterOverride | undefined;
+	onOverride: (filterId: string, ov: FilterOverride) => void;
+}) {
+	const isYes = override ? override.enabled && override.selectedId === "true" : filter.enabled;
+
+	return (
+		<span class="inline-filter-control">
+			<input
+				type="checkbox"
+				checked={isYes}
+				onChange={() => {
+					if (isYes) {
+						onOverride(filter.id, { enabled: false, selectedId: null });
+					} else {
+						onOverride(filter.id, { enabled: true, selectedId: "true" });
+					}
+				}}
+			/>
+		</span>
 	);
 }
 
@@ -420,13 +589,23 @@ function ModSection({
 	);
 }
 
-/** Props for trade edit mode overlay on mod lines. */
+/** Props for trade edit mode overlay — inline on the item card. */
 export interface TradeEditOverlay {
 	mappedStats: MappedStat[];
 	isStatEnabled: (statIndex: number) => boolean;
 	getStatMin: (statIndex: number) => number | null;
+	getStatMax: (statIndex: number) => number | null;
 	toggleStat: (statIndex: number) => void;
 	setStatMin: (statIndex: number, min: number | null) => void;
+	setStatMax: (statIndex: number, max: number | null) => void;
+	/** All schema filters by ID (for inline property/meta/status controls). */
+	filterMap: Map<string, EditFilter>;
+	/** Current user overrides for schema filters. */
+	filterOverrides: Map<string, FilterOverride>;
+	/** Callback to update a schema filter override. */
+	onFilterOverride: (filterId: string, override: FilterOverride) => void;
+	/** Rarity filter from schema (if applicable). */
+	rarityFilter: EditFilter | null;
 }
 
 /**
@@ -466,8 +645,10 @@ function buildModTradeEdit(
 			stats,
 			isStatEnabled: tradeEdit.isStatEnabled,
 			getStatMin: tradeEdit.getStatMin,
+			getStatMax: tradeEdit.getStatMax,
 			toggleStat: tradeEdit.toggleStat,
 			setStatMin: tradeEdit.setStatMin,
+			setStatMax: tradeEdit.setStatMax,
 		},
 		consumed: idx - startIndex,
 	};
@@ -638,6 +819,37 @@ export function ItemOverlay({
 			{/* Header with PoE art */}
 			<ItemHeader rarity={rarity} name={name} baseType={baseType} doubleLine={doubleLine} />
 
+			{/* Inline rarity dropdown (edit mode) */}
+			{tradeEdit?.rarityFilter && tradeEdit.rarityFilter.kind.type === "option" && (
+				<div class="inline-rarity-row">
+					{tradeEdit.rarityFilter.kind.options.map((opt) => {
+						const ov = tradeEdit.filterOverrides.get("rarity");
+						const currentId =
+							ov?.selectedId !== undefined
+								? ov.selectedId
+								: tradeEdit.rarityFilter?.defaultValue?.type === "selected"
+									? tradeEdit.rarityFilter.defaultValue.id
+									: null;
+						const isActive = (opt.id ?? null) === currentId;
+						return (
+							<button
+								key={opt.id ?? "__any__"}
+								type="button"
+								class={`rarity-toggle-btn ${isActive ? "rarity-active" : ""}`}
+								onClick={() =>
+									tradeEdit.onFilterOverride("rarity", {
+										enabled: opt.id != null,
+										selectedId: opt.id,
+									})
+								}
+							>
+								{opt.text}
+							</button>
+						);
+					})}
+				</div>
+			)}
+
 			<Separator rarity={rarity} />
 
 			{/* Properties (filter out synthetic — those are for trade matching only) */}
@@ -646,12 +858,27 @@ export function ItemOverlay({
 					<div class="item-properties">
 						{item.properties
 							.filter((p) => !p.synthetic)
-							.map((prop) => (
-								<div key={prop.name} class={`property-line ${prop.augmented ? "augmented" : ""}`}>
-									<span class="prop-label">{prop.name}: </span>
-									<span class="prop-value">{prop.value}</span>
-								</div>
-							))}
+							.map((prop) => {
+								const propFilter = tradeEdit
+									? findPropertyFilter(prop.name, tradeEdit.filterMap)
+									: null;
+								return (
+									<div
+										key={prop.name}
+										class={`property-line ${prop.augmented ? "augmented" : ""} ${propFilter && tradeEdit ? "property-line-editable" : ""}`}
+									>
+										{propFilter && tradeEdit ? (
+											<InlineFilterControl
+												filter={propFilter}
+												override={tradeEdit.filterOverrides.get(propFilter.id)}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+										<span class="prop-label">{prop.name}: </span>
+										<span class="prop-value">{prop.value}</span>
+									</div>
+								);
+							})}
 					</div>
 					<Separator rarity={rarity} />
 				</>
@@ -677,8 +904,38 @@ export function ItemOverlay({
 			{(item.sockets || item.itemLevel != null) && (
 				<>
 					<div class="item-meta">
-						{item.sockets && <div class="item-sockets">Sockets: {item.sockets}</div>}
-						{item.itemLevel != null && <div class="item-level">Item Level: {item.itemLevel}</div>}
+						{item.sockets &&
+							(() => {
+								const linksFilter = tradeEdit?.filterMap.get("links");
+								return (
+									<div class="item-sockets meta-line-editable">
+										{linksFilter && tradeEdit ? (
+											<InlineFilterControl
+												filter={linksFilter}
+												override={tradeEdit.filterOverrides.get("links")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+										Sockets: {item.sockets}
+									</div>
+								);
+							})()}
+						{item.itemLevel != null &&
+							(() => {
+								const ilvlFilter = tradeEdit?.filterMap.get("ilvl");
+								return (
+									<div class="item-level meta-line-editable">
+										{ilvlFilter && tradeEdit ? (
+											<InlineFilterControl
+												filter={ilvlFilter}
+												override={tradeEdit.filterOverrides.get("ilvl")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+										Item Level: {item.itemLevel}
+									</div>
+								);
+							})()}
 					</div>
 					<Separator rarity={rarity} />
 				</>
@@ -773,11 +1030,63 @@ export function ItemOverlay({
 				<>
 					<Separator rarity={rarity} />
 					<div class="influence-tags">
-						{influences.map((inf) => (
-							<span key={inf} class="influence-tag">
-								{inf}
-							</span>
-						))}
+						{influences.map((inf) => {
+							const filterId = influenceFilterId(inf);
+							const filter = filterId && tradeEdit ? tradeEdit.filterMap.get(filterId) : null;
+							return (
+								<span key={inf} class="influence-tag">
+									{filter && tradeEdit ? (
+										<InlineToggleControl
+											filter={filter}
+											override={tradeEdit.filterOverrides.get(filter.id)}
+											onOverride={tradeEdit.onFilterOverride}
+										/>
+									) : null}
+									{inf}
+								</span>
+							);
+						})}
+					</div>
+				</>
+			)}
+
+			{/* Status lines (Corrupted, Fractured) with inline edit controls */}
+			{tradeEdit && (item.isCorrupted || item.isFractured) && (
+				<>
+					<Separator rarity={rarity} />
+					<div class="status-lines">
+						{item.isCorrupted &&
+							(() => {
+								const filter = tradeEdit.filterMap.get("corrupted");
+								return (
+									<div class="status-line">
+										{filter ? (
+											<InlineToggleControl
+												filter={filter}
+												override={tradeEdit.filterOverrides.get("corrupted")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+										<span class="status-corrupted">Corrupted</span>
+									</div>
+								);
+							})()}
+						{item.isFractured &&
+							(() => {
+								const filter = tradeEdit.filterMap.get("fractured_item");
+								return (
+									<div class="status-line">
+										{filter ? (
+											<InlineToggleControl
+												filter={filter}
+												override={tradeEdit.filterOverrides.get("fractured_item")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+										<span class="status-fractured">Fractured Item</span>
+									</div>
+								);
+							})()}
 					</div>
 				</>
 			)}

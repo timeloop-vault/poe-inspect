@@ -482,8 +482,14 @@ export function App() {
 					mappedStats: tradeFilters.mappedStats,
 					isStatEnabled: tradeFilters.isStatEnabled,
 					getStatMin: tradeFilters.getStatMin,
+					getStatMax: tradeFilters.getStatMax,
 					toggleStat: tradeFilters.toggleStat,
 					setStatMin: tradeFilters.setStatMin,
+					setStatMax: tradeFilters.setStatMax,
+					filterMap: tradeFilters.filterMap,
+					filterOverrides: tradeFilters.filterOverrides,
+					onFilterOverride: tradeFilters.onFilterOverride,
+					rarityFilter: tradeFilters.rarityFilter,
 				}
 			: undefined;
 

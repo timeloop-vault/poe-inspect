@@ -1,9 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useCallback, useEffect, useState } from "preact/hooks";
-import type { TradeEditSchema } from "../generated/TradeEditSchema";
+import { useCallback, useState } from "preact/hooks";
 import type { TradeFilters } from "../hooks/useTradeFilters";
 import type { PriceCheckResult, TradeQueryConfig, TypeSearchScope } from "../types";
-import { type FilterOverride, SchemaFilters } from "./SchemaFilters";
 
 interface TradePanelProps {
 	/** Raw item text from clipboard (Ctrl+Alt+C). */
@@ -29,55 +27,8 @@ type TradeState =
 export function TradePanel({ itemText, config, filters, baseType, itemClass }: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
 	const [urlLoading, setUrlLoading] = useState(false);
-	const [editSchema, setEditSchema] = useState<TradeEditSchema | null>(null);
-	const [filterOverrides, setFilterOverrides] = useState<Map<string, FilterOverride>>(new Map());
 
 	const hasLeague = config.league.length > 0;
-
-	// Fetch schema when entering edit mode
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on edit mode change
-	useEffect(() => {
-		if (!filters.editMode || !itemText) {
-			setEditSchema(null);
-			setFilterOverrides(new Map());
-			return;
-		}
-		(async () => {
-			try {
-				const schema = await invoke<TradeEditSchema>("get_trade_edit_schema", {
-					itemText,
-					config,
-				});
-				setEditSchema(schema);
-				// Initialize overrides from schema defaults
-				const overrides = new Map<string, FilterOverride>();
-				for (const group of schema.filterGroups) {
-					for (const filter of group.filters) {
-						if (filter.defaultValue) {
-							const ov: FilterOverride = { enabled: filter.enabled };
-							if (filter.defaultValue.type === "range") {
-								ov.rangeMin = filter.defaultValue.min;
-							} else if (filter.defaultValue.type === "selected") {
-								ov.selectedId = filter.defaultValue.id;
-							}
-							overrides.set(filter.id, ov);
-						}
-					}
-				}
-				setFilterOverrides(overrides);
-			} catch (e) {
-				console.error("Failed to fetch trade edit schema:", e);
-			}
-		})();
-	}, [filters.editMode, itemText]);
-
-	const handleFilterOverride = useCallback((filterId: string, override: FilterOverride) => {
-		setFilterOverrides((prev) => {
-			const next = new Map(prev);
-			next.set(filterId, override);
-			return next;
-		});
-	}, []);
 
 	const priceCheck = useCallback(async () => {
 		if (!hasLeague) return;
@@ -173,9 +124,9 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 			</div>
 
 			{/* Type scope breadcrumb — from schema */}
-			{filters.editMode && editSchema && (
+			{filters.editMode && filters.editSchema && (
 				<div class="trade-type-scope">
-					{editSchema.typeScope.options.map((opt) => (
+					{filters.editSchema.typeScope.options.map((opt) => (
 						<button
 							key={opt.scope}
 							type="button"
@@ -186,15 +137,6 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 						</button>
 					))}
 				</div>
-			)}
-
-			{/* Schema-driven filter controls */}
-			{filters.editMode && editSchema && (
-				<SchemaFilters
-					schema={editSchema}
-					overrides={filterOverrides}
-					onOverride={handleFilterOverride}
-				/>
 			)}
 
 			{state.status === "results" && <TradeResults result={state.result} />}

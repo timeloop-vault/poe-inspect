@@ -640,6 +640,9 @@ body,
 }
 
 .influence-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
 	font-size: 11px;
 	color: var(--influence-color);
 	font-style: italic;
@@ -1028,8 +1031,17 @@ body,
 	opacity: 0.4;
 }
 
-/* Min value input */
+/* Min/max range inputs (side by side) */
 
+.stat-range-inputs {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex-shrink: 0;
+	padding-top: 1px;
+}
+
+/* Legacy alias for single input */
 .stat-min-input {
 	display: flex;
 	align-items: center;
@@ -1513,6 +1525,71 @@ body,
 	to {
 		opacity: 0;
 	}
+}
+
+/* --- Inline trade edit controls (on overlay item card) --- */
+
+.inline-filter-control {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-right: 4px;
+	flex-shrink: 0;
+}
+
+.inline-filter-control input[type="checkbox"] {
+	width: 13px;
+	height: 13px;
+	accent-color: var(--poe-accent);
+	cursor: pointer;
+	margin: 0;
+}
+
+/* Rarity toggle row (below header) */
+.inline-rarity-row {
+	display: flex;
+	justify-content: center;
+	gap: 2px;
+	padding: 3px 8px;
+}
+
+/* Property line in edit mode */
+.property-line-editable {
+	display: flex;
+	align-items: center;
+	text-align: left;
+}
+
+/* Meta line (sockets/ilvl) in edit mode */
+.meta-line-editable {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+/* Status lines (Corrupted, Fractured) */
+.status-lines {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 2px 0;
+}
+
+.status-line {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	font-size: 12px;
+}
+
+.status-corrupted {
+	color: #d20000;
+}
+
+.status-fractured {
+	color: var(--fractured-color);
 }
 
 /* --- Demand badge (RQE match count) --- */

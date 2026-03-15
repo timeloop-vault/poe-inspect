@@ -309,6 +309,9 @@ pub struct StatFilterOverride {
     pub enabled: bool,
     /// Min value override. `None` = use relaxation-computed default.
     pub min_override: Option<f64>,
+    /// Max value override. `None` = no max constraint.
+    #[serde(default)]
+    pub max_override: Option<f64>,
 }
 
 // ── Socket Info ────────────────────────────────────────────────────────────

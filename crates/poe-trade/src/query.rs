@@ -263,11 +263,16 @@ pub fn build_query(
                 if let Some(ref tid) = trade_id {
                     // Use override min if provided, otherwise relaxation-computed.
                     let min_value = user_override.and_then(|o| o.min_override).or(computed_min);
+                    let max_value = user_override.and_then(|o| o.max_override);
 
-                    let value = min_value.map(|min| FilterValue {
-                        min: Some(min),
-                        max: None,
-                    });
+                    let value = if min_value.is_some() || max_value.is_some() {
+                        Some(FilterValue {
+                            min: min_value,
+                            max: max_value,
+                        })
+                    } else {
+                        None
+                    };
 
                     filters.push(StatFilter {
                         id: tid.clone(),
@@ -970,11 +975,13 @@ mod tests {
                     stat_index: 0,
                     enabled: true,
                     min_override: None,
+                    max_override: None,
                 },
                 StatFilterOverride {
                     stat_index: 1,
                     enabled: false,
                     min_override: None,
+                    max_override: None,
                 },
             ],
             min_links_enabled: false,
@@ -1006,6 +1013,7 @@ mod tests {
                 stat_index: 0,
                 enabled: true,
                 min_override: Some(50.0),
+                max_override: None,
             }],
             min_links_enabled: false,
             min_links: None,

@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "preact/hooks";
+import type { EditFilter } from "../generated/EditFilter";
+import type { TradeEditSchema } from "../generated/TradeEditSchema";
 import type {
 	MappedStat,
 	QueryBuildResult,
@@ -9,6 +11,15 @@ import type {
 	TradeQueryConfig,
 	TypeSearchScope,
 } from "../types";
+
+/** User's override for a single schema filter. */
+export interface FilterOverride {
+	enabled: boolean;
+	/** For range filters: the min value. */
+	rangeMin?: number | null;
+	/** For option filters: the selected option ID. */
+	selectedId?: string | null;
+}
 
 export interface TradeFilters {
 	editMode: boolean;
@@ -20,27 +31,21 @@ export interface TradeFilters {
 	setStatMin: (statIndex: number, min: number | null) => void;
 	isStatEnabled: (statIndex: number) => boolean;
 	getStatMin: (statIndex: number) => number | null;
+	getStatMax: (statIndex: number) => number | null;
+	setStatMax: (statIndex: number, max: number | null) => void;
 	socketInfo: SocketInfo | null;
-	linksEnabled: boolean;
-	linksMin: number | null;
-	setLinksEnabled: (enabled: boolean) => void;
-	setLinksMin: (min: number | null) => void;
 	quality: number | null;
-	qualityEnabled: boolean;
-	qualityMin: number | null;
-	setQualityEnabled: (enabled: boolean) => void;
-	setQualityMin: (min: number | null) => void;
-	rarityOverride: string | null;
-	setRarityOverride: (v: string | null) => void;
-	ilvlEnabled: boolean;
-	ilvlMin: number | null;
-	setIlvlEnabled: (enabled: boolean) => void;
-	setIlvlMin: (min: number | null) => void;
-	corruptedOverride: boolean | null;
-	setCorruptedOverride: (v: boolean | null) => void;
-	fracturedOverride: boolean | null;
-	setFracturedOverride: (v: boolean | null) => void;
 	filterConfig: TradeFilterConfig | null;
+	/** Schema for structural filters (ilvl, links, corrupted, rarity, etc.) */
+	editSchema: TradeEditSchema | null;
+	/** User overrides for schema filters, keyed by filter ID. */
+	filterOverrides: Map<string, FilterOverride>;
+	/** Callback to update a schema filter override. */
+	onFilterOverride: (filterId: string, override: FilterOverride) => void;
+	/** Flat map of all schema filters by ID (for inline lookups). */
+	filterMap: Map<string, EditFilter>;
+	/** Rarity filter from the schema (if applicable). */
+	rarityFilter: EditFilter | null;
 }
 
 /**
@@ -48,6 +53,7 @@ export interface TradeFilters {
  *
  * Calls `preview_trade_query` (no HTTP) to discover which stats are mappable
  * and their default min values, then lets the user toggle/adjust them.
+ * Also fetches the TradeEditSchema for structural filters (ilvl, links, etc.).
  */
 export function useTradeFilters(
 	itemText: string,
@@ -59,17 +65,12 @@ export function useTradeFilters(
 	const [typeScope, setTypeScope] = useState<TypeSearchScope>("baseType");
 	const [statOverrides, setStatOverrides] = useState<Map<number, StatFilterOverride>>(new Map());
 	const [socketInfo, setSocketInfo] = useState<SocketInfo | null>(null);
-	const [linksEnabled, setLinksEnabled] = useState(false);
-	const [linksMin, setLinksMin] = useState<number | null>(null);
 	const [quality, setQuality] = useState<number | null>(null);
-	const [qualityEnabled, setQualityEnabled] = useState(false);
-	const [qualityMin, setQualityMin] = useState<number | null>(null);
-	const [rarityOverride, setRarityOverride] = useState<string | null>(null);
-	const [ilvlEnabled, setIlvlEnabled] = useState(false);
-	const [ilvlMin, setIlvlMin] = useState<number | null>(null);
-	const [corruptedOverride, setCorruptedOverride] = useState<boolean | null>(null);
-	const [fracturedOverride, setFracturedOverride] = useState<boolean | null>(null);
 	const [pendingAutoEdit, setPendingAutoEdit] = useState(false);
+
+	// Schema-driven filter state (moved from TradePanel)
+	const [editSchema, setEditSchema] = useState<TradeEditSchema | null>(null);
+	const [filterOverrides, setFilterOverrides] = useState<Map<string, FilterOverride>>(new Map());
 
 	// Reset when item changes; queue auto-edit if requested
 	// biome-ignore lint/correctness/useExhaustiveDependencies: itemText change triggers reset intentionally
@@ -79,20 +80,59 @@ export function useTradeFilters(
 		setStatOverrides(new Map());
 		setTypeScope("baseType");
 		setSocketInfo(null);
-		setLinksEnabled(false);
-		setLinksMin(null);
 		setQuality(null);
-		setQualityEnabled(false);
-		setQualityMin(null);
-		setRarityOverride(null);
-		setIlvlEnabled(false);
-		setIlvlMin(null);
-		setCorruptedOverride(null);
-		setFracturedOverride(null);
+		setEditSchema(null);
+		setFilterOverrides(new Map());
 		if (autoEdit && itemText) {
 			setPendingAutoEdit(true);
 		}
 	}, [itemText]);
+
+	// Fetch schema when entering edit mode
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on edit mode change
+	useEffect(() => {
+		if (!editMode || !itemText) {
+			setEditSchema(null);
+			setFilterOverrides(new Map());
+			return;
+		}
+		(async () => {
+			try {
+				const schema = await invoke<TradeEditSchema>("get_trade_edit_schema", {
+					itemText,
+					config,
+				});
+				setEditSchema(schema);
+				// Initialize overrides from schema defaults
+				const overrides = new Map<string, FilterOverride>();
+				for (const group of schema.filterGroups) {
+					for (const filter of group.filters) {
+						if (filter.defaultValue) {
+							const ov: FilterOverride = { enabled: filter.enabled };
+							if (filter.defaultValue.type === "range") {
+								ov.rangeMin = filter.defaultValue.min;
+							} else if (filter.defaultValue.type === "selected") {
+								ov.selectedId = filter.defaultValue.id;
+							}
+							overrides.set(filter.id, ov);
+						}
+					}
+				}
+				setFilterOverrides(overrides);
+			} catch (e) {
+				console.error("Failed to fetch trade edit schema:", e);
+			}
+		})();
+	}, [editMode, itemText]);
+
+	/** Initialize stat + socket + quality state from a preview result. */
+	const initFromPreview = useCallback((result: QueryBuildResult) => {
+		setMappedStats(result.mappedStats);
+		setStatOverrides(new Map());
+		setTypeScope("baseType");
+		setSocketInfo(result.socketInfo);
+		setQuality(result.quality);
+	}, []);
 
 	// Auto-enter edit mode when triggered by trade-inspect hotkey
 	useEffect(() => {
@@ -105,29 +145,13 @@ export function useTradeFilters(
 					itemText,
 					config,
 				});
-				setMappedStats(result.mappedStats);
-				setStatOverrides(new Map());
-				setTypeScope("baseType");
-
-				const si = result.socketInfo;
-				setSocketInfo(si);
-				if (si && si.maxLink >= 5) {
-					setLinksEnabled(true);
-					setLinksMin(si.maxLink);
-				} else {
-					setLinksEnabled(false);
-					setLinksMin(si?.maxLink ?? null);
-				}
-
-				setQuality(result.quality);
-				setQualityEnabled(false);
-				setQualityMin(result.quality);
+				initFromPreview(result);
 				setEditMode(true);
 			} catch (e) {
 				console.error("Failed to auto-enter trade edit:", e);
 			}
 		})();
-	}, [pendingAutoEdit, itemText, config]);
+	}, [pendingAutoEdit, itemText, config, initFromPreview]);
 
 	const toggleEditMode = useCallback(async () => {
 		if (!editMode) {
@@ -136,32 +160,14 @@ export function useTradeFilters(
 					itemText,
 					config,
 				});
-				setMappedStats(result.mappedStats);
-				setStatOverrides(new Map());
-				setTypeScope("baseType");
-
-				// Initialize socket state from query result
-				const si = result.socketInfo;
-				setSocketInfo(si);
-				if (si && si.maxLink >= 5) {
-					setLinksEnabled(true);
-					setLinksMin(si.maxLink);
-				} else {
-					setLinksEnabled(false);
-					setLinksMin(si?.maxLink ?? null);
-				}
-
-				// Initialize quality state
-				setQuality(result.quality);
-				setQualityEnabled(false);
-				setQualityMin(result.quality);
+				initFromPreview(result);
 			} catch (e) {
 				console.error("Failed to preview trade query:", e);
 				return;
 			}
 		}
 		setEditMode((prev) => !prev);
-	}, [editMode, itemText, config]);
+	}, [editMode, itemText, config, initFromPreview]);
 
 	const toggleStat = useCallback((statIndex: number) => {
 		setStatOverrides((prev) => {
@@ -170,7 +176,7 @@ export function useTradeFilters(
 			if (existing) {
 				next.set(statIndex, { ...existing, enabled: !existing.enabled });
 			} else {
-				next.set(statIndex, { statIndex, enabled: false, minOverride: null });
+				next.set(statIndex, { statIndex, enabled: false, minOverride: null, maxOverride: null });
 			}
 			return next;
 		});
@@ -183,11 +189,31 @@ export function useTradeFilters(
 			if (existing) {
 				next.set(statIndex, { ...existing, minOverride: min });
 			} else {
-				next.set(statIndex, { statIndex, enabled: true, minOverride: min });
+				next.set(statIndex, { statIndex, enabled: true, minOverride: min, maxOverride: null });
 			}
 			return next;
 		});
 	}, []);
+
+	const setStatMax = useCallback((statIndex: number, max: number | null) => {
+		setStatOverrides((prev) => {
+			const next = new Map(prev);
+			const existing = next.get(statIndex);
+			if (existing) {
+				next.set(statIndex, { ...existing, maxOverride: max });
+			} else {
+				next.set(statIndex, { statIndex, enabled: true, minOverride: null, maxOverride: max });
+			}
+			return next;
+		});
+	}, []);
+
+	const getStatMax = useCallback(
+		(statIndex: number): number | null => {
+			return statOverrides.get(statIndex)?.maxOverride ?? null;
+		},
+		[statOverrides],
+	);
 
 	const isStatEnabled = useCallback(
 		(statIndex: number): boolean => {
@@ -209,20 +235,30 @@ export function useTradeFilters(
 		[statOverrides, mappedStats],
 	);
 
-	const filterConfig: TradeFilterConfig | null = editMode
-		? {
-				typeScope,
-				statOverrides: Array.from(statOverrides.values()),
-				minLinksEnabled: linksEnabled,
-				minLinks: linksMin,
-				qualityEnabled,
-				qualityMin,
-				rarityOverride,
-				ilvlEnabled,
-				ilvlMin,
-				corruptedOverride,
-				fracturedOverride,
+	const onFilterOverride = useCallback((filterId: string, override: FilterOverride) => {
+		setFilterOverrides((prev) => {
+			const next = new Map(prev);
+			next.set(filterId, override);
+			return next;
+		});
+	}, []);
+
+	// Build filter map from schema (flat lookup by filter ID)
+	const filterMap = new Map<string, EditFilter>();
+	if (editSchema) {
+		for (const group of editSchema.filterGroups) {
+			for (const filter of group.filters) {
+				filterMap.set(filter.id, filter);
 			}
+		}
+	}
+
+	// Find the rarity filter
+	const rarityFilter = filterMap.get("rarity") ?? null;
+
+	// Translate state into TradeFilterConfig for Rust
+	const filterConfig: TradeFilterConfig | null = editMode
+		? buildFilterConfig(typeScope, statOverrides, filterOverrides, filterMap)
 		: null;
 
 	return {
@@ -235,26 +271,104 @@ export function useTradeFilters(
 		setStatMin,
 		isStatEnabled,
 		getStatMin,
+		getStatMax,
+		setStatMax,
 		socketInfo,
-		linksEnabled,
-		linksMin,
-		setLinksEnabled,
-		setLinksMin,
 		quality,
-		qualityEnabled,
-		qualityMin,
-		setQualityEnabled,
-		setQualityMin,
-		rarityOverride,
-		setRarityOverride,
-		ilvlEnabled,
-		ilvlMin,
-		setIlvlEnabled,
-		setIlvlMin,
-		corruptedOverride,
-		setCorruptedOverride,
-		fracturedOverride,
-		setFracturedOverride,
 		filterConfig,
+		editSchema,
+		filterOverrides,
+		onFilterOverride,
+		filterMap,
+		rarityFilter,
+	};
+}
+
+/**
+ * Translate generic filter overrides back to TradeFilterConfig
+ * (adapter — keeps Rust unchanged for now).
+ */
+function buildFilterConfig(
+	typeScope: TypeSearchScope,
+	statOverrides: Map<number, StatFilterOverride>,
+	schemaOverrides: Map<string, FilterOverride>,
+	filterMap: Map<string, EditFilter>,
+): TradeFilterConfig {
+	// Links
+	const linksOv = schemaOverrides.get("links");
+	const linksFilter = filterMap.get("links");
+	const linksEnabled = linksOv ? linksOv.enabled : (linksFilter?.enabled ?? false);
+	const linksDefault =
+		linksFilter?.defaultValue?.type === "range" ? linksFilter.defaultValue.min : null;
+	const linksMin = linksOv?.rangeMin ?? linksDefault;
+
+	// Quality
+	const qualityOv = schemaOverrides.get("quality");
+	const qualityFilter = filterMap.get("quality");
+	const qualityEnabled = qualityOv ? qualityOv.enabled : (qualityFilter?.enabled ?? false);
+	const qualityDefault =
+		qualityFilter?.defaultValue?.type === "range" ? qualityFilter.defaultValue.min : null;
+	const qualityMin = qualityOv?.rangeMin ?? qualityDefault;
+
+	// Rarity
+	const rarityOv = schemaOverrides.get("rarity");
+	const rarityFilter = filterMap.get("rarity");
+	let rarityOverride: string | null = null;
+	if (rarityOv) {
+		rarityOverride = rarityOv.selectedId ?? null;
+	} else if (rarityFilter?.defaultValue?.type === "selected") {
+		rarityOverride = rarityFilter.defaultValue.id;
+	}
+
+	// Item level
+	const ilvlOv = schemaOverrides.get("ilvl");
+	const ilvlFilter = filterMap.get("ilvl");
+	const ilvlEnabled = ilvlOv ? ilvlOv.enabled : (ilvlFilter?.enabled ?? false);
+	const ilvlDefault =
+		ilvlFilter?.defaultValue?.type === "range" ? ilvlFilter.defaultValue.min : null;
+	const ilvlMin = ilvlOv?.rangeMin ?? ilvlDefault;
+
+	// Corrupted
+	const corruptedOv = schemaOverrides.get("corrupted");
+	const corruptedFilter = filterMap.get("corrupted");
+	let corruptedOverride: boolean | null = null;
+	if (corruptedOv) {
+		corruptedOverride =
+			corruptedOv.enabled && corruptedOv.selectedId === "true"
+				? true
+				: corruptedOv.enabled
+					? null
+					: false;
+	} else if (corruptedFilter?.enabled) {
+		corruptedOverride = true;
+	}
+
+	// Fractured
+	const fracturedOv = schemaOverrides.get("fractured_item");
+	const fracturedFilter = filterMap.get("fractured_item");
+	let fracturedOverride: boolean | null = null;
+	if (fracturedOv) {
+		fracturedOverride =
+			fracturedOv.enabled && fracturedOv.selectedId === "true"
+				? true
+				: fracturedOv.enabled
+					? null
+					: false;
+	} else if (fracturedFilter?.enabled) {
+		fracturedOverride = true;
+	}
+
+	return {
+		typeScope,
+		statOverrides: Array.from(statOverrides.values()),
+		minLinksEnabled: linksEnabled,
+		minLinks: linksMin != null ? Math.round(linksMin) : null,
+		qualityEnabled,
+		qualityMin: qualityMin != null ? Math.round(qualityMin) : null,
+		rarityOverride,
+		ilvlEnabled,
+		ilvlMin: ilvlMin != null ? Math.round(ilvlMin) : null,
+		corruptedOverride,
+		fracturedOverride,
 	};
 }
