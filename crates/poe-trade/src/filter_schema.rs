@@ -7,10 +7,9 @@
 
 use std::collections::HashMap;
 
-use poe_item::types::{Rarity, ResolvedItem, StatusKind};
+use poe_item::types::{Rarity, ResolvedItem};
 use serde::{Deserialize, Serialize};
 
-use crate::query::{extract_quality, parse_socket_info};
 use crate::types::{TradeQueryConfig, TradeStatsIndex, TypeSearchScope};
 
 // ── Raw API response types (deserialization) ────────────────────────────────
@@ -302,12 +301,6 @@ pub fn trade_edit_schema(
     stats_index: &TradeStatsIndex,
     config: &TradeQueryConfig,
 ) -> TradeEditSchema {
-    let socket_info = item
-        .sockets
-        .as_deref()
-        .map(parse_socket_info);
-    let quality = extract_quality(item);
-
     // Type scope
     let item_class = &item.header.item_class;
     let category_label = poe_data::domain::item_class_trade_category(item_class)
@@ -350,7 +343,7 @@ pub fn trade_edit_schema(
             let mut rarity_filters = Vec::new();
             for f in &group.filters {
                 if f.id == "rarity" {
-                    if let Some(edit_filter) = build_edit_filter(f, &group.id, item, socket_info.as_ref(), quality) {
+                    if let Some(edit_filter) = build_edit_filter(f, &group.id, item) {
                         rarity_filters.push(edit_filter);
                     }
                 }
@@ -367,7 +360,7 @@ pub fn trade_edit_schema(
 
         let mut filters = Vec::new();
         for f in &group.filters {
-            if let Some(edit_filter) = build_edit_filter(f, &group.id, item, socket_info.as_ref(), quality) {
+            if let Some(edit_filter) = build_edit_filter(f, &group.id, item) {
                 filters.push(edit_filter);
             }
         }
@@ -395,10 +388,9 @@ fn build_edit_filter(
     f: &RawFilterDef,
     group_id: &str,
     item: &ResolvedItem,
-    socket_info: Option<&crate::types::SocketInfo>,
-    quality: Option<u32>,
 ) -> Option<EditFilter> {
-    let kind = if f.min_max {
+    let is_range = f.min_max;
+    let kind = if is_range {
         EditFilterKind::Range
     } else if let Some(opt) = &f.option {
         if opt.options.is_empty() {
@@ -419,13 +411,13 @@ fn build_edit_filter(
         return None;
     };
 
-    let (default_value, enabled) =
-        filter_default(group_id, &f.id, item, socket_info, quality);
+    let filter_text = f.text.as_deref().unwrap_or("");
+    let (default_value, enabled) = filter_default(filter_text, &f.id, is_range, item);
 
     Some(EditFilter {
         id: f.id.clone(),
         group_id: group_id.to_string(),
-        text: f.text.clone().unwrap_or_default(),
+        text: filter_text.to_string(),
         tip: f.tip.clone(),
         kind,
         default_value,
@@ -440,7 +432,7 @@ fn is_group_relevant(group_id: &str, item: &ResolvedItem) -> bool {
         "status_filters" | "trade_filters" | "type_filters" | "misc_filters" => true,
         "weapon_filters" => poe_data::domain::is_weapon_class(class),
         "armour_filters" => poe_data::domain::is_armour_class(class),
-        "socket_filters" => item.sockets.is_some(),
+        "socket_filters" => item.socket_info.is_some(),
         "req_filters" => !item.requirements.is_empty(),
         "map_filters" => class == "Maps",
         "heist_filters" => class.starts_with("Heist") || class == "Contracts" || class == "Blueprints",
@@ -450,175 +442,139 @@ fn is_group_relevant(group_id: &str, item: &ResolvedItem) -> bool {
     }
 }
 
-/// Extract a default value and enabled state for a filter based on item properties.
-///
-/// This is the item-property-to-filter mapping table — the domain knowledge
-/// that lives in poe-trade.
-fn filter_default(
-    group_id: &str,
-    filter_id: &str,
-    item: &ResolvedItem,
-    socket_info: Option<&crate::types::SocketInfo>,
-    quality: Option<u32>,
-) -> (Option<EditFilterValue>, bool) {
-    match (group_id, filter_id) {
-        // ── Misc filters ────────────────────────────────────────────
-        ("misc_filters", "ilvl") => range_default(item.item_level.map(f64::from), false),
-        ("misc_filters", "quality") => range_default(quality.map(f64::from), false),
-        ("misc_filters", "corrupted") => option_default_bool(item.is_corrupted),
-        ("misc_filters", "fractured_item") => option_default_bool(item.is_fractured),
-        ("misc_filters", "identified") => {
-            if item.is_unidentified {
-                option_default_selected(Some("false"), true)
-            } else {
-                (None, false)
-            }
-        }
-        ("misc_filters", "mirrored") => {
-            let is_mirrored = item.statuses.contains(&StatusKind::Mirrored);
-            option_default_bool(is_mirrored)
-        }
-        ("misc_filters", "split") => {
-            let is_split = item.statuses.contains(&StatusKind::Split);
-            option_default_bool(is_split)
-        }
-        ("misc_filters", "synthesised_item") => {
-            let is_synth = item
-                .influences.contains(&poe_item::types::InfluenceKind::Synthesised);
-            option_default_bool(is_synth)
-        }
-        ("misc_filters", "searing_item") => {
-            let has = item
-                .influences.contains(&poe_item::types::InfluenceKind::SearingExarch);
-            option_default_bool(has)
-        }
-        ("misc_filters", "tangled_item") => {
-            let has = item
-                .influences.contains(&poe_item::types::InfluenceKind::EaterOfWorlds);
-            option_default_bool(has)
-        }
-        ("misc_filters", "talisman_tier") => {
-            range_default(item.talisman_tier.map(f64::from), item.talisman_tier.is_some())
-        }
-        ("misc_filters", "gem_level") => {
-            let level = item.gem_data.as_ref().and_then(|_| {
-                item.properties
-                    .iter()
-                    .find(|p| p.name == "Level")
-                    .and_then(|p| {
-                        p.value
-                            .split(|c: char| !c.is_ascii_digit())
-                            .next()
-                            .and_then(|s| s.parse::<u32>().ok())
-                    })
-            });
-            range_default(level.map(f64::from), false)
-        }
-        ("misc_filters", "gem_transfigured") => {
-            let is = item.statuses.contains(&StatusKind::Transfigured);
-            option_default_bool(is)
-        }
-        ("misc_filters", "gem_vaal") => {
-            let is = item
-                .gem_data
-                .as_ref()
-                .is_some_and(|g| g.vaal.is_some());
-            option_default_bool(is)
-        }
-        ("misc_filters", "memory_level") => {
-            let strands = item
-                .properties
-                .iter()
-                .find(|p| p.name == "Memory Strands")
-                .and_then(|p| p.value.parse::<u32>().ok());
-            range_default(strands.map(f64::from), false)
-        }
+/// GGG naming exceptions: trade filter text differs from item property text.
+const PROPERTY_ALIASES: &[(&str, &str)] = &[
+    ("Evasion", "Evasion Rating"),
+    ("Block", "Chance to Block"),
+    ("Gem Level", "Level"),
+    ("Gem Experience %", "Experience"),
+];
 
-        // ── Type filters ────────────────────────────────────────────
-        ("type_filters", "rarity") => {
+/// Requirement filter text → poe-item requirement key.
+const REQ_ALIASES: &[(&str, &str)] = &[
+    ("Level", "Level"),
+    ("Strength", "Str"),
+    ("Dexterity", "Dex"),
+    ("Intelligence", "Int"),
+];
+
+/// Extract a default value and enabled state for a filter based on item data.
+///
+/// Uses text matching against item properties, statuses, and influences.
+/// Only a small exception table handles GGG naming inconsistencies and
+/// dedicated fields (`item_level`, sockets, rarity, etc.).
+fn filter_default(
+    filter_text: &str,
+    filter_id: &str,
+    is_range: bool,
+    item: &ResolvedItem,
+) -> (Option<EditFilterValue>, bool) {
+    // ── 1. Exception table: dedicated fields + naming mismatches ─────
+    //
+    // These are fields that don't match by property/status/influence text
+    // because they're either dedicated ResolvedItem fields, computed values,
+    // or GGG uses a different name in the trade API than in item text.
+    match filter_id {
+        "ilvl" => return range_default(item.item_level.map(f64::from), false),
+        "rarity" => {
             let default = match item.header.rarity {
                 Rarity::Rare | Rarity::Magic | Rarity::Normal => Some("nonunique"),
                 _ => None,
             };
-            option_default_selected(default, default.is_some())
+            return option_default_selected(default, default.is_some());
         }
-
-        // ── Socket filters ──────────────────────────────────────────
-        ("socket_filters", "sockets") => {
-            range_default(socket_info.map(|si| f64::from(si.total)), false)
+        "sockets" => {
+            return range_default(
+                item.socket_info.as_ref().map(|si| f64::from(si.total)),
+                false,
+            );
         }
-        ("socket_filters", "links") => {
-            let max_link = socket_info.map(|si| si.max_link);
+        "links" => {
+            let max_link = item.socket_info.as_ref().map(|si| si.max_link);
             let enabled = max_link.is_some_and(|l| l >= 5);
-            range_default(max_link.map(f64::from), enabled)
+            return range_default(max_link.map(f64::from), enabled);
         }
-
-        // ── Armour filters ──────────────────────────────────────────
-        ("armour_filters", id) => {
-            let prop_name = match id {
-                "ar" => "Armour",
-                "ev" => "Evasion Rating",
-                "es" => "Energy Shield",
-                "ward" => "Ward",
-                "block" => "Chance to Block",
-                _ => return (None, false),
+        "identified" => {
+            // Inverted: trade filter "Identified" = "No" when item is unidentified
+            return if item.is_unidentified {
+                option_default_selected(Some("false"), true)
+            } else {
+                (None, false)
             };
-            let val = parse_numeric_property(item, prop_name);
-            range_default(val, false)
         }
-
-        // ── Weapon filters ──────────────────────────────────────────
-        ("weapon_filters", id) => {
-            let prop_name = match id {
-                "aps" => "Attacks per Second",
-                "crit" => "Critical Strike Chance",
-                _ => return (None, false), // DPS computed values — skip for now
-            };
-            let val = parse_numeric_property(item, prop_name);
-            range_default(val, false)
+        "gem_vaal" => {
+            let is = item.gem_data.as_ref().is_some_and(|g| g.vaal.is_some());
+            return option_default_bool(is);
         }
-
-        // ── Map filters ─────────────────────────────────────────────
-        ("map_filters", "map_tier") => {
-            let tier = item
-                .properties
-                .iter()
-                .find(|p| p.name == "Map Tier")
-                .and_then(|p| p.value.parse::<u32>().ok());
-            range_default(tier.map(f64::from), tier.is_some())
-        }
-        ("map_filters", "map_iiq") => {
-            let val = parse_numeric_property(item, "Item Quantity");
-            range_default(val, false)
-        }
-        ("map_filters", "map_iir") => {
-            let val = parse_numeric_property(item, "Item Rarity");
-            range_default(val, false)
-        }
-        ("map_filters", "map_packsize") => {
-            let val = parse_numeric_property(item, "Monster Pack Size");
-            range_default(val, false)
-        }
-
-        // ── Requirement filters ─────────────────────────────────────
-        ("req_filters", id) => {
-            let req_name = match id {
-                "lvl" => "Level",
-                "str" => "Str",
-                "dex" => "Dex",
-                "int" => "Int",
-                _ => return (None, false),
-            };
-            let val = item
-                .requirements
-                .iter()
-                .find(|r| r.key == req_name)
-                .and_then(|r| r.value.parse::<f64>().ok());
-            range_default(val, false)
-        }
-
-        _ => (None, false),
+        _ => {}
     }
+
+    // ── 2. Property name matching (for range filters) ────────────────
+
+    let prop_name = PROPERTY_ALIASES
+        .iter()
+        .find(|(filter, _)| *filter == filter_text)
+        .map_or(filter_text, |(_, prop)| prop);
+
+    if let Some(prop) = item.properties.iter().find(|p| p.name == prop_name) {
+        let val = parse_numeric_property_value(&prop.value);
+        if let Some(v) = val {
+            // Map Tier and Talisman Tier start enabled (primary search criteria)
+            let enabled = filter_id == "map_tier" || filter_id == "talisman_tier";
+            return range_default(Some(v), enabled);
+        }
+    }
+
+    // Also check dedicated fields that match by text
+    if filter_text == "Quality" {
+        return range_default(item.quality.map(f64::from), false);
+    }
+    if filter_text == "Talisman Tier" {
+        return range_default(
+            item.talisman_tier.map(f64::from),
+            item.talisman_tier.is_some(),
+        );
+    }
+
+    // ── 3. Status matching (for option filters) ──────────────────────
+    //
+    // Check if the filter text matches a StatusKind on the item.
+    if !is_range {
+        let has_status = item
+            .statuses
+            .iter()
+            .any(|s| s.as_item_text() == filter_text);
+        if has_status {
+            return option_default_bool(true);
+        }
+
+        // Check influences (uses "X Item" format from parse text)
+        let has_influence = item
+            .influences
+            .iter()
+            .any(|i| i.as_item_text() == filter_text);
+        if has_influence {
+            return option_default_bool(true);
+        }
+
+        // Also check convenience bools for filters that don't match text exactly
+        // (e.g., "Fractured Item" matches influence, but is_fractured is the bool)
+    }
+
+    // ── 4. Requirement matching ──────────────────────────────────────
+    if let Some((_, req_key)) = REQ_ALIASES
+        .iter()
+        .find(|(filter, _)| *filter == filter_text)
+    {
+        let val = item
+            .requirements
+            .iter()
+            .find(|r| r.key == *req_key)
+            .and_then(|r| r.value.parse::<f64>().ok());
+        return range_default(val, false);
+    }
+
+    (None, false)
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -656,18 +612,13 @@ fn option_default_selected(
     )
 }
 
-/// Parse a numeric value from an item property, handling `+`, `%`, commas.
-fn parse_numeric_property(item: &ResolvedItem, name: &str) -> Option<f64> {
-    item.properties
-        .iter()
-        .find(|p| p.name == name)
-        .and_then(|p| {
-            p.value
-                .replace(['+', '%', ','], "")
-                .trim()
-                .parse::<f64>()
-                .ok()
-        })
+/// Parse a numeric value from a property value string, handling `+`, `%`, commas.
+fn parse_numeric_property_value(value: &str) -> Option<f64> {
+    value
+        .replace(['+', '%', ','], "")
+        .trim()
+        .parse::<f64>()
+        .ok()
 }
 
 /// Build per-stat schemas from the item's mods.
