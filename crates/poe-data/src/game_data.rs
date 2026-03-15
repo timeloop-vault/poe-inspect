@@ -166,6 +166,8 @@ impl GameData {
         }
 
         // Build family_name → set of stat_ids (from non-unique mods).
+        // Includes both the raw stat_id AND its local_ prefixed variant (if it exists)
+        // so pseudo matching works on both weapon (local) and global mods.
         let mut family_stat_ids: HashMap<String, HashSet<String>> = HashMap::new();
         for m in &mods {
             // Skip unique mods (generation_type 3) — they don't represent rollable families
@@ -178,6 +180,12 @@ impl GameData {
                     for stat_fk in m.stat_keys.iter().flatten() {
                         if let Some(stat_row) = stats.get(*stat_fk as usize) {
                             entry.insert(stat_row.id.clone());
+                            // Also add local_ variant if the stat has one
+                            // (items on weapons use local_ stat_ids)
+                            let local_id = format!("local_{}", stat_row.id);
+                            if stat_by_id.contains_key(&local_id) {
+                                entry.insert(local_id);
+                            }
                         }
                     }
                 }

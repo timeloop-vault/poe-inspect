@@ -1,0 +1,33 @@
+Item Class: Warstaves
+Rarity: Rare
+Sol Pile
+Serpentine Staff
+--------
+Warstaff
+Physical Damage: 91-191 (augmented)
+Critical Strike Chance: 10.06% (augmented)
+Attacks per Second: 1.25
+Weapon Range: 1.3 metres
+--------
+Requirements:
+Level: 49
+Str: 85
+Int: 85
+--------
+Sockets: R-R B
+--------
+Item Level: 51
+--------
+{ Implicit Modifier }
++22% Chance to Block Attack Damage while wielding a Staff
+(Warstaves are considered Staves)
+--------
+{ Prefix Modifier "Heavy" (Tier: 8) — Damage, Physical, Attack }
+44(40-49)% increased Physical Damage
+{ Prefix Modifier "Cerulean" (Tier: 8) — Mana }
++89(80-89) to maximum Mana
+{ Prefix Modifier "Squire's" (Tier: 8) — Damage, Physical, Attack }
+19(15-19)% increased Physical Damage
++16(16-20) to Accuracy Rating
+{ Suffix Modifier "of Puncturing" (Tier: 3) — Attack, Critical }
+29(25-29)% increased Critical Strike Chance
