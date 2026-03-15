@@ -15,4 +15,8 @@ enabled: boolean,
 /**
  * Min value override. `None` = use relaxation-computed default.
  */
-minOverride: number | null, };
+minOverride: number | null, 
+/**
+ * Max value override. `None` = no max constraint.
+ */
+maxOverride: number | null, };
