@@ -22,6 +22,7 @@
 //! ```
 
 pub mod client;
+pub mod filter_schema;
 pub mod query;
 pub mod rate_limit;
 pub mod stats_index;
