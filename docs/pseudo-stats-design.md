@@ -63,9 +63,8 @@ Downstream consumers (poe-eval, poe-trade, app UI) don't need to know or care th
 |---------|-------|-------|
 | ModFamily list | poe-data | Extracted from GGPK, committed as reference |
 | Family → stat_id mapping | poe-data | Built at load time from Mods table |
-| Pseudo definitions | poe-data/domain.rs | Hardcoded: pseudo_id → [(family, multiplier)] |
-| Resolved pseudo → stat_ids | poe-data | Resolved at load time: definitions × family index |
-| Pseudo as StatSuggestion | poe-data | Injected into `stat_suggestions_for_query()` results |
+| Pseudo definitions | poe-data/domain.rs | Hardcoded: pseudo_id → [(stat_ids, multiplier)] |
+| Pseudo as StatSuggestion | poe-data | Injected into `stat_suggestions_for_query()` + `all_stat_templates()` |
 | Computing pseudo values | poe-item | During resolve(): scan stat lines, sum matching values |
 | Pseudo on item | poe-item | Synthetic `ResolvedMod` with `display_type: Pseudo` |
 | Evaluating pseudos | poe-eval | Existing `StatValue` predicate — no changes needed |
@@ -74,15 +73,9 @@ Downstream consumers (poe-eval, poe-trade, app UI) don't need to know or care th
 ### Data Flow
 
 ```
-GGPK ModFamily table
-    ↓ (extracted at build/load time)
-poe-data: family_name → Set<stat_id>
+poe-data/domain.rs: pseudo definitions (pseudo_id → [(stat_ids, multiplier)])
     +
-poe-data/domain.rs: pseudo definitions (pseudo_id → [(family, multiplier)])
-    ↓ (resolved at load time)
-poe-data: pseudo_id → Vec<(stat_id, multiplier)>
-    +
-poe-data: pseudo templates injected into StatSuggestion results
+poe-data: pseudo templates injected into StatSuggestion + all_stat_templates()
     ↓ (used during item resolution)
 poe-item resolver: for each pseudo definition, scan item's stat lines,
                    sum values × multiplier → synthetic ResolvedMod
@@ -119,7 +112,7 @@ ResolvedMod {
 }
 ```
 
-poe-data definitions (unchanged):
+poe-data definitions:
 
 ```rust
 // poe-data/domain.rs
@@ -130,9 +123,9 @@ pub struct PseudoDefinition {
 }
 
 pub struct PseudoComponent {
-    pub family: &'static str,   // "Strength"
-    pub multiplier: f64,        // 0.5
-    pub required: bool,         // true = pseudo only shows when this has a value
+    pub stat_ids: &'static [&'static str],  // ["base_maximum_life"]
+    pub multiplier: f64,                     // 0.5
+    pub required: bool,                      // true = pseudo only shows when this has a value
 }
 ```
 
@@ -140,13 +133,13 @@ pub struct PseudoComponent {
 
 During `resolve()`, after all mods are resolved:
 
-1. For each pseudo definition from `GameData`:
-   - For each component (family → resolved stat_ids, multiplier):
+1. For each pseudo definition:
+   - For each component (stat_ids, multiplier):
      - Scan all stat lines on the item for matching stat_ids
      - Sum `value × multiplier`
    - If any `required` component has no match → skip
    - If total > 0 → create synthetic `ResolvedMod` with `display_type: Pseudo`
-2. Add pseudo mods to the item (separate field or appended)
+2. Pseudo mods stored in `ResolvedItem.pseudo_mods`, included in `all_mods()` iterator
 
 ### Profile Editor — Zero Changes
 
@@ -159,47 +152,29 @@ The stat suggestion autocomplete in poe-data already returns `StatSuggestion` en
 5. `StatValue` predicate evaluates against the item's pseudo mod stat lines
 6. Works with existing op/value comparison — no UI changes
 
-### Phase 1 Pseudo Definitions (~14 rules)
+### Phase 1 Pseudo Definitions
 
-Based on Awakened PoE Trade's proven definitions:
+See `crates/poe-data/src/domain.rs` — `PSEUDO_DEFINITIONS` for the full list.
 
-**Resistances:**
-- `pseudo_total_fire_resistance` ← families: FireResistance, FireResistancePrefix, AllResistances, AllResistancesWithChaos
-- `pseudo_total_cold_resistance` ← families: ColdResistance, ColdResistancePrefix, AllResistances, AllResistancesWithChaos
-- `pseudo_total_lightning_resistance` ← families: LightningResistance, LightningResistancePrefix, AllResistances, AllResistancesWithChaos
-- `pseudo_total_chaos_resistance` ← families: ChaosResistance, ChaosResistancePrefix, AllResistancesWithChaos
-
-**Attributes:**
-- `pseudo_total_strength` ← families: Strength, AllAttributes
-- `pseudo_total_dexterity` ← families: Dexterity, AllAttributes
-- `pseudo_total_intelligence` ← families: Intelligence, AllAttributes
-
-**Life/Mana/ES:**
-- `pseudo_total_life` ← families: IncreasedLife (required), Strength @ 0.5, AllAttributes @ 0.5
-- `pseudo_total_mana` ← families: IncreasedMana (required), Intelligence @ 0.5, AllAttributes @ 0.5
-- `pseudo_total_energy_shield` ← families: IncreasedEnergyShield
-
-**Speed:**
-- `pseudo_increased_movement_speed` ← families: MovementVelocity
-
-**Damage:**
-- `pseudo_increased_physical_damage` ← families: PhysicalDamage
+Components use explicit stat_ids (including local_ variants for weapon mods).
+ModFamily list (`crates/poe-data/data/mod_families.txt`) is a discovery aid for
+finding related stat_ids when authoring new definitions, but definitions
+themselves must list exact stat_ids — families are mod-level anti-stacking tags,
+not stat-level semantic groups.
 
 ## Implementation Steps
 
 1. ✅ **poe-data**: Extract and commit `mod_families.txt`
-2. ✅ **poe-data**: Build `family_name → Set<stat_id>` index at load time
-3. ✅ **poe-data/domain.rs**: Define `PSEUDO_DEFINITIONS` with family + multiplier rules
-4. ✅ **poe-data**: Expose resolved pseudo definitions on GameData
-5. **poe-item/types.rs**: Add `Pseudo` to `ModDisplayType` (remove separate `PseudoStat` type)
-6. **poe-item/resolver.rs**: Compute pseudo values → synthetic `ResolvedMod` entries
-7. **poe-data**: Inject pseudo templates into `stat_suggestions_for_query()` results
-8. **poe-eval**: No changes — existing `StatValue` predicate handles pseudo stat_ids
-9. **poe-trade**: Map pseudo stat_ids to trade API IDs for search
-10. **app**: Display pseudo mods on overlay (display_type: Pseudo → distinct styling)
+2. ✅ **poe-data/domain.rs**: Define `PSEUDO_DEFINITIONS` with explicit stat_ids + multipliers
+3. ✅ **poe-data**: Expose definitions on GameData, inject into autocomplete suggestions
+4. ✅ **poe-item/types.rs**: `Pseudo` variant on `ModDisplayType`, `ModSlot`, `ModSource::Computed`
+5. ✅ **poe-item/resolver.rs**: Compute pseudo values → synthetic `ResolvedMod` entries
+6. ✅ **poe-eval**: No changes — existing `StatValue` predicate works via `all_mods()`
+7. ✅ **app**: Collapsible pseudo section on overlay, auto-expands in trade edit mode
+8. **poe-trade**: Map pseudo stat_ids to trade API IDs for search (TODO)
 
 ## Reference
 
-- Awakened PoE Trade pseudo rules: `_reference/awakened-poe-trade/renderer/src/web/price-check/filters/pseudo/index.ts`
 - Trade API pseudo stats: `crates/poe-trade/tests/fixtures/trade_stats_3.28.json` (Pseudo category, 296 entries)
 - ModFamily list: `crates/poe-data/data/mod_families.txt` (7,678 entries)
+- Pseudo definitions: `crates/poe-data/src/domain.rs` — `PSEUDO_DEFINITIONS`
