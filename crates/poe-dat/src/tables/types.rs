@@ -111,6 +111,54 @@ pub struct ItemClassCategoryRow {
     pub text: String,
 }
 
+/// Base armour/defence values from `ArmourTypes.datc64`.
+///
+/// Maps a `BaseItemType` to its base defence values (before quality and mods).
+#[derive(Debug, Clone)]
+pub struct ArmourTypeRow {
+    /// FK to `BaseItemTypes` (row index).
+    pub base_item: u64,
+    /// Base armour value range.
+    pub armour_min: i32,
+    pub armour_max: i32,
+    /// Base evasion rating range.
+    pub evasion_min: i32,
+    pub evasion_max: i32,
+    /// Base energy shield range.
+    pub es_min: i32,
+    pub es_max: i32,
+    /// Base ward range.
+    pub ward_min: i32,
+    pub ward_max: i32,
+}
+
+/// Base weapon stats from `WeaponTypes.datc64`.
+///
+/// Maps a `BaseItemType` to its base weapon values.
+#[derive(Debug, Clone)]
+pub struct WeaponTypeRow {
+    /// FK to `BaseItemTypes` (row index).
+    pub base_item: u64,
+    /// Critical strike chance in hundredths (e.g., 800 = 8.00%).
+    pub critical: i32,
+    /// Attack speed as ms per attack (e.g., 667 = 1000/667 = 1.50 APS).
+    pub speed: i32,
+    /// Base physical damage range.
+    pub damage_min: i32,
+    pub damage_max: i32,
+    /// Weapon range in units.
+    pub range: i32,
+}
+
+/// Base shield block chance from `ShieldTypes.datc64`.
+#[derive(Debug, Clone)]
+pub struct ShieldTypeRow {
+    /// FK to `BaseItemTypes` (row index).
+    pub base_item: u64,
+    /// Base block chance percentage.
+    pub block: i32,
+}
+
 /// A client string from `ClientStrings.datc64`.
 ///
 /// GGG's master localization table containing ALL display text used in the
