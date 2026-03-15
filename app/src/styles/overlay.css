@@ -513,6 +513,9 @@ body,
 	gap: 3px;
 	flex-shrink: 0;
 	padding-top: 1px;
+	/* Reserve space for tier badge (22px) + gap (3px) + type badge (14px) = 39px
+	   so mod text aligns even when badges are absent */
+	min-width: 39px;
 }
 
 .tier-badge {
