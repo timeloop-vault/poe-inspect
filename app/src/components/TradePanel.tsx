@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useState } from "preact/hooks";
 import type { TradeFilters } from "../hooks/useTradeFilters";
-import type { PriceCheckResult, TradeQueryConfig, TypeSearchScope } from "../types";
+import type { PriceCheckResult, TradeQueryConfig } from "../types";
 
 interface TradePanelProps {
 	/** Raw item text from clipboard (Ctrl+Alt+C). */
@@ -122,22 +122,6 @@ export function TradePanel({ itemText, config, filters, baseType, itemClass }: T
 					)}
 				</button>
 			</div>
-
-			{/* Type scope breadcrumb — from schema */}
-			{filters.editMode && filters.editSchema && (
-				<div class="trade-type-scope">
-					{filters.editSchema.typeScope.options.map((opt) => (
-						<button
-							key={opt.scope}
-							type="button"
-							class={`scope-btn ${filters.typeScope === opt.scope ? "scope-active" : ""}`}
-							onClick={() => filters.setTypeScope(opt.scope as TypeSearchScope)}
-						>
-							{opt.label}
-						</button>
-					))}
-				</div>
-			)}
 
 			{state.status === "results" && <TradeResults result={state.result} />}
 			{state.status === "empty" && <div class="trade-message">No listings found</div>}

@@ -490,6 +490,9 @@ export function App() {
 					filterOverrides: tradeFilters.filterOverrides,
 					onFilterOverride: tradeFilters.onFilterOverride,
 					rarityFilter: tradeFilters.rarityFilter,
+					typeScopeOptions: tradeFilters.editSchema?.typeScope.options ?? [],
+					typeScope: tradeFilters.typeScope,
+					setTypeScope: tradeFilters.setTypeScope,
 				}
 			: undefined;
 

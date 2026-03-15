@@ -196,31 +196,110 @@ function Separator({ rarity }: { rarity: Rarity }) {
 	);
 }
 
-/** PoE-style item header with left cap, tiling middle, right cap */
+/** PoE-style item header with left cap, tiling middle, right cap.
+ *  In trade edit mode, integrates type scope selector and rarity dropdown. */
 function ItemHeader({
 	rarity,
 	name,
 	baseType,
 	doubleLine,
+	tradeEdit,
 }: {
 	rarity: Rarity;
 	name: string;
 	baseType: string;
 	doubleLine: boolean;
+	tradeEdit?: TradeEditOverlay | undefined;
 }) {
 	const sprites = headerSprites[rarity] ?? defaultHeader;
+	const hasEditControls =
+		tradeEdit && (tradeEdit.typeScopeOptions.length > 0 || tradeEdit.rarityFilter);
+
+	// Rarity cycling: resolve current label and build cycle handler
+	const rarityInfo = (() => {
+		if (!tradeEdit?.rarityFilter || tradeEdit.rarityFilter.kind.type !== "option") return null;
+		const filter = tradeEdit.rarityFilter;
+		const options = filter.kind.options;
+		const ov = tradeEdit.filterOverrides.get("rarity");
+		const currentId =
+			ov?.selectedId !== undefined
+				? ov.selectedId
+				: filter.defaultValue?.type === "selected"
+					? filter.defaultValue.id
+					: null;
+		const currentLabel = options.find((o) => (o.id ?? null) === currentId)?.text ?? "Any";
+		const currentIdx = options.findIndex((o) => (o.id ?? null) === currentId);
+		const cycle = () => {
+			const nextIdx = (currentIdx + 1) % options.length;
+			const next = options[nextIdx];
+			if (next) {
+				tradeEdit.onFilterOverride("rarity", {
+					enabled: next.id != null,
+					selectedId: next.id,
+				});
+			}
+		};
+		return { label: currentLabel, cycle };
+	})();
+
 	return (
-		<div class={`item-header ${doubleLine ? "header-double" : "header-single"}`}>
+		<div
+			class={`item-header ${doubleLine ? "header-double" : "header-single"} ${hasEditControls ? "header-edit" : ""}`}
+		>
 			<div class="header-bg">
 				<img src={sprites.left} alt="" class="header-left" />
 				<div class="header-middle" style={{ backgroundImage: `url(${sprites.middle})` }} />
 				<img src={sprites.right} alt="" class="header-right" />
 			</div>
+
+			{/* Rarity cycling badge — left edge of header */}
+			{hasEditControls && rarityInfo && (
+				<button
+					type="button"
+					class="header-rarity-badge"
+					onClick={rarityInfo.cycle}
+					title="Click to cycle rarity filter"
+				>
+					{rarityInfo.label}
+				</button>
+			)}
+
 			<div class="header-text" style={{ color: rarityColor(rarity) }}>
 				{doubleLine ? (
 					<>
 						<div class="item-name">{name}</div>
-						<div class="item-base">{baseType}</div>
+						{hasEditControls && tradeEdit.typeScopeOptions.length > 0 ? (
+							<select
+								class="header-type-select"
+								style={{ color: rarityColor(rarity) }}
+								value={tradeEdit.typeScope}
+								onChange={(e) => tradeEdit.setTypeScope((e.target as HTMLSelectElement).value)}
+							>
+								{tradeEdit.typeScopeOptions.map((opt) => (
+									<option key={opt.scope} value={opt.scope}>
+										{opt.label}
+									</option>
+								))}
+							</select>
+						) : (
+							<div class="item-base">{baseType}</div>
+						)}
+					</>
+				) : hasEditControls && tradeEdit.typeScopeOptions.length > 0 ? (
+					<>
+						<div class="item-name">{name}</div>
+						<select
+							class="header-type-select"
+							style={{ color: rarityColor(rarity) }}
+							value={tradeEdit.typeScope}
+							onChange={(e) => tradeEdit.setTypeScope((e.target as HTMLSelectElement).value)}
+						>
+							{tradeEdit.typeScopeOptions.map((opt) => (
+								<option key={opt.scope} value={opt.scope}>
+									{opt.label}
+								</option>
+							))}
+						</select>
 					</>
 				) : (
 					<div class="item-name">
@@ -606,6 +685,12 @@ export interface TradeEditOverlay {
 	onFilterOverride: (filterId: string, override: FilterOverride) => void;
 	/** Rarity filter from schema (if applicable). */
 	rarityFilter: EditFilter | null;
+	/** Type scope options (base type / item class / any). */
+	typeScopeOptions: Array<{ scope: string; label: string }>;
+	/** Current type scope. */
+	typeScope: string;
+	/** Set the type scope. */
+	setTypeScope: (scope: string) => void;
 }
 
 /**
@@ -816,39 +901,14 @@ export function ItemOverlay({
 				</div>
 			)}
 
-			{/* Header with PoE art */}
-			<ItemHeader rarity={rarity} name={name} baseType={baseType} doubleLine={doubleLine} />
-
-			{/* Inline rarity dropdown (edit mode) */}
-			{tradeEdit?.rarityFilter && tradeEdit.rarityFilter.kind.type === "option" && (
-				<div class="inline-rarity-row">
-					{tradeEdit.rarityFilter.kind.options.map((opt) => {
-						const ov = tradeEdit.filterOverrides.get("rarity");
-						const currentId =
-							ov?.selectedId !== undefined
-								? ov.selectedId
-								: tradeEdit.rarityFilter?.defaultValue?.type === "selected"
-									? tradeEdit.rarityFilter.defaultValue.id
-									: null;
-						const isActive = (opt.id ?? null) === currentId;
-						return (
-							<button
-								key={opt.id ?? "__any__"}
-								type="button"
-								class={`rarity-toggle-btn ${isActive ? "rarity-active" : ""}`}
-								onClick={() =>
-									tradeEdit.onFilterOverride("rarity", {
-										enabled: opt.id != null,
-										selectedId: opt.id,
-									})
-								}
-							>
-								{opt.text}
-							</button>
-						);
-					})}
-				</div>
-			)}
+			{/* Header with PoE art + edit controls (type scope, rarity) */}
+			<ItemHeader
+				rarity={rarity}
+				name={name}
+				baseType={baseType}
+				doubleLine={doubleLine}
+				tradeEdit={tradeEdit}
+			/>
 
 			<Separator rarity={rarity} />
 
