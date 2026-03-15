@@ -167,13 +167,26 @@ pub struct TradeEditValues {
 
 ## Implementation Steps
 
-1. Parse `filters.json` into Rust types in poe-trade
-2. Add `filters.json` fetching + caching alongside existing `stats.json`
-3. Implement `trade_edit_schema()` — project item onto filter schema
-4. Add Tauri command exposing the schema
-5. Build generic frontend renderer
-6. Migrate existing Edit Search UI to use schema
-7. Add `items.json` + `static.json` fetching/caching (for type search + bulk exchange)
+1. ~~Parse `filters.json` into Rust types in poe-trade~~ ✅
+2. ~~Add `filters.json` fetching + caching alongside existing `stats.json`~~ ✅
+3. ~~Implement `trade_edit_schema()` — project item onto filter schema~~ ✅
+4. ~~Add Tauri command exposing the schema~~ ✅
+5. ~~Build generic frontend renderer~~ ✅ (SchemaFilters — proof of concept)
+6. ~~Migrate existing Edit Search UI to use schema~~ ✅ (working, filter groups render)
+7. **Next: Inline overlay editing** — move controls from separate panel onto overlay elements
+8. Add `items.json` + `static.json` fetching/caching (for type search + bulk exchange)
+
+## Next Phase: Inline Overlay Editing
+
+The SchemaFilters panel is a working proof of concept but the wrong UX. All edit
+controls must render inline on the overlay item display — the overlay IS the editor.
+
+- **Header** — rarity dropdown (Any, Normal, Magic, Rare, Unique, Non-Unique)
+- **Property lines** (Quality, Armour, ilvl) — checkbox + editable value
+- **Sockets/Links** — checkbox + editable inline
+- **Status lines** (Corrupted, Fractured, etc.) — checkbox toggle
+- **Mod lines** — existing checkboxes + min, ADD max value input
+- **SchemaFilters component removed** — replaced by inline controls
 
 ## Item Property → Filter Mapping
 
