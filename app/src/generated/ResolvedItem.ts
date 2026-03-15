@@ -5,6 +5,7 @@ import type { ItemProperty } from "./ItemProperty";
 import type { Requirement } from "./Requirement";
 import type { ResolvedHeader } from "./ResolvedHeader";
 import type { ResolvedMod } from "./ResolvedMod";
+import type { SocketInfo } from "./SocketInfo";
 import type { StatusKind } from "./StatusKind";
 
 /**
@@ -15,7 +16,15 @@ import type { StatusKind } from "./StatusKind";
  * stat IDs resolved. Properties are parsed, mods are pre-split into
  * implicits/explicits, and convenience booleans are pre-computed.
  */
-export type ResolvedItem = { header: ResolvedHeader, itemLevel: number | null, monsterLevel: number | null, talismanTier: number | null, requirements: Array<Requirement>, sockets: string | null, experience: string | null, 
+export type ResolvedItem = { header: ResolvedHeader, itemLevel: number | null, monsterLevel: number | null, talismanTier: number | null, requirements: Array<Requirement>, sockets: string | null, 
+/**
+ * Pre-computed socket metadata (total count, max link group).
+ */
+socketInfo: SocketInfo | null, 
+/**
+ * Item quality percentage (parsed from the `"Quality"` property).
+ */
+quality: number | null, experience: string | null, 
 /**
  * Parsed property lines (e.g., "Armour: 890 (augmented)").
  */
