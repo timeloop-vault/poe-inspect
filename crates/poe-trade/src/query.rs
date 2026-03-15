@@ -640,9 +640,11 @@ fn build_misc_filters(
 
 /// Extract the numeric quality value from an item's properties.
 ///
+/// Public for use by `filter_schema::trade_edit_schema()`.
+///
 /// Looks for a property named `"Quality"` and parses its value
 /// (e.g., `"+26%"` → `26`, `"+20% (augmented)"` → `20`).
-fn extract_quality(item: &ResolvedItem) -> Option<u32> {
+pub fn extract_quality(item: &ResolvedItem) -> Option<u32> {
     item.properties.iter().find_map(|p| {
         if p.name == "Quality" {
             // Strip leading +, trailing %, and any " (augmented)" suffix.

@@ -271,6 +271,20 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
     }
 }
 
+/// Whether an item class is a weapon (has weapon filters on trade site).
+#[must_use]
+pub fn is_weapon_class(item_class: &str) -> bool {
+    item_class_trade_category(item_class)
+        .is_some_and(|cat| cat.starts_with("weapon."))
+}
+
+/// Whether an item class is armour/shield/quiver (has armour filters on trade site).
+#[must_use]
+pub fn is_armour_class(item_class: &str) -> bool {
+    item_class_trade_category(item_class)
+        .is_some_and(|cat| cat.starts_with("armour."))
+}
+
 // ── Mod domain mapping ───────────────────────────────────────────────────
 //
 // WHY HARDCODED: The GGPK `Mods.datc64` stores a numeric `domain` field that
