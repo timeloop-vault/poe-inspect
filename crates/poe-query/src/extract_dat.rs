@@ -1,15 +1,16 @@
-/// Extract specific dat tables from GGPK to individual files.
+/// Extract dat tables from GGPK to individual files.
 ///
-/// Usage: extract_dat -p <poe_install_dir> -o <output_dir>
+/// Usage: extract_dat -p <poe_install_dir> [-o <output_dir>] [--all]
 ///
-/// Writes raw .datc64 bytes to <output_dir>/<table>.datc64 for each
-/// table needed by poe-dat.
+/// By default extracts only the tables needed by poe-dat.
+/// With --all, extracts ALL ~911 datc64 tables (for research/reference).
 use std::path::PathBuf;
 
 use clap::Parser;
 use poe_bundle::{BundleReader, BundleReaderRead};
 
-const TABLES: &[&str] = &[
+/// Tables needed by poe-dat for the core pipeline.
+const CORE_TABLES: &[&str] = &[
     "stats",
     "tags",
     "itemclasses",
@@ -30,6 +31,10 @@ struct Args {
 
     #[arg(short, long, value_name = "OUTPUT_DIR", default_value = "")]
     output: String,
+
+    /// Extract ALL datc64 tables (not just core tables).
+    #[arg(long)]
+    all: bool,
 }
 
 fn main() {
@@ -44,25 +49,59 @@ fn main() {
 
     println!("PoE install: {}", args.path.display());
     println!("Output dir:  {}", output_dir.display());
-    println!();
 
     let bundles = BundleReader::from_install(&args.path);
 
-    for table in TABLES {
+    if args.all {
+        // Discover all English datc64 files from the GGPK index
+        let mut tables: Vec<String> = bundles
+            .index
+            .paths
+            .iter()
+            .filter(|p| {
+                p.starts_with("data/")
+                    && p.ends_with(".datc64")
+                    && p.matches('/').count() == 1
+            })
+            .filter_map(|p| {
+                p.strip_prefix("data/")
+                    .and_then(|s| s.strip_suffix(".datc64"))
+                    .map(String::from)
+            })
+            .collect();
+        tables.sort();
+        println!("Extracting ALL {} tables\n", tables.len());
+        extract_tables(&bundles, &tables, &output_dir);
+    } else {
+        println!("Extracting {} core tables\n", CORE_TABLES.len());
+        let tables: Vec<String> = CORE_TABLES.iter().map(|s| (*s).to_string()).collect();
+        extract_tables(&bundles, &tables, &output_dir);
+    }
+
+    println!("\nDone. Run poe-dat tests with: cargo test -p poe-dat --test extract_tables -- --nocapture");
+}
+
+fn extract_tables(bundles: &BundleReader, tables: &[String], output_dir: &PathBuf) {
+    let mut extracted = 0;
+    let mut errors = 0;
+
+    for table in tables {
         let dat_path = format!("data/{table}.datc64");
-        print!("  {table:30}");
+        print!("  {table:40}");
 
         match bundles.bytes(&dat_path) {
             Ok(bytes) => {
                 let out_path = output_dir.join(format!("{table}.datc64"));
                 std::fs::write(&out_path, &bytes).expect("failed to write file");
-                println!(" {} bytes → {}", bytes.len(), out_path.display());
+                println!(" {:>10} bytes", bytes.len());
+                extracted += 1;
             }
             Err(e) => {
                 println!(" ERROR: {e:?}");
+                errors += 1;
             }
         }
     }
 
-    println!("\nDone. Run poe-dat tests with: cargo test -p poe-dat --test extract_tables -- --nocapture");
+    println!("\nExtracted: {extracted}, Errors: {errors}");
 }
