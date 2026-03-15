@@ -13,8 +13,16 @@
 			"weight": 20.0,
 			"rule": {
 				"rule_type": "Pred",
-				"type": "HasStatId",
-				"stat_id": "base_maximum_life"
+				"type": "StatValue",
+				"conditions": [
+					{
+						"text": "+# to maximum Life",
+						"stat_ids": ["base_maximum_life"],
+						"value_index": 0,
+						"op": "Ge",
+						"value": 1
+					}
+				]
 			}
 		},
 		{
@@ -34,8 +42,16 @@
 			"weight": 10.0,
 			"rule": {
 				"rule_type": "Pred",
-				"type": "HasStatId",
-				"stat_id": "base_fire_damage_resistance_%"
+				"type": "StatValue",
+				"conditions": [
+					{
+						"text": "+#% to Fire Resistance",
+						"stat_ids": ["base_fire_damage_resistance_%"],
+						"value_index": 0,
+						"op": "Ge",
+						"value": 1
+					}
+				]
 			}
 		},
 		{
@@ -43,8 +59,16 @@
 			"weight": 10.0,
 			"rule": {
 				"rule_type": "Pred",
-				"type": "HasStatId",
-				"stat_id": "base_cold_damage_resistance_%"
+				"type": "StatValue",
+				"conditions": [
+					{
+						"text": "+#% to Cold Resistance",
+						"stat_ids": ["base_cold_damage_resistance_%"],
+						"value_index": 0,
+						"op": "Ge",
+						"value": 1
+					}
+				]
 			}
 		},
 		{
@@ -52,8 +76,16 @@
 			"weight": 10.0,
 			"rule": {
 				"rule_type": "Pred",
-				"type": "HasStatId",
-				"stat_id": "base_lightning_damage_resistance_%"
+				"type": "StatValue",
+				"conditions": [
+					{
+						"text": "+#% to Lightning Resistance",
+						"stat_ids": ["base_lightning_damage_resistance_%"],
+						"value_index": 0,
+						"op": "Ge",
+						"value": 1
+					}
+				]
 			}
 		},
 		{
@@ -61,8 +93,16 @@
 			"weight": 15.0,
 			"rule": {
 				"rule_type": "Pred",
-				"type": "HasStatId",
-				"stat_id": "base_movement_velocity_+%"
+				"type": "StatValue",
+				"conditions": [
+					{
+						"text": "#% increased Movement Speed",
+						"stat_ids": ["base_movement_velocity_+%"],
+						"value_index": 0,
+						"op": "Ge",
+						"value": 1
+					}
+				]
 			}
 		},
 		{
