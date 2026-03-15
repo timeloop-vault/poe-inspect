@@ -1,7 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
+import type { TradeEditSchema } from "../generated/TradeEditSchema";
 import type { TradeFilters } from "../hooks/useTradeFilters";
 import type { PriceCheckResult, TradeQueryConfig, TypeSearchScope } from "../types";
+import { type FilterOverride, SchemaFilters } from "./SchemaFilters";
 
 interface TradePanelProps {
 	/** Raw item text from clipboard (Ctrl+Alt+C). */
@@ -14,14 +16,6 @@ interface TradePanelProps {
 	baseType: string;
 	/** Item class from item header (e.g., "Wands"). */
 	itemClass: string;
-	/** Item rarity (e.g., "Rare"). */
-	rarity: string;
-	/** Item level (for ilvl filter). */
-	itemLevel: number | null;
-	/** Whether the item is corrupted. */
-	isCorrupted: boolean;
-	/** Whether the item is fractured. */
-	isFractured: boolean;
 }
 
 type TradeState =
@@ -32,29 +26,58 @@ type TradeState =
 	| { status: "error"; message: string }
 	| { status: "rate-limited"; retryAfterSecs: number };
 
-const scopeLabels: Record<TypeSearchScope, string> = {
-	baseType: "Base Type",
-	itemClass: "Item Class",
-	any: "Any",
-};
-
-const scopeOrder: TypeSearchScope[] = ["baseType", "itemClass", "any"];
-
-export function TradePanel({
-	itemText,
-	config,
-	filters,
-	baseType,
-	itemClass,
-	rarity,
-	itemLevel,
-	isCorrupted,
-	isFractured,
-}: TradePanelProps) {
+export function TradePanel({ itemText, config, filters, baseType, itemClass }: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
 	const [urlLoading, setUrlLoading] = useState(false);
+	const [editSchema, setEditSchema] = useState<TradeEditSchema | null>(null);
+	const [filterOverrides, setFilterOverrides] = useState<Map<string, FilterOverride>>(new Map());
 
 	const hasLeague = config.league.length > 0;
+
+	// Fetch schema when entering edit mode
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch on edit mode change
+	useEffect(() => {
+		if (!filters.editMode || !itemText) {
+			setEditSchema(null);
+			setFilterOverrides(new Map());
+			return;
+		}
+		(async () => {
+			try {
+				const schema = await invoke<TradeEditSchema>("get_trade_edit_schema", {
+					itemText,
+					config,
+				});
+				setEditSchema(schema);
+				// Initialize overrides from schema defaults
+				const overrides = new Map<string, FilterOverride>();
+				for (const group of schema.filterGroups) {
+					for (const filter of group.filters) {
+						if (filter.defaultValue) {
+							const ov: FilterOverride = { enabled: filter.enabled };
+							if (filter.defaultValue.type === "range") {
+								ov.rangeMin = filter.defaultValue.min;
+							} else if (filter.defaultValue.type === "selected") {
+								ov.selectedId = filter.defaultValue.id;
+							}
+							overrides.set(filter.id, ov);
+						}
+					}
+				}
+				setFilterOverrides(overrides);
+			} catch (e) {
+				console.error("Failed to fetch trade edit schema:", e);
+			}
+		})();
+	}, [filters.editMode, itemText]);
+
+	const handleFilterOverride = useCallback((filterId: string, override: FilterOverride) => {
+		setFilterOverrides((prev) => {
+			const next = new Map(prev);
+			next.set(filterId, override);
+			return next;
+		});
+	}, []);
 
 	const priceCheck = useCallback(async () => {
 		if (!hasLeague) return;
@@ -149,147 +172,29 @@ export function TradePanel({
 				</button>
 			</div>
 
-			{/* Type scope breadcrumb — shown in edit mode */}
-			{filters.editMode && (
+			{/* Type scope breadcrumb — from schema */}
+			{filters.editMode && editSchema && (
 				<div class="trade-type-scope">
-					{scopeOrder.map((scope) => {
-						const label =
-							scope === "baseType" ? baseType : scope === "itemClass" ? itemClass : "Any";
-						return (
-							<button
-								key={scope}
-								type="button"
-								class={`scope-btn ${filters.typeScope === scope ? "scope-active" : ""}`}
-								onClick={() => filters.setTypeScope(scope)}
-								title={scopeLabels[scope]}
-							>
-								{label}
-							</button>
-						);
-					})}
+					{editSchema.typeScope.options.map((opt) => (
+						<button
+							key={opt.scope}
+							type="button"
+							class={`scope-btn ${filters.typeScope === opt.scope ? "scope-active" : ""}`}
+							onClick={() => filters.setTypeScope(opt.scope as TypeSearchScope)}
+						>
+							{opt.label}
+						</button>
+					))}
 				</div>
 			)}
 
-			{/* Item property filters — shown in edit mode */}
-			{filters.editMode && (
-				<div class="trade-socket-filters">
-					{filters.socketInfo && (
-						<label class="socket-filter-row">
-							<input
-								type="checkbox"
-								checked={filters.linksEnabled}
-								onChange={() => filters.setLinksEnabled(!filters.linksEnabled)}
-							/>
-							<span class="socket-filter-label">Min Links</span>
-							<input
-								type="number"
-								class="socket-filter-input"
-								value={filters.linksMin ?? filters.socketInfo.maxLink}
-								min={1}
-								max={filters.socketInfo.total}
-								disabled={!filters.linksEnabled}
-								onInput={(e) => {
-									const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
-									filters.setLinksMin(Number.isNaN(v) ? null : v);
-								}}
-							/>
-							<span class="socket-filter-hint">
-								{filters.socketInfo.total}S / {filters.socketInfo.maxLink}L
-							</span>
-						</label>
-					)}
-					{filters.quality != null && (
-						<label class="socket-filter-row">
-							<input
-								type="checkbox"
-								checked={filters.qualityEnabled}
-								onChange={() => filters.setQualityEnabled(!filters.qualityEnabled)}
-							/>
-							<span class="socket-filter-label">Min Quality</span>
-							<input
-								type="number"
-								class="socket-filter-input"
-								value={filters.qualityMin ?? filters.quality}
-								min={0}
-								max={30}
-								disabled={!filters.qualityEnabled}
-								onInput={(e) => {
-									const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
-									filters.setQualityMin(Number.isNaN(v) ? null : v);
-								}}
-							/>
-							<span class="socket-filter-hint">{filters.quality}%</span>
-						</label>
-					)}
-					{itemLevel != null && (
-						<label class="socket-filter-row">
-							<input
-								type="checkbox"
-								checked={filters.ilvlEnabled}
-								onChange={() => filters.setIlvlEnabled(!filters.ilvlEnabled)}
-							/>
-							<span class="socket-filter-label">Min iLvl</span>
-							<input
-								type="number"
-								class="socket-filter-input"
-								value={filters.ilvlMin ?? itemLevel}
-								min={1}
-								max={100}
-								disabled={!filters.ilvlEnabled}
-								onInput={(e) => {
-									const v = Number.parseInt((e.target as HTMLInputElement).value, 10);
-									filters.setIlvlMin(Number.isNaN(v) ? null : v);
-								}}
-							/>
-							<span class="socket-filter-hint">iLvl {itemLevel}</span>
-						</label>
-					)}
-					{(rarity === "Rare" || rarity === "Magic" || rarity === "Normal") && (
-						<div class="socket-filter-row">
-							<span class="socket-filter-label">Rarity</span>
-							<div class="rarity-toggle">
-								<button
-									type="button"
-									class={`rarity-toggle-btn ${filters.rarityOverride !== "any" ? "rarity-active" : ""}`}
-									onClick={() => filters.setRarityOverride(null)}
-								>
-									Non-Unique
-								</button>
-								<button
-									type="button"
-									class={`rarity-toggle-btn ${filters.rarityOverride === "any" ? "rarity-active" : ""}`}
-									onClick={() => filters.setRarityOverride("any")}
-								>
-									Any
-								</button>
-							</div>
-						</div>
-					)}
-					{isCorrupted && (
-						<label class="socket-filter-row">
-							<input
-								type="checkbox"
-								checked={filters.corruptedOverride !== false}
-								onChange={() =>
-									filters.setCorruptedOverride(filters.corruptedOverride === false ? null : false)
-								}
-							/>
-							<span class="socket-filter-label">Corrupted</span>
-						</label>
-					)}
-					{isFractured && (
-						<label class="socket-filter-row">
-							<input
-								type="checkbox"
-								checked={filters.fracturedOverride !== false}
-								onChange={() =>
-									filters.setFracturedOverride(filters.fracturedOverride === false ? null : false)
-								}
-							/>
-							<span class="socket-filter-label">Fractured</span>
-						</label>
-					)}
-				</div>
+			{/* Schema-driven filter controls */}
+			{filters.editMode && editSchema && (
+				<SchemaFilters
+					schema={editSchema}
+					overrides={filterOverrides}
+					onOverride={handleFilterOverride}
+				/>
 			)}
 
 			{state.status === "results" && <TradeResults result={state.result} />}
