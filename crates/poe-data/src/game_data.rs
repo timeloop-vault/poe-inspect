@@ -14,7 +14,29 @@ use poe_dat::tables::{
     ModFamilyRow, ModRow, ModTypeRow, RarityRow, ShieldTypeRow, StatRow, TagRow, WeaponTypeRow,
 };
 
-use crate::domain::LOCAL_STAT_NONLOCAL_FALLBACKS;
+use crate::domain::{self, LOCAL_STAT_NONLOCAL_FALLBACKS};
+
+/// A resolved pseudo stat definition — families expanded to concrete stat_ids.
+#[derive(Debug, Clone)]
+pub struct ResolvedPseudo {
+    /// Pseudo stat ID (e.g., `"pseudo_total_life"`).
+    pub id: &'static str,
+    /// Display label template (e.g., `"+# total maximum Life"`).
+    pub label: &'static str,
+    /// Component stat_ids with multipliers and required flags.
+    pub components: Vec<ResolvedPseudoComponent>,
+}
+
+/// A single stat_id that contributes to a pseudo stat.
+#[derive(Debug, Clone)]
+pub struct ResolvedPseudoComponent {
+    /// GGPK stat ID (e.g., `"base_maximum_life"`).
+    pub stat_id: String,
+    /// Multiplier (e.g., 0.5 for Strength → Life).
+    pub multiplier: f64,
+    /// If true, pseudo only shows when this component has a value.
+    pub required: bool,
+}
 
 // ── GameData ────────────────────────────────────────────────────────────────
 
@@ -73,6 +95,14 @@ pub struct GameData {
     armour_by_base: HashMap<String, ArmourTypeRow>,
     weapon_by_base: HashMap<String, WeaponTypeRow>,
     shield_by_base: HashMap<String, ShieldTypeRow>,
+
+    // ModFamily name → set of stat_ids (from non-unique mods in that family).
+    // Used to resolve pseudo stat definitions to concrete stat_ids.
+    family_stat_ids: HashMap<String, HashSet<String>>,
+
+    // Resolved pseudo stat definitions: pseudo_id → Vec<(stat_id, multiplier, required)>.
+    // Built at load time by resolving PseudoDefinition families to stat_ids.
+    resolved_pseudos: Vec<ResolvedPseudo>,
 }
 
 impl GameData {
@@ -135,6 +165,51 @@ impl GameData {
             }
         }
 
+        // Build family_name → set of stat_ids (from non-unique mods).
+        let mut family_stat_ids: HashMap<String, HashSet<String>> = HashMap::new();
+        for m in &mods {
+            // Skip unique mods (generation_type 3) — they don't represent rollable families
+            if m.generation_type == 3 {
+                continue;
+            }
+            for &family_fk in &m.families {
+                if let Some(family_row) = mod_families.get(family_fk as usize) {
+                    let entry = family_stat_ids
+                        .entry(family_row.id.clone())
+                        .or_default();
+                    for stat_fk in m.stat_keys.iter().flatten() {
+                        if let Some(stat_row) = stats.get(*stat_fk as usize) {
+                            entry.insert(stat_row.id.clone());
+                        }
+                    }
+                }
+            }
+        }
+
+        // Resolve pseudo definitions: families → concrete stat_ids
+        let resolved_pseudos = domain::pseudo_definitions()
+            .iter()
+            .map(|def| {
+                let mut components = Vec::new();
+                for comp in def.components {
+                    if let Some(stat_ids) = family_stat_ids.get(comp.family) {
+                        for sid in stat_ids {
+                            components.push(ResolvedPseudoComponent {
+                                stat_id: sid.clone(),
+                                multiplier: comp.multiplier,
+                                required: comp.required,
+                            });
+                        }
+                    }
+                }
+                ResolvedPseudo {
+                    id: def.id,
+                    label: def.label,
+                    components,
+                }
+            })
+            .collect();
+
         Self {
             stats,
             tags,
@@ -163,6 +238,8 @@ impl GameData {
             armour_by_base: HashMap::new(),
             weapon_by_base: HashMap::new(),
             shield_by_base: HashMap::new(),
+            family_stat_ids,
+            resolved_pseudos,
         }
     }
 
@@ -347,6 +424,19 @@ impl GameData {
     /// Resolve a mod family FK (row index) to the family's string ID.
     pub fn mod_family_id(&self, fk: u64) -> Option<&str> {
         self.mod_families.get(fk as usize).map(|f| f.id.as_str())
+    }
+
+    /// Get all resolved pseudo stat definitions.
+    ///
+    /// Each definition has its component families resolved to concrete stat_ids.
+    /// Used by poe-item's resolver to compute pseudo values on items.
+    pub fn pseudo_definitions(&self) -> &[ResolvedPseudo] {
+        &self.resolved_pseudos
+    }
+
+    /// Get the set of stat_ids associated with a mod family.
+    pub fn family_stat_ids(&self, family: &str) -> Option<&HashSet<String>> {
+        self.family_stat_ids.get(family)
     }
 
     /// Resolve a mod type FK (row index) to the type's display name.

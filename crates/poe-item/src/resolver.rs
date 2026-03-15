@@ -14,8 +14,8 @@ use regex::Regex;
 
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
-    ModSource, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine,
-    Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
+    ModSource, PseudoStat, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
+    ResolvedStatLine, Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -189,6 +189,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         });
     }
 
+    // Compute pseudo stats by scanning all mod stat lines against pseudo definitions.
+    let pseudo_stats = compute_pseudo_stats(&implicits, &explicits, &enchants, game_data);
+
     ResolvedItem {
         header,
         item_level,
@@ -212,6 +215,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         description: classified.description,
         flavor_text: classified.flavor_text,
         gem_data,
+        pseudo_stats,
         unclassified_sections: classified.unclassified,
     }
 }
@@ -809,6 +813,89 @@ fn parse_socket_info(socket_str: &str) -> SocketInfo {
         blue,
         white,
     }
+}
+
+/// Compute pseudo stats by scanning all mod stat lines against resolved pseudo definitions.
+///
+/// For each pseudo definition, sums values from matching `stat_ids` across all mods,
+/// applying multipliers. Skips pseudos where a required component has no match.
+fn compute_pseudo_stats(
+    implicits: &[ResolvedMod],
+    explicits: &[ResolvedMod],
+    enchants: &[ResolvedMod],
+    game_data: &GameData,
+) -> Vec<PseudoStat> {
+    let definitions = game_data.pseudo_definitions();
+    if definitions.is_empty() {
+        return Vec::new();
+    }
+
+    // Collect all stat lines from all mods into a flat list for scanning
+    let all_mods: Vec<&ResolvedMod> = enchants
+        .iter()
+        .chain(implicits.iter())
+        .chain(explicits.iter())
+        .collect();
+
+    let mut results = Vec::new();
+
+    for def in definitions {
+        if def.components.is_empty() {
+            continue;
+        }
+
+        let mut total: f64 = 0.0;
+        let mut has_required = false;
+        let mut any_required_defined = false;
+
+        for comp in &def.components {
+            if comp.required {
+                any_required_defined = true;
+            }
+
+            let mut comp_value: f64 = 0.0;
+            let mut comp_found = false;
+
+            for m in &all_mods {
+                for sl in &m.stat_lines {
+                    if sl.is_reminder {
+                        continue;
+                    }
+                    let matches = sl.stat_ids.as_ref().is_some_and(|ids| {
+                        ids.iter().any(|id| id == &comp.stat_id)
+                    });
+                    if matches && !sl.values.is_empty() {
+                        // Use the first value (most stats are single-value)
+                        comp_value += sl.values[0].current as f64;
+                        comp_found = true;
+                    }
+                }
+            }
+
+            if comp_found {
+                total += comp_value * comp.multiplier;
+                if comp.required {
+                    has_required = true;
+                }
+            }
+        }
+
+        // Skip if any required component was not found
+        if any_required_defined && !has_required {
+            continue;
+        }
+
+        // Only include pseudos with a non-zero value
+        if total.abs() > f64::EPSILON {
+            results.push(PseudoStat {
+                id: def.id.to_string(),
+                label: format!("(Pseudo) {}", def.label),
+                value: total,
+            });
+        }
+    }
+
+    results
 }
 
 #[cfg(test)]

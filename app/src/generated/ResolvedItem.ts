@@ -2,6 +2,7 @@
 import type { GemData } from "./GemData";
 import type { InfluenceKind } from "./InfluenceKind";
 import type { ItemProperty } from "./ItemProperty";
+import type { PseudoStat } from "./PseudoStat";
 import type { Requirement } from "./Requirement";
 import type { ResolvedHeader } from "./ResolvedHeader";
 import type { ResolvedMod } from "./ResolvedMod";
@@ -69,6 +70,11 @@ flavorText: string | null,
  * Gem-specific data (tags, stats, quality effects, Vaal variant).
  */
 gemData: GemData | null, 
+/**
+ * Computed pseudo stats (aggregated from multiple mods).
+ * E.g., "(Pseudo) +# total maximum Life" summing life mod + strength × 0.5.
+ */
+pseudoStats: Array<PseudoStat>, 
 /**
  * Remaining unclassified generic sections.
  */
