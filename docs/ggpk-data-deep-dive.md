@@ -218,6 +218,48 @@ these from item text (which already works).
 
 ---
 
+## Additional Tables Explored
+
+### ItemFrameType (14 rows)
+
+Rarity header definitions with exact RGB colors and art paths:
+
+| Rarity | Color | Header Art |
+|---|---|---|
+| Normal | `rgb(200,200,200)` | `ItemsHeaderWhite` |
+| Magic | `rgb(136,136,255)` | `ItemsHeaderMagic` |
+| Rare | `rgb(255,255,119)` | `ItemsHeaderRareSingleLine` / `ItemsHeaderRare` |
+| Unique | `rgb(175,96,37)` | `ItemsHeaderUnique` |
+| Gem | `rgb(27,162,155)` | `ItemsHeaderGem` |
+| Currency | (continues...) | `ItemsHeaderCurrency` |
+
+**Use case**: Replace hardcoded rarity colors in overlay CSS with GGPK-sourced values.
+
+### CraftingItemClassCategories (21 rows)
+
+Maps crafting bench categories: `OneHandMelee` → `One Hand Melee`, `BodyArmour` → `Body Armour`, etc.
+Internal IDs + display names for the crafting bench UI.
+
+### ItemClassCategories (64 rows)
+
+High-level categories with internal IDs + display names. Includes new league content:
+`BrequelFruit` = `Wombgift`, `AtlasRelics` = `Idol`, `NecropolisPack` = `Ember of the Allflame`.
+
+### EssenceType (26 rows)
+
+Essence names: Hatred, Woe, Greed, Contempt, Sorrow, Anger, Torment, Fear, etc.
+
+### PlayerTradeWhisperFormats (4 rows)
+
+Trade whisper templates: `Hi, I would like to buy your {{ITEM}} listed for {{PRICE}} in {{LEAGUE}}`.
+
+### BrequelGrafts (16 rows) — Foulborn Grafts
+
+The graft abilities from the Keepers of the Flame / Foulborn mechanic.
+Internal names like `UulNetolGraft1`, `XophGraft1`. Contains art paths and AI script references.
+
+---
+
 ## Next Steps
 
 1. **Extract ClientStrings as a data source** — parse `ItemPopup*`, `ItemDisplay*`,
