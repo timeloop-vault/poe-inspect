@@ -481,3 +481,16 @@ fn validate_status_influence_against_client_strings() {
         "Unexpected unhandled ItemPopup entries — add to StatusKind or InfluenceKind: {unexpected:?}"
     );
 }
+
+#[test]
+#[ignore]
+fn dump_mod_families_txt() {
+    let Some(gd) = load_test_data() else { return };
+    let mut names: Vec<&str> = gd.mod_families.iter().map(|f| f.id.as_str()).collect();
+    names.sort();
+    let content = names.join("\n");
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("data/mod_families.txt");
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(&path, &content).unwrap();
+    println!("Wrote {} families to {}", names.len(), path.display());
+}
