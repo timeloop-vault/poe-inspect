@@ -20,3 +20,6 @@ ts-rs = { version = "12", optional = true }
 serde_json.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+
+[dev-dependencies]
+poe-item = { path = "../poe-item" }
