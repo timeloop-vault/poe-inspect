@@ -1594,11 +1594,23 @@ body,
 
 /* --- Inline trade edit controls (on overlay item card) --- */
 
+.inline-filter-checkbox {
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.inline-filter-checkbox input[type="checkbox"] {
+	width: 13px;
+	height: 13px;
+	accent-color: var(--poe-accent);
+	cursor: pointer;
+	margin: 0;
+}
+
 .inline-filter-control {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
-	margin-right: 4px;
 	flex-shrink: 0;
 }
 
@@ -1610,19 +1622,30 @@ body,
 	margin: 0;
 }
 
-/* Property line in edit mode */
+/* Property line in edit mode: checkbox left, text middle, input right */
 .property-line-editable {
 	display: flex;
 	align-items: center;
-	text-align: left;
+	gap: 4px;
 }
 
-/* Meta line (sockets/ilvl) in edit mode */
+.property-line-editable .prop-label {
+	margin-left: auto;
+}
+
+.property-line-editable .prop-value {
+	margin-right: auto;
+}
+
+/* Meta line (sockets/ilvl) in edit mode: checkbox left, text middle, input right */
 .meta-line-editable {
 	display: flex;
 	align-items: center;
-	justify-content: center;
 	gap: 4px;
+}
+
+.meta-text {
+	flex: 1;
 }
 
 /* Status lines (Corrupted, Fractured) */
