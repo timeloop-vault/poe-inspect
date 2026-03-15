@@ -304,6 +304,33 @@ impl TradeClient {
         Ok(result)
     }
 
+    /// Fetch the trade filter schema from the `/data/filters` endpoint.
+    ///
+    /// This returns the structural filter definitions (89 filters across 12 groups)
+    /// that define what non-stat filters the trade site supports.
+    ///
+    /// # Errors
+    ///
+    /// Returns `TradeApiError` on HTTP failure or API errors.
+    pub async fn fetch_filters(
+        &self,
+    ) -> Result<crate::filter_schema::TradeFiltersResponse, TradeApiError> {
+        let url = format!("{POE1_TRADE_API}/data/filters");
+        let response = self.http.get(&url).send().await?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(TradeApiError::ApiError {
+                status: status.as_u16(),
+                body,
+            });
+        }
+
+        let result = response.json().await?;
+        Ok(result)
+    }
+
     // ── Leagues ──────────────────────────────────────────────────────────────
 
     /// Fetch the list of trade-eligible leagues from the GGG API.

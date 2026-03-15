@@ -71,6 +71,7 @@ struct ChatMacroState(Mutex<Vec<ChatMacroConfig>>);
 struct TradeState {
     client: tokio::sync::Mutex<TradeClient>,
     index: tokio::sync::RwLock<Option<TradeStatsIndex>>,
+    filter_index: tokio::sync::RwLock<Option<poe_trade::filter_schema::FilterIndex>>,
 }
 
 /// Combined frontend payload: item display data + evaluation results.
@@ -1124,6 +1125,41 @@ async fn preview_trade_query(
     ))
 }
 
+/// Get the schema-driven trade edit schema for an item.
+///
+/// Returns `TradeEditSchema` with all applicable filter groups, per-stat
+/// schemas, and type scope options. The frontend renders this generically.
+#[tauri::command]
+async fn get_trade_edit_schema(
+    item_text: String,
+    config: TradeQueryConfig,
+    gd: tauri::State<'_, GameDataState>,
+    trade: tauri::State<'_, TradeState>,
+) -> Result<poe_trade::filter_schema::TradeEditSchema, String> {
+    let gd = &gd.0;
+
+    let raw = poe_item::parse(&item_text).map_err(|e| format!("Parse error: {e}"))?;
+    let resolved = poe_item::resolve(&raw, gd);
+
+    let index_guard = trade.index.read().await;
+    let stats_index = index_guard
+        .as_ref()
+        .ok_or("Trade stats index not loaded — call refresh_trade_stats first")?;
+
+    let filter_guard = trade.filter_index.read().await;
+    let filter_index = filter_guard
+        .as_ref()
+        .ok_or("Trade filter index not loaded — call refresh_trade_stats first")?;
+
+    Ok(poe_trade::filter_schema::trade_edit_schema(
+        &resolved,
+        filter_index,
+        stats_index,
+        &config,
+        gd,
+    ))
+}
+
 /// Full price check: parse item → build query → search → fetch prices.
 ///
 /// Returns prices from the cheapest listings, or an error string.
@@ -1199,12 +1235,15 @@ async fn refresh_trade_stats(
     trade: tauri::State<'_, TradeState>,
 ) -> Result<u32, String> {
     let client = trade.client.lock().await;
-    let response = client.fetch_stats().await.map_err(|e| e.to_string())?;
+    let stats_response = client.fetch_stats().await.map_err(|e| e.to_string())?;
+
+    // Also fetch filters.json (schema for structural trade filters).
+    let filters_response = client.fetch_filters().await;
     drop(client);
 
-    // Cache raw response to disk.
+    // Cache raw stats response to disk.
     if let Some(cache_path) = trade_stats_cache_path(&app) {
-        if let Ok(json) = serde_json::to_string(&response) {
+        if let Ok(json) = serde_json::to_string(&stats_response) {
             let _ = std::fs::create_dir_all(cache_path.parent().unwrap());
             if let Err(e) = std::fs::write(&cache_path, json) {
                 eprintln!("Failed to cache trade stats: {e}");
@@ -1212,7 +1251,17 @@ async fn refresh_trade_stats(
         }
     }
 
-    let result = TradeStatsIndex::from_response(&response, &gd.0);
+    // Cache raw filters response to disk.
+    if let Ok(ref filters_resp) = filters_response {
+        if let Some(cache_path) = trade_filters_cache_path(&app) {
+            let _ = poe_trade::filter_schema::FilterIndex::save_response(
+                filters_resp,
+                &cache_path,
+            );
+        }
+    }
+
+    let result = TradeStatsIndex::from_response(&stats_response, &gd.0);
     let matched = result.matched;
 
     eprintln!(
@@ -1222,6 +1271,17 @@ async fn refresh_trade_stats(
     );
 
     *trade.index.write().await = Some(result.index);
+
+    // Update filter index if fetched successfully.
+    if let Ok(filters_resp) = filters_response {
+        let filter_index = poe_trade::filter_schema::FilterIndex::from_response(&filters_resp);
+        eprintln!(
+            "[trade] Refreshed filter index: {} filters",
+            filter_index.filter_count()
+        );
+        *trade.filter_index.write().await = Some(filter_index);
+    }
+
     Ok(matched)
 }
 
@@ -1299,6 +1359,13 @@ fn trade_stats_cache_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> 
         .map(|dir| dir.join("trade_stats.json"))
 }
 
+fn trade_filters_cache_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    app.path()
+        .app_data_dir()
+        .ok()
+        .map(|dir| dir.join("trade_filters.json"))
+}
+
 /// Try to load the trade stats index from disk cache.
 fn load_cached_trade_index(app: &tauri::AppHandle, gd: &GameData) -> Option<TradeStatsIndex> {
     let path = trade_stats_cache_path(app)?;
@@ -1311,6 +1378,20 @@ fn load_cached_trade_index(app: &tauri::AppHandle, gd: &GameData) -> Option<Trad
         result.matched + result.unmatched,
     );
     Some(result.index)
+}
+
+/// Try to load the trade filter index from disk cache.
+fn load_cached_filter_index(
+    app: &tauri::AppHandle,
+) -> Option<poe_trade::filter_schema::FilterIndex> {
+    let path = trade_filters_cache_path(app)?;
+    let response = poe_trade::filter_schema::FilterIndex::load_response(&path).ok()?;
+    let index = poe_trade::filter_schema::FilterIndex::from_response(&response);
+    eprintln!(
+        "[trade] Loaded cached filter index: {} filters",
+        index.filter_count()
+    );
+    Some(index)
 }
 
 /// Load game data from extracted datc64 files.
@@ -1531,6 +1612,7 @@ pub fn run() {
             resolve_stat_templates,
             get_map_mod_templates,
             preview_trade_query,
+            get_trade_edit_schema,
             price_check,
             trade_search_url,
             refresh_trade_stats,
@@ -1705,9 +1787,11 @@ pub fn run() {
                     eprintln!("[trade] POESESSID loaded from settings");
                 }
 
+                let cached_filter_index = load_cached_filter_index(app.handle());
                 app.manage(TradeState {
                     client: tokio::sync::Mutex::new(client),
                     index: tokio::sync::RwLock::new(cached_index),
+                    filter_index: tokio::sync::RwLock::new(cached_filter_index),
                 });
             }
 
