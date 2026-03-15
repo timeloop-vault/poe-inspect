@@ -156,6 +156,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
             augmented: false,
         });
     }
+    // Sockets/Links: these names match the trade API filter text ("Sockets", "Links")
+    // rather than the GGPK ClientStrings (ItemDisplayStringSockets = "Sockets").
+    // "Links" has no GGPK equivalent — it's a trade API concept (max linked group).
     if let Some(ref si) = socket_info {
         properties.push(ItemProperty {
             name: "Sockets".to_string(),
