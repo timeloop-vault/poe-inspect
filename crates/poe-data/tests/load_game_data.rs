@@ -360,6 +360,42 @@ fn client_strings_loaded() {
 
 }
 
+#[test]
+fn base_type_tables_loaded() {
+    let Some(gd) = load_test_data() else { return };
+
+    // Check armour base values
+    if let Some(ar) = gd.base_armour("Eternal Burgonet") {
+        println!("Eternal Burgonet: AR {}-{}", ar.armour_min, ar.armour_max);
+        assert!(ar.armour_max > 0, "Eternal Burgonet should have armour");
+    } else {
+        eprintln!("Skipping base_type_tables: armourtypes.datc64 not loaded");
+        return;
+    }
+
+    // Check weapon base values
+    let wand = gd.base_weapon("Demon's Horn");
+    assert!(wand.is_some(), "Demon's Horn should be in weapon types");
+    let wand = wand.unwrap();
+    assert!(wand.damage_max > 0, "Demon's Horn should have damage");
+    println!(
+        "Demon's Horn: crit={}, speed={}, dmg={}-{}",
+        wand.critical, wand.speed, wand.damage_min, wand.damage_max
+    );
+
+    // Check shield base values
+    let block = gd.base_shield_block("Pinnacle Tower Shield");
+    assert!(block.is_some(), "Pinnacle Tower Shield should have block");
+    println!("Pinnacle Tower Shield: block={}%", block.unwrap());
+
+    // Pure evasion base should have no armour
+    if let Some(ev) = gd.base_armour("Slink Boots") {
+        assert_eq!(ev.armour_max, 0, "Slink Boots should have no armour");
+        assert!(ev.evasion_max > 0, "Slink Boots should have evasion");
+        println!("Slink Boots: EV {}-{}", ev.evasion_min, ev.evasion_max);
+    }
+}
+
 /// Validate poe-item's status/influence parsing against ClientStrings.
 ///
 /// This test catches when GGG adds new item statuses or influences that

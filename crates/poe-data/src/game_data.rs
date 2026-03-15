@@ -10,8 +10,8 @@ use std::path::Path;
 use poe_dat::dat_reader::DatFile;
 use poe_dat::stat_desc::ReverseIndex;
 use poe_dat::tables::{
-    self, BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow,
-    ModRow, ModTypeRow, RarityRow, StatRow, TagRow,
+    self, ArmourTypeRow, BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow,
+    ModFamilyRow, ModRow, ModTypeRow, RarityRow, ShieldTypeRow, StatRow, TagRow, WeaponTypeRow,
 };
 
 use crate::domain::LOCAL_STAT_NONLOCAL_FALLBACKS;
@@ -67,6 +67,12 @@ pub struct GameData {
     // Indexed by string ID for O(1) lookup.
     client_string_by_id: HashMap<String, usize>,
     client_strings: Vec<ClientStringRow>,
+
+    // Base item type tables — indexed by base item name for lookup.
+    // These map base types to their base defence/weapon/shield stats.
+    armour_by_base: HashMap<String, ArmourTypeRow>,
+    weapon_by_base: HashMap<String, WeaponTypeRow>,
+    shield_by_base: HashMap<String, ShieldTypeRow>,
 }
 
 impl GameData {
@@ -154,6 +160,9 @@ impl GameData {
             reverse_index: None,
             client_string_by_id: HashMap::new(),
             client_strings: Vec::new(),
+            armour_by_base: HashMap::new(),
+            weapon_by_base: HashMap::new(),
+            shield_by_base: HashMap::new(),
         }
     }
 
@@ -186,6 +195,51 @@ impl GameData {
             .filter(|s| s.id.starts_with(prefix))
             .map(|s| (s.id.as_str(), s.text.as_str()))
             .collect()
+    }
+
+    /// Set base item type tables (armour, weapon, shield stats).
+    ///
+    /// Resolves FK row indices to base type names for indexed lookup.
+    pub fn set_base_type_tables(
+        &mut self,
+        armour_types: Vec<ArmourTypeRow>,
+        weapon_types: Vec<WeaponTypeRow>,
+        shield_types: Vec<ShieldTypeRow>,
+    ) {
+        // Resolve FK → base type name
+        for at in armour_types {
+            if let Some(base) = self.base_item_types.get(at.base_item as usize) {
+                self.armour_by_base.insert(base.name.clone(), at);
+            }
+        }
+        for wt in weapon_types {
+            if let Some(base) = self.base_item_types.get(wt.base_item as usize) {
+                self.weapon_by_base.insert(base.name.clone(), wt);
+            }
+        }
+        for st in shield_types {
+            if let Some(base) = self.base_item_types.get(st.base_item as usize) {
+                self.shield_by_base.insert(base.name.clone(), st);
+            }
+        }
+    }
+
+    /// Look up base armour/defence values for a base type name.
+    #[must_use]
+    pub fn base_armour(&self, base_type: &str) -> Option<&ArmourTypeRow> {
+        self.armour_by_base.get(base_type)
+    }
+
+    /// Look up base weapon stats for a base type name.
+    #[must_use]
+    pub fn base_weapon(&self, base_type: &str) -> Option<&WeaponTypeRow> {
+        self.weapon_by_base.get(base_type)
+    }
+
+    /// Look up base shield block chance for a base type name.
+    #[must_use]
+    pub fn base_shield_block(&self, base_type: &str) -> Option<i32> {
+        self.shield_by_base.get(base_type).map(|s| s.block)
     }
 
     /// Set the stat description reverse index.
@@ -611,6 +665,23 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
         Err(e) => {
             tracing::warn!("No reverse index at {}: {e}", ri_path.display());
         }
+    }
+
+    // Load base type tables if available (optional — enables DPS/defence calculations)
+    let armour_types = load_table(dat_dir, "armourtypes", tables::extract_armour_types)
+        .unwrap_or_default();
+    let weapon_types = load_table(dat_dir, "weapontypes", tables::extract_weapon_types)
+        .unwrap_or_default();
+    let shield_types = load_table(dat_dir, "shieldtypes", tables::extract_shield_types)
+        .unwrap_or_default();
+    if !armour_types.is_empty() || !weapon_types.is_empty() || !shield_types.is_empty() {
+        tracing::info!(
+            armour = armour_types.len(),
+            weapon = weapon_types.len(),
+            shield = shield_types.len(),
+            "Base type tables loaded"
+        );
+        gd.set_base_type_tables(armour_types, weapon_types, shield_types);
     }
 
     // Load client strings if available (optional — enables data-driven text validation)

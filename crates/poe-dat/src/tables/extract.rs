@@ -5,8 +5,8 @@
 //! the first u64 (row index). Lists are 16 bytes (u64 length + u64 offset).
 
 use super::types::{
-    BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow, ModFamilyRow, ModRow,
-    ModTypeRow, RarityRow, StatRow, TagRow,
+    ArmourTypeRow, BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow,
+    ModFamilyRow, ModRow, ModTypeRow, RarityRow, ShieldTypeRow, StatRow, TagRow, WeaponTypeRow,
 };
 use crate::dat_reader::DatFile;
 
@@ -32,6 +32,92 @@ pub fn extract_stats(dat: &DatFile) -> Vec<StatRow> {
                 is_local: dat.read_bool(row, stats_offsets::IS_LOCAL)?,
                 is_weapon_local: dat.read_bool(row, stats_offsets::IS_WEAPON_LOCAL)?,
                 is_virtual: dat.read_bool(row, stats_offsets::IS_VIRTUAL)?,
+            })
+        })
+        .collect()
+}
+
+// ── ArmourTypes ─────────────────────────────────────────────────────────────
+// type ArmourTypes { BaseItemTypesKey: FK(16), ArmourMin: i32, ArmourMax: i32,
+//   EvasionMin: i32, EvasionMax: i32, ESMin: i32, ESMax: i32,
+//   IncreasedMovementSpeed: i32, WardMin: i32, WardMax: i32, _: i32, _: i32 }
+// Row size: 60 bytes. Verified against 3.28 Mirage data (2026-03-15).
+mod armour_type_offsets {
+    pub const BASE_ITEM: usize = 0; // FK (16) — first u64 is row index
+    pub const ARMOUR_MIN: usize = 16;
+    pub const ARMOUR_MAX: usize = 20;
+    pub const EVASION_MIN: usize = 24;
+    pub const EVASION_MAX: usize = 28;
+    pub const ES_MIN: usize = 32;
+    pub const ES_MAX: usize = 36;
+    pub const _MOVEMENT_SPEED: usize = 40;
+    pub const WARD_MIN: usize = 44;
+    pub const WARD_MAX: usize = 48;
+}
+
+/// Extract all rows from `ArmourTypes.datc64`.
+pub fn extract_armour_types(dat: &DatFile) -> Vec<ArmourTypeRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(ArmourTypeRow {
+                base_item: dat.read_fk(row, armour_type_offsets::BASE_ITEM)?,
+                armour_min: dat.read_i32(row, armour_type_offsets::ARMOUR_MIN)?,
+                armour_max: dat.read_i32(row, armour_type_offsets::ARMOUR_MAX)?,
+                evasion_min: dat.read_i32(row, armour_type_offsets::EVASION_MIN)?,
+                evasion_max: dat.read_i32(row, armour_type_offsets::EVASION_MAX)?,
+                es_min: dat.read_i32(row, armour_type_offsets::ES_MIN)?,
+                es_max: dat.read_i32(row, armour_type_offsets::ES_MAX)?,
+                ward_min: dat.read_i32(row, armour_type_offsets::WARD_MIN)?,
+                ward_max: dat.read_i32(row, armour_type_offsets::WARD_MAX)?,
+            })
+        })
+        .collect()
+}
+
+// ── WeaponTypes ─────────────────────────────────────────────────────────────
+// type WeaponTypes { BaseItemTypesKey: FK(16), Critical: i32, Speed: i32,
+//   DamageMin: i32, DamageMax: i32, RangeMax: i32, _: i32 }
+// Row size: 40 bytes. Verified against 3.28 Mirage data (2026-03-15).
+mod weapon_type_offsets {
+    pub const BASE_ITEM: usize = 0; // FK (16)
+    pub const CRITICAL: usize = 16;
+    pub const SPEED: usize = 20;
+    pub const DAMAGE_MIN: usize = 24;
+    pub const DAMAGE_MAX: usize = 28;
+    pub const RANGE: usize = 32;
+}
+
+/// Extract all rows from `WeaponTypes.datc64`.
+pub fn extract_weapon_types(dat: &DatFile) -> Vec<WeaponTypeRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(WeaponTypeRow {
+                base_item: dat.read_fk(row, weapon_type_offsets::BASE_ITEM)?,
+                critical: dat.read_i32(row, weapon_type_offsets::CRITICAL)?,
+                speed: dat.read_i32(row, weapon_type_offsets::SPEED)?,
+                damage_min: dat.read_i32(row, weapon_type_offsets::DAMAGE_MIN)?,
+                damage_max: dat.read_i32(row, weapon_type_offsets::DAMAGE_MAX)?,
+                range: dat.read_i32(row, weapon_type_offsets::RANGE)?,
+            })
+        })
+        .collect()
+}
+
+// ── ShieldTypes ─────────────────────────────────────────────────────────────
+// type ShieldTypes { BaseItemTypesKey: FK(16), Block: i32 }
+// Row size: 20 bytes. Verified against 3.28 Mirage data (2026-03-15).
+mod shield_type_offsets {
+    pub const BASE_ITEM: usize = 0; // FK (16)
+    pub const BLOCK: usize = 16;
+}
+
+/// Extract all rows from `ShieldTypes.datc64`.
+pub fn extract_shield_types(dat: &DatFile) -> Vec<ShieldTypeRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(ShieldTypeRow {
+                base_item: dat.read_fk(row, shield_type_offsets::BASE_ITEM)?,
+                block: dat.read_i32(row, shield_type_offsets::BLOCK)?,
             })
         })
         .collect()
