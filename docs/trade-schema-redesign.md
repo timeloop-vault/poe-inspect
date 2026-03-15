@@ -173,20 +173,20 @@ pub struct TradeEditValues {
 4. ~~Add Tauri command exposing the schema~~ ✅
 5. ~~Build generic frontend renderer~~ ✅ (SchemaFilters — proof of concept)
 6. ~~Migrate existing Edit Search UI to use schema~~ ✅ (working, filter groups render)
-7. **Next: Inline overlay editing** — move controls from separate panel onto overlay elements
+7. ~~Inline overlay editing — move controls from separate panel onto overlay elements~~ ✅
 8. Add `items.json` + `static.json` fetching/caching (for type search + bulk exchange)
 
-## Next Phase: Inline Overlay Editing
+### Inline overlay editing (step 7) — DONE
 
-The SchemaFilters panel is a working proof of concept but the wrong UX. All edit
-controls must render inline on the overlay item display — the overlay IS the editor.
+All edit controls render inline on the overlay item display:
 
-- **Header** — rarity dropdown (Any, Normal, Magic, Rare, Unique, Non-Unique)
-- **Property lines** (Quality, Armour, ilvl) — checkbox + editable value
-- **Sockets/Links** — checkbox + editable inline
-- **Status lines** (Corrupted, Fractured, etc.) — checkbox toggle
-- **Mod lines** — existing checkboxes + min, ADD max value input
-- **SchemaFilters component removed** — replaced by inline controls
+- **Header** — type scope dropdown replaces base type text, rarity cycling badge on left edge
+- **Property lines** (Quality, Armour, ilvl) — checkbox + editable value inline
+- **Sockets** — R/G/B/W color inputs + min/max, `EditFilterKind::Sockets`
+- **Status lines** (Corrupted, Fractured, etc.) — checkbox toggle inline
+- **Mod lines** — checkbox + min/max value inputs on each mod line
+- **Pseudo mods** — collapsible section, auto-expands in trade edit mode
+- SchemaFilters panel removed — replaced by inline controls
 
 ## Item Property → Filter Mapping
 

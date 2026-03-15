@@ -4,7 +4,7 @@ Evaluates parsed items against user-defined filter rules and profiles. The "brai
 
 ## Status
 
-**Foundation done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 41 fixture tests. StatValue supports single-stat and multi-condition (same-mod/hybrid) checks.
+**Done** — Predicate/Rule/Evaluate + Scoring Profiles + Tier Analysis + evaluate_item(). 52 tests (48 fixture + 4 schema). StatValue supports single-stat, multi-condition (same-mod/hybrid), and pseudo stat checks. Generic profile uses StatValue (HasStatId removed).
 
 ## Scope
 

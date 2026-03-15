@@ -34,8 +34,8 @@ app/
 ## Scope
 
 - Global hotkey capture (Ctrl+I) → send Ctrl+Alt+C to PoE → read clipboard
-- Pass clipboard text to `poe-item` parser → `poe-eval` evaluator (future)
-- Render overlay near cursor with evaluation results (tier colors, scores, suggestions)
+- Pass clipboard text to `poe-item` parser → `poe-eval` evaluator → `poe-trade` edit schema
+- Render overlay near cursor with evaluation results (tier colors, scores, inline trade filters)
 - Transparent, click-through, always-on-top overlay window
 - System tray icon with quit menu
 - Profile management UI (create, edit, import/export)
@@ -99,7 +99,18 @@ First build compiles ~412 crates. Subsequent builds are incremental.
 
 ## Phase Plan
 
-See `docs/app-design.md` for the full plan. Summary:
-1. **Phase 1**: Prototype validation (7-point checklist) — IN PROGRESS
-2. **Phase 2**: Overlay UI with mock data (tier colors, PoE-native styling)
-3. **Phase 3**: Settings & profile management UI
+See `docs/app-design.md` for the full plan. Phases 1-8f complete.
+
+Current features:
+- Global hotkey (Ctrl+I) → clipboard parse → overlay display
+- Tier colors, scoring profiles, mod badges
+- Settings UI with profile management (create, edit, import/export, watching)
+- **Inline trade editing**: all filter controls render directly on overlay elements
+  - Header: type scope dropdown, rarity cycling badge
+  - Properties: checkbox + editable value inline
+  - Sockets: R/G/B/W color inputs + min/max (`EditFilterKind::Sockets`)
+  - Status: checkbox toggle inline
+  - Mods: checkbox + min/max value inputs per stat line
+  - Pseudo stats: collapsible section, auto-expands in trade edit mode
+- Profile editor: compound scoring rules, multi-value stat template auto-conditions
+- System tray, dismiss (Escape/close/re-inspect)

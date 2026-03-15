@@ -4,7 +4,7 @@ Real-time item evaluation overlay for Path of Exile.
 
 ## Project Status
 
-**Phase: Foundation** — GGPK pipeline validated, building core crates iteratively.
+**Phase: App Integration** — Core crates done, building trade features and overlay UX.
 
 ### Pipeline Progress
 
@@ -16,9 +16,9 @@ Real-time item evaluation overlay for Path of Exile.
 | poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
 | poe-item | **Done** | PEST grammar + resolver, 98 tests, 68 fixtures |
-| poe-eval | **Foundation** | Predicates, rules, evaluate, scoring profiles, tier analysis (32 tests) |
-| poe-trade | **Phase 3** | Trade API client — stats index, query builder, rate-limited HTTP, price check |
-| app | **Phase 8e done** | Tauri v2 overlay — all phases complete through 8e (watching profiles) |
+| poe-eval | **Done** | Predicates, rules, evaluate, scoring profiles, tier analysis (52 tests) |
+| poe-trade | **Phase 3 + schema** | Trade API client, stats index, query builder, rate-limited HTTP, filter schema, inline edit |
+| app | **Phase 8f done** | Tauri v2 overlay — inline trade editing, pseudo stats, socket filters |
 
 **Side track:** poe-rqe (reverse query engine / demand marketplace) — working, independent of main pipeline.
 **Future:** poe-craft (probabilistic crafting strategy engine) — see `docs/crafting-tiers.md`.
@@ -27,7 +27,7 @@ Real-time item evaluation overlay for Path of Exile.
 
 - **Rust** (edition 2024, clippy pedantic, `unsafe_code = "forbid"`)
 - **TypeScript** (strict mode)
-- **Tauri v2** (pending research validation)
+- **Tauri v2** (validated, in production use)
 - **Cross-platform**: Windows, Linux (SteamOS), macOS
 
 ## Project Structure
@@ -41,7 +41,7 @@ crates/
   poe-trade/       — Trade API client: stats index, query builder, price lookup (depends on poe-item, poe-data)
   poe-bundle/      — (owned) ex-nihil/poe-bundle — Rust library for reading PoE GGPK bundles (Oodle FFI)
   poe-query/       — (owned) ex-nihil/poe-query — Query tool for .dat files using PQL + dat-schema
-app/               — Tauri v2 overlay application (future)
+app/               — Tauri v2 overlay application
 fixtures/
   items/           — Shared Ctrl+Alt+C item text fixtures (used by poe-item, poe-eval, etc.)
 docs/

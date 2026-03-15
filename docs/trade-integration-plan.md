@@ -182,7 +182,7 @@ bulk exchange endpoint with `{have, want}` trade tags instead of stat filters.
 
 ### Other features
 
-- **Pseudo stats**: Aggregate explicit stats into pseudo equivalents (`pseudo.pseudo_total_life`). User toggle.
+- **Pseudo stats**: Computation done (poe-data definitions, poe-item resolver, overlay display). Trade query mapping (`pseudo.pseudo_*` IDs) still TODO.
 - **Weight-based search**: Map poe-eval scoring profiles to trade API weight filters.
 - **Search history**: Cache recent price checks by item fingerprint.
 - **Comparable listings**: Show what similar items sold for, not just current listings.
