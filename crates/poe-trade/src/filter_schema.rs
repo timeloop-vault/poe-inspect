@@ -454,7 +454,10 @@ fn is_group_relevant(
         }
         "socket_filters" => item.socket_info.is_some(),
         "req_filters" => !item.requirements.is_empty(),
-        "map_filters" => class_name == "Maps",
+        "map_filters" => {
+            poe_data::domain::item_class_trade_category(class_name)
+                .is_some_and(|cat| cat == "map")
+        }
         "heist_filters" => {
             poe_data::domain::item_class_trade_category(class_name)
                 .is_some_and(|cat| cat.starts_with("heist"))
@@ -657,19 +660,20 @@ fn build_stat_schemas(
     let mod_groups: Vec<(&poe_item::types::ResolvedMod, &str)> = item
         .enchants
         .iter()
-        .map(|m| (m, "enchant"))
-        .chain(item.implicits.iter().map(|m| (m, "implicit")))
-        .chain(item.explicits.iter().map(|m| {
-            let cat = if m.is_fractured {
-                "fractured"
-            } else {
-                match m.display_type {
-                    ModDisplayType::Crafted => "crafted",
-                    _ => "explicit",
-                }
+        .chain(item.implicits.iter())
+        .chain(item.explicits.iter())
+        .map(|m| {
+            let display_type = match m.display_type {
+                ModDisplayType::Prefix => "prefix",
+                ModDisplayType::Suffix => "suffix",
+                ModDisplayType::Implicit => "implicit",
+                ModDisplayType::Crafted => "crafted",
+                ModDisplayType::Enchant => "enchant",
+                ModDisplayType::Unique => "unique",
             };
+            let cat = poe_data::domain::mod_trade_category(display_type, m.is_fractured);
             (m, cat)
-        }))
+        })
         .collect();
 
     for (m, default_category) in &mod_groups {
