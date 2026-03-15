@@ -357,8 +357,91 @@ fn client_strings_loaded() {
         "expected >=10 ItemPopup entries, got {}",
         popups.len()
     );
-    println!("ItemPopup entries: {}", popups.len());
-    for (id, text) in &popups {
-        println!("  {id} = \"{text}\"");
+
+}
+
+/// Validate poe-item's status/influence parsing against ClientStrings.
+///
+/// This test catches when GGG adds new item statuses or influences that
+/// our parser doesn't handle — they'll appear in ClientStrings but won't
+/// be parsed by `StatusKind::parse()` or `InfluenceKind::parse()`.
+#[test]
+fn validate_status_influence_against_client_strings() {
+    use poe_item::types::{InfluenceKind, StatusKind};
+
+    let Some(gd) = load_test_data() else { return };
+    if gd.client_string("ItemPopupCorrupted").is_none() {
+        eprintln!("Skipping: clientstrings.datc64 not loaded");
+        return;
     }
+
+    // ClientString IDs that are NOT item status/influence lines
+    // (UI messages, instructions, non-item popup text)
+    let ignored_prefixes = [
+        "ItemPopupCannotUseItem",
+        "ItemPopupCannotTradeOrModify",
+        "ItemPopupLockedToAccount",
+        "ItemPopupStolen",
+        "ItemPopupDroppedInMaps",
+        "ItemPopupNextLevel",
+        "ItemPopupRequirements",
+        "ItemPopupExpiresIn",
+        "ItemPopupItemExpired",
+        "ItemPopupEffectExpired",
+        "ItemPopupCost",
+        "ItemPopupFavourCost",
+        "ItemPopupStolenAdvancedDescription",
+        "ItemPopupCostPerUnit",
+        "ItemPopupTradeMarketUnlistedDueToSocketedItems",
+        "ItemPopupViewCrucibleWeaponTreeInstruction",
+        "ItemPopupReportItemInstruction",
+        "ItemPopupCurrencyInThisInventory",
+        "ItemPopupHinekorasLock",
+        "ItemPopupFoilUnique",
+        "ItemPopupFoilVariant",
+        "ItemPopupPack",
+        "ItemPopupUnmodifiableExceptChaosOrbs",
+    ];
+
+    let popups = gd.client_strings_with_prefix("ItemPopup");
+    let mut unhandled = Vec::new();
+
+    for (id, text) in &popups {
+        // Skip non-status/influence entries
+        if ignored_prefixes.iter().any(|p| id.starts_with(p)) {
+            continue;
+        }
+        // Check if our parsers handle this text
+        if StatusKind::parse(text).is_some() {
+            continue;
+        }
+        if InfluenceKind::parse(text).is_some() {
+            continue;
+        }
+        unhandled.push((*id, *text));
+    }
+
+    if !unhandled.is_empty() {
+        println!("\nUnhandled ItemPopup entries (candidates for new StatusKind/InfluenceKind):");
+        for (id, text) in &unhandled {
+            println!("  {id} = \"{text}\"");
+        }
+    }
+
+    // Known unhandled entries that are acceptable:
+    // - Hellscaped (Scourged) — legacy league mechanic
+    // - Imbued — gem mechanic, not a general item status
+    // - AlternateGemItem (Transfigured) — handled by StatusKind but text is "Transfigured" not "Transfigured Item"
+    let unexpected: Vec<_> = unhandled
+        .iter()
+        .filter(|(id, _)| {
+            !id.contains("Hellscaped")
+                && !id.contains("Imbued")
+                && !id.contains("AlternateGemItem")
+        })
+        .collect();
+    assert!(
+        unexpected.is_empty(),
+        "Unexpected unhandled ItemPopup entries — add to StatusKind or InfluenceKind: {unexpected:?}"
+    );
 }
