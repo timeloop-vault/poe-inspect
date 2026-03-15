@@ -365,6 +365,71 @@ body,
 	opacity: 0.85;
 }
 
+/* Header edit controls (type scope + rarity dropdowns inside the banner) */
+.header-edit .header-text {
+	padding-bottom: 4px;
+}
+
+/* Type scope dropdown — replaces the base type text at the same size */
+.header-type-select {
+	background: transparent;
+	border: 1px solid rgba(175, 96, 37, 0.4);
+	border-radius: 2px;
+	font-family: "Fontin SmallCaps", "FrizQuadrata", "Fontin", sans-serif;
+	font-size: 14px;
+	opacity: 0.85;
+	padding: 1px 18px 1px 6px;
+	cursor: pointer;
+	text-align: center;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23c8c0b0'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 5px center;
+}
+
+.header-type-select:hover {
+	border-color: var(--poe-accent);
+}
+
+.header-type-select:focus {
+	outline: none;
+	border-color: var(--poe-accent);
+}
+
+.header-type-select option {
+	background: #1a1610;
+	color: var(--poe-text);
+	font-family: "Fontin SmallCaps", "FrizQuadrata", "Fontin", sans-serif;
+	font-size: 14px;
+}
+
+/* Rarity cycling badge — positioned on the left edge of the header */
+.header-rarity-badge {
+	position: absolute;
+	left: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 2;
+	background: rgba(0, 0, 0, 0.7);
+	border: 1px solid var(--poe-accent);
+	border-radius: 3px;
+	color: var(--poe-header);
+	font-family: "Fontin SmallCaps", sans-serif;
+	font-size: 10px;
+	padding: 2px 6px;
+	cursor: pointer;
+	white-space: nowrap;
+	line-height: 1.2;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.header-rarity-badge:hover {
+	background: rgba(0, 0, 0, 0.7);
+	border-color: var(--poe-header);
+}
+
 /* --- Properties --- */
 
 .item-properties {
@@ -1543,14 +1608,6 @@ body,
 	accent-color: var(--poe-accent);
 	cursor: pointer;
 	margin: 0;
-}
-
-/* Rarity toggle row (below header) */
-.inline-rarity-row {
-	display: flex;
-	justify-content: center;
-	gap: 2px;
-	padding: 3px 8px;
 }
 
 /* Property line in edit mode */
