@@ -4,7 +4,7 @@ Trade API client for pathofexile.com — fetches trade stats, builds search quer
 
 ## Status
 
-**Phase 3 done** — Rate-limited HTTP client with search → fetch → price check flow. 33 tests (17 unit + 8 query builder + 8 stats index). Preemptive rate limiting, POESESSID support, ts-rs exports. See plan for phases 4-5.
+**Phase 3 + schema done** — Rate-limited HTTP client, filter schema from GGG's filters.json, inline trade edit controls on overlay. 58 tests. `EditFilterKind::Sockets` for socket color filters, `max_override` on `StatFilterOverride`, `trade_edit_schema()` per-inspect projection.
 
 ## Scope
 
@@ -40,9 +40,10 @@ Trade API client for pathofexile.com — fetches trade stats, builds search quer
 ```
 src/
   lib.rs           — public API
-  types.rs         — TradeStatEntry, TradeStatsIndex, SearchResult, Price, etc.
+  types.rs         — TradeStatEntry, TradeStatsIndex, SearchResult, Price, StatFilterOverride, etc.
   stats_index.rs   — fetch /data/stats, build template→trade_id lookup, cross-ref with ReverseIndex
-  query.rs         — ResolvedItem → trade search body (value relaxation, stat filters)
+  query.rs         — ResolvedItem → trade search body (value relaxation, stat filters, max_override)
+  filter_schema.rs — FilterIndex from filters.json, trade_edit_schema() per-inspect projection
   client.rs        — rate-limited HTTP client (search + fetch)
   rate_limit.rs    — parse X-Rate-Limit-* headers, request throttling
 ```
@@ -79,8 +80,10 @@ poe-eval  poe-trade
 
 See `docs/trade-integration-plan.md` for the full phased plan.
 
-1. Trade stats index — fetch, parse, template matching, disk cache
-2. Query builder — `ResolvedItem` → trade search body
-3. Rate-limited HTTP client — search + fetch with header-based throttling
-4. App integration — Tauri commands, overlay UI
-5. Advanced — pseudo stats, weight-based search, bulk exchange
+1. ~~Trade stats index — fetch, parse, template matching, disk cache~~ ✅
+2. ~~Query builder — `ResolvedItem` → trade search body~~ ✅
+3. ~~Rate-limited HTTP client — search + fetch with header-based throttling~~ ✅
+4. ~~Filter schema — `FilterIndex` from GGG's filters.json, `trade_edit_schema()` projection~~ ✅
+5. ~~Inline overlay editing — socket filters, max_override, type scope~~ ✅
+6. App integration — Tauri commands for price check flow, overlay price results
+7. Advanced — pseudo trade IDs, weight-based search, bulk exchange

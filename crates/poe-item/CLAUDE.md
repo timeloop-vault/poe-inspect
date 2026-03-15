@@ -4,7 +4,7 @@ Parses PoE's Ctrl+Alt+C item clipboard text into structured, type-safe item repr
 
 ## Status
 
-**Core complete** — PEST grammar (Pass 1) + Resolver (Pass 2). 98 tests, 68 fixtures.
+**Core complete** — PEST grammar (Pass 1) + Resolver (Pass 2) + pseudo stat computation. 104 tests, 68 fixtures. Socket color parsing (red/green/blue/white in SocketInfo). Pseudo mods as synthetic `ResolvedMod` entries.
 
 ## Scope
 
@@ -71,6 +71,8 @@ Uses `GameData` for things the grammar can't know:
   - Flavor text (unique/div card lore)
   - Usage instructions (dropped — "Right click to use", etc.)
 - **Gem data extraction**: Dedicated path for gems — tags, description, stats, quality effects, Vaal variant
+- **Socket color parsing**: `SocketInfo` includes `red`, `green`, `blue`, `white` counts parsed from the socket string
+- **Pseudo stat computation**: For each `PseudoDefinition` from poe-data, scans resolved stat lines, sums values with multipliers, creates synthetic `ResolvedMod` with `display_type: Pseudo` and `source: Computed`
 - **Flask property vs modifier**: Flask base properties look like mods. Need game data to tell apart.
 - **Tier verification**: Verify extracted tier against mod database ranges.
 

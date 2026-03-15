@@ -4,29 +4,36 @@ Game data lookup tables built from parsed GGPK data.
 
 ## Status
 
-**Minimal foundation done** — tables loaded, indexed, FK resolution working. No domain types yet; poe-item will drive what we reshape.
+**Done** — tables loaded, indexed, FK resolution working. Domain knowledge in `domain.rs` (pseudo stat definitions, trade mappings, item class capabilities). ClientStrings extracted. `all_stat_templates()` and `stat_suggestions_for_query()` include pseudo templates.
 
 ## Scope
 
-- Hold all 9 extracted tables (poe-dat row structs, no reshaping)
+- Hold all extracted tables (poe-dat row structs)
 - Build id-based indexes for fast string lookup
 - Resolve FK row indices to human-readable strings
 - Provide `GameData` struct (intended for `Arc<GameData>`)
 - Slot for stat description `ReverseIndex` (set separately)
+- **Domain knowledge** (`domain.rs`): pseudo stat definitions, item class capabilities, trade category mappings
+- **ClientStrings**: extracted from GGPK (8,264 rows), lookup API
+- **Pseudo definitions**: `PSEUDO_DEFINITIONS` with explicit stat_ids + multipliers, injected into autocomplete
+- **ModFamily list**: committed at `data/mod_families.txt` for reference
 
 ## Does NOT own
 
 - Raw file parsing — that's `poe-dat`
 - Item text parsing — that's `poe-item`
 - Evaluation rules — that's `poe-eval`
-- New domain types (yet) — waiting for poe-item to drive requirements
+- Trade API HTTP / query building — that's `poe-trade`
 
 ## Architecture
 
 ```
 src/
   lib.rs         — re-exports
-  game_data.rs   — GameData struct, indexes, loader, FK helpers
+  game_data.rs   — GameData struct, indexes, loader, FK helpers, stat suggestions
+  domain.rs      — PoE domain knowledge: pseudo definitions, trade mappings, item class capabilities
+data/
+  mod_families.txt — ModFamily reference list (7,678 entries)
 ```
 
 ### GameData contents
@@ -59,13 +66,11 @@ cargo test -p poe-data --test load_game_data -- --nocapture
 ```
 Requires extracted datc64 files in `%TEMP%/poe-dat/`.
 
-## Future (when poe-item needs it)
+## Future
 
-- Domain types if raw row structs aren't the right shape
-- Pre-filtered mod tables (rollable only)
 - Pre-computed tier tables (mod group → ordered tiers)
-- Template-keyed lookups for stat text → mod identification
 - Disk caching (serialization to avoid re-parsing GGPK every launch)
+- More pseudo definitions (currently ~25 common ones)
 
 ## Dependencies
 
