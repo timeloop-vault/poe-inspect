@@ -4,4 +4,4 @@ import type { EditFilterOption } from "./EditFilterOption";
 /**
  * The kind of UI control for a filter.
  */
-export type EditFilterKind = { "type": "range" } | { "type": "option", options: Array<EditFilterOption>, };
+export type EditFilterKind = { "type": "range" } | { "type": "option", options: Array<EditFilterOption>, } | { "type": "sockets" };

@@ -3,4 +3,4 @@
 /**
  * A default value for a filter.
  */
-export type EditFilterValue = { "type": "range", min: number | null, max: number | null, } | { "type": "selected", id: string | null, };
+export type EditFilterValue = { "type": "range", min: number | null, max: number | null, } | { "type": "selected", id: string | null, } | { "type": "sockets", red: number | null, green: number | null, blue: number | null, white: number | null, min: number | null, max: number | null, };

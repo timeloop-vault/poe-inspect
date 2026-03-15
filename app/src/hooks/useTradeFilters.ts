@@ -19,6 +19,13 @@ export interface FilterOverride {
 	rangeMin?: number | null;
 	/** For option filters: the selected option ID. */
 	selectedId?: string | null;
+	/** For socket filters: per-color counts + total min/max. */
+	socketRed?: number | null;
+	socketGreen?: number | null;
+	socketBlue?: number | null;
+	socketWhite?: number | null;
+	socketMin?: number | null;
+	socketMax?: number | null;
 }
 
 export interface TradeFilters {
@@ -113,6 +120,13 @@ export function useTradeFilters(
 								ov.rangeMin = filter.defaultValue.min;
 							} else if (filter.defaultValue.type === "selected") {
 								ov.selectedId = filter.defaultValue.id;
+							} else if (filter.defaultValue.type === "sockets") {
+								ov.socketRed = filter.defaultValue.red;
+								ov.socketGreen = filter.defaultValue.green;
+								ov.socketBlue = filter.defaultValue.blue;
+								ov.socketWhite = filter.defaultValue.white;
+								ov.socketMin = filter.defaultValue.min;
+								ov.socketMax = filter.defaultValue.max;
 							}
 							overrides.set(filter.id, ov);
 						}
@@ -294,13 +308,17 @@ function buildFilterConfig(
 	schemaOverrides: Map<string, FilterOverride>,
 	filterMap: Map<string, EditFilter>,
 ): TradeFilterConfig {
-	// Links
+	// Links (socket-type filter — use socketMin)
 	const linksOv = schemaOverrides.get("links");
 	const linksFilter = filterMap.get("links");
 	const linksEnabled = linksOv ? linksOv.enabled : (linksFilter?.enabled ?? false);
 	const linksDefault =
-		linksFilter?.defaultValue?.type === "range" ? linksFilter.defaultValue.min : null;
-	const linksMin = linksOv?.rangeMin ?? linksDefault;
+		linksFilter?.defaultValue?.type === "sockets"
+			? linksFilter.defaultValue.min
+			: linksFilter?.defaultValue?.type === "range"
+				? linksFilter.defaultValue.min
+				: null;
+	const linksMin = linksOv?.socketMin ?? linksOv?.rangeMin ?? linksDefault;
 
 	// Quality
 	const qualityOv = schemaOverrides.get("quality");
