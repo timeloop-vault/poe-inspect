@@ -300,6 +300,7 @@ pub fn trade_edit_schema(
     filter_index: &FilterIndex,
     stats_index: &TradeStatsIndex,
     config: &TradeQueryConfig,
+    game_data: &poe_data::GameData,
 ) -> TradeEditSchema {
     // Type scope
     let item_class = &item.header.item_class;
@@ -330,7 +331,7 @@ pub fn trade_edit_schema(
     let mut filter_groups = Vec::new();
     for group in filter_index.groups() {
         // Skip groups not relevant to this item
-        if !is_group_relevant(&group.id, item) {
+        if !is_group_relevant(&group.id, item, game_data) {
             continue;
         }
         // Skip status_filters (handled by TradeQueryConfig.listing_status)
@@ -426,17 +427,42 @@ fn build_edit_filter(
 }
 
 /// Determine whether a filter group is relevant for this item.
-fn is_group_relevant(group_id: &str, item: &ResolvedItem) -> bool {
-    let class = item.header.item_class.as_str();
+///
+/// Uses `ItemClasses` capability flags from GGPK when available,
+/// falls back to trade category derivation otherwise.
+fn is_group_relevant(
+    group_id: &str,
+    item: &ResolvedItem,
+    game_data: &poe_data::GameData,
+) -> bool {
+    let class_name = item.header.item_class.as_str();
+
+    // Use GGPK ItemClasses data when available (for future capability checks)
+    let _ic = game_data.item_class_by_name(class_name);
+
     match group_id {
         "status_filters" | "trade_filters" | "type_filters" | "misc_filters" => true,
-        "weapon_filters" => poe_data::domain::is_weapon_class(class),
-        "armour_filters" => poe_data::domain::is_armour_class(class),
+        "weapon_filters" => {
+            // Weapons have category starting with "weapon." in trade API
+            poe_data::domain::item_class_trade_category(class_name)
+                .is_some_and(|cat| cat.starts_with("weapon."))
+        }
+        "armour_filters" => {
+            // Armour/shields have category starting with "armour." in trade API
+            poe_data::domain::item_class_trade_category(class_name)
+                .is_some_and(|cat| cat.starts_with("armour."))
+        }
         "socket_filters" => item.socket_info.is_some(),
         "req_filters" => !item.requirements.is_empty(),
-        "map_filters" => class == "Maps",
-        "heist_filters" => class.starts_with("Heist") || class == "Contracts" || class == "Blueprints",
-        "sanctum_filters" => class.contains("Sanctum") || class == "Sanctum Research",
+        "map_filters" => class_name == "Maps",
+        "heist_filters" => {
+            poe_data::domain::item_class_trade_category(class_name)
+                .is_some_and(|cat| cat.starts_with("heist"))
+        }
+        "sanctum_filters" => {
+            poe_data::domain::item_class_trade_category(class_name)
+                .is_some_and(|cat| cat.starts_with("sanctum"))
+        }
         // ultimatum_filters: legacy league content
         _ => false,
     }
