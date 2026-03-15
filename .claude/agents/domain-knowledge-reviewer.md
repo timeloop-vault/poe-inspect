@@ -103,6 +103,45 @@ Flag these patterns — they indicate logic that belongs in a poe-* crate:
 
 The app must NOT define its own scoring/filter/rule logic. It provides a UI to build poe-eval profiles, but the profile structure is poe-eval's type serialized as JSON. Flag violations where the app encodes evaluation rules or mod weighting logic instead of delegating to poe-eval.
 
+## Rule 4: Data-first — check GGPK before hardcoding
+
+> **Before hardcoding any PoE game knowledge, check the GGPK data first.**
+> All 911 datc64 tables are extracted to `_reference/ggpk-data-3.28/`.
+> See `docs/ggpk-data-deep-dive.md` for the full inventory and findings.
+
+### The GGPK data-first checklist
+
+1. **Check `_reference/ggpk-data-3.28/TABLE_INVENTORY.txt`** — search for keywords related to the data you need
+2. **Check `ClientStrings`** — this 8,264-row table contains ALL display text GGG uses:
+   - `ItemPopup*` — status/influence lines (Corrupted, Fractured Item, Searing Exarch Item, etc.)
+   - `ItemDisplay*` — property names (Armour, Evasion Rating, Energy Shield, etc.)
+   - `ModDescriptionLine*` — mod header templates (Prefix Modifier, Fractured, Foulborn, etc.)
+3. **Check `ItemClasses`** — has capability flags: `CanBeCorrupted`, `CanHaveInfluence`, `CanBeFractured`
+4. **If data IS in GGPK**: extract it in poe-dat, expose it in poe-data. Do NOT hardcode it.
+5. **If data is NOT in GGPK** (trade API convention, our interpretation): hardcode it with a comment:
+   ```rust
+   // Trade API convention, not in GGPK (verified 2026-03-15)
+   // GGG's item text says "Evasion Rating", trade filter says "Evasion"
+   ("Evasion", "Evasion Rating"),
+   ```
+
+### Known data NOT in GGPK (trade API conventions, verified 2026-03-15)
+
+These are legitimately hardcoded because they're trade API system decisions, not game data:
+
+1. **7 property name shortenings** — trade API uses shorter names than GGPK item text
+2. **Item class → trade category mapping** — e.g., "Boots" → "armour.boots" (trade API URL scheme)
+3. **Mod type → trade stat category prefix** — prefix/suffix → "explicit", fractured → "fractured"
+4. **Trade stat suffixes** — " (Local)", " (Shields)" appended by trade API
+5. **Rarity filter values** — "nonunique", "unique" (trade API query format)
+
+### Red flags to check
+
+- New `const` or `match` arm with PoE-specific strings → did you check ClientStrings first?
+- New influence/status variant → is there an `ItemPopup*` entry for it?
+- New mod header pattern → is there a `ModDescriptionLine*` entry for it?
+- New item property name → is there an `ItemDisplay*` entry for it?
+
 ## Review Process
 
 When reviewing code changes:
@@ -117,6 +156,10 @@ When reviewing code changes:
    - WHY it's hardcoded (not from GGPK)
    - What GGPK table it WOULD come from if available
    - Any assumptions or limitations
+5. **Check GGPK data-first rule** — For ANY new hardcoded PoE string or constant:
+   - Was `TABLE_INVENTORY.txt` checked?
+   - Was `ClientStrings` checked?
+   - If the data exists in GGPK, flag it as "should be extracted, not hardcoded"
 
 ## Where domain knowledge belongs
 
@@ -130,14 +173,26 @@ crates/poe-data/
 
 ### Current hardcoded items in domain.rs
 
-- `TierQuality` enum (Best/Great/Good/Mid/Low/Unknown) — GGPK has no concept of tier "quality"
-- `classify_tier(tier: u32) -> TierQuality` — our subjective breakpoints
-- `rarity_to_ggpk_id(rarity: &str) -> Option<&str>` — maps poe-item Rarity enum to GGPK table IDs
-- `TRADE_STAT_SUFFIXES` — suffixes GGG's trade API appends to stat text (e.g., `" (Local)"`, `" (Shields)"`)
-- `item_class_trade_category(item_class: &str) -> Option<&str>` — maps item class header to trade API category
-- `mod_trade_category(display_type: &str, is_fractured: bool) -> &str` — maps mod display type to trade stat category prefix
-- `LOCAL_STAT_NONLOCAL_FALLBACKS` — maps local stat_ids to non-local equivalents for irregular naming
-- `MAX_PREFIXES`, `MAX_SUFFIXES`, `max_mods_for_rarity()` — mod slot limits per rarity
+Items verified against GGPK data (2026-03-15). Each is documented with why it's hardcoded:
+
+**Our interpretation (no GGPK equivalent):**
+- `TierQuality` enum + `classify_tier()` — our subjective tier quality breakpoints
+- `classify_rank()` — our bench-craft rank interpretation
+
+**From GGPK Rarity table (could be extracted but stable):**
+- `rarity_to_ggpk_id()` — maps poe-item Rarity enum to GGPK table IDs
+- `MAX_PREFIXES`, `MAX_SUFFIXES`, `max_mods_for_rarity()` — from `Rarity` table (already extracted)
+
+**Trade API conventions (NOT in GGPK, verified 2026-03-15):**
+- `TRADE_STAT_SUFFIXES` — `" (Local)"`, `" (Shields)"` appended by trade API
+- `item_class_trade_category()` — 30 mappings (Boots→armour.boots, etc.)
+- `mod_trade_category()` — prefix/suffix→explicit, fractured→fractured
+- `PROPERTY_ALIASES` (in filter_schema.rs) — 4 naming mismatches (Evasion vs Evasion Rating, etc.)
+- `REQ_ALIASES` (in filter_schema.rs) — requirement name mismatches (Strength vs Str, etc.)
+- `is_weapon_class()`, `is_armour_class()` — should be replaced with `ItemClasses` capability flags from GGPK
+
+**GGPK naming convention (stable, small):**
+- `LOCAL_STAT_NONLOCAL_FALLBACKS` — irregular local→non-local stat_id mappings
 
 ## Output Format
 

@@ -67,6 +67,12 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 - **Template-keyed lookups**: Stat translations indexed by template string (what appears in item text), not by stat ID.
 - **PEST grammar for stat descriptions**: The `stat_descriptions.txt` format is complex (ranges, transforms, multi-stat, all languages inline). Must use formal grammar, not ad-hoc parsing. See `docs/research/stat-description-file-format.md`.
 - **poe-data owns ALL PoE domain knowledge**: All game-specific constants, mechanic rules, mapping tables, and classification logic live in `crates/poe-data/` — either extracted from GGPK (`game_data.rs`) or hardcoded with documentation (`domain.rs`). Higher-layer crates (`poe-item`, `poe-eval`, `app`) have zero PoE knowledge. The `domain-knowledge-reviewer` agent enforces this.
+- **Data-first rule**: Before hardcoding any PoE game knowledge, check the GGPK data first. See `docs/ggpk-data-deep-dive.md` for the full inventory. The process is:
+  1. Check `_reference/ggpk-data-3.28/TABLE_INVENTORY.txt` for relevant tables
+  2. Check `ClientStrings` for display text (`ItemPopup*`, `ItemDisplay*`, `ModDescriptionLine*`)
+  3. If the data exists in GGPK: extract it in poe-dat, expose it in poe-data
+  4. If the data is a trade API convention (not in GGPK): hardcode it with a comment citing the source and date, e.g. `// Trade API convention, not in GGPK (verified 2026-03-15)`
+  5. Extract all 911 tables with: `cd crates/poe-query && cargo run --bin extract_dat -- -p <poe_path> -o ../../_reference/ggpk-data-3.28 --all`
 
 ## Dependency Graph
 
