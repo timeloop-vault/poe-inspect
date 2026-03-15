@@ -383,9 +383,28 @@ pub struct ResolvedItem {
     /// Gem-specific data (tags, stats, quality effects, Vaal variant).
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub gem_data: Option<GemData>,
+    /// Computed pseudo stats (aggregated from multiple mods).
+    /// E.g., "(Pseudo) +# total maximum Life" summing life mod + strength × 0.5.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
+    pub pseudo_stats: Vec<PseudoStat>,
     /// Remaining unclassified generic sections.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
     pub unclassified_sections: Vec<Vec<String>>,
+}
+
+/// A computed pseudo stat — an aggregate value from multiple mods on the item.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct PseudoStat {
+    /// Pseudo stat ID (e.g., `"pseudo_total_life"`).
+    pub id: String,
+    /// Display label with (Pseudo) prefix (e.g., `"(Pseudo) +# total maximum Life"`).
+    pub label: String,
+    /// Computed aggregate value.
+    pub value: f64,
 }
 
 /// Gem-specific structured data extracted from generic sections.

@@ -877,6 +877,7 @@ mod tests {
             talisman_tier: None,
             experience: None,
             note: None,
+            pseudo_stats: vec![],
             unclassified_sections: vec![],
         }
     }

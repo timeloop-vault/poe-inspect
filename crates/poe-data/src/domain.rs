@@ -463,3 +463,175 @@ mod tests {
         assert_eq!(item_class_trade_category("Map Fragments"), None);
     }
 }
+
+// ── Pseudo stat definitions ─────────────────────────────────────────────────
+//
+// WHY HARDCODED: The GGPK has no concept of pseudo stats. These are trade API
+// constructs that aggregate multiple mods into a single searchable value.
+// ModFamily names from GGPK tell us which mods belong to which group, but
+// the aggregation rules (which families sum together, with what multipliers)
+// are game mechanics knowledge not declared in any data file.
+//
+// Reference: Awakened PoE Trade pseudo rules
+//   `_reference/awakened-poe-trade/renderer/src/web/price-check/filters/pseudo/index.ts`
+// Trade API pseudo IDs: `crates/poe-trade/tests/fixtures/trade_stats_3.28.json`
+// ModFamily list: `crates/poe-data/data/mod_families.txt`
+
+/// A component of a pseudo stat — one mod family that contributes to the aggregate.
+#[derive(Debug, Clone)]
+pub struct PseudoComponent {
+    /// ModFamily name from GGPK (e.g., `"Strength"`).
+    pub family: &'static str,
+    /// Multiplier applied to the stat value (e.g., 0.5 for Strength → Life).
+    pub multiplier: f64,
+    /// If true, this pseudo only appears when this component has a value on the item.
+    pub required: bool,
+}
+
+/// Definition of a pseudo stat — which mod families contribute and how.
+#[derive(Debug, Clone)]
+pub struct PseudoDefinition {
+    /// ID matching trade API suffix (e.g., `"pseudo_total_life"`).
+    pub id: &'static str,
+    /// Display label template (e.g., `"+# total maximum Life"`).
+    pub label: &'static str,
+    /// Component families with multipliers.
+    pub components: &'static [PseudoComponent],
+}
+
+const fn comp(family: &'static str, multiplier: f64, required: bool) -> PseudoComponent {
+    PseudoComponent {
+        family,
+        multiplier,
+        required,
+    }
+}
+
+/// Phase 1 pseudo stat definitions (~20 commonly used for pricing).
+///
+/// Each definition maps a pseudo stat to one or more ModFamily groups.
+/// At load time, families are resolved to concrete stat_ids via the Mods table.
+pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
+    // ── Resistances ──────────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_total_fire_resistance",
+        label: "+#% total to Fire Resistance",
+        components: &[
+            comp("FireResistance", 1.0, false),
+            comp("FireResistancePrefix", 1.0, false),
+            comp("AllResistances", 1.0, false),
+            comp("AllResistancesWithChaos", 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_cold_resistance",
+        label: "+#% total to Cold Resistance",
+        components: &[
+            comp("ColdResistance", 1.0, false),
+            comp("ColdResistancePrefix", 1.0, false),
+            comp("AllResistances", 1.0, false),
+            comp("AllResistancesWithChaos", 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_lightning_resistance",
+        label: "+#% total to Lightning Resistance",
+        components: &[
+            comp("LightningResistance", 1.0, false),
+            comp("LightningResistancePrefix", 1.0, false),
+            comp("AllResistances", 1.0, false),
+            comp("AllResistancesWithChaos", 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_chaos_resistance",
+        label: "+#% total to Chaos Resistance",
+        components: &[
+            comp("ChaosResistance", 1.0, false),
+            comp("ChaosResistancePrefix", 1.0, false),
+            comp("AllResistancesWithChaos", 1.0, false),
+        ],
+    },
+    // ── Attributes ───────────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_total_strength",
+        label: "+# total to Strength",
+        components: &[
+            comp("Strength", 1.0, false),
+            comp("AllAttributes", 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_dexterity",
+        label: "+# total to Dexterity",
+        components: &[
+            comp("Dexterity", 1.0, false),
+            comp("AllAttributes", 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_intelligence",
+        label: "+# total to Intelligence",
+        components: &[
+            comp("Intelligence", 1.0, false),
+            comp("AllAttributes", 1.0, false),
+        ],
+    },
+    // ── Life / Mana / ES ─────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_total_life",
+        label: "+# total maximum Life",
+        components: &[
+            comp("IncreasedLife", 1.0, true),
+            // Each point of Strength gives 0.5 life
+            comp("Strength", 0.5, false),
+            comp("AllAttributes", 0.5, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_mana",
+        label: "+# total maximum Mana",
+        components: &[
+            comp("IncreasedMana", 1.0, true),
+            // Each point of Intelligence gives 0.5 mana
+            comp("Intelligence", 0.5, false),
+            comp("AllAttributes", 0.5, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_energy_shield",
+        label: "+# total maximum Energy Shield",
+        components: &[
+            comp("IncreasedEnergyShield", 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_increased_energy_shield",
+        label: "#% total increased maximum Energy Shield",
+        components: &[
+            comp("MaximumLifeIncreasePercent", 1.0, false), // TODO: verify family
+        ],
+    },
+    // ── Speed ────────────────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_increased_movement_speed",
+        label: "#% increased Movement Speed",
+        components: &[
+            comp("MovementVelocity", 1.0, false),
+        ],
+    },
+    // ── Damage ───────────────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_increased_physical_damage",
+        label: "#% total increased Physical Damage",
+        components: &[
+            comp("PhysicalDamage", 1.0, false),
+        ],
+    },
+];
+
+/// Returns all pseudo stat definitions.
+#[must_use]
+pub fn pseudo_definitions() -> &'static [PseudoDefinition] {
+    PSEUDO_DEFINITIONS
+}
