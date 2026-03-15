@@ -112,6 +112,19 @@ function defaultCondition(): StatCondition {
 	return { value_index: 0, op: "Ge", value: 0 };
 }
 
+/** Human-readable label for a multi-value condition based on its stat_id. */
+function conditionValueLabel(cond: StatCondition, index: number): string {
+	// Try to derive a label from the stat_id at this value_index
+	const statId = cond.stat_ids?.[cond.value_index];
+	if (statId) {
+		// Extract the distinguishing part: "global_minimum_added_physical_damage" → "minimum"
+		// Common patterns: minimum/maximum, added_small/added_large
+		if (statId.includes("minimum")) return `# ${index + 1} (min)`;
+		if (statId.includes("maximum")) return `# ${index + 1} (max)`;
+	}
+	return `# ${index + 1}`;
+}
+
 /** Build a default Rule from a predicate schema. */
 export function defaultRule(schema: PredicateSchema): Rule {
 	// StatValue uses conditions array, not flat fields
@@ -331,18 +344,32 @@ function StatValueEditor({
 	};
 
 	const handleStatPick = (template: string) => {
-		// User selected a stat template — always reset to single condition,
-		// get stat_id from the suggestion, and check for hybrids.
-		// Single call to get_stat_suggestions replaces both resolve_stat_template
-		// and the separate hybrid check.
+		// User selected a stat template — resolve stat_ids and check for
+		// multi-value templates and hybrid mods.
 		invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((suggestions) => {
 			const single = suggestions.find((s) => s.kind.type === "Single" && s.template === template);
 			const statIds = single?.stat_ids ?? [];
 
-			const cond: StatCondition = { ...defaultCondition(), text: template, stat_ids: statIds };
-			onChange({ ...rule, conditions: [cond] } as Rule);
+			// Count # placeholders in template to detect multi-value stats
+			// (e.g., "Adds # to # Physical Damage" → 2 values)
+			const valueCount = (template.match(/#/g) ?? []).length;
 
-			if (statIds.length > 0) {
+			let newConditions: StatCondition[];
+			if (valueCount > 1 && statIds.length > 1) {
+				// Multi-value: one condition per # placeholder
+				newConditions = Array.from({ length: valueCount }, (_, i) => ({
+					...defaultCondition(),
+					text: template,
+					stat_ids: statIds,
+					value_index: i,
+				}));
+			} else {
+				newConditions = [{ ...defaultCondition(), text: template, stat_ids: statIds }];
+			}
+			onChange({ ...rule, conditions: newConditions } as Rule);
+
+			if (statIds.length > 0 && valueCount <= 1) {
+				// Only offer hybrid choice for single-value stats
 				const hybrids = suggestions.filter(
 					(s) =>
 						s.kind.type === "Hybrid" &&
@@ -520,7 +547,11 @@ function StatValueEditor({
 		);
 	}
 
-	// Multi (hybrid) mode: input on top, condition rows below with indent
+	// Check if this is multi-value (same template, different value_index)
+	// vs hybrid (different templates)
+	const isMultiValue = isMulti && conditions.every((c) => c.text === conditions[0]?.text);
+
+	// Multi (hybrid or multi-value) mode: input on top, condition rows below
 	return (
 		<div
 			ref={editorRef}
@@ -532,7 +563,9 @@ function StatValueEditor({
 					// biome-ignore lint/suspicious/noArrayIndexKey: conditions have no stable ID
 					<div key={i} class="stat-value-condition">
 						<span class="stat-value-condition-label" title={cond.stat_ids?.join(", ") ?? ""}>
-							{cond.text || cond.stat_ids?.[0] || `Condition ${i + 1}`}
+							{isMultiValue
+								? conditionValueLabel(cond, i)
+								: cond.text || cond.stat_ids?.[0] || `Condition ${i + 1}`}
 						</span>
 						{statIdBox(cond)}
 						<ComparisonField
