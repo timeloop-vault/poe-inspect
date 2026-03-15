@@ -234,9 +234,7 @@ pub enum EditFilterKind {
     /// Numeric range (min/max inputs).
     Range,
     /// Dropdown with fixed options.
-    Option {
-        options: Vec<EditFilterOption>,
-    },
+    Option { options: Vec<EditFilterOption> },
     /// Socket-type filter: per-color inputs (R/G/B/W) + total min/max.
     Sockets,
 }
@@ -406,11 +404,7 @@ pub fn trade_edit_schema(
 }
 
 /// Convert a raw filter definition into an `EditFilter`, with defaults from the item.
-fn build_edit_filter(
-    f: &RawFilterDef,
-    group_id: &str,
-    item: &ResolvedItem,
-) -> Option<EditFilter> {
+fn build_edit_filter(f: &RawFilterDef, group_id: &str, item: &ResolvedItem) -> Option<EditFilter> {
     let is_range = f.min_max;
     let kind = if f.sockets {
         EditFilterKind::Sockets
@@ -453,11 +447,7 @@ fn build_edit_filter(
 ///
 /// Uses `ItemClasses` capability flags from GGPK when available,
 /// falls back to trade category derivation otherwise.
-fn is_group_relevant(
-    group_id: &str,
-    item: &ResolvedItem,
-    game_data: &poe_data::GameData,
-) -> bool {
+fn is_group_relevant(group_id: &str, item: &ResolvedItem, game_data: &poe_data::GameData) -> bool {
     let class_name = item.header.item_class.as_str();
 
     // Use GGPK ItemClasses data when available (for future capability checks)
@@ -478,17 +468,12 @@ fn is_group_relevant(
         "socket_filters" => item.socket_info.is_some(),
         "req_filters" => !item.requirements.is_empty(),
         "map_filters" => {
-            poe_data::domain::item_class_trade_category(class_name)
-                .is_some_and(|cat| cat == "map")
+            poe_data::domain::item_class_trade_category(class_name).is_some_and(|cat| cat == "map")
         }
-        "heist_filters" => {
-            poe_data::domain::item_class_trade_category(class_name)
-                .is_some_and(|cat| cat.starts_with("heist"))
-        }
-        "sanctum_filters" => {
-            poe_data::domain::item_class_trade_category(class_name)
-                .is_some_and(|cat| cat.starts_with("sanctum"))
-        }
+        "heist_filters" => poe_data::domain::item_class_trade_category(class_name)
+            .is_some_and(|cat| cat.starts_with("heist")),
+        "sanctum_filters" => poe_data::domain::item_class_trade_category(class_name)
+            .is_some_and(|cat| cat.starts_with("sanctum")),
         // ultimatum_filters: legacy league content
         _ => false,
     }
@@ -681,10 +666,7 @@ fn option_default_bool(is_set: bool) -> (Option<EditFilterValue>, bool) {
     }
 }
 
-fn option_default_selected(
-    id: Option<&str>,
-    enabled: bool,
-) -> (Option<EditFilterValue>, bool) {
+fn option_default_selected(id: Option<&str>, enabled: bool) -> (Option<EditFilterValue>, bool) {
     (
         Some(EditFilterValue::Selected {
             id: id.map(String::from),
@@ -726,6 +708,7 @@ fn build_stat_schemas(
                 ModDisplayType::Crafted => "crafted",
                 ModDisplayType::Enchant => "enchant",
                 ModDisplayType::Unique => "unique",
+                ModDisplayType::Pseudo => "pseudo",
             };
             let cat = poe_data::domain::mod_trade_category(display_type, m.is_fractured);
             (m, cat)

@@ -22,21 +22,33 @@ fn load_dat(name: &str) -> Option<DatFile> {
 }
 
 fn load_tags() -> Vec<String> {
-    let Some(dat) = load_dat("tags") else { return vec![] };
-    (0..dat.row_count).filter_map(|i| dat.read_string(i, 0)).collect()
+    let Some(dat) = load_dat("tags") else {
+        return vec![];
+    };
+    (0..dat.row_count)
+        .filter_map(|i| dat.read_string(i, 0))
+        .collect()
 }
 
 fn load_item_classes() -> Vec<String> {
-    let Some(dat) = load_dat("itemclasses") else { return vec![] };
-    (0..dat.row_count).filter_map(|i| dat.read_string(i, 0)).collect()
+    let Some(dat) = load_dat("itemclasses") else {
+        return vec![];
+    };
+    (0..dat.row_count)
+        .filter_map(|i| dat.read_string(i, 0))
+        .collect()
 }
 
 fn load_base_item_names() -> Vec<String> {
-    let Some(dat) = load_dat("baseitemtypes") else { return vec![] };
+    let Some(dat) = load_dat("baseitemtypes") else {
+        return vec![];
+    };
     // Name is at a different offset — but we know from our extraction it works
     // BaseItemTypes: Id(8), ItemClass(16), Width(4), Height(4), Name(8), ...
     // Name offset = 8 + 16 + 4 + 4 = 32
-    (0..dat.row_count).filter_map(|i| dat.read_string(i, 32)).collect()
+    (0..dat.row_count)
+        .filter_map(|i| dat.read_string(i, 32))
+        .collect()
 }
 
 // ── Full inventory: row counts for all tables ────────────────────────────────
@@ -52,7 +64,10 @@ fn inventory_all_tables() {
     entries.sort_by_key(|e| e.file_name());
 
     println!("=== GGPK Table Inventory ({} tables) ===\n", entries.len());
-    println!("{:<45} {:>8} {:>6} {:>8}", "Table", "Bytes", "Rows", "RowSize");
+    println!(
+        "{:<45} {:>8} {:>6} {:>8}",
+        "Table", "Bytes", "Rows", "RowSize"
+    );
     println!("{}", "-".repeat(75));
 
     for entry in &entries {
@@ -61,8 +76,11 @@ fn inventory_all_tables() {
 
         if let Ok(bytes) = std::fs::read(entry.path()) {
             if let Ok(dat) = DatFile::from_bytes(bytes) {
-                println!("{name:<45} {size:>8} {rows:>6} {row_size:>8}",
-                    rows = dat.row_count, row_size = dat.row_size);
+                println!(
+                    "{name:<45} {size:>8} {rows:>6} {row_size:>8}",
+                    rows = dat.row_count,
+                    row_size = dat.row_size
+                );
             } else {
                 println!("{name:<45} {size:>8}  (parse error)");
             }
@@ -83,15 +101,57 @@ fn inventory_client_strings() {
 
     // Dump ALL entries matching patterns relevant to item display
     let patterns = [
-        "ItemDisplay", "ItemPopup", "ItemError", "Quality", "Rarity",
-        "Synthesised", "Fractured", "Corrupted", "Mirrored", "Foulborn",
-        "Mutated", "Influence", "Searing", "Eater", "Crucible",
-        "Imbued", "Unmodifiable", "Unidentified", "Split", "Veiled",
-        "Crafted", "Enchant", "Implicit", "Explicit", "Prefix", "Suffix",
-        "Mod", "Tier", "Socket", "Link", "Ward", "Armour", "Evasion",
-        "EnergyShield", "Block", "Weapon", "Damage", "Attack", "Critical",
-        "Level", "Requirement", "Gem", "Flask", "Map", "Heist", "Sanctum",
-        "Talisman", "Scourge", "Sentinel", "Essence", "Expedition",
+        "ItemDisplay",
+        "ItemPopup",
+        "ItemError",
+        "Quality",
+        "Rarity",
+        "Synthesised",
+        "Fractured",
+        "Corrupted",
+        "Mirrored",
+        "Foulborn",
+        "Mutated",
+        "Influence",
+        "Searing",
+        "Eater",
+        "Crucible",
+        "Imbued",
+        "Unmodifiable",
+        "Unidentified",
+        "Split",
+        "Veiled",
+        "Crafted",
+        "Enchant",
+        "Implicit",
+        "Explicit",
+        "Prefix",
+        "Suffix",
+        "Mod",
+        "Tier",
+        "Socket",
+        "Link",
+        "Ward",
+        "Armour",
+        "Evasion",
+        "EnergyShield",
+        "Block",
+        "Weapon",
+        "Damage",
+        "Attack",
+        "Critical",
+        "Level",
+        "Requirement",
+        "Gem",
+        "Flask",
+        "Map",
+        "Heist",
+        "Sanctum",
+        "Talisman",
+        "Scourge",
+        "Sentinel",
+        "Essence",
+        "Expedition",
     ];
 
     let mut results: Vec<(String, String)> = Vec::new();
@@ -137,11 +197,22 @@ fn inventory_influence_tags() {
         let influence = dat.read_u32(i, 16).unwrap_or(u32::MAX);
         let tag_idx = dat.read_fk(i, 20).unwrap_or(u64::MAX);
 
-        let ic_name = item_classes.get(ic_idx as usize).map(String::as_str).unwrap_or("?");
-        let tag_name = tags.get(tag_idx as usize).map(String::as_str).unwrap_or("?");
+        let ic_name = item_classes
+            .get(ic_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
+        let tag_name = tags
+            .get(tag_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
         let influence_name = match influence {
-            0 => "Shaper", 1 => "Elder", 2 => "Crusader",
-            3 => "Hunter", 4 => "Redeemer", 5 => "Warlord", 6 => "None",
+            0 => "Shaper",
+            1 => "Elder",
+            2 => "Crusader",
+            3 => "Hunter",
+            4 => "Redeemer",
+            5 => "Warlord",
+            6 => "None",
             _ => "Unknown",
         };
 
@@ -161,8 +232,10 @@ fn inventory_armour_types() {
 
     println!("=== ArmourTypes ===");
     println!("Rows: {}, Row size: {}\n", dat.row_count, dat.row_size);
-    println!("{:<30} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}",
-        "Base", "AR min", "AR max", "EV min", "EV max", "ES min", "ES max");
+    println!(
+        "{:<30} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}",
+        "Base", "AR min", "AR max", "EV min", "EV max", "ES min", "ES max"
+    );
 
     for i in 0..dat.row_count.min(30) {
         let base_idx = dat.read_fk(i, 0).unwrap_or(u64::MAX);
@@ -173,10 +246,15 @@ fn inventory_armour_types() {
         let es_min = dat.read_i32(i, 32).unwrap_or(0);
         let es_max = dat.read_i32(i, 36).unwrap_or(0);
 
-        let name = base_names.get(base_idx as usize).map(String::as_str).unwrap_or("?");
+        let name = base_names
+            .get(base_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
 
         if ar_max > 0 || ev_max > 0 || es_max > 0 {
-            println!("  {name:<30} {ar_min:>8} {ar_max:>8} {ev_min:>8} {ev_max:>8} {es_min:>8} {es_max:>8}");
+            println!(
+                "  {name:<30} {ar_min:>8} {ar_max:>8} {ev_min:>8} {ev_max:>8} {es_min:>8} {es_max:>8}"
+            );
         }
     }
 }
@@ -193,7 +271,10 @@ fn inventory_weapon_types() {
 
     println!("=== WeaponTypes ===");
     println!("Rows: {}, Row size: {}\n", dat.row_count, dat.row_size);
-    println!("{:<30} {:>8} {:>8} {:>8} {:>8}", "Base", "Crit", "Speed", "DmgMin", "DmgMax");
+    println!(
+        "{:<30} {:>8} {:>8} {:>8} {:>8}",
+        "Base", "Crit", "Speed", "DmgMin", "DmgMax"
+    );
 
     for i in 0..dat.row_count.min(30) {
         let base_idx = dat.read_fk(i, 0).unwrap_or(u64::MAX);
@@ -202,8 +283,15 @@ fn inventory_weapon_types() {
         let dmg_min = dat.read_i32(i, 24).unwrap_or(0);
         let dmg_max = dat.read_i32(i, 28).unwrap_or(0);
 
-        let name = base_names.get(base_idx as usize).map(String::as_str).unwrap_or("?");
-        let aps = if speed > 0 { 1000.0 / speed as f64 } else { 0.0 };
+        let name = base_names
+            .get(base_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
+        let aps = if speed > 0 {
+            1000.0 / speed as f64
+        } else {
+            0.0
+        };
 
         if dmg_max > 0 {
             println!("  {name:<30} {crit:>8} {speed:>5}({aps:.2}) {dmg_min:>8} {dmg_max:>8}");
@@ -266,8 +354,10 @@ fn inventory_item_class_flags() {
     // We know "Stackable Currency" cannot
 
     println!("Probing bool fields at various offsets...\n");
-    println!("{:<25} {:>6} {:>6} {:>6} {:>6} {:>6} {:>6}",
-        "Class", "veiled", "corr", "incub", "infl", "dblcor", "fract");
+    println!(
+        "{:<25} {:>6} {:>6} {:>6} {:>6} {:>6} {:>6}",
+        "Class", "veiled", "corr", "incub", "infl", "dblcor", "fract"
+    );
 
     // Try with PickedUpQuest as FK(16): bools at 88-94
     // Try with PickedUpQuest as rid(8): bools at 80-86
@@ -292,10 +382,26 @@ fn inventory_item_class_flags() {
         // Let's just scan a range
 
         // Only print interesting classes
-        if ["Body Armour", "Boots", "Ring", "Amulet", "Wand", "Map",
-            "Stackable Currency", "Skill Gem", "Jewel", "Flask", "Shield",
-            "Divination Card", "Support Gem"].contains(&id.as_str()) {
-            println!("  {id:<25} {veiled:>6} {corr_89:>6} {incub_89:>6} {infl_89:>6} {dblcor_89:>6}");
+        if [
+            "Body Armour",
+            "Boots",
+            "Ring",
+            "Amulet",
+            "Wand",
+            "Map",
+            "Stackable Currency",
+            "Skill Gem",
+            "Jewel",
+            "Flask",
+            "Shield",
+            "Divination Card",
+            "Support Gem",
+        ]
+        .contains(&id.as_str())
+        {
+            println!(
+                "  {id:<25} {veiled:>6} {corr_89:>6} {incub_89:>6} {infl_89:>6} {dblcor_89:>6}"
+            );
         }
     }
 
@@ -341,10 +447,17 @@ fn inventory_influence_exalts() {
     for i in 0..dat.row_count {
         let base_idx = dat.read_fk(i, 0).unwrap_or(u64::MAX);
         let influence = dat.read_u32(i, 16).unwrap_or(u32::MAX);
-        let name = base_names.get(base_idx as usize).map(String::as_str).unwrap_or("?");
+        let name = base_names
+            .get(base_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
         let influence_name = match influence {
-            0 => "Shaper", 1 => "Elder", 2 => "Crusader",
-            3 => "Hunter", 4 => "Redeemer", 5 => "Warlord",
+            0 => "Shaper",
+            1 => "Elder",
+            2 => "Crusader",
+            3 => "Hunter",
+            4 => "Redeemer",
+            5 => "Warlord",
             _ => "Unknown",
         };
         println!("  {name:<40} → {influence_name}");
@@ -384,7 +497,10 @@ fn inventory_attribute_requirements() {
         let str_req = dat.read_i32(i, 16).unwrap_or(0);
         let dex_req = dat.read_i32(i, 20).unwrap_or(0);
         let int_req = dat.read_i32(i, 24).unwrap_or(0);
-        let name = base_names.get(base_idx as usize).map(String::as_str).unwrap_or("?");
+        let name = base_names
+            .get(base_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
 
         if str_req > 0 || dex_req > 0 || int_req > 0 {
             println!("  {name:<30} {str_req:>6} {dex_req:>6} {int_req:>6}");
@@ -409,7 +525,10 @@ fn inventory_shield_types() {
     for i in 0..dat.row_count.min(20) {
         let base_idx = dat.read_fk(i, 0).unwrap_or(u64::MAX);
         let block = dat.read_i32(i, 16).unwrap_or(0);
-        let name = base_names.get(base_idx as usize).map(String::as_str).unwrap_or("?");
+        let name = base_names
+            .get(base_idx as usize)
+            .map(String::as_str)
+            .unwrap_or("?");
         println!("  {name:<30} block={block}");
     }
 }

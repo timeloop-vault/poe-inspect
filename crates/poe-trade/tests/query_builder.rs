@@ -222,7 +222,10 @@ fn listing_status_sets_status() {
 
     // Default: instant buyout + in person
     let result = build_query(&item, trade_index(), &default_config(), None);
-    assert_eq!(result.body.query.status.as_ref().unwrap().option, "available");
+    assert_eq!(
+        result.body.query.status.as_ref().unwrap().option,
+        "available"
+    );
 
     // Any mode: no status filter
     let mut config = default_config();

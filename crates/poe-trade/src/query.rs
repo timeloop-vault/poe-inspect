@@ -380,6 +380,7 @@ fn mod_trade_category(m: &ResolvedMod) -> &'static str {
         ModDisplayType::Crafted => "crafted",
         ModDisplayType::Enchant => "enchant",
         ModDisplayType::Unique => "unique",
+        ModDisplayType::Pseudo => "pseudo",
     };
     poe_data::domain::mod_trade_category(display_type, m.is_fractured)
 }
@@ -877,7 +878,7 @@ mod tests {
             talisman_tier: None,
             experience: None,
             note: None,
-            pseudo_stats: vec![],
+            pseudo_mods: vec![],
             unclassified_sections: vec![],
         }
     }
@@ -936,7 +937,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -967,7 +968,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -987,7 +988,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1014,7 +1015,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1043,7 +1044,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1097,7 +1098,14 @@ mod tests {
     fn five_link_auto_includes_link_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G-G-B".to_string());
-        item.socket_info = Some(SocketInfo { total: 5, max_link: 5, red: 2, green: 2, blue: 1, white: 0 });
+        item.socket_info = Some(SocketInfo {
+            total: 5,
+            max_link: 5,
+            red: 2,
+            green: 2,
+            blue: 1,
+            white: 0,
+        });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let result = build_query(&item, &index, &config, None);
@@ -1120,7 +1128,14 @@ mod tests {
     fn four_link_no_auto_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G-G B".to_string());
-        item.socket_info = Some(SocketInfo { total: 5, max_link: 4, red: 2, green: 2, blue: 1, white: 0 });
+        item.socket_info = Some(SocketInfo {
+            total: 5,
+            max_link: 4,
+            red: 2,
+            green: 2,
+            blue: 1,
+            white: 0,
+        });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let result = build_query(&item, &index, &config, None);
@@ -1142,7 +1157,14 @@ mod tests {
     fn edit_mode_enables_link_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G B".to_string()); // 3-link
-        item.socket_info = Some(SocketInfo { total: 4, max_link: 3, red: 2, green: 1, blue: 1, white: 0 });
+        item.socket_info = Some(SocketInfo {
+            total: 4,
+            max_link: 3,
+            red: 2,
+            green: 1,
+            blue: 1,
+            white: 0,
+        });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let fc = TradeFilterConfig {
@@ -1152,7 +1174,7 @@ mod tests {
             min_links: Some(3),
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1170,7 +1192,14 @@ mod tests {
     fn edit_mode_disables_link_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G-G-B-B".to_string()); // 6-link
-        item.socket_info = Some(SocketInfo { total: 6, max_link: 6, red: 2, green: 2, blue: 2, white: 0 });
+        item.socket_info = Some(SocketInfo {
+            total: 6,
+            max_link: 6,
+            red: 2,
+            green: 2,
+            blue: 2,
+            white: 0,
+        });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let fc = TradeFilterConfig {
@@ -1180,7 +1209,7 @@ mod tests {
             min_links: None,
             quality_enabled: false,
             quality_min: None,
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 
@@ -1272,7 +1301,7 @@ mod tests {
             min_links: None,
             quality_enabled: true,
             quality_min: Some(15),
-        ..TradeFilterConfig::default()
+            ..TradeFilterConfig::default()
         };
         let result = build_query(&item, &index, &config, Some(&fc));
 

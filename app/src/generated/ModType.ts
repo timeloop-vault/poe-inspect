@@ -5,4 +5,4 @@
  * "T1" badge shows as Tier, "R1" as Rank. The UI doesn't need to know
  * about `SearingExarchImplicit` vs `EaterOfWorldsImplicit` — both are "implicit".
  */
-export type ModType = "prefix" | "suffix" | "implicit" | "enchant" | "unique" | "crafted";
+export type ModType = "prefix" | "suffix" | "implicit" | "enchant" | "unique" | "crafted" | "pseudo";

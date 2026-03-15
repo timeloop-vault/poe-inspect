@@ -357,7 +357,6 @@ fn client_strings_loaded() {
         "expected >=10 ItemPopup entries, got {}",
         popups.len()
     );
-
 }
 
 #[test]
@@ -471,9 +470,7 @@ fn validate_status_influence_against_client_strings() {
     let unexpected: Vec<_> = unhandled
         .iter()
         .filter(|(id, _)| {
-            !id.contains("Hellscaped")
-                && !id.contains("Imbued")
-                && !id.contains("AlternateGemItem")
+            !id.contains("Hellscaped") && !id.contains("Imbued") && !id.contains("AlternateGemItem")
         })
         .collect();
     assert!(

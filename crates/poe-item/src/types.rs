@@ -118,6 +118,8 @@ pub enum ModSource {
     Regular,
     MasterCrafted,
     Fractured,
+    /// Synthetic mod computed by the resolver (e.g., pseudo stats).
+    Computed,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -134,6 +136,8 @@ pub enum ModSlot {
     EaterOfWorldsImplicit,
     CorruptionImplicit,
     Enchant,
+    /// Synthetic slot for computed pseudo stats.
+    Pseudo,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -179,6 +183,8 @@ pub enum ModDisplayType {
     Enchant,
     Unique,
     Crafted,
+    /// Computed pseudo stat (aggregated from multiple mods).
+    Pseudo,
 }
 
 /// Whether a mod number is a tier (regular) or rank (bench craft).
@@ -383,28 +389,14 @@ pub struct ResolvedItem {
     /// Gem-specific data (tags, stats, quality effects, Vaal variant).
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub gem_data: Option<GemData>,
-    /// Computed pseudo stats (aggregated from multiple mods).
-    /// E.g., "(Pseudo) +# total maximum Life" summing life mod + strength × 0.5.
+    /// Computed pseudo mods (aggregated from multiple mods).
+    /// E.g., "(Pseudo) +142 total maximum Life" summing life mod + strength × 0.5.
+    /// These are synthetic `ResolvedMod` entries with `display_type: Pseudo`.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
-    pub pseudo_stats: Vec<PseudoStat>,
+    pub pseudo_mods: Vec<ResolvedMod>,
     /// Remaining unclassified generic sections.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
     pub unclassified_sections: Vec<Vec<String>>,
-}
-
-/// A computed pseudo stat — an aggregate value from multiple mods on the item.
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
-pub struct PseudoStat {
-    /// Pseudo stat ID (e.g., `"pseudo_total_life"`).
-    pub id: String,
-    /// Display label with (Pseudo) prefix (e.g., `"(Pseudo) +# total maximum Life"`).
-    pub label: String,
-    /// Computed aggregate value.
-    pub value: f64,
 }
 
 /// Gem-specific structured data extracted from generic sections.
@@ -446,12 +438,13 @@ pub struct VaalGemData {
 }
 
 impl ResolvedItem {
-    /// All mods in order: enchants, then implicits, then explicits.
+    /// All mods in order: enchants, then implicits, then explicits, then pseudo mods.
     pub fn all_mods(&self) -> impl Iterator<Item = &ResolvedMod> {
         self.enchants
             .iter()
             .chain(self.implicits.iter())
             .chain(self.explicits.iter())
+            .chain(self.pseudo_mods.iter())
     }
 }
 
@@ -513,6 +506,7 @@ impl ResolvedMod {
     pub fn compute_display_type(slot: ModSlot, source: ModSource) -> ModDisplayType {
         match (slot, source) {
             (_, ModSource::MasterCrafted) => ModDisplayType::Crafted,
+            (_, ModSource::Computed) | (ModSlot::Pseudo, _) => ModDisplayType::Pseudo,
             (ModSlot::Prefix, _) => ModDisplayType::Prefix,
             (ModSlot::Suffix, _) => ModDisplayType::Suffix,
             (
