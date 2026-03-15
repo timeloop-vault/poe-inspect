@@ -1672,6 +1672,111 @@ body,
 	color: var(--fractured-color);
 }
 
+/* --- Socket filter rows (R/G/B/W + min/max) --- */
+
+.socket-filters-section {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 2px 0;
+}
+
+.socket-filter-row-full {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+}
+
+.socket-filter-row-full .socket-filter-label {
+	display: inline-block;
+	width: 48px;
+	flex-shrink: 0;
+	text-align: left;
+}
+
+.socket-color-cells {
+	display: flex;
+	gap: 2px;
+	flex-shrink: 0;
+	margin-left: auto;
+}
+
+.socket-color-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1px;
+}
+
+.socket-color-label {
+	font-size: 9px;
+	font-weight: bold;
+	line-height: 1;
+}
+
+.socket-red .socket-color-label {
+	color: #c44;
+}
+.socket-green .socket-color-label {
+	color: #4a4;
+}
+.socket-blue .socket-color-label {
+	color: #66f;
+}
+.socket-white .socket-color-label {
+	color: #ccc;
+}
+
+.socket-color-input {
+	width: 26px;
+	padding: 2px 2px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(70, 59, 43, 0.6);
+	border-radius: 2px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 11px;
+	text-align: center;
+	-moz-appearance: textfield;
+}
+
+.socket-color-input::-webkit-inner-spin-button,
+.socket-color-input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.socket-color-input:focus {
+	outline: none;
+	border-color: var(--poe-accent);
+}
+
+.socket-color-input:disabled {
+	opacity: 0.4;
+}
+
+.socket-minmax-cells {
+	display: flex;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.socket-minmax-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1px;
+}
+
+.socket-minmax-label {
+	font-size: 8px;
+	color: var(--poe-text-dim);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	line-height: 1;
+}
+
 /* --- Demand badge (RQE match count) --- */
 
 .demand-badge-wrap {

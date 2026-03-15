@@ -46,6 +46,9 @@ pub struct RawFilterDef {
     pub option: Option<RawFilterOption>,
     #[serde(default)]
     pub full_span: bool,
+    /// Whether this is a socket-type filter (R/G/B/W color inputs + min/max).
+    #[serde(default)]
+    pub sockets: bool,
 }
 
 /// Option definition — either a fixed list of choices or a dynamic autocomplete.
@@ -234,6 +237,8 @@ pub enum EditFilterKind {
     Option {
         options: Vec<EditFilterOption>,
     },
+    /// Socket-type filter: per-color inputs (R/G/B/W) + total min/max.
+    Sockets,
 }
 
 /// A single choice in a dropdown filter.
@@ -265,6 +270,22 @@ pub enum EditFilterValue {
     /// For option filters: the selected option ID.
     #[serde(rename_all = "camelCase")]
     Selected { id: Option<String> },
+    /// For socket-type filters: per-color counts + total min/max.
+    #[serde(rename_all = "camelCase")]
+    Sockets {
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+        red: Option<u32>,
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+        green: Option<u32>,
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+        blue: Option<u32>,
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+        white: Option<u32>,
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+        min: Option<u32>,
+        #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+        max: Option<u32>,
+    },
 }
 
 /// Per-stat filter for a mod line (inline on the overlay).
@@ -391,7 +412,9 @@ fn build_edit_filter(
     item: &ResolvedItem,
 ) -> Option<EditFilter> {
     let is_range = f.min_max;
-    let kind = if is_range {
+    let kind = if f.sockets {
+        EditFilterKind::Sockets
+    } else if is_range {
         EditFilterKind::Range
     } else if let Some(opt) = &f.option {
         if opt.options.is_empty() {
@@ -510,6 +533,39 @@ fn filter_default(
     is_range: bool,
     item: &ResolvedItem,
 ) -> (Option<EditFilterValue>, bool) {
+    // ── 0. Socket-type filters: populate from SocketInfo ──────────────
+    if filter_id == "sockets" || filter_id == "links" {
+        if let Some(si) = &item.socket_info {
+            if filter_id == "sockets" {
+                return (
+                    Some(EditFilterValue::Sockets {
+                        red: Some(si.red),
+                        green: Some(si.green),
+                        blue: Some(si.blue),
+                        white: Some(si.white),
+                        min: Some(si.total),
+                        max: None,
+                    }),
+                    false,
+                );
+            }
+            // links
+            let enabled = si.max_link >= 5;
+            return (
+                Some(EditFilterValue::Sockets {
+                    red: None,
+                    green: None,
+                    blue: None,
+                    white: None,
+                    min: Some(si.max_link),
+                    max: None,
+                }),
+                enabled,
+            );
+        }
+        return (None, false);
+    }
+
     // ── 1. Exception table: trade API conventions that can't be text-matched ──
     //
     // Only 3 entries remain — everything else is matched by property/status text.
