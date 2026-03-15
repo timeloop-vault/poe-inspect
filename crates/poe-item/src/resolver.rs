@@ -849,7 +849,7 @@ fn compute_pseudo_stats(
         let mut has_required = false;
         let mut any_required_defined = false;
 
-        for comp in &def.components {
+        for comp in def.components {
             if comp.required {
                 any_required_defined = true;
             }
@@ -862,10 +862,10 @@ fn compute_pseudo_stats(
                     if sl.is_reminder {
                         continue;
                     }
-                    let matches = sl
-                        .stat_ids
-                        .as_ref()
-                        .is_some_and(|ids| ids.iter().any(|id| id == &comp.stat_id));
+                    let matches = sl.stat_ids.as_ref().is_some_and(|ids| {
+                        ids.iter()
+                            .any(|id| comp.stat_ids.iter().any(|cid| cid == id))
+                    });
                     if matches && !sl.values.is_empty() {
                         // Use the first value (most stats are single-value)
                         comp_value += sl.values[0].current as f64;

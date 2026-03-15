@@ -16,28 +16,6 @@ use poe_dat::tables::{
 
 use crate::domain::{self, LOCAL_STAT_NONLOCAL_FALLBACKS};
 
-/// A resolved pseudo stat definition — families expanded to concrete `stat_ids`.
-#[derive(Debug, Clone)]
-pub struct ResolvedPseudo {
-    /// Pseudo stat ID (e.g., `"pseudo_total_life"`).
-    pub id: &'static str,
-    /// Display label template (e.g., `"+# total maximum Life"`).
-    pub label: &'static str,
-    /// Component `stat_ids` with multipliers and required flags.
-    pub components: Vec<ResolvedPseudoComponent>,
-}
-
-/// A single `stat_id` that contributes to a pseudo stat.
-#[derive(Debug, Clone)]
-pub struct ResolvedPseudoComponent {
-    /// GGPK stat ID (e.g., `"base_maximum_life"`).
-    pub stat_id: String,
-    /// Multiplier (e.g., 0.5 for Strength → Life).
-    pub multiplier: f64,
-    /// If true, pseudo only shows when this component has a value.
-    pub required: bool,
-}
-
 // ── GameData ────────────────────────────────────────────────────────────────
 
 /// All game data tables with pre-built indexes.
@@ -96,13 +74,6 @@ pub struct GameData {
     weapon_by_base: HashMap<String, WeaponTypeRow>,
     shield_by_base: HashMap<String, ShieldTypeRow>,
 
-    // ModFamily name → set of stat_ids (from non-unique mods in that family).
-    // Used to resolve pseudo stat definitions to concrete stat_ids.
-    family_stat_ids: HashMap<String, HashSet<String>>,
-
-    // Resolved pseudo stat definitions: pseudo_id → Vec<(stat_id, multiplier, required)>.
-    // Built at load time by resolving PseudoDefinition families to stat_ids.
-    resolved_pseudos: Vec<ResolvedPseudo>,
 }
 
 impl GameData {
@@ -165,57 +136,6 @@ impl GameData {
             }
         }
 
-        // Build family_name → set of stat_ids (from non-unique mods).
-        // Includes both the raw stat_id AND its local_ prefixed variant (if it exists)
-        // so pseudo matching works on both weapon (local) and global mods.
-        let mut family_stat_ids: HashMap<String, HashSet<String>> = HashMap::new();
-        for m in &mods {
-            // Skip unique mods (generation_type 3) — they don't represent rollable families
-            if m.generation_type == 3 {
-                continue;
-            }
-            for &family_fk in &m.families {
-                if let Some(family_row) = mod_families.get(family_fk as usize) {
-                    let entry = family_stat_ids.entry(family_row.id.clone()).or_default();
-                    for stat_fk in m.stat_keys.iter().flatten() {
-                        if let Some(stat_row) = stats.get(*stat_fk as usize) {
-                            entry.insert(stat_row.id.clone());
-                            // Also add local_ variant if the stat has one
-                            // (items on weapons use local_ stat_ids)
-                            let local_id = format!("local_{}", stat_row.id);
-                            if stat_by_id.contains_key(&local_id) {
-                                entry.insert(local_id);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Resolve pseudo definitions: families → concrete stat_ids
-        let resolved_pseudos = domain::pseudo_definitions()
-            .iter()
-            .map(|def| {
-                let mut components = Vec::new();
-                for comp in def.components {
-                    if let Some(stat_ids) = family_stat_ids.get(comp.family) {
-                        for sid in stat_ids {
-                            components.push(ResolvedPseudoComponent {
-                                stat_id: sid.clone(),
-                                multiplier: comp.multiplier,
-                                required: comp.required,
-                            });
-                        }
-                    }
-                }
-                ResolvedPseudo {
-                    id: def.id,
-                    label: def.label,
-                    components,
-                }
-            })
-            .collect();
-
         Self {
             stats,
             tags,
@@ -244,8 +164,6 @@ impl GameData {
             armour_by_base: HashMap::new(),
             weapon_by_base: HashMap::new(),
             shield_by_base: HashMap::new(),
-            family_stat_ids,
-            resolved_pseudos,
         }
     }
 
@@ -432,12 +350,12 @@ impl GameData {
         self.mod_families.get(fk as usize).map(|f| f.id.as_str())
     }
 
-    /// Get all resolved pseudo stat definitions.
+    /// Get all pseudo stat definitions.
     ///
-    /// Each definition has its component families resolved to concrete `stat_ids`.
+    /// Each definition lists explicit stat_ids with multipliers.
     /// Used by poe-item's resolver to compute pseudo values on items.
-    pub fn pseudo_definitions(&self) -> &[ResolvedPseudo] {
-        &self.resolved_pseudos
+    pub fn pseudo_definitions(&self) -> &'static [domain::PseudoDefinition] {
+        domain::pseudo_definitions()
     }
 
     /// All stat template texts for autocomplete (GGPK templates + pseudo labels).
@@ -450,16 +368,11 @@ impl GameData {
             .as_ref()
             .map(|ri| ri.template_keys())
             .unwrap_or_default();
-        for pseudo in &self.resolved_pseudos {
+        for pseudo in domain::pseudo_definitions() {
             keys.push(pseudo.label.to_string());
         }
         keys.sort();
         keys
-    }
-
-    /// Get the set of `stat_ids` associated with a mod family.
-    pub fn family_stat_ids(&self, family: &str) -> Option<&HashSet<String>> {
-        self.family_stat_ids.get(family)
     }
 
     /// Resolve a mod type FK (row index) to the type's display name.
@@ -629,7 +542,7 @@ impl GameData {
         let mut seen_hybrids: HashSet<(String, u32)> = HashSet::new();
 
         // Include matching pseudo stat templates as Single suggestions.
-        for pseudo in &self.resolved_pseudos {
+        for pseudo in domain::pseudo_definitions() {
             if pseudo.label.to_lowercase().contains(&query_lower) {
                 results.push(StatSuggestion {
                     template: pseudo.label.to_string(),

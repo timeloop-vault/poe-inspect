@@ -467,113 +467,135 @@ mod tests {
 //
 // WHY HARDCODED: The GGPK has no concept of pseudo stats. These are trade API
 // constructs that aggregate multiple mods into a single searchable value.
-// ModFamily names from GGPK tell us which mods belong to which group, but
-// the aggregation rules (which families sum together, with what multipliers)
-// are game mechanics knowledge not declared in any data file.
+// The GGPK `ModFamily` table groups mods for anti-stacking purposes (e.g., you
+// can't have two `IncreasedLife` mods), but families are mod-level tags — a
+// hybrid armour+life mod in `IncreasedLife` family has BOTH armour and life
+// stat_ids, so family→stat_id mapping is ambiguous for hybrids.
 //
-// Reference: Awakened PoE Trade pseudo rules
-//   `_reference/awakened-poe-trade/renderer/src/web/price-check/filters/pseudo/index.ts`
+// Instead, pseudo components list explicit stat_ids. Use `mod_families.txt`
+// as a discovery aid when authoring new definitions.
+//
 // Trade API pseudo IDs: `crates/poe-trade/tests/fixtures/trade_stats_3.28.json`
 // ModFamily list: `crates/poe-data/data/mod_families.txt`
 
-/// A component of a pseudo stat — one mod family that contributes to the aggregate.
+/// A component of a pseudo stat — a set of stat_ids that contribute to the aggregate.
 #[derive(Debug, Clone)]
 pub struct PseudoComponent {
-    /// `ModFamily` name from GGPK (e.g., `"Strength"`).
-    pub family: &'static str,
+    /// Stat IDs that match this component (e.g., `["base_fire_damage_resistance_%"]`).
+    pub stat_ids: &'static [&'static str],
     /// Multiplier applied to the stat value (e.g., 0.5 for Strength → Life).
     pub multiplier: f64,
     /// If true, this pseudo only appears when this component has a value on the item.
     pub required: bool,
 }
 
-/// Definition of a pseudo stat — which mod families contribute and how.
+/// Definition of a pseudo stat — which stat_ids contribute and how.
 #[derive(Debug, Clone)]
 pub struct PseudoDefinition {
     /// ID matching trade API suffix (e.g., `"pseudo_total_life"`).
     pub id: &'static str,
-    /// Display label template (e.g., `"+# total maximum Life"`).
+    /// Display label template (e.g., `"(Pseudo) +# total maximum Life"`).
     pub label: &'static str,
-    /// Component families with multipliers.
+    /// Component stat_ids with multipliers.
     pub components: &'static [PseudoComponent],
 }
 
-const fn comp(family: &'static str, multiplier: f64, required: bool) -> PseudoComponent {
+const fn comp(
+    stat_ids: &'static [&'static str],
+    multiplier: f64,
+    required: bool,
+) -> PseudoComponent {
     PseudoComponent {
-        family,
+        stat_ids,
         multiplier,
         required,
     }
 }
 
-/// Phase 1 pseudo stat definitions (~20 commonly used for pricing).
+/// Phase 1 pseudo stat definitions.
 ///
-/// Each definition maps a pseudo stat to one or more `ModFamily` groups.
-/// At load time, families are resolved to concrete `stat_ids` via the Mods table.
+/// Each component lists explicit stat_ids (including local_ variants for weapon
+/// mods). Use `crates/poe-data/data/mod_families.txt` as a reference when
+/// adding new definitions — families help discover which stat_ids are related,
+/// but the definition must use exact stat_ids (not family names).
 pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Resistances ──────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_total_fire_resistance",
         label: "(Pseudo) +#% total to Fire Resistance",
         components: &[
-            comp("FireResistance", 1.0, false),
-            comp("FireResistancePrefix", 1.0, false),
-            comp("AllResistances", 1.0, false),
-            comp("AllResistancesWithChaos", 1.0, false),
+            comp(&["base_fire_damage_resistance_%"], 1.0, false),
+            comp(&["base_resist_all_elements_%"], 1.0, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_cold_resistance",
         label: "(Pseudo) +#% total to Cold Resistance",
         components: &[
-            comp("ColdResistance", 1.0, false),
-            comp("ColdResistancePrefix", 1.0, false),
-            comp("AllResistances", 1.0, false),
-            comp("AllResistancesWithChaos", 1.0, false),
+            comp(&["base_cold_damage_resistance_%"], 1.0, false),
+            comp(&["base_resist_all_elements_%"], 1.0, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_lightning_resistance",
         label: "(Pseudo) +#% total to Lightning Resistance",
         components: &[
-            comp("LightningResistance", 1.0, false),
-            comp("LightningResistancePrefix", 1.0, false),
-            comp("AllResistances", 1.0, false),
-            comp("AllResistancesWithChaos", 1.0, false),
+            comp(&["base_lightning_damage_resistance_%"], 1.0, false),
+            comp(&["base_resist_all_elements_%"], 1.0, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_chaos_resistance",
         label: "(Pseudo) +#% total to Chaos Resistance",
-        components: &[
-            comp("ChaosResistance", 1.0, false),
-            comp("ChaosResistancePrefix", 1.0, false),
-            comp("AllResistancesWithChaos", 1.0, false),
-        ],
+        components: &[comp(&["base_chaos_damage_resistance_%"], 1.0, false)],
     },
     // ── Attributes ───────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_total_strength",
         label: "(Pseudo) +# total to Strength",
         components: &[
-            comp("Strength", 1.0, false),
-            comp("AllAttributes", 1.0, false),
+            comp(&["additional_strength"], 1.0, false),
+            comp(
+                &[
+                    "additional_strength_and_dexterity",
+                    "additional_strength_and_intelligence",
+                ],
+                1.0,
+                false,
+            ),
+            comp(&["additional_all_attributes"], 1.0, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_dexterity",
         label: "(Pseudo) +# total to Dexterity",
         components: &[
-            comp("Dexterity", 1.0, false),
-            comp("AllAttributes", 1.0, false),
+            comp(&["additional_dexterity"], 1.0, false),
+            comp(
+                &[
+                    "additional_strength_and_dexterity",
+                    "additional_dexterity_and_intelligence",
+                ],
+                1.0,
+                false,
+            ),
+            comp(&["additional_all_attributes"], 1.0, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_intelligence",
         label: "(Pseudo) +# total to Intelligence",
         components: &[
-            comp("Intelligence", 1.0, false),
-            comp("AllAttributes", 1.0, false),
+            comp(&["additional_intelligence"], 1.0, false),
+            comp(
+                &[
+                    "additional_strength_and_intelligence",
+                    "additional_dexterity_and_intelligence",
+                ],
+                1.0,
+                false,
+            ),
+            comp(&["additional_all_attributes"], 1.0, false),
         ],
     },
     // ── Life / Mana / ES ─────────────────────────────────────────────
@@ -581,47 +603,68 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
         id: "pseudo_total_life",
         label: "(Pseudo) +# total maximum Life",
         components: &[
-            comp("IncreasedLife", 1.0, true),
+            comp(&["base_maximum_life"], 1.0, true),
             // Each point of Strength gives 0.5 life
-            comp("Strength", 0.5, false),
-            comp("AllAttributes", 0.5, false),
+            comp(&["additional_strength"], 0.5, false),
+            comp(
+                &[
+                    "additional_strength_and_dexterity",
+                    "additional_strength_and_intelligence",
+                ],
+                0.5,
+                false,
+            ),
+            comp(&["additional_all_attributes"], 0.5, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_mana",
         label: "(Pseudo) +# total maximum Mana",
         components: &[
-            comp("IncreasedMana", 1.0, true),
+            comp(&["base_maximum_mana"], 1.0, true),
             // Each point of Intelligence gives 0.5 mana
-            comp("Intelligence", 0.5, false),
-            comp("AllAttributes", 0.5, false),
+            comp(&["additional_intelligence"], 0.5, false),
+            comp(
+                &[
+                    "additional_strength_and_intelligence",
+                    "additional_dexterity_and_intelligence",
+                ],
+                0.5,
+                false,
+            ),
+            comp(&["additional_all_attributes"], 0.5, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_total_energy_shield",
         label: "(Pseudo) +# total maximum Energy Shield",
-        components: &[comp("IncreasedEnergyShield", 1.0, false)],
-    },
-    PseudoDefinition {
-        id: "pseudo_increased_energy_shield",
-        label: "(Pseudo) #% total increased maximum Energy Shield",
         components: &[
-            comp("MaximumLifeIncreasePercent", 1.0, false), // TODO: verify family
+            comp(
+                &[
+                    "base_maximum_energy_shield",
+                    "local_energy_shield",
+                ],
+                1.0,
+                false,
+            ),
         ],
     },
     // ── Speed ────────────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_increased_movement_speed",
         label: "(Pseudo) #% increased Movement Speed",
-        components: &[comp("MovementVelocity", 1.0, false)],
+        components: &[comp(&["base_movement_velocity_+%"], 1.0, false)],
     },
     // ── Damage ───────────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_increased_physical_damage",
         label: "(Pseudo) #% total increased Physical Damage",
         components: &[
-            comp("PhysicalDamagePercent", 1.0, false),
-            comp("PhysicalDamagePercentPrefix", 1.0, false),
+            comp(
+                &["physical_damage_+%", "local_physical_damage_+%"],
+                1.0,
+                false,
+            ),
         ],
     },
 ];
