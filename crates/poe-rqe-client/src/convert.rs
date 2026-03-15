@@ -267,6 +267,11 @@ mod tests {
                 value: "68".into(),
             }],
             sockets: Some("R-R-G B".into()),
+            socket_info: Some(poe_item::types::SocketInfo {
+                total: 4,
+                max_link: 3,
+            }),
+            quality: None,
             experience: None,
             properties: vec![],
             implicits: vec![],

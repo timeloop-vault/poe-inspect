@@ -856,6 +856,8 @@ mod tests {
             properties: vec![],
             requirements: vec![],
             sockets: None,
+            socket_info: None,
+            quality: None,
             item_level: Some(83),
             enchants: vec![],
             implicits: vec![],

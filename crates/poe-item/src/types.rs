@@ -311,6 +311,12 @@ pub struct ResolvedItem {
     pub requirements: Vec<Requirement>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub sockets: Option<String>,
+    /// Pre-computed socket metadata (total count, max link group).
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub socket_info: Option<SocketInfo>,
+    /// Item quality percentage (parsed from the `"Quality"` property).
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub quality: Option<u32>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub experience: Option<String>,
     /// Parsed property lines (e.g., "Armour: 890 (augmented)").
@@ -392,6 +398,19 @@ impl ResolvedItem {
             .chain(self.implicits.iter())
             .chain(self.explicits.iter())
     }
+}
+
+/// Parsed socket metadata from the socket string.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct SocketInfo {
+    /// Total number of sockets.
+    pub total: u32,
+    /// Largest linked socket group.
+    pub max_link: u32,
 }
 
 /// Resolved header with base type always extracted.

@@ -15,7 +15,7 @@ use regex::Regex;
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
     ModSource, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine,
-    Section, StatusKind, VaalGemData, ValueRange,
+    Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -130,6 +130,22 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         .iter()
         .any(|s| matches!(s, StatusKind::Unidentified));
 
+    // Pre-compute socket metadata
+    let socket_info = sockets.as_deref().map(parse_socket_info);
+
+    // Extract quality from properties
+    let quality = classified
+        .properties
+        .iter()
+        .find(|p| p.name == "Quality")
+        .and_then(|p| {
+            p.value
+                .trim_start_matches('+')
+                .trim_end_matches('%')
+                .parse::<u32>()
+                .ok()
+        });
+
     ResolvedItem {
         header,
         item_level,
@@ -137,6 +153,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         talisman_tier,
         requirements,
         sockets,
+        socket_info,
+        quality,
         experience,
         properties: classified.properties,
         implicits,
@@ -703,6 +721,34 @@ pub(crate) fn build_display_text(text: &str) -> String {
         Some(s) => s.to_string(),
         None => stripped.into_owned(),
     }
+}
+
+/// Parse a socket string (e.g., `"R-G-B B"`) into structured metadata.
+///
+/// Letters are sockets, `-` = linked, ` ` = new group.
+fn parse_socket_info(socket_str: &str) -> SocketInfo {
+    let total = socket_str
+        .chars()
+        .filter(char::is_ascii_alphabetic)
+        .count() as u32;
+
+    let mut max_link: u32 = 0;
+    let mut current: u32 = 0;
+    for c in socket_str.chars() {
+        if c.is_ascii_alphabetic() {
+            if current == 0 {
+                current = 1;
+            }
+        } else if c == '-' {
+            current += 1;
+        } else {
+            max_link = max_link.max(current);
+            current = 0;
+        }
+    }
+    max_link = max_link.max(current);
+
+    SocketInfo { total, max_link }
 }
 
 #[cfg(test)]
