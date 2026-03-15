@@ -771,15 +771,24 @@ pub(crate) fn build_display_text(text: &str) -> String {
 ///
 /// Letters are sockets, `-` = linked, ` ` = new group.
 fn parse_socket_info(socket_str: &str) -> SocketInfo {
-    let total = socket_str
-        .chars()
-        .filter(char::is_ascii_alphabetic)
-        .count() as u32;
+    let mut total: u32 = 0;
+    let mut red: u32 = 0;
+    let mut green: u32 = 0;
+    let mut blue: u32 = 0;
+    let mut white: u32 = 0;
 
     let mut max_link: u32 = 0;
     let mut current: u32 = 0;
     for c in socket_str.chars() {
         if c.is_ascii_alphabetic() {
+            total += 1;
+            match c {
+                'R' => red += 1,
+                'G' => green += 1,
+                'B' => blue += 1,
+                'W' => white += 1,
+                _ => {}
+            }
             if current == 0 {
                 current = 1;
             }
@@ -792,7 +801,14 @@ fn parse_socket_info(socket_str: &str) -> SocketInfo {
     }
     max_link = max_link.max(current);
 
-    SocketInfo { total, max_link }
+    SocketInfo {
+        total,
+        max_link,
+        red,
+        green,
+        blue,
+        white,
+    }
 }
 
 #[cfg(test)]

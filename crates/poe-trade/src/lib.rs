@@ -33,6 +33,6 @@ pub use query::{QueryBuildResult, TradeSearchBody, build_query};
 pub use stats_index::IndexBuildResult;
 pub use types::{
     League, LeagueList, ListingStatus, MappedStat, Price, PriceCheckResult, SearchResult,
-    SocketInfo, StatFilterOverride, TradeFilterConfig, TradeQueryConfig, TradeStatCategory,
-    TradeStatEntry, TradeStatsIndex, TradeStatsResponse, TypeSearchScope, listing_statuses,
+    StatFilterOverride, TradeFilterConfig, TradeQueryConfig, TradeStatCategory, TradeStatEntry,
+    TradeStatsIndex, TradeStatsResponse, TypeSearchScope, listing_statuses,
 };

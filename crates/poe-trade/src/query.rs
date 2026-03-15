@@ -4,11 +4,13 @@
 //! produces a serializable `TradeSearchBody` ready for POST to
 //! `/api/trade/search/{league}`.
 
-use poe_item::types::{ModDisplayType, Rarity, ResolvedItem, ResolvedMod, ResolvedStatLine};
+use poe_item::types::{
+    ModDisplayType, Rarity, ResolvedItem, ResolvedMod, ResolvedStatLine, SocketInfo,
+};
 use serde::Serialize;
 
 use crate::types::{
-    MappedStat, SocketInfo, TradeFilterConfig, TradeQueryConfig, TradeStatsIndex, TypeSearchScope,
+    MappedStat, TradeFilterConfig, TradeQueryConfig, TradeStatsIndex, TypeSearchScope,
 };
 
 // ── Result ──────────────────────────────────────────────────────────────────
@@ -308,8 +310,8 @@ pub fn build_query(
         }]
     };
 
-    // Parse socket info and quality from item
-    let socket_info = item.sockets.as_deref().map(parse_socket_info);
+    // Socket info and quality from item (pre-parsed by poe-item)
+    let socket_info = item.socket_info.as_ref();
     let quality = extract_quality(item);
 
     let type_scope = filter_config.map_or(TypeSearchScope::BaseType, |fc| fc.type_scope);
@@ -317,7 +319,7 @@ pub fn build_query(
         item,
         config,
         type_scope,
-        socket_info.as_ref(),
+        socket_info,
         quality,
         filter_config,
     );
@@ -353,7 +355,7 @@ pub fn build_query(
         stats_total,
         unmapped_stats,
         mapped_stats,
-        socket_info,
+        socket_info: socket_info.cloned(),
         quality,
     }
 }
@@ -432,61 +434,6 @@ fn compute_filter_value(
         min: Some(relaxed),
         max: None,
     })
-}
-
-/// Parse an item's socket string into structured info.
-///
-/// Format: letters `R`/`G`/`B`/`W` separated by `-` (linked) or ` ` (unlinked).
-/// Example: `"B-B-B B"` → 4 sockets, max link 3, 4 blue, 0 white.
-#[must_use]
-pub fn parse_socket_info(socket_str: &str) -> SocketInfo {
-    let mut total = 0u32;
-    let mut max_link = 1u32;
-    let mut current_link = 1u32;
-    let mut red = 0u32;
-    let mut green = 0u32;
-    let mut blue = 0u32;
-    let mut white = 0u32;
-
-    let mut prev_was_link = false;
-
-    for ch in socket_str.chars() {
-        match ch {
-            'R' | 'G' | 'B' | 'W' => {
-                total += 1;
-                match ch {
-                    'R' => red += 1,
-                    'G' => green += 1,
-                    'B' => blue += 1,
-                    'W' => white += 1,
-                    _ => unreachable!(),
-                }
-                if !prev_was_link && total > 1 {
-                    // Space-separated = new group
-                    current_link = 1;
-                }
-                prev_was_link = false;
-            }
-            '-' => {
-                current_link += 1;
-                max_link = max_link.max(current_link);
-                prev_was_link = true;
-            }
-            ' ' => {
-                prev_was_link = false;
-            }
-            _ => {}
-        }
-    }
-
-    SocketInfo {
-        total,
-        max_link,
-        red,
-        green,
-        blue,
-        white,
-    }
 }
 
 /// Build item-level filters (type, misc, sockets).
@@ -1125,61 +1072,6 @@ mod tests {
         assert_eq!(result.mapped_stats[1].computed_min, Some(34.0));
     }
 
-    // ── Socket parsing tests ──────────────────────────────────────────────
-
-    #[test]
-    fn parse_sockets_simple_linked() {
-        let info = parse_socket_info("B-B-B B");
-        assert_eq!(info.total, 4);
-        assert_eq!(info.max_link, 3);
-        assert_eq!(info.blue, 4);
-        assert_eq!(info.red, 0);
-        assert_eq!(info.green, 0);
-        assert_eq!(info.white, 0);
-    }
-
-    #[test]
-    fn parse_sockets_mixed_colors() {
-        let info = parse_socket_info("R-G-B W");
-        assert_eq!(info.total, 4);
-        assert_eq!(info.max_link, 3);
-        assert_eq!(info.red, 1);
-        assert_eq!(info.green, 1);
-        assert_eq!(info.blue, 1);
-        assert_eq!(info.white, 1);
-    }
-
-    #[test]
-    fn parse_sockets_six_linked() {
-        let info = parse_socket_info("R-R-G-G-B-B");
-        assert_eq!(info.total, 6);
-        assert_eq!(info.max_link, 6);
-    }
-
-    #[test]
-    fn parse_sockets_all_unlinked() {
-        let info = parse_socket_info("R G B W");
-        assert_eq!(info.total, 4);
-        assert_eq!(info.max_link, 1);
-    }
-
-    #[test]
-    fn parse_sockets_single() {
-        let info = parse_socket_info("B");
-        assert_eq!(info.total, 1);
-        assert_eq!(info.max_link, 1);
-        assert_eq!(info.blue, 1);
-    }
-
-    #[test]
-    fn parse_sockets_two_groups() {
-        let info = parse_socket_info("R-R G-G-G");
-        assert_eq!(info.total, 5);
-        assert_eq!(info.max_link, 3);
-        assert_eq!(info.red, 2);
-        assert_eq!(info.green, 3);
-    }
-
     // ── Socket filter tests ───────────────────────────────────────────────
 
     #[test]
@@ -1204,6 +1096,7 @@ mod tests {
     fn five_link_auto_includes_link_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G-G-B".to_string());
+        item.socket_info = Some(SocketInfo { total: 5, max_link: 5, red: 2, green: 2, blue: 1, white: 0 });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let result = build_query(&item, &index, &config, None);
@@ -1226,6 +1119,7 @@ mod tests {
     fn four_link_no_auto_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G-G B".to_string());
+        item.socket_info = Some(SocketInfo { total: 5, max_link: 4, red: 2, green: 2, blue: 1, white: 0 });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let result = build_query(&item, &index, &config, None);
@@ -1247,6 +1141,7 @@ mod tests {
     fn edit_mode_enables_link_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G B".to_string()); // 3-link
+        item.socket_info = Some(SocketInfo { total: 4, max_link: 3, red: 2, green: 1, blue: 1, white: 0 });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let fc = TradeFilterConfig {
@@ -1274,6 +1169,7 @@ mod tests {
     fn edit_mode_disables_link_filter() {
         let mut item = test_item();
         item.sockets = Some("R-R-G-G-B-B".to_string()); // 6-link
+        item.socket_info = Some(SocketInfo { total: 6, max_link: 6, red: 2, green: 2, blue: 2, white: 0 });
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
         let fc = TradeFilterConfig {
