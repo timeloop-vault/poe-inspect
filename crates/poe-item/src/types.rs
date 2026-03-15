@@ -201,6 +201,11 @@ pub struct ItemProperty {
     pub name: String,
     pub value: String,
     pub augmented: bool,
+    /// Synthetic properties are added by the resolver for trade filter text matching.
+    /// They should NOT be rendered in the overlay display — the data is already
+    /// shown elsewhere (header, sockets section, etc.).
+    #[cfg_attr(feature = "serde", serde(default))]
+    pub synthetic: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

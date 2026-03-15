@@ -1298,6 +1298,7 @@ mod tests {
             name: "Quality".to_string(),
             value: "+20%".to_string(),
             augmented: true,
+            synthetic: false,
         }];
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
@@ -1322,6 +1323,7 @@ mod tests {
             name: "Quality".to_string(),
             value: "+20%".to_string(),
             augmented: true,
+            synthetic: false,
         }];
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");
@@ -1354,6 +1356,7 @@ mod tests {
             name: "Quality".to_string(),
             value: "+20%".to_string(),
             augmented: true,
+            synthetic: false,
         }];
         let index = test_index();
         let config = TradeQueryConfig::new("Mirage");

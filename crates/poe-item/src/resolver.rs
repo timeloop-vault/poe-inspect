@@ -148,40 +148,44 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
 
     // Add synthetic properties for fields that exist as dedicated fields
     // but should also be matchable by property name (for trade filter text matching).
+    // Marked synthetic=true so the overlay doesn't render them as property lines.
     let mut properties = classified.properties;
     if let Some(ilvl) = item_level {
         properties.push(ItemProperty {
             name: "Item Level".to_string(),
             value: ilvl.to_string(),
             augmented: false,
+            synthetic: true,
         });
     }
-    // Sockets/Links: these names match the trade API filter text ("Sockets", "Links")
-    // rather than the GGPK ClientStrings (ItemDisplayStringSockets = "Sockets").
+    // Sockets/Links: names match trade API filter text.
     // "Links" has no GGPK equivalent — it's a trade API concept (max linked group).
     if let Some(ref si) = socket_info {
         properties.push(ItemProperty {
             name: "Sockets".to_string(),
             value: si.total.to_string(),
             augmented: false,
+            synthetic: true,
         });
         properties.push(ItemProperty {
             name: "Links".to_string(),
             value: si.max_link.to_string(),
             augmented: false,
+            synthetic: true,
         });
     }
-    // Rarity as a property — uses the same text as ClientStrings ItemDisplayStringRarity
     properties.push(ItemProperty {
         name: "Rarity".to_string(),
         value: format!("{:?}", header.rarity),
         augmented: false,
+        synthetic: true,
     });
     if let Some(tier) = talisman_tier {
         properties.push(ItemProperty {
             name: "Talisman Tier".to_string(),
             value: tier.to_string(),
             augmented: false,
+            synthetic: true,
         });
     }
 
@@ -522,6 +526,7 @@ fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {
                 name: name.to_string(),
                 value,
                 augmented,
+                synthetic: false,
             });
         }
     }
