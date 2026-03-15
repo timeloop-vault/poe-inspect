@@ -889,7 +889,7 @@ fn compute_pseudo_stats(
         if total.abs() > f64::EPSILON {
             results.push(PseudoStat {
                 id: def.id.to_string(),
-                label: format!("(Pseudo) {}", def.label),
+                label: def.label.to_string(),
                 value: total,
             });
         }

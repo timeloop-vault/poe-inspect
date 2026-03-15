@@ -515,7 +515,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Resistances ──────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_total_fire_resistance",
-        label: "+#% total to Fire Resistance",
+        label: "(Pseudo) +#% total to Fire Resistance",
         components: &[
             comp("FireResistance", 1.0, false),
             comp("FireResistancePrefix", 1.0, false),
@@ -525,7 +525,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_cold_resistance",
-        label: "+#% total to Cold Resistance",
+        label: "(Pseudo) +#% total to Cold Resistance",
         components: &[
             comp("ColdResistance", 1.0, false),
             comp("ColdResistancePrefix", 1.0, false),
@@ -535,7 +535,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_lightning_resistance",
-        label: "+#% total to Lightning Resistance",
+        label: "(Pseudo) +#% total to Lightning Resistance",
         components: &[
             comp("LightningResistance", 1.0, false),
             comp("LightningResistancePrefix", 1.0, false),
@@ -545,7 +545,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_chaos_resistance",
-        label: "+#% total to Chaos Resistance",
+        label: "(Pseudo) +#% total to Chaos Resistance",
         components: &[
             comp("ChaosResistance", 1.0, false),
             comp("ChaosResistancePrefix", 1.0, false),
@@ -555,7 +555,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Attributes ───────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_total_strength",
-        label: "+# total to Strength",
+        label: "(Pseudo) +# total to Strength",
         components: &[
             comp("Strength", 1.0, false),
             comp("AllAttributes", 1.0, false),
@@ -563,7 +563,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_dexterity",
-        label: "+# total to Dexterity",
+        label: "(Pseudo) +# total to Dexterity",
         components: &[
             comp("Dexterity", 1.0, false),
             comp("AllAttributes", 1.0, false),
@@ -571,7 +571,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_intelligence",
-        label: "+# total to Intelligence",
+        label: "(Pseudo) +# total to Intelligence",
         components: &[
             comp("Intelligence", 1.0, false),
             comp("AllAttributes", 1.0, false),
@@ -580,7 +580,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Life / Mana / ES ─────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_total_life",
-        label: "+# total maximum Life",
+        label: "(Pseudo) +# total maximum Life",
         components: &[
             comp("IncreasedLife", 1.0, true),
             // Each point of Strength gives 0.5 life
@@ -590,7 +590,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_mana",
-        label: "+# total maximum Mana",
+        label: "(Pseudo) +# total maximum Mana",
         components: &[
             comp("IncreasedMana", 1.0, true),
             // Each point of Intelligence gives 0.5 mana
@@ -600,14 +600,14 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     },
     PseudoDefinition {
         id: "pseudo_total_energy_shield",
-        label: "+# total maximum Energy Shield",
+        label: "(Pseudo) +# total maximum Energy Shield",
         components: &[
             comp("IncreasedEnergyShield", 1.0, false),
         ],
     },
     PseudoDefinition {
         id: "pseudo_increased_energy_shield",
-        label: "#% total increased maximum Energy Shield",
+        label: "(Pseudo) #% total increased maximum Energy Shield",
         components: &[
             comp("MaximumLifeIncreasePercent", 1.0, false), // TODO: verify family
         ],
@@ -615,7 +615,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Speed ────────────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_increased_movement_speed",
-        label: "#% increased Movement Speed",
+        label: "(Pseudo) #% increased Movement Speed",
         components: &[
             comp("MovementVelocity", 1.0, false),
         ],
@@ -623,7 +623,7 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Damage ───────────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_increased_physical_damage",
-        label: "#% total increased Physical Damage",
+        label: "(Pseudo) #% total increased Physical Damage",
         components: &[
             comp("PhysicalDamage", 1.0, false),
         ],
