@@ -265,6 +265,13 @@ impl GameData {
             .map(|&i| &self.item_classes[i])
     }
 
+    /// Look up an item class by its display name (e.g., "Body Armours", "Boots").
+    ///
+    /// This is the name that appears in Ctrl+Alt+C `Item Class:` header.
+    pub fn item_class_by_name(&self, name: &str) -> Option<&ItemClassRow> {
+        self.item_classes.iter().find(|c| c.name == name)
+    }
+
     pub fn base_item_by_name(&self, name: &str) -> Option<&BaseItemTypeRow> {
         self.base_item_by_name
             .get(name)

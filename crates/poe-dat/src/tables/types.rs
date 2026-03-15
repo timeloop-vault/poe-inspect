@@ -48,6 +48,16 @@ pub struct ItemClassRow {
     pub category: Option<u64>,
     /// Whether the item can have veiled mods.
     pub can_have_veiled_mods: bool,
+    /// Whether items of this class can be corrupted.
+    pub can_be_corrupted: bool,
+    /// Whether items of this class can have incubators applied.
+    pub can_have_incubators: bool,
+    /// Whether items of this class can have influence (Shaper, Elder, etc.).
+    pub can_have_influence: bool,
+    /// Whether items of this class can be double-corrupted in the Temple.
+    pub can_be_double_corrupted: bool,
+    /// Whether items of this class can be fractured.
+    pub can_be_fractured: bool,
 }
 
 /// A base item type from `BaseItemTypes.datc64`.

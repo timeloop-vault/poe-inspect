@@ -117,12 +117,29 @@ mod item_classes_offsets {
     pub const ID: usize = 0; // ref|string (8)
     pub const NAME: usize = 8; // ref|string (8)
     pub const CATEGORY: usize = 16; // FK (16) — u64 row index
-    pub const _REMOVED: usize = 32; // bool (1)
-    pub const _LIST1: usize = 33; // list (16)
-    pub const _LIST2: usize = 49; // list (16)
-    pub const _ALLOC_MAP: usize = 65; // bool (1)
-    pub const _ALLOC_ALWAYS: usize = 66; // bool (1)
+    // 32: RemovedIfLeavesArea (bool=1)
+    // 33: _ (list=16)
+    // 49: IdentifyAchievements (list=16)
+    // 65: AllocateToMapOwner (bool=1)
+    // 66: AlwaysAllocate (bool=1)
     pub const CAN_HAVE_VEILED: usize = 67; // bool (1)
+    // 68: PickedUpQuest (FK=16)
+    // 84: _ (i32=4)
+    // 88: AlwaysShow (bool=1)
+    pub const CAN_BE_CORRUPTED: usize = 89; // bool (1)
+    pub const CAN_HAVE_INCUBATORS: usize = 90; // bool (1)
+    pub const CAN_HAVE_INFLUENCE: usize = 91; // bool (1)
+    pub const CAN_BE_DOUBLE_CORRUPTED: usize = 92; // bool (1)
+    // 93: CanHaveAspects (bool=1)
+    // 94: CanTransferSkin (bool=1)
+    // 95: ItemStance (FK=16)
+    // 111: CanScourge (bool=1)
+    // 112: CanUpgradeRarity (bool=1)
+    // 113-114: _ (bool=1 x2)
+    // 115: MaxInventoryDimensions (list=16)
+    // 131: Unmodifiable (bool=1)
+    pub const CAN_BE_FRACTURED: usize = 132; // bool (1)
+    // Byte offsets verified against 3.28 Mirage data (2026-03-15)
 }
 
 /// Extract all rows from `ItemClasses.datc64`.
@@ -135,6 +152,21 @@ pub fn extract_item_classes(dat: &DatFile) -> Vec<ItemClassRow> {
                 category: dat.read_fk(row, item_classes_offsets::CATEGORY),
                 can_have_veiled_mods: dat
                     .read_bool(row, item_classes_offsets::CAN_HAVE_VEILED)
+                    .unwrap_or(false),
+                can_be_corrupted: dat
+                    .read_bool(row, item_classes_offsets::CAN_BE_CORRUPTED)
+                    .unwrap_or(false),
+                can_have_incubators: dat
+                    .read_bool(row, item_classes_offsets::CAN_HAVE_INCUBATORS)
+                    .unwrap_or(false),
+                can_have_influence: dat
+                    .read_bool(row, item_classes_offsets::CAN_HAVE_INFLUENCE)
+                    .unwrap_or(false),
+                can_be_double_corrupted: dat
+                    .read_bool(row, item_classes_offsets::CAN_BE_DOUBLE_CORRUPTED)
+                    .unwrap_or(false),
+                can_be_fractured: dat
+                    .read_bool(row, item_classes_offsets::CAN_BE_FRACTURED)
                     .unwrap_or(false),
             })
         })
