@@ -447,6 +447,14 @@ pub struct SocketInfo {
     pub total: u32,
     /// Largest linked socket group.
     pub max_link: u32,
+    /// Red socket count.
+    pub red: u32,
+    /// Green socket count.
+    pub green: u32,
+    /// Blue socket count.
+    pub blue: u32,
+    /// White socket count.
+    pub white: u32,
 }
 
 /// Resolved header with base type always extracted.
