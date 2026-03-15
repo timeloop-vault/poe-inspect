@@ -1124,6 +1124,70 @@ body,
 	margin-left: auto;
 }
 
+/* --- Schema-driven filter groups --- */
+
+.schema-filters {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 2px 0;
+}
+
+.filter-group {
+	border-left: 2px solid rgba(175, 96, 37, 0.3);
+}
+
+.filter-group-header {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 2px 6px;
+	background: rgba(255, 255, 255, 0.02);
+	border: none;
+	color: var(--poe-text-dim);
+	font-family: inherit;
+	font-size: 10px;
+	cursor: pointer;
+	text-align: left;
+}
+
+.filter-group-header:hover {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.filter-group-chevron {
+	font-size: 8px;
+	width: 8px;
+}
+
+.filter-group-title {
+	flex: 1;
+}
+
+.filter-group-badge {
+	background: rgba(175, 96, 37, 0.3);
+	color: var(--poe-header);
+	padding: 0 4px;
+	border-radius: 2px;
+	font-size: 9px;
+}
+
+.filter-group-body {
+	padding-left: 4px;
+}
+
+.socket-filter-select {
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(70, 59, 43, 0.4);
+	border-radius: 2px;
+	color: var(--poe-text);
+	font-family: inherit;
+	font-size: 10px;
+	padding: 1px 4px;
+	max-width: 100px;
+}
+
 .rarity-toggle {
 	display: flex;
 	gap: 2px;
