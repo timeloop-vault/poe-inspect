@@ -3,4 +3,10 @@
 /**
  * A parsed item property line (e.g., "Armour: 890 (augmented)").
  */
-export type ItemProperty = { name: string, value: string, augmented: boolean, };
+export type ItemProperty = { name: string, value: string, augmented: boolean, 
+/**
+ * Synthetic properties are added by the resolver for trade filter text matching.
+ * They should NOT be rendered in the overlay display — the data is already
+ * shown elsewhere (header, sockets section, etc.).
+ */
+synthetic: boolean, };

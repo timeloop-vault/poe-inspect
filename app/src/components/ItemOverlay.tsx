@@ -640,16 +640,18 @@ export function ItemOverlay({
 
 			<Separator rarity={rarity} />
 
-			{/* Properties */}
-			{item.properties.length > 0 && (
+			{/* Properties (filter out synthetic — those are for trade matching only) */}
+			{item.properties.filter((p) => !p.synthetic).length > 0 && (
 				<>
 					<div class="item-properties">
-						{item.properties.map((prop) => (
-							<div key={prop.name} class={`property-line ${prop.augmented ? "augmented" : ""}`}>
-								<span class="prop-label">{prop.name}: </span>
-								<span class="prop-value">{prop.value}</span>
-							</div>
-						))}
+						{item.properties
+							.filter((p) => !p.synthetic)
+							.map((prop) => (
+								<div key={prop.name} class={`property-line ${prop.augmented ? "augmented" : ""}`}>
+									<span class="prop-label">{prop.name}: </span>
+									<span class="prop-value">{prop.value}</span>
+								</div>
+							))}
 					</div>
 					<Separator rarity={rarity} />
 				</>
