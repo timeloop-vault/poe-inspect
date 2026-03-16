@@ -95,7 +95,6 @@ poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
 ### Rust
 - Edition 2024, MSRV aligned with latest stable
 - `clippy::pedantic` enabled, `unsafe_code = "forbid"`
-- `cargo fmt` before commit
 - Use `thiserror` for error types
 - **Always fix clippy warnings** — even if unrelated to your changes. Zero warnings policy.
 
@@ -103,6 +102,14 @@ poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
 - Strict mode, no `any` without justification
 - Biome for formatting/linting
 - **Always fix biome errors** — even if unrelated to your changes. Run `npx biome check --write --unsafe .` from `app/` and fix any remaining issues before committing.
+
+### Pre-commit checklist (MANDATORY before every commit)
+Run all of these and fix any errors before committing. A pre-commit hook enforces this automatically.
+1. `cargo fmt` — format all Rust code
+2. `cargo clippy --workspace --tests` — zero warnings policy
+3. `cargo clippy --manifest-path app/src-tauri/Cargo.toml --tests` — Tauri app (excluded from workspace)
+4. `cd app && npx tsc --noEmit` — TypeScript strict type checking
+5. `cd app && npx biome check --write --unsafe .` — format + lint frontend
 
 ### Git / CLI
 - **Never chain `cd` with other commands** (`cd path && cmd`) — chained commands don't match allowed permissions and trigger prompts. Use flags when possible (`cargo check -p poe-trade`, `cargo check --manifest-path app/src-tauri/Cargo.toml`). When a tool requires cwd (vite, biome), run `cd app` as a separate Bash call first, then the command in the next call (cwd persists between calls). Always `cd` back to repo root after.
@@ -114,6 +121,7 @@ poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
 
 ## Build Notes
 
+- **Pre-commit hook**: Run `git config core.hooksPath .githooks` after cloning to activate the pre-commit hook (Rust fmt/clippy + TS tsc/biome). The hook is tracked in `.githooks/`.
 - **poe-bundle/poe-query** are excluded from the workspace — build from their own directories
 - **cmake required** for poe-bundle (Oodle C++ lib). VS BuildTools cmake path must be on PATH
 - **dat-schema** must be copied to `target/debug/dat-schema/` next to the poe_query binary for dev testing
