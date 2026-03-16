@@ -11,6 +11,15 @@
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
+/// Safety margin added to all delays. Accounts for network latency and
+/// clock skew between our tracking and GGG's server.
+const SAFETY_MARGIN: Duration = Duration::from_millis(1500);
+
+/// Conservative default policy used before any GGG response arrives.
+/// Based on observed limits (`12:6:60,16:12:300`) but at half capacity
+/// to be safe during the unknown initial period.
+const DEFAULT_POLICY_STR: &str = "6:6:60,8:12:300";
+
 /// A single rate limit rule (e.g., "12 requests per 6 seconds, 60s penalty").
 #[derive(Debug, Clone)]
 pub struct RateLimitRule {
@@ -51,8 +60,9 @@ impl RateLimitPolicy {
     }
 }
 
-/// Tracks request history and enforces rate limits for one endpoint class
-/// (search or fetch).
+/// Tracks request history and enforces rate limits across all trade API
+/// endpoints. GGG's `X-Rate-Limit-Ip` is per-IP across all endpoints,
+/// so a single tracker covers search, fetch, stats, filters, and leagues.
 #[derive(Debug)]
 pub struct RateLimitTracker {
     policy: Option<RateLimitPolicy>,
@@ -61,18 +71,71 @@ pub struct RateLimitTracker {
 }
 
 impl RateLimitTracker {
-    /// Create a new tracker with no policy (unconstrained until first response).
+    /// Create a new tracker with a conservative default policy.
+    ///
+    /// The default limits requests to half the observed GGG limits,
+    /// protecting the user even before the first API response reveals
+    /// the actual policy.
+    #[must_use]
     pub fn new() -> Self {
         Self {
-            policy: None,
+            policy: RateLimitPolicy::parse(DEFAULT_POLICY_STR),
             request_times: VecDeque::new(),
             blocked_until: None,
         }
     }
 
     /// Update the rate limit policy from response headers.
+    ///
+    /// Called after every API response that includes `X-Rate-Limit-Ip`.
+    /// Replaces the conservative default with the real server policy.
     pub fn update_policy(&mut self, policy: RateLimitPolicy) {
         self.policy = Some(policy);
+    }
+
+    /// Sync local request count with server-reported state.
+    ///
+    /// Parses the `X-Rate-Limit-Ip-State` header (`"current:period:penalty,..."`)
+    /// and adjusts local tracking to match. If the server reports a penalty,
+    /// blocks for that duration.
+    pub fn sync_server_state(&mut self, state_header: &str) {
+        let now = Instant::now();
+
+        for part in state_header.split(',') {
+            let mut fields = part.trim().split(':');
+            let Some(current_str) = fields.next() else {
+                continue;
+            };
+            let Ok(current) = current_str.parse::<u32>() else {
+                continue;
+            };
+            // Skip period field.
+            let _ = fields.next();
+            // Parse penalty remaining.
+            if let Some(penalty_str) = fields.next() {
+                if let Ok(penalty_secs) = penalty_str.parse::<u64>() {
+                    if penalty_secs > 0 {
+                        let block_until = now + Duration::from_secs(penalty_secs) + SAFETY_MARGIN;
+                        self.blocked_until = Some(
+                            self.blocked_until
+                                .map_or(block_until, |existing| existing.max(block_until)),
+                        );
+                    }
+                }
+            }
+
+            // Adjust local request count to match server's view.
+            // This is conservative: we assume all server-counted requests
+            // happened just now (recent), so the limiter will be cautious.
+            let local_count = self.request_times.len() as u32;
+            if current > local_count {
+                // Server knows about more requests than us (e.g., after restart).
+                // Inject synthetic timestamps at `now` to match.
+                for _ in 0..(current - local_count) {
+                    self.request_times.push_back(now);
+                }
+            }
+        }
     }
 
     /// Record that a request was just sent.
@@ -88,6 +151,8 @@ impl RateLimitTracker {
     }
 
     /// Calculate delay needed before the next request is allowed.
+    ///
+    /// Includes a safety margin to account for network latency.
     #[must_use]
     pub fn delay_needed(&self) -> Duration {
         let now = Instant::now();
@@ -122,6 +187,10 @@ impl RateLimitTracker {
                     }
                 }
             }
+        }
+
+        if max_delay > Duration::ZERO {
+            max_delay += SAFETY_MARGIN;
         }
 
         max_delay
@@ -180,9 +249,27 @@ mod tests {
     }
 
     #[test]
-    fn no_policy_no_delay() {
+    fn new_tracker_has_default_policy() {
         let tracker = RateLimitTracker::new();
-        assert_eq!(tracker.delay_needed(), Duration::ZERO);
+        assert!(
+            tracker.policy.is_some(),
+            "new tracker should have default policy"
+        );
+    }
+
+    #[test]
+    fn default_policy_limits_requests() {
+        let mut tracker = RateLimitTracker::new();
+        // Default policy: "6:6:60,8:12:300"
+        // Fill to limit (6 requests).
+        for _ in 0..6 {
+            tracker.record_request();
+        }
+        let delay = tracker.delay_needed();
+        assert!(
+            delay > Duration::ZERO,
+            "should need delay at limit: {delay:?}"
+        );
     }
 
     #[test]
@@ -195,16 +282,19 @@ mod tests {
     }
 
     #[test]
-    fn at_limit_needs_delay() {
+    fn at_limit_needs_delay_with_margin() {
         let mut tracker = RateLimitTracker::new();
         // 2 requests per 10 seconds
         tracker.update_policy(RateLimitPolicy::parse("2:10:60").unwrap());
         tracker.record_request();
         tracker.record_request();
         let delay = tracker.delay_needed();
-        // Should need to wait ~10 seconds (the window period)
-        assert!(delay > Duration::from_secs(9), "delay was {delay:?}");
-        assert!(delay <= Duration::from_secs(10), "delay was {delay:?}");
+        // Should need ~10s + 1.5s margin
+        assert!(delay > Duration::from_secs(10), "delay was {delay:?}");
+        assert!(
+            delay <= Duration::from_millis(11_600),
+            "delay was {delay:?}"
+        );
     }
 
     #[test]
@@ -214,5 +304,23 @@ mod tests {
         let delay = tracker.delay_needed();
         assert!(delay > Duration::from_secs(29));
         assert!(delay <= Duration::from_secs(30));
+    }
+
+    #[test]
+    fn sync_server_state_adds_requests() {
+        let mut tracker = RateLimitTracker::new();
+        tracker.update_policy(RateLimitPolicy::parse("5:10:60").unwrap());
+        // Server says 4 requests in window.
+        tracker.sync_server_state("4:10:0");
+        assert_eq!(tracker.request_times.len(), 4);
+    }
+
+    #[test]
+    fn sync_server_state_penalty_blocks() {
+        let mut tracker = RateLimitTracker::new();
+        // Server says penalty of 60 seconds.
+        tracker.sync_server_state("12:6:60");
+        let delay = tracker.delay_needed();
+        assert!(delay > Duration::from_secs(59), "delay was {delay:?}");
     }
 }

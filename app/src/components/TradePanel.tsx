@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { TradeFilters } from "../hooks/useTradeFilters";
 import type { PriceCheckResult, TradeQueryConfig } from "../types";
 
@@ -20,14 +20,35 @@ type TradeState =
 	| { status: "error"; message: string }
 	| { status: "rate-limited"; retryAfterSecs: number };
 
+/** Minimum cooldown (ms) between trade API operations. */
+const COOLDOWN_MS = 2000;
+
 export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
-	const [urlLoading, setUrlLoading] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [cooldown, setCooldown] = useState(false);
+	const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const hasLeague = config.league.length > 0;
+	const disabled = !hasLeague || busy || cooldown;
+
+	// Clear cooldown timer on unmount.
+	useEffect(() => {
+		return () => {
+			if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
+		};
+	}, []);
+
+	/** Start a cooldown period after any trade operation. */
+	const startCooldown = useCallback((ms: number) => {
+		setCooldown(true);
+		if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
+		cooldownTimer.current = setTimeout(() => setCooldown(false), ms);
+	}, []);
 
 	const priceCheck = useCallback(async () => {
-		if (!hasLeague) return;
+		if (disabled) return;
+		setBusy(true);
 		setState({ status: "loading" });
 		try {
 			const result = await invoke<PriceCheckResult>("price_check", {
@@ -40,23 +61,27 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 			} else {
 				setState({ status: "results", result });
 			}
+			startCooldown(COOLDOWN_MS);
 		} catch (e) {
 			const msg = String(e);
 			const rateLimitMatch = msg.match(/retry after (\d+)s/i);
 			if (rateLimitMatch) {
-				setState({
-					status: "rate-limited",
-					retryAfterSecs: Number(rateLimitMatch[1]),
-				});
+				const secs = Number(rateLimitMatch[1]);
+				setState({ status: "rate-limited", retryAfterSecs: secs });
+				// Block for the full penalty duration.
+				startCooldown(secs * 1000);
 			} else {
 				setState({ status: "error", message: msg });
+				startCooldown(COOLDOWN_MS);
 			}
+		} finally {
+			setBusy(false);
 		}
-	}, [itemText, config, hasLeague, filters.filterConfig]);
+	}, [itemText, config, filters.filterConfig, disabled, startCooldown]);
 
 	const openTrade = useCallback(async () => {
-		if (!hasLeague) return;
-		setUrlLoading(true);
+		if (disabled) return;
+		setBusy(true);
 		try {
 			const url = await invoke<string>("trade_search_url", {
 				itemText,
@@ -64,12 +89,14 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 				filterConfig: filters.filterConfig,
 			});
 			await invoke("open_url", { url });
+			startCooldown(COOLDOWN_MS);
 		} catch (e) {
 			console.error("Failed to open trade URL:", e);
+			startCooldown(COOLDOWN_MS);
 		} finally {
-			setUrlLoading(false);
+			setBusy(false);
 		}
-	}, [itemText, config, hasLeague, filters.filterConfig]);
+	}, [itemText, config, filters.filterConfig, disabled, startCooldown]);
 
 	const disabledTitle = hasLeague ? undefined : "Set a league in Settings > Trade";
 
@@ -89,7 +116,7 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 					type="button"
 					class="trade-action-btn"
 					onClick={priceCheck}
-					disabled={!hasLeague || state.status === "loading"}
+					disabled={disabled}
 					title={disabledTitle}
 				>
 					{state.status === "loading" ? (
@@ -105,10 +132,10 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 					type="button"
 					class="trade-action-btn trade-action-secondary"
 					onClick={openTrade}
-					disabled={!hasLeague || urlLoading}
+					disabled={disabled}
 					title={disabledTitle}
 				>
-					{urlLoading ? (
+					{busy && state.status !== "loading" ? (
 						<>
 							<span class="trade-spinner" />
 							Opening...
@@ -124,7 +151,7 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 			{state.status === "error" && (
 				<div class="trade-message trade-message-error">
 					{state.message}
-					<button type="button" class="trade-retry-btn" onClick={priceCheck}>
+					<button type="button" class="trade-retry-btn" onClick={priceCheck} disabled={disabled}>
 						Retry
 					</button>
 				</div>

@@ -2,6 +2,9 @@
 //!
 //! Wraps `reqwest` with preemptive rate limiting (wait before sending)
 //! and handles the search → fetch two-step flow.
+//!
+//! Uses a **single IP-level rate limiter** because GGG's `X-Rate-Limit-Ip`
+//! is a per-IP quota shared across all endpoints (search, fetch, data, leagues).
 
 use std::time::Duration;
 
@@ -49,19 +52,24 @@ pub enum TradeApiError {
 
 /// Rate-limited HTTP client for pathofexile.com/trade.
 ///
-/// Maintains separate rate limit trackers for search and fetch endpoints.
+/// Uses a single IP-level rate limiter for all endpoints. GGG's
+/// `X-Rate-Limit-Ip` quota is shared across search, fetch, data,
+/// and league endpoints.
+///
 /// Call methods with `&mut self` — the app should hold this behind a `Mutex`
 /// in Tauri managed state.
 #[derive(Debug)]
 pub struct TradeClient {
     http: reqwest::Client,
-    search_limiter: RateLimitTracker,
-    fetch_limiter: RateLimitTracker,
+    limiter: RateLimitTracker,
     poesessid: Option<String>,
 }
 
 impl TradeClient {
-    /// Create a new trade client.
+    /// Create a new trade client with conservative default rate limits.
+    ///
+    /// The default policy protects the user even before the first GGG
+    /// response reveals the actual limits.
     ///
     /// # Panics
     ///
@@ -76,8 +84,7 @@ impl TradeClient {
 
         Self {
             http,
-            search_limiter: RateLimitTracker::new(),
-            fetch_limiter: RateLimitTracker::new(),
+            limiter: RateLimitTracker::new(),
             poesessid: None,
         }
     }
@@ -160,8 +167,8 @@ impl TradeClient {
         query_body: &TradeSearchBody,
         league: &str,
     ) -> Result<SearchResult, TradeApiError> {
-        self.search_limiter.wait_for_capacity().await;
-        self.search_limiter.record_request();
+        self.limiter.wait_for_capacity().await;
+        self.limiter.record_request();
 
         let url = format!("{POE1_TRADE_API}/search/{league}");
         let mut request = self.http.post(&url).json(query_body);
@@ -174,14 +181,11 @@ impl TradeClient {
         let headers = response.headers().clone();
         let body = response.text().await?;
 
-        // Update rate limits from response headers.
-        self.update_limiter_from_headers(&headers, LimiterKind::Search);
+        self.update_limiter_from_headers(&headers);
 
-        // Handle rate limit response.
         if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
             let retry_after = parse_retry_after(&headers);
-            self.search_limiter
-                .block_for(Duration::from_secs(retry_after));
+            self.limiter.block_for(Duration::from_secs(retry_after));
             return Err(TradeApiError::RateLimited {
                 retry_after_secs: retry_after,
             });
@@ -236,8 +240,8 @@ impl TradeClient {
             listing_ids
         };
 
-        self.fetch_limiter.wait_for_capacity().await;
-        self.fetch_limiter.record_request();
+        self.limiter.wait_for_capacity().await;
+        self.limiter.record_request();
 
         let ids_csv = ids_to_fetch.join(",");
         let url = format!("{POE1_TRADE_API}/fetch/{ids_csv}?query={search_id}");
@@ -251,12 +255,11 @@ impl TradeClient {
         let headers = response.headers().clone();
         let body = response.text().await?;
 
-        self.update_limiter_from_headers(&headers, LimiterKind::Fetch);
+        self.update_limiter_from_headers(&headers);
 
         if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
             let retry_after = parse_retry_after(&headers);
-            self.fetch_limiter
-                .block_for(Duration::from_secs(retry_after));
+            self.limiter.block_for(Duration::from_secs(retry_after));
             return Err(TradeApiError::RateLimited {
                 retry_after_secs: retry_after,
             });
@@ -287,11 +290,26 @@ impl TradeClient {
     /// # Errors
     ///
     /// Returns `TradeApiError` on HTTP failure or API errors.
-    pub async fn fetch_stats(&self) -> Result<TradeStatsResponse, TradeApiError> {
+    pub async fn fetch_stats(&mut self) -> Result<TradeStatsResponse, TradeApiError> {
+        self.limiter.wait_for_capacity().await;
+        self.limiter.record_request();
+
         let url = format!("{POE1_TRADE_API}/data/stats");
         let response = self.http.get(&url).send().await?;
 
         let status = response.status();
+        let headers = response.headers().clone();
+
+        self.update_limiter_from_headers(&headers);
+
+        if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            let retry_after = parse_retry_after(&headers);
+            self.limiter.block_for(Duration::from_secs(retry_after));
+            return Err(TradeApiError::RateLimited {
+                retry_after_secs: retry_after,
+            });
+        }
+
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
             return Err(TradeApiError::ApiError {
@@ -313,12 +331,27 @@ impl TradeClient {
     ///
     /// Returns `TradeApiError` on HTTP failure or API errors.
     pub async fn fetch_filters(
-        &self,
+        &mut self,
     ) -> Result<crate::filter_schema::TradeFiltersResponse, TradeApiError> {
+        self.limiter.wait_for_capacity().await;
+        self.limiter.record_request();
+
         let url = format!("{POE1_TRADE_API}/data/filters");
         let response = self.http.get(&url).send().await?;
 
         let status = response.status();
+        let headers = response.headers().clone();
+
+        self.update_limiter_from_headers(&headers);
+
+        if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            let retry_after = parse_retry_after(&headers);
+            self.limiter.block_for(Duration::from_secs(retry_after));
+            return Err(TradeApiError::RateLimited {
+                retry_after_secs: retry_after,
+            });
+        }
+
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
             return Err(TradeApiError::ApiError {
@@ -342,11 +375,26 @@ impl TradeClient {
     /// # Errors
     ///
     /// Returns `TradeApiError` on HTTP failure or API errors.
-    pub async fn fetch_leagues(&self) -> Result<LeagueList, TradeApiError> {
+    pub async fn fetch_leagues(&mut self) -> Result<LeagueList, TradeApiError> {
+        self.limiter.wait_for_capacity().await;
+        self.limiter.record_request();
+
         let url = format!("{POE1_API}/leagues?type=main&realm=pc");
         let response = self.http.get(&url).send().await?;
 
         let status = response.status();
+        let headers = response.headers().clone();
+
+        self.update_limiter_from_headers(&headers);
+
+        if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            let retry_after = parse_retry_after(&headers);
+            self.limiter.block_for(Duration::from_secs(retry_after));
+            return Err(TradeApiError::RateLimited {
+                retry_after_secs: retry_after,
+            });
+        }
+
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
             return Err(TradeApiError::ApiError {
@@ -395,8 +443,12 @@ impl TradeClient {
 
     // ── Internals ───────────────────────────────────────────────────────────
 
-    fn update_limiter_from_headers(&mut self, headers: &HeaderMap, kind: LimiterKind) {
-        // Try X-Rate-Limit-Ip first (most common), then generic X-Rate-Limit.
+    /// Update the single IP-level rate limiter from response headers.
+    ///
+    /// Reads both `X-Rate-Limit-Ip` (policy) and `X-Rate-Limit-Ip-State`
+    /// (current count + penalty) to keep local tracking in sync with the server.
+    fn update_limiter_from_headers(&mut self, headers: &HeaderMap) {
+        // Update policy from X-Rate-Limit-Ip.
         let policy_header = headers
             .get("x-rate-limit-ip")
             .or_else(|| headers.get("x-rate-limit"))
@@ -404,12 +456,18 @@ impl TradeClient {
 
         if let Some(header_str) = policy_header {
             if let Some(policy) = RateLimitPolicy::parse(header_str) {
-                let limiter = match kind {
-                    LimiterKind::Search => &mut self.search_limiter,
-                    LimiterKind::Fetch => &mut self.fetch_limiter,
-                };
-                limiter.update_policy(policy);
+                self.limiter.update_policy(policy);
             }
+        }
+
+        // Sync server state from X-Rate-Limit-Ip-State.
+        let state_header = headers
+            .get("x-rate-limit-ip-state")
+            .or_else(|| headers.get("x-rate-limit-state"))
+            .and_then(|v| v.to_str().ok());
+
+        if let Some(state_str) = state_header {
+            self.limiter.sync_server_state(state_str);
         }
     }
 }
@@ -418,12 +476,6 @@ impl Default for TradeClient {
     fn default() -> Self {
         Self::new()
     }
-}
-
-#[derive(Debug, Clone, Copy)]
-enum LimiterKind {
-    Search,
-    Fetch,
 }
 
 // ── Standalone function (backwards compat) ──────────────────────────────────
