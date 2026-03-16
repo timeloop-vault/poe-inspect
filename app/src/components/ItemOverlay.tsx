@@ -12,6 +12,7 @@ import type {
 	ResolvedMod,
 	ScoreInfo,
 	TierQuality,
+	TypeSearchScope,
 	WatchingScore,
 } from "../types";
 
@@ -219,7 +220,9 @@ function ItemHeader({
 	const rarityInfo = (() => {
 		if (!tradeEdit?.rarityFilter || tradeEdit.rarityFilter.kind.type !== "option") return null;
 		const filter = tradeEdit.rarityFilter;
-		const options = filter.kind.options;
+		const { kind } = filter;
+		if (kind.type !== "option") return null;
+		const options = kind.options;
 		const ov = tradeEdit.filterOverrides.get("rarity");
 		const currentId =
 			ov?.selectedId !== undefined
@@ -273,7 +276,9 @@ function ItemHeader({
 								class="header-type-select"
 								style={{ color: rarityColor(rarity) }}
 								value={tradeEdit.typeScope}
-								onChange={(e) => tradeEdit.setTypeScope((e.target as HTMLSelectElement).value)}
+								onChange={(e) =>
+									tradeEdit.setTypeScope((e.target as HTMLSelectElement).value as TypeSearchScope)
+								}
 							>
 								{tradeEdit.typeScopeOptions.map((opt) => (
 									<option key={opt.scope} value={opt.scope}>
@@ -292,7 +297,9 @@ function ItemHeader({
 							class="header-type-select"
 							style={{ color: rarityColor(rarity) }}
 							value={tradeEdit.typeScope}
-							onChange={(e) => tradeEdit.setTypeScope((e.target as HTMLSelectElement).value)}
+							onChange={(e) =>
+								tradeEdit.setTypeScope((e.target as HTMLSelectElement).value as TypeSearchScope)
+							}
 						>
 							{tradeEdit.typeScopeOptions.map((opt) => (
 								<option key={opt.scope} value={opt.scope}>
@@ -810,7 +817,7 @@ export interface TradeEditOverlay {
 	/** Current type scope. */
 	typeScope: string;
 	/** Set the type scope. */
-	setTypeScope: (scope: string) => void;
+	setTypeScope: (scope: TypeSearchScope) => void;
 }
 
 /**
@@ -910,12 +917,10 @@ function PseudoSection({
 	mods,
 	rarity,
 	forceOpen,
-	tradeEdit,
 }: {
 	mods: ResolvedMod[];
 	rarity: Rarity;
 	forceOpen: boolean;
-	tradeEdit?: TradeEditOverlay | undefined;
 }) {
 	const [userOpen, setUserOpen] = useState(false);
 	const isOpen = forceOpen || userOpen;
@@ -1349,12 +1354,7 @@ export function ItemOverlay({
 
 			{/* Pseudo stats — collapsible, auto-expands in trade edit mode */}
 			{item.pseudoMods && item.pseudoMods.length > 0 && (
-				<PseudoSection
-					mods={item.pseudoMods}
-					rarity={rarity}
-					forceOpen={!!tradeEdit}
-					tradeEdit={tradeEdit}
-				/>
+				<PseudoSection mods={item.pseudoMods} rarity={rarity} forceOpen={!!tradeEdit} />
 			)}
 
 			{/* Profile score (primary or swapped watching) */}

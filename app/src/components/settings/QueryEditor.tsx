@@ -87,7 +87,7 @@ function conditionToRule(c: RqeCondition): { label: string; rule: Rule } | null 
 		if (c.key === "fractured") {
 			return {
 				label: "Fractured",
-				rule: { rule_type: "Pred", type: "HasStatus", status: "Fractured" } as Rule,
+				rule: { rule_type: "Pred", type: "HasInfluence", influence: "Fractured" } as Rule,
 			};
 		}
 		return null;
@@ -119,7 +119,7 @@ function conditionToRule(c: RqeCondition): { label: string; rule: Rule } | null 
 		}
 		// Stat value: "explicit.stat_id" → StatValue predicate
 		const statMatch = c.key.match(/^(explicit|implicit|crafted|enchant)\.(.+)$/);
-		if (statMatch) {
+		if (statMatch?.[2]) {
 			const statId = statMatch[2];
 			return {
 				label: statId,

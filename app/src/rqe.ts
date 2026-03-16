@@ -89,7 +89,11 @@ function insertMods(
 			// Prefer stat_ids (stable, language-independent)
 			if (stat.statIds && stat.statValues) {
 				for (let i = 0; i < stat.statIds.length && i < stat.statValues.length; i++) {
-					entry[`${source}.${stat.statIds[i]}`] = stat.statValues[i];
+					const id = stat.statIds[i];
+					const val = stat.statValues[i];
+					if (id !== undefined && val !== undefined) {
+						entry[`${source}.${id}`] = val;
+					}
 				}
 			} else if (stat.values.length > 0) {
 				// Fallback: template from display text
@@ -97,7 +101,8 @@ function insertMods(
 				for (const vr of stat.values) {
 					template = template.replace(String(vr.current), "#");
 				}
-				entry[`${source}.${template}`] = stat.values[0].current;
+				const first = stat.values[0];
+				if (first) entry[`${source}.${template}`] = first.current;
 			}
 		}
 	}

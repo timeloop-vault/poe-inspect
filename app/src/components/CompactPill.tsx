@@ -6,8 +6,8 @@ interface CompactPillProps {
 	item: ItemPayload;
 	profiles: ProfileSummary[];
 	mapDanger: MapDangerConfig;
-	demandCount?: number | null;
-	demandColor?: string;
+	demandCount?: number | null | undefined;
+	demandColor?: string | undefined;
 }
 
 function scoreClass(pct: number): string {

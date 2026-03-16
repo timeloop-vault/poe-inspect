@@ -27,8 +27,8 @@ export const rareBoots: ItemPayload = {
 		sockets: "R-G-R-B",
 		experience: null,
 		properties: [
-			{ name: "Evasion Rating", value: "250", augmented: true },
-			{ name: "Energy Shield", value: "37", augmented: true },
+			{ name: "Evasion Rating", value: "250", augmented: true, synthetic: false },
+			{ name: "Energy Shield", value: "37", augmented: true, synthetic: false },
 		],
 		implicits: [
 			{
@@ -239,6 +239,9 @@ export const rareBoots: ItemPayload = {
 		description: null,
 		flavorText: null,
 		gemData: null,
+		socketInfo: null,
+		quality: null,
+		pseudoMods: [],
 		unclassifiedSections: [],
 	},
 	eval: {
@@ -285,7 +288,7 @@ export const rareBodyArmour: ItemPayload = {
 		],
 		sockets: "R-R-R-R",
 		experience: null,
-		properties: [{ name: "Armour", value: "890", augmented: true }],
+		properties: [{ name: "Armour", value: "890", augmented: true, synthetic: false }],
 		implicits: [],
 		explicits: [
 			{
@@ -470,6 +473,9 @@ export const rareBodyArmour: ItemPayload = {
 		description: null,
 		flavorText: null,
 		gemData: null,
+		socketInfo: null,
+		quality: null,
+		pseudoMods: [],
 		unclassifiedSections: [],
 	},
 	eval: {
@@ -690,6 +696,9 @@ export const uniqueRing: ItemPayload = {
 		flavorText:
 			'In a blaze of glory,\nAn anomaly defying all odds\nThe "unkillable" beast met the divine\nAnd Ventor met his latest trophy.',
 		gemData: null,
+		socketInfo: null,
+		quality: null,
+		pseudoMods: [],
 		unclassifiedSections: [],
 	},
 	eval: {
