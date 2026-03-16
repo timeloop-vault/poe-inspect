@@ -61,7 +61,7 @@ fn build_index_from_fixture() {
     println!("GGPK stat mapped: {}", result.index.mapped_stat_count());
     println!(
         "Match rate:       {:.1}%",
-        result.matched as f64 / (result.matched + result.unmatched) as f64 * 100.0
+        f64::from(result.matched) / f64::from(result.matched + result.unmatched) * 100.0
     );
 }
 
@@ -72,7 +72,7 @@ fn match_rate_above_threshold() {
     let result = TradeStatsIndex::from_response(&response, gd);
 
     let stat_entries = result.matched + result.unmatched;
-    let match_rate = result.matched as f64 / stat_entries as f64;
+    let match_rate = f64::from(result.matched) / f64::from(stat_entries);
 
     // Print unmatched templates for debugging
     if !result.unmatched_templates.is_empty() {

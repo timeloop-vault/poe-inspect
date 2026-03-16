@@ -40,7 +40,7 @@ fn trade_index() -> &'static TradeStatsIndex {
     })
 }
 
-/// Parse a fixture file into a ResolvedItem.
+/// Parse a fixture file into a `ResolvedItem`.
 fn parse_fixture(name: &str) -> poe_item::types::ResolvedItem {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../fixtures/items")

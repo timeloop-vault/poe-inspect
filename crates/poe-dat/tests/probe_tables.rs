@@ -1,9 +1,9 @@
 //! Probe GGPK tables to inventory all available data.
 //!
-//! Run with: cargo test -p poe-dat --test probe_tables -- --nocapture
+//! Run with: cargo test -p poe-dat --test `probe_tables` -- --nocapture
 //!
 //! Requires all 911 tables extracted to _reference/ggpk-data-3.28/
-//! via: cd crates/poe-query && cargo run --bin extract_dat -- -p <poe_path> -o ../../_reference/ggpk-data-3.28 --all
+//! via: cd crates/poe-query && cargo run --bin `extract_dat` -- -p <`poe_path`> -o ../../_reference/ggpk-data-3.28 --all
 
 use poe_dat::dat_reader::DatFile;
 use std::path::Path;
@@ -58,10 +58,10 @@ fn inventory_all_tables() {
     let dir = reference_dir();
     let mut entries: Vec<_> = std::fs::read_dir(dir)
         .expect("_reference/ggpk-data-3.28 not found")
-        .filter_map(|e| e.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|e| e.path().extension().is_some_and(|ext| ext == "datc64"))
         .collect();
-    entries.sort_by_key(|e| e.file_name());
+    entries.sort_by_key(std::fs::DirEntry::file_name);
 
     println!("=== GGPK Table Inventory ({} tables) ===\n", entries.len());
     println!(
@@ -199,12 +199,8 @@ fn inventory_influence_tags() {
 
         let ic_name = item_classes
             .get(ic_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
-        let tag_name = tags
-            .get(tag_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
+            .map_or("?", String::as_str);
+        let tag_name = tags.get(tag_idx as usize).map_or("?", String::as_str);
         let influence_name = match influence {
             0 => "Shaper",
             1 => "Elder",
@@ -223,6 +219,7 @@ fn inventory_influence_tags() {
 // ── ArmourTypes: base defence values ─────────────────────────────────────────
 
 #[test]
+#[allow(clippy::similar_names)] // ev_min/es_min are domain abbreviations (evasion/energy shield)
 fn inventory_armour_types() {
     let Some(dat) = load_dat("armourtypes") else {
         eprintln!("Skipping: armourtypes not found");
@@ -248,8 +245,7 @@ fn inventory_armour_types() {
 
         let name = base_names
             .get(base_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
+            .map_or("?", String::as_str);
 
         if ar_max > 0 || ev_max > 0 || es_max > 0 {
             println!(
@@ -285,10 +281,9 @@ fn inventory_weapon_types() {
 
         let name = base_names
             .get(base_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
+            .map_or("?", String::as_str);
         let aps = if speed > 0 {
-            1000.0 / speed as f64
+            1000.0 / f64::from(speed)
         } else {
             0.0
         };
@@ -449,8 +444,7 @@ fn inventory_influence_exalts() {
         let influence = dat.read_u32(i, 16).unwrap_or(u32::MAX);
         let name = base_names
             .get(base_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
+            .map_or("?", String::as_str);
         let influence_name = match influence {
             0 => "Shaper",
             1 => "Elder",
@@ -499,8 +493,7 @@ fn inventory_attribute_requirements() {
         let int_req = dat.read_i32(i, 24).unwrap_or(0);
         let name = base_names
             .get(base_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
+            .map_or("?", String::as_str);
 
         if str_req > 0 || dex_req > 0 || int_req > 0 {
             println!("  {name:<30} {str_req:>6} {dex_req:>6} {int_req:>6}");
@@ -527,8 +520,7 @@ fn inventory_shield_types() {
         let block = dat.read_i32(i, 16).unwrap_or(0);
         let name = base_names
             .get(base_idx as usize)
-            .map(String::as_str)
-            .unwrap_or("?");
+            .map_or("?", String::as_str);
         println!("  {name:<30} block={block}");
     }
 }

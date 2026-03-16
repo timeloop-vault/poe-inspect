@@ -270,6 +270,10 @@ mod tests {
             socket_info: Some(poe_item::types::SocketInfo {
                 total: 4,
                 max_link: 3,
+                red: 2,
+                green: 1,
+                blue: 1,
+                white: 0,
             }),
             quality: None,
             experience: None,
@@ -286,6 +290,7 @@ mod tests {
             description: None,
             flavor_text: None,
             gem_data: None,
+            pseudo_mods: vec![],
             unclassified_sections: vec![],
         }
     }

@@ -4,7 +4,7 @@ use poe_dat::stat_desc;
 
 /// Additional stat description files to merge into the reverse index.
 /// These contain domain-specific overrides/additions beyond the base file.
-/// Extract from GGPK with: cargo run --example extract_utf8 -- <poe_path> <file_path> > <out>
+/// Extract from GGPK with: cargo run --example `extract_utf8` -- <`poe_path`> <`file_path`> > <out>
 const ADDITIONAL_STAT_FILES: &[&str] = &[
     "map_stat_desc_utf8.txt",
     "atlas_stat_desc_utf8.txt",
@@ -153,18 +153,15 @@ fn lookup_batch_common_mods() {
             }
             None => {
                 // Try exhaustive as fallback
-                match index.lookup_regex(text) {
-                    Some(m) => {
-                        found += 1;
-                        println!(
-                            "  OK (exhaustive): {text:40} → {:?} = {:?}",
-                            m.stat_ids, m.values
-                        );
-                    }
-                    None => {
-                        not_found.push(*text);
-                        println!("  MISS: {text}");
-                    }
+                if let Some(m) = index.lookup_regex(text) {
+                    found += 1;
+                    println!(
+                        "  OK (exhaustive): {text:40} → {:?} = {:?}",
+                        m.stat_ids, m.values
+                    );
+                } else {
+                    not_found.push(*text);
+                    println!("  MISS: {text}");
                 }
             }
         }
@@ -177,7 +174,7 @@ fn lookup_batch_common_mods() {
 }
 
 /// Build the reverse index and save it to crates/poe-data/data/ for use at runtime.
-/// Run with: cargo test -p poe-dat --test reverse_index save_reverse_index -- --nocapture
+/// Run with: cargo test -p poe-dat --test `reverse_index` `save_reverse_index` -- --nocapture
 #[test]
 fn save_reverse_index() {
     let Some(index) = load_index() else { return };
@@ -201,7 +198,7 @@ fn save_reverse_index() {
     println!("Round-trip OK: {} patterns", loaded.len());
 }
 
-/// Test that map-specific mod text resolves after merging map_stat_descriptions.
+/// Test that map-specific mod text resolves after merging `map_stat_descriptions`.
 #[test]
 fn lookup_map_mods() {
     let Some(index) = load_index() else { return };
@@ -226,15 +223,12 @@ fn lookup_map_mods() {
     let mut found = 0;
     let mut not_found = Vec::new();
     for text in &test_cases {
-        match index.lookup(text) {
-            Some(m) => {
-                found += 1;
-                println!("  OK: {text:60} → {:?} = {:?}", m.stat_ids, m.values);
-            }
-            None => {
-                not_found.push(*text);
-                println!("  MISS: {text}");
-            }
+        if let Some(m) = index.lookup(text) {
+            found += 1;
+            println!("  OK: {text:60} → {:?} = {:?}", m.stat_ids, m.values);
+        } else {
+            not_found.push(*text);
+            println!("  MISS: {text}");
         }
     }
 
@@ -255,7 +249,7 @@ fn lookup_map_mods() {
 }
 
 /// Test against real item data from a 3.28 Mirage character snapshot.
-/// These are actual explicitMods/implicitMods/craftedMods from the PoE API.
+/// These are actual explicitMods/implicitMods/craftedMods from the `PoE` API.
 #[test]
 fn lookup_real_character_mods() {
     let Some(index) = load_index() else { return };
@@ -279,15 +273,12 @@ fn lookup_real_character_mods() {
 
     for mod_text in &mods {
         let display = mod_text.replace('\n', "\\n"); // for printing
-        match index.lookup(mod_text) {
-            Some(m) => {
-                found += 1;
-                println!("  OK: {display:60} → {:?} = {:?}", m.stat_ids, m.values);
-            }
-            None => {
-                not_found.push(display.clone());
-                println!("  MISS: {display}");
-            }
+        if let Some(m) = index.lookup(mod_text) {
+            found += 1;
+            println!("  OK: {display:60} → {:?} = {:?}", m.stat_ids, m.values);
+        } else {
+            not_found.push(display.clone());
+            println!("  MISS: {display}");
         }
     }
 
@@ -300,7 +291,7 @@ fn lookup_real_character_mods() {
     }
 
     // We expect most mods to resolve — anything below 80% indicates a problem
-    let hit_rate = found as f64 / total as f64 * 100.0;
+    let hit_rate = f64::from(found) / total as f64 * 100.0;
     println!("Hit rate: {hit_rate:.1}%");
     assert!(
         hit_rate > 70.0,

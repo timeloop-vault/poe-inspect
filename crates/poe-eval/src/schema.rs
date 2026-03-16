@@ -476,7 +476,7 @@ mod tests {
     fn no_duplicate_type_names() {
         let schema = predicate_schema();
         let mut names: Vec<&str> = schema.iter().map(|s| s.type_name.as_str()).collect();
-        names.sort();
+        names.sort_unstable();
         names.dedup();
         assert_eq!(names.len(), 17, "all type names should be unique");
     }

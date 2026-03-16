@@ -73,7 +73,6 @@ pub struct GameData {
     armour_by_base: HashMap<String, ArmourTypeRow>,
     weapon_by_base: HashMap<String, WeaponTypeRow>,
     shield_by_base: HashMap<String, ShieldTypeRow>,
-
 }
 
 impl GameData {
@@ -352,7 +351,7 @@ impl GameData {
 
     /// Get all pseudo stat definitions.
     ///
-    /// Each definition lists explicit stat_ids with multipliers.
+    /// Each definition lists explicit `stat_ids` with multipliers.
     /// Used by poe-item's resolver to compute pseudo values on items.
     pub fn pseudo_definitions(&self) -> &'static [domain::PseudoDefinition] {
         domain::pseudo_definitions()
@@ -366,7 +365,7 @@ impl GameData {
         let mut keys = self
             .reverse_index
             .as_ref()
-            .map(|ri| ri.template_keys())
+            .map(poe_dat::stat_desc::ReverseIndex::template_keys)
             .unwrap_or_default();
         for pseudo in domain::pseudo_definitions() {
             keys.push(pseudo.label.to_string());

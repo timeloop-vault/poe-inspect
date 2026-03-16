@@ -1,7 +1,7 @@
 //! PoE-specific integration tests using Erlang RQE fixtures.
 //!
 //! These tests validate that the generic reverse query engine works correctly
-//! with PoE domain data (crimson jewels, boots, rings, etc.). The fixtures
+//! with `PoE` domain data (crimson jewels, boots, rings, etc.). The fixtures
 //! live at `_reference/rqe/test/data/` and match the original Erlang test suite.
 
 use poe_rqe::eval::{Entry, evaluate};
