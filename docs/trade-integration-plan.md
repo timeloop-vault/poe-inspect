@@ -31,7 +31,7 @@ The app passes user preferences (stats to include, value relaxation %, league, P
 
 ---
 
-## Phase 1: Trade Stats Index
+## Phase 1: Trade Stats Index ✅
 
 **Goal**: Fetch `/api/trade/data/stats`, build template text → trade stat ID lookup, cross-reference with GGPK stat IDs, cache to disk.
 
@@ -67,7 +67,7 @@ struct TradeStatsIndex {
 
 ---
 
-## Phase 2: Query Builder
+## Phase 2: Query Builder ✅
 
 **Goal**: `ResolvedItem` → trade API search body. Pure logic, no HTTP.
 
@@ -101,7 +101,7 @@ struct TradeStatsIndex {
 
 ---
 
-## Phase 3: Rate-Limited HTTP Client
+## Phase 3: Rate-Limited HTTP Client ✅
 
 **Goal**: Well-behaved async HTTP client that respects GGG rate limits.
 
@@ -128,37 +128,44 @@ struct TradeStatsIndex {
 
 ---
 
-## Phase 4: Backend Wiring
+## Phase 4: Backend Wiring ✅
 
-**Goal**: Tauri commands for trade operations. No frontend changes.
+**Managed state**: `TradeState` — `Mutex<TradeClient>` + `RwLock<Option<TradeStatsIndex>>` + `RwLock<Option<FilterIndex>>`
 
-**Files**: `app/src-tauri/src/lib.rs`, `app/src-tauri/Cargo.toml`
+**10 Tauri commands** (all async, all implemented):
+- `price_check(item_text, config, filter_config)` — parse → build query → search → fetch
+- `trade_search_url(item_text, config, filter_config)` — parse → build query → search → return trade URL
+- `preview_trade_query(item_text, config, filter_config)` — build query without HTTP (for edit UI)
+- `get_trade_edit_schema(item_text, config)` — schema-driven filter projection
+- `refresh_trade_stats()` — fetch live API stats + filters, build indexes, cache to disk
+- `open_url(url)` — open trade site in default browser
+- `set_trade_session(poesessid)` — set/clear POESESSID cookie
+- `get_trade_index_status()` — index health check (loaded, stat count, mapped count)
+- `get_listing_statuses()` — valid listing status options
+- `fetch_leagues()` — live league list from GGG
 
-**Managed state**: `TradeState` — `Mutex<TradeClient>` + `RwLock<Option<TradeStatsIndex>>`
-
-**Tauri commands** (async):
-- `price_check(item_text, league) → PriceCheckResult` — parse → build query → search → fetch
-- `trade_search_url(item_text, league) → String` — parse → build query → search → return trade URL
-- `refresh_trade_stats() → stats count` — fetch live API, build index, cache to disk
-
-**Index lifecycle**: Loaded from disk cache on startup (if available). User triggers `refresh_trade_stats` to fetch/update. Cached to `{app_data_dir}/trade_stats.json`.
-
-**Done when**: Commands are callable from frontend JS / MCP dev tools.
+**Index lifecycle**: Loaded from disk cache on startup. User triggers `refresh_trade_stats` to fetch/update. Both `trade_stats.json` and `trade_filters.json` cached to `{app_data_dir}/`.
 
 ---
 
-## Phase 5: Trade UI/UX
+## Phase 5: Trade UI/UX ✅
 
-**Goal**: Price check UX in the Tauri overlay.
+**TradePanel component** (`app/src/components/TradePanel.tsx`):
+- Price Check, Open Trade, Edit Search buttons
+- Price results panel: price list, total count
+- Loading/error/rate-limit states with retry
 
-**Frontend** (`app/src`):
-- Price check button on overlay (or hotkey)
-- Results panel: price range (cheapest N listings), total count, "Open on trade" link
-- Loading/error states (rate limit cooldown display)
-- Per-stat toggle: checkboxes to include/exclude stats from search
-- Trade stats refresh button in settings
+**Inline overlay editing** (schema-driven from GGG's filters.json):
+- Header: type scope dropdown, rarity cycling badge
+- Properties: checkbox + editable value inline
+- Sockets: R/G/B/W color inputs + min/max
+- Status: checkbox toggle inline
+- Mods: checkbox + min/max value inputs per stat line
+- Pseudo stats: collapsible section, auto-expands in edit mode
 
-**Done when**: User can inspect an item and get a price estimate in the overlay.
+**`useTradeFilters` hook**: Builds `TradeFilterConfig` from user edits, passed to Tauri commands.
+
+**TradeSettings page**: League selector, refresh button, index status display.
 
 ---
 
