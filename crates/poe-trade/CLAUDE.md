@@ -4,7 +4,7 @@ Trade API client for pathofexile.com — fetches trade stats, builds search quer
 
 ## Status
 
-**Phase 3 + schema done** — Rate-limited HTTP client, filter schema from GGG's filters.json, inline trade edit controls on overlay. 58 tests. `EditFilterKind::Sockets` for socket color filters, `max_override` on `StatFilterOverride`, `trade_edit_schema()` per-inspect projection.
+**Phases 1-5 done** — Stats index (94.8% match), query builder with `TradeFilterConfig`, rate-limited HTTP client, 10 Tauri commands wired, TradePanel UI with price check + inline overlay editing. 58 tests. Schema-driven from GGG's filters.json.
 
 ## Scope
 
@@ -85,5 +85,5 @@ See `docs/trade-integration-plan.md` for the full phased plan.
 3. ~~Rate-limited HTTP client — search + fetch with header-based throttling~~ ✅
 4. ~~Filter schema — `FilterIndex` from GGG's filters.json, `trade_edit_schema()` projection~~ ✅
 5. ~~Inline overlay editing — socket filters, max_override, type scope~~ ✅
-6. App integration — Tauri commands for price check flow, overlay price results
-7. Advanced — pseudo trade IDs, weight-based search, bulk exchange
+6. ~~App integration — 10 Tauri commands, TradePanel UI, price results~~ ✅
+7. Advanced — pseudo trade IDs, item class → category, bulk exchange, items.json/static.json live fetch
