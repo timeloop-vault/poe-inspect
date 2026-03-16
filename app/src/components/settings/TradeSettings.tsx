@@ -59,6 +59,7 @@ export function TradeSettings() {
 	}, []);
 
 	async function fetchLeagues() {
+		if (leaguesLoading) return;
 		setLeaguesLoading(true);
 		setLeaguesError(null);
 		try {
@@ -79,7 +80,8 @@ export function TradeSettings() {
 		} catch (e) {
 			setLeaguesError(String(e));
 		} finally {
-			setLeaguesLoading(false);
+			// Keep disabled for 3s to prevent spamming GGG.
+			setTimeout(() => setLeaguesLoading(false), 3000);
 		}
 	}
 
@@ -93,6 +95,7 @@ export function TradeSettings() {
 	}
 
 	async function refreshStats() {
+		if (statsRefreshing) return;
 		setStatsRefreshing(true);
 		setStatsResult(null);
 		try {
@@ -102,7 +105,8 @@ export function TradeSettings() {
 		} catch (e) {
 			setStatsResult(`Error: ${e}`);
 		} finally {
-			setStatsRefreshing(false);
+			// Keep disabled for 3s to prevent spamming GGG.
+			setTimeout(() => setStatsRefreshing(false), 3000);
 		}
 	}
 

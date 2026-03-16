@@ -1226,7 +1226,7 @@ async fn refresh_trade_stats(
     gd: tauri::State<'_, GameDataState>,
     trade: tauri::State<'_, TradeState>,
 ) -> Result<u32, String> {
-    let client = trade.client.lock().await;
+    let mut client = trade.client.lock().await;
     let stats_response = client.fetch_stats().await.map_err(|e| e.to_string())?;
 
     // Also fetch filters.json (schema for structural trade filters).
@@ -1339,7 +1339,7 @@ fn get_listing_statuses() -> Vec<poe_trade::ListingStatus> {
 async fn fetch_leagues(
     trade: tauri::State<'_, TradeState>,
 ) -> Result<LeagueList, String> {
-    let client = trade.client.lock().await;
+    let mut client = trade.client.lock().await;
     client.fetch_leagues().await.map_err(|e| e.to_string())
 }
 

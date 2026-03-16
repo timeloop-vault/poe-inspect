@@ -107,7 +107,7 @@ async fn search_rare_weapon() {
 #[tokio::test]
 #[ignore = "hits live trade API — run with --ignored"]
 async fn fetch_stats_live() {
-    let client = TradeClient::new();
+    let mut client = TradeClient::new();
     let stats = client.fetch_stats().await.expect("should fetch stats");
 
     println!(
