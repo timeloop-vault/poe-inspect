@@ -160,8 +160,7 @@ fn statuses_collected() {
 
     assert!(
         item.statuses
-            .iter()
-            .any(|s| *s == poe_item::types::StatusKind::Corrupted)
+            .contains(&poe_item::types::StatusKind::Corrupted)
     );
     assert!(item.is_corrupted);
 }

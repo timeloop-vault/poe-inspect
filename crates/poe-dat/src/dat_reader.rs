@@ -271,14 +271,14 @@ mod tests {
         bytes.extend_from_slice(DATA_SECTION_MARKER);
 
         // Variable data: "Hi\0" then "Ok\0" in UTF-16LE
-        for c in &[b'H', b'i'] {
+        for c in b"Hi" {
             bytes.push(*c);
             bytes.push(0);
         }
         bytes.push(0);
         bytes.push(0); // null terminator
 
-        for c in &[b'O', b'k'] {
+        for c in b"Ok" {
             bytes.push(*c);
             bytes.push(0);
         }

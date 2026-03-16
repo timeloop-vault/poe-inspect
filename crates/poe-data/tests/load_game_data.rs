@@ -101,20 +101,20 @@ fn fk_resolution_works() {
     // Mod type resolution
     if let Some(mt_fk) = str1.mod_type {
         let mt_name = gd.mod_type_name(mt_fk);
-        println!("Strength1 mod_type = {:?} (FK {})", mt_name, mt_fk);
+        println!("Strength1 mod_type = {mt_name:?} (FK {mt_fk})");
     }
 
     // Family resolution
     for &fam_fk in &str1.families {
         let fam_id = gd.mod_family_id(fam_fk);
-        println!("Strength1 family = {:?} (FK {})", fam_id, fam_fk);
+        println!("Strength1 family = {fam_id:?} (FK {fam_fk})");
     }
 
     // Base item tag resolution
     let greaves = gd.base_item_by_name("Iron Greaves");
     if let Some(item) = greaves {
         let tag_names: Vec<_> = item.tags.iter().filter_map(|&fk| gd.tag_id(fk)).collect();
-        println!("Iron Greaves tags: {:?}", tag_names);
+        println!("Iron Greaves tags: {tag_names:?}");
         assert!(!tag_names.is_empty(), "should have tags");
     }
 }
@@ -274,8 +274,7 @@ fn local_stat_template_fallback() {
             // Stat IDs come directly from the Mods table — should be real (local) IDs
             assert!(
                 other_stat_ids.iter().any(|id| id.starts_with("local_")),
-                "other_stat_ids should use real stat IDs from Mods table, got: {:?}",
-                other_stat_ids
+                "other_stat_ids should use real stat IDs from Mods table, got: {other_stat_ids:?}"
             );
         }
     }
@@ -395,10 +394,10 @@ fn base_type_tables_loaded() {
     }
 }
 
-/// Validate poe-item's status/influence parsing against ClientStrings.
+/// Validate poe-item's status/influence parsing against `ClientStrings`.
 ///
 /// This test catches when GGG adds new item statuses or influences that
-/// our parser doesn't handle — they'll appear in ClientStrings but won't
+/// our parser doesn't handle — they'll appear in `ClientStrings` but won't
 /// be parsed by `StatusKind::parse()` or `InfluenceKind::parse()`.
 #[test]
 fn validate_status_influence_against_client_strings() {
@@ -480,11 +479,11 @@ fn validate_status_influence_against_client_strings() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "one-time utility to regenerate data/mod_families.txt"]
 fn dump_mod_families_txt() {
     let Some(gd) = load_test_data() else { return };
     let mut names: Vec<&str> = gd.mod_families.iter().map(|f| f.id.as_str()).collect();
-    names.sort();
+    names.sort_unstable();
     let content = names.join("\n");
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("data/mod_families.txt");
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();

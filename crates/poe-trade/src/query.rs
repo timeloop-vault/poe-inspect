@@ -887,8 +887,11 @@ mod tests {
     fn test_index() -> TradeStatsIndex {
         use std::collections::HashMap;
         let mut ggpk_to_trade = HashMap::new();
-        ggpk_to_trade.insert("base_maximum_life".to_string(), 3299347043u64);
-        ggpk_to_trade.insert("base_cold_damage_resistance_pct".to_string(), 4220027924u64);
+        ggpk_to_trade.insert("base_maximum_life".to_string(), 3_299_347_043_u64);
+        ggpk_to_trade.insert(
+            "base_cold_damage_resistance_pct".to_string(),
+            4_220_027_924_u64,
+        );
         TradeStatsIndex {
             by_template: HashMap::new(),
             by_trade_id: HashMap::new(),

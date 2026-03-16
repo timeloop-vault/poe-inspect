@@ -478,7 +478,7 @@ mod tests {
 // Trade API pseudo IDs: `crates/poe-trade/tests/fixtures/trade_stats_3.28.json`
 // ModFamily list: `crates/poe-data/data/mod_families.txt`
 
-/// A component of a pseudo stat — a set of stat_ids that contribute to the aggregate.
+/// A component of a pseudo stat — a set of `stat_ids` that contribute to the aggregate.
 #[derive(Debug, Clone)]
 pub struct PseudoComponent {
     /// Stat IDs that match this component (e.g., `["base_fire_damage_resistance_%"]`).
@@ -489,14 +489,14 @@ pub struct PseudoComponent {
     pub required: bool,
 }
 
-/// Definition of a pseudo stat — which stat_ids contribute and how.
+/// Definition of a pseudo stat — which `stat_ids` contribute and how.
 #[derive(Debug, Clone)]
 pub struct PseudoDefinition {
     /// ID matching trade API suffix (e.g., `"pseudo_total_life"`).
     pub id: &'static str,
     /// Display label template (e.g., `"(Pseudo) +# total maximum Life"`).
     pub label: &'static str,
-    /// Component stat_ids with multipliers.
+    /// Component `stat_ids` with multipliers.
     pub components: &'static [PseudoComponent],
 }
 
@@ -514,10 +514,10 @@ const fn comp(
 
 /// Phase 1 pseudo stat definitions.
 ///
-/// Each component lists explicit stat_ids (including local_ variants for weapon
+/// Each component lists explicit `stat_ids` (including local_ variants for weapon
 /// mods). Use `crates/poe-data/data/mod_families.txt` as a reference when
-/// adding new definitions — families help discover which stat_ids are related,
-/// but the definition must use exact stat_ids (not family names).
+/// adding new definitions — families help discover which `stat_ids` are related,
+/// but the definition must use exact `stat_ids` (not family names).
 pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     // ── Resistances ──────────────────────────────────────────────────
     PseudoDefinition {
@@ -638,16 +638,11 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     PseudoDefinition {
         id: "pseudo_total_energy_shield",
         label: "(Pseudo) +# total maximum Energy Shield",
-        components: &[
-            comp(
-                &[
-                    "base_maximum_energy_shield",
-                    "local_energy_shield",
-                ],
-                1.0,
-                false,
-            ),
-        ],
+        components: &[comp(
+            &["base_maximum_energy_shield", "local_energy_shield"],
+            1.0,
+            false,
+        )],
     },
     // ── Speed ────────────────────────────────────────────────────────
     PseudoDefinition {
@@ -659,13 +654,11 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
     PseudoDefinition {
         id: "pseudo_increased_physical_damage",
         label: "(Pseudo) #% total increased Physical Damage",
-        components: &[
-            comp(
-                &["physical_damage_+%", "local_physical_damage_+%"],
-                1.0,
-                false,
-            ),
-        ],
+        components: &[comp(
+            &["physical_damage_+%", "local_physical_damage_+%"],
+            1.0,
+            false,
+        )],
     },
 ];
 

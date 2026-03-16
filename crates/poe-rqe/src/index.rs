@@ -654,7 +654,7 @@ mod tests {
 
     // --- Product marketplace helpers ---
 
-    /// Cheap electronics product: category=Electronics, in_stock=true, price=299, weight=2, rating=4
+    /// Cheap electronics product: category=Electronics, `in_stock=true`, price=299, weight=2, rating=4
     fn electronics_entry() -> Entry {
         serde_json::from_str(
             r#"{"category": "Electronics", "in_stock": true, "on_sale": false, "price": 299, "weight": 2, "rating": 4, "color": "Black"}"#,
@@ -662,7 +662,7 @@ mod tests {
         .unwrap()
     }
 
-    /// Clothing product: category=Clothing, in_stock=true, on_sale=true, price=49, weight=1, rating=5
+    /// Clothing product: category=Clothing, `in_stock=true`, `on_sale=true`, price=49, weight=1, rating=5
     fn clothing_entry() -> Entry {
         serde_json::from_str(
             r#"{"category": "Clothing", "in_stock": true, "on_sale": true, "price": 49, "weight": 1, "rating": 5, "color": "Red"}"#,
@@ -670,7 +670,7 @@ mod tests {
         .unwrap()
     }
 
-    /// Book product: category=Books, in_stock=false, price=15, weight=1, rating=3
+    /// Book product: category=Books, `in_stock=false`, price=15, weight=1, rating=3
     fn book_entry() -> Entry {
         serde_json::from_str(
             r#"{"category": "Books", "in_stock": false, "on_sale": false, "price": 15, "weight": 1, "rating": 3}"#,
@@ -678,7 +678,7 @@ mod tests {
         .unwrap()
     }
 
-    /// Query: category=Electronics, in_stock=true
+    /// Query: category=Electronics, `in_stock=true`
     fn want_electronics_in_stock() -> Vec<Condition> {
         serde_json::from_str(
             r#"[
@@ -689,7 +689,7 @@ mod tests {
         .unwrap()
     }
 
-    /// Query: category=Electronics, price < 500 (Erlang: 500 < entry_price, i.e. price under 500)
+    /// Query: category=Electronics, price < 500 (Erlang: 500 < `entry_price`, i.e. price under 500)
     fn want_cheap_electronics() -> Vec<Condition> {
         serde_json::from_str(
             r#"[
@@ -700,7 +700,7 @@ mod tests {
         .unwrap()
     }
 
-    /// Query: category=Clothing, on_sale=true
+    /// Query: category=Clothing, `on_sale=true`
     fn want_clothing_on_sale() -> Vec<Condition> {
         serde_json::from_str(
             r#"[
@@ -711,7 +711,7 @@ mod tests {
         .unwrap()
     }
 
-    /// Query: category=Clothing, NOT(on_sale=true) — wants non-sale clothing
+    /// Query: category=Clothing, `NOT(on_sale=true)` — wants non-sale clothing
     fn want_clothing_not_on_sale() -> Vec<Condition> {
         serde_json::from_str(
             r#"[
@@ -854,7 +854,7 @@ mod tests {
                     ], "type": "list", "typeOptions": {"operator": "count", "count": 1}}]"#,
             ).unwrap(),
         ];
-        let entries = vec![electronics_entry(), clothing_entry(), book_entry()];
+        let entries = [electronics_entry(), clothing_entry(), book_entry()];
 
         let mut brute = QueryStore::new();
         let mut indexed = IndexedStore::new();

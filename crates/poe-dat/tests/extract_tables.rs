@@ -4,7 +4,7 @@ use poe_dat::tables;
 /// Load a datc64 file from the temp directory.
 /// Files should be extracted from GGPK using poe-query or poe-bundle first.
 ///
-/// To extract: use poe-bundle's BundleReader to read `data/{table}.datc64`
+/// To extract: use poe-bundle's `BundleReader` to read `data/{table}.datc64`
 /// and write the raw bytes to `%TEMP%/poe-dat/{table}.datc64`.
 fn load_dat(table: &str) -> Option<DatFile> {
     let path = std::env::temp_dir()

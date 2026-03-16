@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)] // Scores are computed from integer weights; exact comparison is fine.
+
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
@@ -19,8 +21,8 @@ fn fixture(name: &str) -> String {
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("failed to read {path}: {e}"))
 }
 
-/// Load full game data (with reverse index for stat_id resolution).
-/// Cached via OnceLock so it's loaded at most once per test run.
+/// Load full game data (with reverse index for `stat_id` resolution).
+/// Cached via `OnceLock` so it's loaded at most once per test run.
 fn full_game_data() -> &'static GameData {
     static GD: OnceLock<GameData> = OnceLock::new();
     GD.get_or_init(|| {
@@ -270,7 +272,7 @@ fn has_mod_named() {
 #[test]
 fn has_stat_presence_via_stat_value() {
     let gd = full_game_data();
-    let item = resolve("rare-belt-crafted.txt", &gd);
+    let item = resolve("rare-belt-crafted.txt", gd);
 
     // Presence check: StatValue with Ge 0 (any non-negative value)
     let rule = Rule::pred(Predicate::StatValue {
@@ -282,7 +284,7 @@ fn has_stat_presence_via_stat_value() {
             value: 0,
         }],
     });
-    assert!(evaluate(&item, &rule, &gd));
+    assert!(evaluate(&item, &rule, gd));
 }
 
 // ─── Stat values (require full game data for stat_id resolution) ────────────
@@ -472,7 +474,7 @@ fn not_combinator() {
 #[test]
 fn complex_rule() {
     let gd = full_game_data();
-    let item = resolve("rare-belt-crafted.txt", &gd);
+    let item = resolve("rare-belt-crafted.txt", gd);
 
     // "Is a rare belt with ilvl >= 50 AND has life AND is not corrupted"
     let rule = Rule::all(vec![
@@ -500,7 +502,7 @@ fn complex_rule() {
             status: StatusValue::Corrupted,
         })),
     ]);
-    assert!(evaluate(&item, &rule, &gd));
+    assert!(evaluate(&item, &rule, gd));
 }
 
 // ─── Open mods (requires rarity data) ──────────────────────────────────────
@@ -608,9 +610,9 @@ fn belt_profile() -> Profile {
 #[test]
 fn score_matching_profile() {
     let gd = full_game_data();
-    let item = resolve("rare-belt-crafted.txt", &gd);
+    let item = resolve("rare-belt-crafted.txt", gd);
 
-    let result = score(&item, &belt_profile(), &gd);
+    let result = score(&item, &belt_profile(), gd);
 
     assert!(result.applicable);
     assert!(result.score > 0.0);
@@ -621,9 +623,9 @@ fn score_matching_profile() {
 #[test]
 fn score_filter_rejects() {
     let gd = full_game_data();
-    let item = resolve("unique-ring-ventors-gamble.txt", &gd);
+    let item = resolve("unique-ring-ventors-gamble.txt", gd);
 
-    let result = score(&item, &belt_profile(), &gd);
+    let result = score(&item, &belt_profile(), gd);
 
     // Ring should not match belt profile filter
     assert!(!result.applicable);
@@ -634,9 +636,9 @@ fn score_filter_rejects() {
 #[test]
 fn score_detailed_breakdown() {
     let gd = full_game_data();
-    let item = resolve("rare-belt-crafted.txt", &gd);
+    let item = resolve("rare-belt-crafted.txt", gd);
 
-    let result = score(&item, &belt_profile(), &gd);
+    let result = score(&item, &belt_profile(), gd);
 
     // Check that we get labels back
     assert!(result.applicable);
@@ -652,7 +654,7 @@ fn score_detailed_breakdown() {
 #[test]
 fn profile_no_filter() {
     let gd = full_game_data();
-    let item = resolve("unique-ring-ventors-gamble.txt", &gd);
+    let item = resolve("unique-ring-ventors-gamble.txt", gd);
 
     // Profile with no filter — applies to everything
     let profile = Profile {
@@ -674,7 +676,7 @@ fn profile_no_filter() {
         }],
     };
 
-    let result = score(&item, &profile, &gd);
+    let result = score(&item, &profile, gd);
     assert!(result.applicable);
     assert_eq!(result.score, 10.0);
 }
@@ -816,7 +818,7 @@ fn affix_crafted_suffix_detected() {
 // - "of the Ice": base_cold_damage_resistance_%
 // - "of the Volcano": base_fire_damage_resistance_%
 
-/// Multi-condition StatValue matches when ALL conditions are on a SINGLE mod.
+/// Multi-condition `StatValue` matches when ALL conditions are on a SINGLE mod.
 #[test]
 fn stat_value_multi_matches_same_mod() {
     let gd = full_game_data();
@@ -879,7 +881,7 @@ fn stat_value_multi_does_not_match_across_mods() {
 }
 
 /// Item with BOTH stats on SEPARATE mods does NOT trigger multi-condition,
-/// even though separate single-condition checks (via Rule::All) would match.
+/// even though separate single-condition checks (via `Rule::All`) would match.
 #[test]
 fn stat_value_multi_rejects_cross_mod_on_shield() {
     let gd = full_game_data();
@@ -1033,7 +1035,7 @@ fn stat_value_multi_with_value_thresholds() {
     assert!(!evaluate(&item, &rule_high, gd));
 }
 
-/// Contrast: multi-condition vs Rule::All on same item.
+/// Contrast: multi-condition vs `Rule::All` on same item.
 #[test]
 fn stat_value_multi_vs_rule_all_on_body_armour() {
     let gd = full_game_data();
@@ -1163,7 +1165,7 @@ fn stat_value_multi_in_scoring_profile() {
     assert_eq!(result.matched.len(), 0);
 }
 
-/// StatValue serialization round-trip with conditions.
+/// `StatValue` serialization round-trip with conditions.
 #[test]
 fn stat_value_conditions_serialize_roundtrip() {
     let pred = Predicate::StatValue {
@@ -1219,7 +1221,7 @@ fn fractured_mod_source_parses() {
     );
 }
 
-/// Unique item unscalable mods resolve stat_ids after stripping "— Unscalable Value" suffix.
+/// Unique item unscalable mods resolve `stat_ids` after stripping "— Unscalable Value" suffix.
 #[test]
 fn unique_unscalable_mods_resolve_stat_ids() {
     let item = resolve_full("unique-body-armour-doryanis-prototype.txt");
@@ -1264,7 +1266,7 @@ fn unique_unscalable_mods_resolve_stat_ids() {
     assert!(nearby.stat_ids.is_some());
 }
 
-/// Debug: trace stat_ids through the full pipeline for a body armour with hybrid mods.
+/// Debug: trace `stat_ids` through the full pipeline for a body armour with hybrid mods.
 #[test]
 fn trace_stat_ids_body_armour() {
     let gd = full_game_data();
@@ -1330,7 +1332,7 @@ fn trace_stat_ids_body_armour() {
     }
 }
 
-/// Map mods must resolve to map-specific stat_ids from map_stat_descriptions.
+/// Map mods must resolve to map-specific `stat_ids` from `map_stat_descriptions`.
 /// Verifies that the merged reverse index includes map mod patterns.
 #[test]
 fn map_mods_resolve_stat_ids() {
@@ -1369,9 +1371,9 @@ fn map_mods_resolve_stat_ids() {
     );
 }
 
-/// Abyss jewel mods must resolve to non-local stat_ids.
-/// "Vaporous" (+# to Evasion Rating) on a jewel is base_evasion_rating,
-/// NOT local_base_evasion_rating (which is for armour items).
+/// Abyss jewel mods must resolve to non-local `stat_ids`.
+/// "Vaporous" (+# to Evasion Rating) on a jewel is `base_evasion_rating`,
+/// NOT `local_base_evasion_rating` (which is for armour items).
 #[test]
 fn abyss_jewel_resolves_non_local_stat_ids() {
     let item = resolve_full("rare-abyss-jewel-searching-eye.txt");
@@ -1412,9 +1414,10 @@ fn pseudo_physical_damage_computed() {
     // Item has two physical damage mods: 44% + 19% = 63%
     let phys_pseudo = item.pseudo_mods.iter().find(|m| {
         m.stat_lines.iter().any(|sl| {
-            sl.stat_ids
-                .as_ref()
-                .is_some_and(|ids| ids.iter().any(|id| id == "pseudo_increased_physical_damage"))
+            sl.stat_ids.as_ref().is_some_and(|ids| {
+                ids.iter()
+                    .any(|id| id == "pseudo_increased_physical_damage")
+            })
         })
     });
 
@@ -1465,5 +1468,8 @@ fn pseudo_stat_value_predicate_works() {
     });
 
     let result_high = poe_eval::evaluate(&item, &rule_high, full_game_data());
-    assert!(!result_high, "pseudo physical damage 63 < 100 should not match");
+    assert!(
+        !result_high,
+        "pseudo physical damage 63 < 100 should not match"
+    );
 }
