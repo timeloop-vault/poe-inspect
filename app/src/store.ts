@@ -316,14 +316,18 @@ export async function saveChatMacros(macros: ChatMacro[]): Promise<void> {
 
 // ── Profile migration ─────────────────────────────────────────────────────
 
-/** Merge legacy modWeights into evalProfile.scoring as HasStatId rules. */
+/** Merge legacy modWeights into evalProfile.scoring as StatValue rules. */
 export function mergeModWeightsIntoScoring(profile: StoredProfile): StoredProfile {
 	if (profile.modWeights.length === 0 || profile.evalProfile === null) return profile;
 	const weightRules: ScoringRule[] = profile.modWeights.flatMap((mw) =>
 		(mw.statIds ?? []).map((statId) => ({
 			label: mw.template,
 			weight: WEIGHT_VALUES[mw.level],
-			rule: { rule_type: "Pred" as const, type: "HasStatId" as const, stat_id: statId },
+			rule: {
+				rule_type: "Pred" as const,
+				type: "StatValue" as const,
+				conditions: [{ stat_ids: [statId], value_index: 0, op: "Ge" as const, value: 1 }],
+			},
 		})),
 	);
 	return {

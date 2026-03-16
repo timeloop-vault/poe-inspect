@@ -544,13 +544,7 @@ export function App() {
 		);
 		const tradeCol = (
 			<div class="overlay-trade-col">
-				<TradePanel
-					itemText={evaluatedItem.rawText}
-					config={tradeConfig}
-					filters={tradeFilters}
-					baseType={evaluatedItem.item.header.baseType}
-					itemClass={evaluatedItem.item.header.itemClass}
-				/>
+				<TradePanel itemText={evaluatedItem.rawText} config={tradeConfig} filters={tradeFilters} />
 			</div>
 		);
 		content = (

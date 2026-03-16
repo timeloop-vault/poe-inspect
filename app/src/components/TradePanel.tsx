@@ -10,10 +10,6 @@ interface TradePanelProps {
 	config: TradeQueryConfig;
 	/** Trade filter state from useTradeFilters hook. */
 	filters: TradeFilters;
-	/** Base type from item header (for breadcrumb display). */
-	baseType: string;
-	/** Item class from item header (e.g., "Wands"). */
-	itemClass: string;
 }
 
 type TradeState =
@@ -24,7 +20,7 @@ type TradeState =
 	| { status: "error"; message: string }
 	| { status: "rate-limited"; retryAfterSecs: number };
 
-export function TradePanel({ itemText, config, filters, baseType, itemClass }: TradePanelProps) {
+export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
 	const [urlLoading, setUrlLoading] = useState(false);
 
