@@ -388,12 +388,22 @@ fn mod_trade_category(m: &ResolvedMod) -> &'static str {
 /// Resolve a stat line to its full trade stat ID (e.g., `"explicit.stat_3299347043"`).
 ///
 /// Returns `None` if the stat can't be mapped.
+///
+/// Pseudo mods use a different format: their `stat_ids` are already the trade
+/// pseudo IDs (e.g., `"pseudo_total_life"` → `"pseudo.pseudo_total_life"`).
 fn resolve_trade_id(
     stat_line: &ResolvedStatLine,
     category: &str,
     index: &TradeStatsIndex,
 ) -> Option<String> {
     let stat_ids = stat_line.stat_ids.as_ref()?;
+
+    // Pseudo mods carry their trade ID directly — no stat_number lookup needed.
+    if category == "pseudo" {
+        let pseudo_id = stat_ids.first()?;
+        return Some(format!("pseudo.{pseudo_id}"));
+    }
+
     let trade_num = stat_ids
         .iter()
         .find_map(|sid| index.trade_stat_number(sid))?;
@@ -1317,5 +1327,84 @@ mod tests {
             .and_then(|mf| mf.filters.quality.as_ref())
             .unwrap();
         assert_eq!(qf.min, Some(15.0));
+    }
+
+    #[test]
+    fn pseudo_mods_mapped_to_trade_ids() {
+        use poe_item::types::*;
+        let mut item = test_item();
+        item.pseudo_mods = vec![
+            ResolvedMod {
+                header: ModHeader {
+                    source: ModSource::Computed,
+                    slot: ModSlot::Pseudo,
+                    influence_tier: None,
+                    name: None,
+                    tier: None,
+                    tags: vec![],
+                },
+                stat_lines: vec![ResolvedStatLine {
+                    raw_text: "(Pseudo) +# total maximum Life".to_string(),
+                    display_text: "(Pseudo) +142 total maximum Life".to_string(),
+                    values: vec![ValueRange {
+                        current: 142,
+                        min: 0,
+                        max: 0,
+                    }],
+                    stat_ids: Some(vec!["pseudo_total_life".to_string()]),
+                    stat_values: None,
+                    is_reminder: false,
+                    is_unscalable: false,
+                }],
+                is_fractured: false,
+                display_type: ModDisplayType::Pseudo,
+            },
+            ResolvedMod {
+                header: ModHeader {
+                    source: ModSource::Computed,
+                    slot: ModSlot::Pseudo,
+                    influence_tier: None,
+                    name: None,
+                    tier: None,
+                    tags: vec![],
+                },
+                stat_lines: vec![ResolvedStatLine {
+                    raw_text: "(Pseudo) +#% total to Fire Resistance".to_string(),
+                    display_text: "(Pseudo) +45% total to Fire Resistance".to_string(),
+                    values: vec![ValueRange {
+                        current: 45,
+                        min: 0,
+                        max: 0,
+                    }],
+                    stat_ids: Some(vec!["pseudo_total_fire_resistance".to_string()]),
+                    stat_values: None,
+                    is_reminder: false,
+                    is_unscalable: false,
+                }],
+                is_fractured: false,
+                display_type: ModDisplayType::Pseudo,
+            },
+        ];
+
+        let index = test_index();
+        let config = TradeQueryConfig::new("Mirage");
+        let result = build_query(&item, &index, &config, None);
+
+        // 2 explicit + 2 pseudo = 4 total stats
+        assert_eq!(result.stats_total, 4);
+        // 2 explicit mapped via index + 2 pseudo mapped directly = 4
+        assert_eq!(result.stats_mapped, 4);
+
+        // Check pseudo trade IDs are correctly formatted
+        let stat_group = &result.body.query.stats[0];
+        let trade_ids: Vec<&str> = stat_group.filters.iter().map(|f| f.id.as_str()).collect();
+        assert!(
+            trade_ids.contains(&"pseudo.pseudo_total_life"),
+            "expected pseudo.pseudo_total_life in {trade_ids:?}"
+        );
+        assert!(
+            trade_ids.contains(&"pseudo.pseudo_total_fire_resistance"),
+            "expected pseudo.pseudo_total_fire_resistance in {trade_ids:?}"
+        );
     }
 }
