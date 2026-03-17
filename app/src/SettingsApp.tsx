@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { AboutSettings } from "./components/settings/AboutSettings";
 import { ChatMacroSettings } from "./components/settings/ChatMacroSettings";
 import { GeneralSettings } from "./components/settings/GeneralSettings";
 import { HotkeySettings } from "./components/settings/HotkeySettings";
@@ -15,7 +16,8 @@ type Section =
 	| "profiles"
 	| "map-danger"
 	| "trade"
-	| "marketplace";
+	| "marketplace"
+	| "about";
 
 const sections: { id: Section; label: string }[] = [
 	{ id: "general", label: "General" },
@@ -25,6 +27,7 @@ const sections: { id: Section; label: string }[] = [
 	{ id: "map-danger", label: "Map Danger" },
 	{ id: "trade", label: "Trade" },
 	{ id: "marketplace", label: "Marketplace" },
+	{ id: "about", label: "About" },
 ];
 
 export function SettingsApp() {
@@ -78,6 +81,7 @@ export function SettingsApp() {
 				{active === "map-danger" && <MapDangerSettings />}
 				{active === "trade" && <TradeSettings />}
 				{active === "marketplace" && <MarketplaceSettings />}
+				{active === "about" && <AboutSettings />}
 			</main>
 		</div>
 	);
