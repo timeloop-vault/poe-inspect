@@ -1292,6 +1292,48 @@ fn open_url(url: String) -> Result<(), String> {
     open::that(&url).map_err(|e| format!("Failed to open URL: {e}"))
 }
 
+// ── Update ──────────────────────────────────────────────────────────────────
+
+/// Check for application updates.
+///
+/// Returns update info (version, date, body) if an update is available,
+/// or `null` if the app is up to date.
+#[tauri::command]
+async fn check_for_update(
+    app: tauri::AppHandle,
+) -> Result<Option<UpdateInfo>, String> {
+    use tauri_plugin_updater::UpdaterExt;
+
+    match app.updater().map_err(|e| e.to_string())?.check().await {
+        Ok(Some(update)) => {
+            eprintln!("[updater] Update available: {}", update.version);
+            Ok(Some(UpdateInfo {
+                version: update.version.clone(),
+                date: update.date.map(|d| d.to_string()),
+                body: update.body.clone(),
+            }))
+        }
+        Ok(None) => {
+            eprintln!("[updater] No update available");
+            Ok(None)
+        }
+        Err(e) => {
+            eprintln!("[updater] Check failed: {e}");
+            Err(e.to_string())
+        }
+    }
+}
+
+#[derive(serde::Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct UpdateInfo {
+    version: String,
+    date: Option<String>,
+    body: Option<String>,
+}
+
+// ── Trade session ───────────────────────────────────────────────────────────
+
 /// Set the POESESSID cookie on the trade client.
 ///
 /// Enables "online only" filtering. Pass empty string to clear.
@@ -1570,7 +1612,9 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_store::Builder::default().build());
+        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init());
 
     // MCP plugin for AI-agent debugging — dev builds only
     #[cfg(debug_assertions)]
@@ -1622,6 +1666,7 @@ pub fn run() {
             open_url,
             set_trade_session,
             get_trade_index_status,
+            check_for_update,
         ])
         .setup(|app| {
             // --- System tray ---

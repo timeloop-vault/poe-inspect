@@ -24,6 +24,8 @@
 		"store:allow-entries",
 		"store:allow-delete",
 		"store:allow-clear",
+		"updater:default",
+		"process:allow-restart",
 		"dialog:default",
 		{
 			"identifier": "fs:allow-read-text-file",
