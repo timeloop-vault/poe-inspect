@@ -1,7 +1,8 @@
+import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 
 interface UpdateInfo {
 	version: string;
@@ -20,6 +21,11 @@ type UpdateState =
 
 export function AboutSettings() {
 	const [state, setState] = useState<UpdateState>({ status: "idle" });
+	const [appVersion, setAppVersion] = useState("...");
+
+	useEffect(() => {
+		getVersion().then(setAppVersion);
+	}, []);
 
 	const checkForUpdate = useCallback(async () => {
 		setState({ status: "checking" });
@@ -74,7 +80,7 @@ export function AboutSettings() {
 				<h3>PoE Inspect</h3>
 				<div class="setting-row">
 					<div class="setting-label">Version</div>
-					<div class="setting-value">0.1.0</div>
+					<div class="setting-value">{appVersion}</div>
 				</div>
 				<div class="setting-description">Real-time item evaluation overlay for Path of Exile.</div>
 			</div>

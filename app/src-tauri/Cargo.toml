@@ -1,6 +1,6 @@
 [package]
 name = "poe-inspect-app"
-version = "0.1.0"
+version = "0.0.0"
 description = "Real-time item evaluation overlay for Path of Exile"
 authors = ["timeloop-vault"]
 edition = "2021"

@@ -71,6 +71,47 @@ jobs:
           workspaces: app/src-tauri
           shared-key: ${{ matrix.label }}
 
+      # Derive version from git tag (v0.2.0 → 0.2.0, v0.2.0-beta.1 → 0.2.0-beta.1)
+      # For manual dispatch, fall back to 0.0.0-dev.
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.event.release.tag_name }}"
+            VERSION="${TAG#v}"
+          else
+            VERSION="0.0.0-dev"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using version: $VERSION"
+
+      # Patch version into source files before building.
+      # Tauri reads version from tauri.conf.json; Cargo.toml must match for consistency.
+      - name: Patch version
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # tauri.conf.json
+          cd app
+          node -e "
+            const fs = require('fs');
+            const conf = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
+            conf.version = '$VERSION';
+            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(conf, null, '\t') + '\n');
+          "
+          # Cargo.toml — only accepts semver (strip pre-release for cargo if needed)
+          CARGO_VERSION=$(echo "$VERSION" | sed 's/-.*//')
+          sed -i "s/^version = .*/version = \"$CARGO_VERSION\"/" src-tauri/Cargo.toml
+          # package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+          "
+          cd ..
+
       # --- Release event: build + attach artifacts to the GitHub Release ---
       - name: Build and publish release
         if: github.event_name == 'release'
@@ -87,7 +128,7 @@ jobs:
           releaseName: ${{ github.event.release.name }}
           releaseId: ${{ github.event.release.id }}
           releaseDraft: false
-          prerelease: false
+          prerelease: ${{ github.event.release.prerelease }}
           includeUpdaterJson: true
 
       # --- Manual dispatch: build only, upload as workflow artifacts ---
