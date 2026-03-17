@@ -191,23 +191,15 @@ export function PredicateEditor({
 		);
 	}
 
-	// RollPercent: auto-resolve stat_ids when user picks a stat template
-	const needsStatIds = schema.typeName === "RollPercent";
+	// RollPercent: same stat autocomplete as StatValue, plus op/percent fields
+	if (schema.typeName === "RollPercent") {
+		return (
+			<RollPercentEditor rule={rule} onChange={onChange} {...(compact ? { compact: true } : {})} />
+		);
+	}
 
 	const updateField = (name: string, value: unknown) => {
-		const updated = { ...rule, [name]: value } as Rule;
-		if (name === "text" && typeof value === "string" && needsStatIds) {
-			invoke<StatSuggestion[]>("get_stat_suggestions", { query: value }).then((suggestions) => {
-				const single = suggestions.find((s) => s.kind.type === "Single" && s.template === value);
-				if (single && single.stat_ids.length > 0) {
-					onChange({ ...updated, stat_ids: single.stat_ids } as Rule);
-				} else {
-					onChange(updated);
-				}
-			});
-			return;
-		}
-		onChange(updated);
+		onChange({ ...rule, [name]: value } as Rule);
 	};
 
 	return (
@@ -757,6 +749,157 @@ function StatTierEditor({
 				max={20}
 				value={value}
 				onChange={(v) => updateField("value", Number(v))}
+			/>
+		</div>
+	);
+}
+
+// ── RollPercent custom editor ─────────────────────────────────────────
+
+/** Custom editor for RollPercent: same stat autocomplete as StatValue, plus op/percent. */
+function RollPercentEditor({
+	rule,
+	onChange,
+	compact,
+}: {
+	rule: Rule;
+	onChange: (rule: Rule) => void;
+	compact?: boolean;
+}) {
+	const r = rule as Record<string, unknown>;
+	const text = (r.text as string) ?? "";
+	const statIds = (r.stat_ids as string[]) ?? [];
+	const op = (r.op as string) ?? "Ge";
+	const value = (r.value as number) ?? 0;
+
+	const [suggestions, setSuggestions] = useState<string[]>([]);
+	const [showDropdown, setShowDropdown] = useState(false);
+	const [selectedIndex, setSelectedIndex] = useState(-1);
+	const [showStatIds, setShowStatIds] = useState(false);
+	const wrapperRef = useRef<HTMLLabelElement>(null);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		getSuggestions("stat_texts").then(setSuggestions);
+		loadGeneral().then((s) => setShowStatIds(s.showStatIds));
+	}, []);
+
+	useEffect(() => {
+		if (showDropdown && dropdownRef.current) {
+			dropdownRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+		}
+	}, [showDropdown]);
+
+	useEffect(() => {
+		const handler = (e: MouseEvent) => {
+			if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+				setShowDropdown(false);
+			}
+		};
+		document.addEventListener("mousedown", handler);
+		return () => document.removeEventListener("mousedown", handler);
+	}, []);
+
+	const filtered = (() => {
+		if (!text || suggestions.length === 0) return [];
+		const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+		if (words.length === 0) return [];
+		return suggestions
+			.filter((s) => {
+				const lower = s.toLowerCase();
+				return words.every((w) => lower.includes(w));
+			})
+			.slice(0, 50);
+	})();
+
+	const handleTextInput = (newText: string) => {
+		onChange({ ...rule, text: newText, stat_ids: [], value_index: 0 } as Rule);
+		setShowDropdown(true);
+		setSelectedIndex(-1);
+	};
+
+	const handleStatPick = (template: string) => {
+		invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((results) => {
+			const single = results.find((s) => s.kind.type === "Single" && s.template === template);
+			const ids = single?.stat_ids ?? [];
+			onChange({ ...rule, text: template, stat_ids: ids, value_index: 0 } as Rule);
+			setShowDropdown(false);
+		});
+	};
+
+	const handleKeyDown = (e: KeyboardEvent) => {
+		if (!showDropdown || filtered.length === 0) return;
+		if (e.key === "ArrowDown") {
+			e.preventDefault();
+			setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1));
+		} else if (e.key === "ArrowUp") {
+			e.preventDefault();
+			setSelectedIndex((i) => Math.max(i - 1, 0));
+		} else if (e.key === "Enter" && selectedIndex >= 0) {
+			e.preventDefault();
+			const selected = filtered[selectedIndex];
+			if (selected !== undefined) handleStatPick(selected);
+		} else if (e.key === "Escape") {
+			setShowDropdown(false);
+		}
+	};
+
+	return (
+		<div class={`predicate-fields stat-value-editor${compact ? " compact" : ""}`}>
+			<label class="pred-field" ref={wrapperRef}>
+				<div class="pred-text-wrapper">
+					<input
+						type="text"
+						class="pred-input"
+						title={statIds.join(", ") || undefined}
+						value={text}
+						onInput={(e) => handleTextInput((e.target as HTMLInputElement).value)}
+						onFocus={() => {
+							if (filtered.length > 0 || text) setShowDropdown(true);
+						}}
+						onKeyDown={handleKeyDown}
+						placeholder="Type to search..."
+					/>
+					{showDropdown && filtered.length > 0 && (
+						<div class="pred-dropdown" ref={dropdownRef}>
+							{filtered.map((item, i) => (
+								<div
+									key={item}
+									class={`pred-dropdown-item${i === selectedIndex ? " selected" : ""}`}
+									onMouseDown={(e) => {
+										e.preventDefault();
+										handleStatPick(item);
+									}}
+									onMouseEnter={() => setSelectedIndex(i)}
+								>
+									{item}
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+			</label>
+			{showStatIds && statIds.length > 0 && (
+				<input
+					type="text"
+					class="stat-id-readonly"
+					value={statIds.join(", ")}
+					readOnly
+					title={statIds.join(", ")}
+				/>
+			)}
+			<ComparisonField
+				label=""
+				allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
+				value={op}
+				onChange={(v) => onChange({ ...rule, op: v } as Rule)}
+			/>
+			<NumberField
+				label=""
+				min={0}
+				max={100}
+				value={value}
+				onChange={(v) => onChange({ ...rule, value: Number(v) } as Rule)}
 			/>
 		</div>
 	);
