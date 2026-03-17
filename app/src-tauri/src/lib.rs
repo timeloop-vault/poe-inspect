@@ -838,6 +838,15 @@ fn update_hotkeys(
         cycle_profile,
     };
     let macros = app.state::<ChatMacroState>().0.lock().unwrap().clone();
+
+    // Re-enable the keyboard hook — it may have been disabled by pause_hotkeys
+    // during hotkey capture. register_hotkeys updates bindings but doesn't
+    // re-enable the hook itself.
+    #[cfg(target_os = "windows")]
+    if let Some(hook) = app.try_state::<HotkeyHookState>() {
+        hook.0.set_enabled(true);
+    }
+
     register_hotkeys(&app, &config, &macros);
     *app.state::<HotkeyState>().0.lock().unwrap() = config;
 }

@@ -10,9 +10,6 @@
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Mutex};
 
-/// Maximum number of hotkey bindings (core + chat macros).
-const MAX_BINDINGS: usize = 32;
-
 /// A parsed hotkey: virtual key code + modifier flags.
 #[derive(Clone, Copy, Default)]
 struct ParsedHotkey {
@@ -33,10 +30,11 @@ struct HotkeyBinding {
 struct HookState {
     enabled: AtomicBool,
     require_poe_focus: AtomicBool,
-    /// Number of active bindings in the array.
-    binding_count: AtomicU8,
+    /// Generation counter — incremented on every `set_bindings` call.
+    /// The hook thread compares this to its cached value to detect changes.
+    generation: AtomicU8,
     /// Fixed-size binding array — written under lock, read lock-free.
-    /// The callback reads `binding_count` entries.
+    /// The callback reads bindings when generation changes.
     bindings: Mutex<Vec<HotkeyBinding>>,
 }
 
@@ -72,12 +70,11 @@ impl HotkeyHookHandle {
                 })
             })
             .collect();
-        let count = parsed.len().min(MAX_BINDINGS);
         let mut bindings = self.state.bindings.lock().unwrap();
         *bindings = parsed;
-        self.state
-            .binding_count
-            .store(count as u8, Ordering::Release);
+        // Increment generation to signal the hook thread to refresh its cache.
+        // Wrapping add is fine — we only need "changed" detection, not ordering.
+        self.state.generation.fetch_add(1, Ordering::Release);
     }
 }
 
@@ -136,7 +133,7 @@ pub(crate) fn start() -> (HotkeyHookHandle, std::sync::mpsc::Receiver<String>) {
     let state = Arc::new(HookState {
         enabled: AtomicBool::new(true),
         require_poe_focus: AtomicBool::new(true),
-        binding_count: AtomicU8::new(0),
+        generation: AtomicU8::new(0),
         bindings: Mutex::new(Vec::new()),
     });
 
@@ -160,7 +157,7 @@ pub(crate) fn start() -> (HotkeyHookHandle, std::sync::mpsc::Receiver<String>) {
     let state = Arc::new(HookState {
         enabled: AtomicBool::new(true),
         require_poe_focus: AtomicBool::new(true),
-        binding_count: AtomicU8::new(0),
+        generation: AtomicU8::new(0),
         bindings: Mutex::new(Vec::new()),
     });
     let (_tx, rx) = std::sync::mpsc::channel();
@@ -253,15 +250,15 @@ mod win32 {
             && key.alt == key_is_down(VK_MENU)
     }
 
-    /// Refresh the thread-local binding cache if the count changed.
+    /// Refresh the thread-local binding cache if bindings were updated.
     fn refresh_bindings(state: &HookState) {
-        let current_count = state.binding_count.load(Ordering::Acquire);
+        let current_gen = state.generation.load(Ordering::Acquire);
         BINDINGS_CACHE.with(|cache| {
             let mut cache = cache.borrow_mut();
-            if cache.0 != current_count {
+            if cache.0 != current_gen {
                 if let Ok(bindings) = state.bindings.lock() {
                     cache.1 = bindings.clone();
-                    cache.0 = current_count;
+                    cache.0 = current_gen;
                 }
             }
         });
