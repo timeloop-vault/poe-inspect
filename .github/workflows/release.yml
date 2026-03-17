@@ -87,27 +87,35 @@ jobs:
           echo "Using version: $VERSION"
 
       # Patch version into source files before building.
-      # Tauri reads version from tauri.conf.json; Cargo.toml must match for consistency.
+      # Uses node for all file patching (cross-platform — avoids BSD vs GNU sed differences).
+      # MSI and Cargo.toml require numeric-only versions (X.Y.Z), so pre-release
+      # suffixes like -beta.1 are stripped for those files. tauri.conf.json and
+      # package.json keep the full version for the updater and About page.
       - name: Patch version
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # tauri.conf.json
+          # Strip pre-release for MSI/Cargo compatibility (0.1.0-beta.1 → 0.1.0)
+          SEMVER=$(echo "$VERSION" | sed 's/-.*//')
           cd app
           node -e "
             const fs = require('fs');
+            const version = '$VERSION';
+            const semver = '$SEMVER';
+
+            // tauri.conf.json — uses semver (MSI requires numeric-only)
             const conf = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            conf.version = '$VERSION';
+            conf.version = semver;
             fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(conf, null, '\t') + '\n');
-          "
-          # Cargo.toml — only accepts semver (strip pre-release for cargo if needed)
-          CARGO_VERSION=$(echo "$VERSION" | sed 's/-.*//')
-          sed -i "s/^version = .*/version = \"$CARGO_VERSION\"/" src-tauri/Cargo.toml
-          # package.json
-          node -e "
-            const fs = require('fs');
+
+            // Cargo.toml — replace version line (semver only)
+            let cargo = fs.readFileSync('src-tauri/Cargo.toml', 'utf8');
+            cargo = cargo.replace(/^version = .*/m, 'version = \"' + semver + '\"');
+            fs.writeFileSync('src-tauri/Cargo.toml', cargo);
+
+            // package.json — full version including pre-release
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '$VERSION';
+            pkg.version = version;
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
           "
           cd ..
