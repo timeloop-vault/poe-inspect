@@ -14,8 +14,8 @@ use regex::Regex;
 
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
-    ModSource, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod, ResolvedStatLine,
-    Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
+    ModSource, ModTierKind, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
+    ResolvedStatLine, Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -848,6 +848,9 @@ fn compute_pseudo_stats(
         let mut total: f64 = 0.0;
         let mut has_required = false;
         let mut any_required_defined = false;
+        // Track the worst (highest number) tier among contributing mods.
+        // This gives the pseudo an aggregate tier representing the weakest link.
+        let mut worst_tier: Option<u32> = None;
 
         for comp in def.components {
             if comp.required {
@@ -870,6 +873,10 @@ fn compute_pseudo_stats(
                         // Use the first value (most stats are single-value)
                         comp_value += sl.values[0].current as f64;
                         comp_found = true;
+                        // Track this mod's tier for the pseudo aggregate
+                        if let Some(tier_num) = m.header.tier.as_ref().map(ModTierKind::number) {
+                            worst_tier = Some(worst_tier.map_or(tier_num, |cur| cur.max(tier_num)));
+                        }
                     }
                 }
             }
@@ -909,7 +916,7 @@ fn compute_pseudo_stats(
                     slot: ModSlot::Pseudo,
                     influence_tier: None,
                     name: None,
-                    tier: None,
+                    tier: worst_tier.map(ModTierKind::Tier),
                     tags: vec![],
                 },
                 stat_lines: vec![ResolvedStatLine {

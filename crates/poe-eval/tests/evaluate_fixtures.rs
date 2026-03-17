@@ -1473,3 +1473,165 @@ fn pseudo_stat_value_predicate_works() {
         "pseudo physical damage 63 < 100 should not match"
     );
 }
+
+// ─── StatTier + TierCount predicates ────────────────────────────────────────
+
+#[test]
+fn stat_tier_matches_explicit_mod() {
+    use poe_eval::predicate::TierKindFilter;
+
+    let gd = full_game_data();
+    // rare-warstaff has "Heavy" (Tier 8) and "Squire's" (Tier 8) phys damage,
+    // "Cerulean" (Tier 8) mana, "of Puncturing" (Tier 3) crit chance.
+    let item = resolve_full("rare-warstaff-sol-pile.txt");
+
+    // Tier <= 8 should match the phys damage mod
+    let rule = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["local_physical_damage_+%".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 8,
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "T8 phys mod should match tier <= 8"
+    );
+
+    // Tier <= 2 should NOT match (phys is T8)
+    let rule_strict = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["local_physical_damage_+%".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 2,
+    });
+    assert!(
+        !evaluate(&item, &rule_strict, gd),
+        "T8 phys mod should not match tier <= 2"
+    );
+
+    // Crit is T3 — tier == 3 should match (local stat for weapons)
+    let rule_crit = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["local_critical_strike_chance_+%".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Eq,
+        value: 3,
+    });
+    assert!(
+        evaluate(&item, &rule_crit, gd),
+        "T3 crit should match tier == 3"
+    );
+}
+
+#[test]
+fn stat_tier_pseudo_uses_worst_contributing_tier() {
+    use poe_eval::predicate::TierKindFilter;
+
+    let gd = full_game_data();
+    // rare-warstaff has two phys damage mods: "Heavy" (T8) and "Squire's" (T8).
+    // Pseudo "total increased Physical Damage" should have worst tier = 8.
+    let item = resolve_full("rare-warstaff-sol-pile.txt");
+
+    // Verify pseudo has a tier set
+    let pseudo_mod = item.pseudo_mods.iter().find(|m| {
+        m.stat_lines.iter().any(|sl| {
+            sl.stat_ids.as_ref().is_some_and(|ids| {
+                ids.iter()
+                    .any(|id| id == "pseudo_increased_physical_damage")
+            })
+        })
+    });
+    assert!(pseudo_mod.is_some(), "should have pseudo phys damage");
+    let pseudo = pseudo_mod.unwrap();
+    assert!(
+        pseudo.header.tier.is_some(),
+        "pseudo should have aggregate tier, got {:?}",
+        pseudo.header
+    );
+    assert_eq!(
+        pseudo.header.tier.as_ref().unwrap().number(),
+        8,
+        "pseudo worst tier should be 8 (both contributing mods are T8)"
+    );
+
+    // StatTier on pseudo: tier <= 8 should match
+    let rule = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["pseudo_increased_physical_damage".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 8,
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "pseudo with worst tier 8 should match tier <= 8"
+    );
+
+    // tier <= 3 should NOT match
+    let rule_strict = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["pseudo_increased_physical_damage".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 3,
+    });
+    assert!(
+        !evaluate(&item, &rule_strict, gd),
+        "pseudo with worst tier 8 should not match tier <= 3"
+    );
+}
+
+#[test]
+fn tier_count_matches_mod_count() {
+    use poe_eval::predicate::TierKindFilter;
+
+    let gd = full_game_data();
+    // rare-warstaff: Heavy(T8), Cerulean(T8), Squire's(T8), of Puncturing(T3)
+    // 4 mods total, all are Tier (not Rank)
+    let item = resolve_full("rare-warstaff-sol-pile.txt");
+
+    // At least 3 mods with tier <= 10 (all 4 qualify)
+    let rule = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 10,
+        min_count: 3,
+        slot: None,
+    });
+    assert!(evaluate(&item, &rule, gd), "4 mods with tier <= 10 >= 3");
+
+    // At least 1 mod with tier <= 3 (only "of Puncturing" T3)
+    let rule_t3 = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 3,
+        min_count: 1,
+        slot: None,
+    });
+    assert!(evaluate(&item, &rule_t3, gd), "1 mod with tier <= 3");
+
+    // At least 2 mods with tier <= 3 — should fail
+    let rule_two_t3 = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 3,
+        min_count: 2,
+        slot: None,
+    });
+    assert!(
+        !evaluate(&item, &rule_two_t3, gd),
+        "only 1 mod with tier <= 3, need 2"
+    );
+
+    // Slot filter: at least 1 prefix with tier <= 8
+    let rule_prefix = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 8,
+        min_count: 1,
+        slot: Some(ModSlotKind::Prefix),
+    });
+    assert!(evaluate(&item, &rule_prefix, gd), "3 prefixes with T8");
+}

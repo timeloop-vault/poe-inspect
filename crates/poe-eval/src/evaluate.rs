@@ -6,7 +6,7 @@
 use poe_data::GameData;
 use poe_item::types::{ModSlot, ModTierKind, ResolvedItem};
 
-use crate::predicate::{Cmp, ModSlotKind, Predicate, RarityValue, StatCondition};
+use crate::predicate::{Cmp, ModSlotKind, Predicate, RarityValue, StatCondition, TierKindFilter};
 use crate::profile::{MatchedRule, Profile, ScoreResult, UnmatchedRule};
 use crate::rule::Rule;
 
@@ -72,15 +72,24 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             .all_mods()
             .any(|m| m.header.name.as_deref() == Some(name.as_str())),
 
-        Predicate::ModTier { name, op, value } => item.all_mods().any(|m| {
-            m.header.name.as_deref() == Some(name.as_str())
-                && m.header.tier.as_ref().is_some_and(|t| match t {
-                    ModTierKind::Tier(n) | ModTierKind::Rank(n) => op.eval(n, value),
-                })
-        }),
-
         // ── Stat value predicates ────────────────────────────────────
         Predicate::StatValue { conditions } => eval_stat_value(item, conditions),
+
+        Predicate::StatTier {
+            text: _,
+            stat_ids,
+            kind,
+            op,
+            value,
+        } => eval_stat_tier(item, stat_ids, *kind, *op, *value),
+
+        Predicate::TierCount {
+            kind,
+            op,
+            value,
+            min_count,
+            slot,
+        } => eval_tier_count(item, *kind, *op, *value, *min_count, *slot),
 
         Predicate::RollPercent {
             text: _,
@@ -274,6 +283,76 @@ fn extract_quality(item: &ResolvedItem) -> u32 {
                 .ok()
         })
         .unwrap_or(0)
+}
+
+/// Check whether a `ModTierKind` matches a `TierKindFilter`.
+fn tier_matches_filter(tier: &ModTierKind, kind: TierKindFilter) -> Option<u32> {
+    match (tier, kind) {
+        (ModTierKind::Tier(n), TierKindFilter::Tier | TierKindFilter::Either)
+        | (ModTierKind::Rank(n), TierKindFilter::Rank | TierKindFilter::Either) => Some(*n),
+        _ => None,
+    }
+}
+
+/// Evaluate a `StatTier` predicate: find the mod providing the stat, check its tier.
+fn eval_stat_tier(
+    item: &ResolvedItem,
+    stat_ids: &[String],
+    kind: TierKindFilter,
+    op: Cmp,
+    value: u32,
+) -> bool {
+    if stat_ids.is_empty() {
+        return false;
+    }
+    item.all_mods().any(|m| {
+        // Check if this mod has a matching tier
+        let Some(tier_num) = m
+            .header
+            .tier
+            .as_ref()
+            .and_then(|t| tier_matches_filter(t, kind))
+        else {
+            return false;
+        };
+        // Check if this mod provides any of the requested stat IDs
+        m.stat_lines.iter().any(|sl| {
+            !sl.is_reminder
+                && sl
+                    .stat_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.iter().any(|id| stat_ids.iter().any(|sid| sid == id)))
+        }) && op.eval(&tier_num, &value)
+    })
+}
+
+/// Evaluate a `TierCount` predicate: count mods matching a tier/rank condition.
+fn eval_tier_count(
+    item: &ResolvedItem,
+    kind: TierKindFilter,
+    op: Cmp,
+    value: u32,
+    min_count: u32,
+    slot: Option<ModSlotKind>,
+) -> bool {
+    let count = item
+        .all_mods()
+        .filter(|m| {
+            // Optional slot filter
+            if let Some(s) = slot {
+                if m.header.slot != s.to_mod_slot() {
+                    return false;
+                }
+            }
+            // Check tier matches filter kind and comparison
+            m.header
+                .tier
+                .as_ref()
+                .and_then(|t| tier_matches_filter(t, kind))
+                .is_some_and(|n| op.eval(&n, &value))
+        })
+        .count() as u32;
+    count >= min_count
 }
 
 /// Iterate all non-reminder stat lines matching any of the given `stat_ids`.
