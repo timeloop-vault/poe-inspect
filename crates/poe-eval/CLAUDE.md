@@ -58,8 +58,9 @@ tests/
 | `ModCount` | Count of prefix/suffix/implicit mods |
 | `OpenMods` | Available mod slots (uses GameData for max) |
 | `HasModNamed` | Whether any mod has a specific name |
-| `ModTier` | Mod tier comparison by name |
 | `StatValue` | Rolled value of a matching stat (1 condition = any mod; 2+ = same mod) |
+| `StatTier` | Tier/rank of the mod providing a stat (pseudo = worst contributing tier) |
+| `TierCount` | Count mods matching a tier/rank condition (at least N with tier <= X) |
 | `RollPercent` | How close a roll is to max (0-100%) |
 | `HasInfluence` | Specific influence check |
 | `HasStatus` | Specific status check (Corrupted, etc.) |

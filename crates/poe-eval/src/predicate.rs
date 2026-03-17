@@ -80,9 +80,6 @@ pub enum Predicate {
     /// Whether any mod has a specific name (from the `{ }` header).
     HasModNamed { name: String },
 
-    /// Mod tier comparison — checks if any mod of the given name has tier <op> value.
-    ModTier { name: String, op: Cmp, value: u32 },
-
     // ── Stat value predicates ────────────────────────────────────────
     /// Rolled value of a mod's stat line(s).
     ///
@@ -90,6 +87,32 @@ pub enum Predicate {
     /// - **2+ conditions**: matches only if a SINGLE mod satisfies ALL conditions
     ///   (same-mod check — used for hybrid mod detection).
     StatValue { conditions: Vec<StatCondition> },
+
+    /// Check the tier/rank of the mod that provides a given stat.
+    ///
+    /// Like `StatValue` but checks the mod's tier number instead of the rolled value.
+    /// For pseudo stats, the tier is the worst (highest number) tier among contributing mods.
+    StatTier {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        text: Option<String>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        stat_ids: Vec<String>,
+        kind: TierKindFilter,
+        op: Cmp,
+        value: u32,
+    },
+
+    /// Count mods matching a tier/rank condition.
+    ///
+    /// "At least N mods with tier/rank <op> value". Replaces the old name-based `ModTier`.
+    TierCount {
+        kind: TierKindFilter,
+        op: Cmp,
+        value: u32,
+        min_count: u32,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        slot: Option<ModSlotKind>,
+    },
 
     /// Roll quality: how close the current roll is to the max, as a percentage.
     /// Matches by `stat_ids` (language-independent).
@@ -152,6 +175,19 @@ pub enum ModSlotKind {
     Prefix,
     Suffix,
     Implicit,
+}
+
+/// Whether to match Tier mods, Rank mods, or either.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub enum TierKindFilter {
+    /// Only match mods with `Tier(n)`.
+    Tier,
+    /// Only match mods with `Rank(n)`.
+    Rank,
+    /// Match either tier or rank.
+    Either,
 }
 
 /// Serializable rarity value (maps to `poe_item::types::Rarity`).

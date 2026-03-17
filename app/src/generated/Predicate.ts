@@ -5,6 +5,7 @@ import type { ModSlotKind } from "./ModSlotKind";
 import type { RarityValue } from "./RarityValue";
 import type { StatCondition } from "./StatCondition";
 import type { StatusValue } from "./StatusValue";
+import type { TierKindFilter } from "./TierKindFilter";
 
 /**
  * An atomic condition that can be tested against a `ResolvedItem`.
@@ -13,4 +14,4 @@ import type { StatusValue } from "./StatusValue";
  * all PoE-specific logic lives in the evaluation layer which queries
  * `GameData` as needed.
  */
-export type Predicate = { "type": "Rarity", op: Cmp, value: RarityValue, } | { "type": "ItemClass", op: Cmp, value: string, } | { "type": "BaseType", op: Cmp, value: string, } | { "type": "BaseTypeContains", value: string, } | { "type": "ItemLevel", op: Cmp, value: number, } | { "type": "ModCount", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "OpenMods", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "HasModNamed", name: string, } | { "type": "ModTier", name: string, op: Cmp, value: number, } | { "type": "StatValue", conditions: Array<StatCondition>, } | { "type": "RollPercent", text?: string | null, stat_ids?: Array<string>, value_index: number, op: Cmp, value: number, } | { "type": "HasInfluence", influence: InfluenceValue, } | { "type": "HasStatus", status: StatusValue, } | { "type": "InfluenceCount", op: Cmp, value: number, } | { "type": "SocketCount", op: Cmp, value: number, } | { "type": "LinkCount", op: Cmp, value: number, } | { "type": "Quality", op: Cmp, value: number, };
+export type Predicate = { "type": "Rarity", op: Cmp, value: RarityValue, } | { "type": "ItemClass", op: Cmp, value: string, } | { "type": "BaseType", op: Cmp, value: string, } | { "type": "BaseTypeContains", value: string, } | { "type": "ItemLevel", op: Cmp, value: number, } | { "type": "ModCount", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "OpenMods", slot: ModSlotKind, op: Cmp, value: number, } | { "type": "HasModNamed", name: string, } | { "type": "StatValue", conditions: Array<StatCondition>, } | { "type": "StatTier", text?: string | null, stat_ids?: Array<string>, kind: TierKindFilter, op: Cmp, value: number, } | { "type": "TierCount", kind: TierKindFilter, op: Cmp, value: number, min_count: number, slot?: ModSlotKind | null, } | { "type": "RollPercent", text?: string | null, stat_ids?: Array<string>, value_index: number, op: Cmp, value: number, } | { "type": "HasInfluence", influence: InfluenceValue, } | { "type": "HasStatus", status: StatusValue, } | { "type": "InfluenceCount", op: Cmp, value: number, } | { "type": "SocketCount", op: Cmp, value: number, } | { "type": "LinkCount", op: Cmp, value: number, } | { "type": "Quality", op: Cmp, value: number, };

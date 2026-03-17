@@ -237,30 +237,6 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                 },
             }],
         },
-        PredicateSchema {
-            type_name: "ModTier".into(),
-            label: "Mod Tier".into(),
-            description: "Tier of a named mod (T1 = best for regular, R1 = worst for bench)".into(),
-            category: "Mods".into(),
-            fields: vec![
-                PredicateField {
-                    name: "name".into(),
-                    label: "Mod Name".into(),
-                    kind: FieldKind::Text {
-                        suggestions_from: Some("mod_names".into()),
-                    },
-                },
-                comparison_field(&NUM_CMP),
-                PredicateField {
-                    name: "value".into(),
-                    label: "Tier".into(),
-                    kind: FieldKind::Number {
-                        min: Some(1),
-                        max: Some(20),
-                    },
-                },
-            ],
-        },
         // ── Stat value predicates ────────────────────────────────────
         PredicateSchema {
             type_name: "StatValue".into(),
@@ -309,6 +285,72 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                     kind: FieldKind::Number {
                         min: Some(0),
                         max: Some(100),
+                    },
+                },
+            ],
+        },
+        PredicateSchema {
+            type_name: "StatTier".into(),
+            label: "Stat Tier".into(),
+            description:
+                "Tier/rank of the mod providing a stat. Pseudo = worst contributing tier.".into(),
+            category: "Mods".into(),
+            fields: vec![
+                PredicateField {
+                    name: "text".into(),
+                    label: "Stat".into(),
+                    kind: FieldKind::Text {
+                        suggestions_from: Some("stat_texts".into()),
+                    },
+                },
+                // stat_ids are auto-resolved from text (hidden from UI).
+                tier_kind_field(),
+                comparison_field(&NUM_CMP),
+                PredicateField {
+                    name: "value".into(),
+                    label: "Tier".into(),
+                    kind: FieldKind::Number {
+                        min: Some(1),
+                        max: Some(20),
+                    },
+                },
+            ],
+        },
+        PredicateSchema {
+            type_name: "TierCount".into(),
+            label: "Tier Count".into(),
+            description:
+                "At least N mods with tier/rank matching a condition (e.g., 3 mods with T1-T3)"
+                    .into(),
+            category: "Mods".into(),
+            fields: vec![
+                tier_kind_field(),
+                comparison_field(&NUM_CMP),
+                PredicateField {
+                    name: "value".into(),
+                    label: "Tier".into(),
+                    kind: FieldKind::Number {
+                        min: Some(1),
+                        max: Some(20),
+                    },
+                },
+                PredicateField {
+                    name: "min_count".into(),
+                    label: "Min Mods".into(),
+                    kind: FieldKind::Number {
+                        min: Some(1),
+                        max: Some(6),
+                    },
+                },
+                PredicateField {
+                    name: "slot".into(),
+                    label: "Slot (optional)".into(),
+                    kind: FieldKind::Slot {
+                        options: vec![
+                            opt("Prefix", "Prefix"),
+                            opt("Suffix", "Suffix"),
+                            opt("Implicit", "Implicit"),
+                        ],
                     },
                 },
             ],
@@ -448,6 +490,20 @@ fn comparison_field(ops: &[Cmp]) -> PredicateField {
     }
 }
 
+fn tier_kind_field() -> PredicateField {
+    PredicateField {
+        name: "kind".into(),
+        label: "Kind".into(),
+        kind: FieldKind::Enum {
+            options: vec![
+                opt("Tier", "Tier"),
+                opt("Rank", "Rank"),
+                opt("Either", "Either"),
+            ],
+        },
+    }
+}
+
 fn slot_field() -> PredicateField {
     PredicateField {
         name: "slot".into(),
@@ -469,7 +525,7 @@ mod tests {
     #[test]
     fn schema_has_all_predicates() {
         let schema = predicate_schema();
-        assert_eq!(schema.len(), 17, "schema should have exactly 17 predicates");
+        assert_eq!(schema.len(), 18, "schema should have exactly 18 predicates");
     }
 
     #[test]
@@ -478,7 +534,7 @@ mod tests {
         let mut names: Vec<&str> = schema.iter().map(|s| s.type_name.as_str()).collect();
         names.sort_unstable();
         names.dedup();
-        assert_eq!(names.len(), 17, "all type names should be unique");
+        assert_eq!(names.len(), 18, "all type names should be unique");
     }
 
     #[test]
@@ -496,9 +552,10 @@ mod tests {
             r#"{"type":"ModCount","slot":"Prefix","op":"Ge","value":1}"#,
             r#"{"type":"OpenMods","slot":"Suffix","op":"Ge","value":1}"#,
             r#"{"type":"HasModNamed","name":"Test"}"#,
-            r#"{"type":"ModTier","name":"Test","op":"Le","value":3}"#,
             r#"{"type":"StatValue","conditions":[{"stat_ids":["base_maximum_life"],"value_index":0,"op":"Ge","value":50}]}"#,
             r#"{"type":"RollPercent","text":"Life","stat_ids":["base_maximum_life"],"value_index":0,"op":"Ge","value":80}"#,
+            r#"{"type":"StatTier","text":"Life","stat_ids":["base_maximum_life"],"kind":"Tier","op":"Le","value":3}"#,
+            r#"{"type":"TierCount","kind":"Tier","op":"Le","value":3,"min_count":2}"#,
             r#"{"type":"HasInfluence","influence":"Shaper"}"#,
             r#"{"type":"HasStatus","status":"Corrupted"}"#,
             r#"{"type":"InfluenceCount","op":"Ge","value":1}"#,
