@@ -83,7 +83,7 @@ export function AboutSettings() {
 				<h3>Updates</h3>
 
 				{state.status === "idle" && (
-					<button type="button" class="setting-btn" onClick={checkForUpdate}>
+					<button type="button" class="btn" onClick={checkForUpdate}>
 						Check for Updates
 					</button>
 				)}
@@ -97,12 +97,7 @@ export function AboutSettings() {
 						<div class="setting-description" style={{ color: "#5a5" }}>
 							You are on the latest version.
 						</div>
-						<button
-							type="button"
-							class="setting-btn"
-							style={{ marginTop: "8px" }}
-							onClick={checkForUpdate}
-						>
+						<button type="button" class="btn" style={{ marginTop: "8px" }} onClick={checkForUpdate}>
 							Check Again
 						</button>
 					</>
@@ -120,7 +115,7 @@ export function AboutSettings() {
 						)}
 						<button
 							type="button"
-							class="setting-btn"
+							class="btn"
 							style={{ marginTop: "8px" }}
 							onClick={downloadAndInstall}
 						>
@@ -138,12 +133,7 @@ export function AboutSettings() {
 						<div class="setting-description" style={{ color: "#5a5" }}>
 							Update installed. Restart to apply.
 						</div>
-						<button
-							type="button"
-							class="setting-btn"
-							style={{ marginTop: "8px" }}
-							onClick={doRelaunch}
-						>
+						<button type="button" class="btn" style={{ marginTop: "8px" }} onClick={doRelaunch}>
 							Restart Now
 						</button>
 					</>
@@ -154,12 +144,7 @@ export function AboutSettings() {
 						<div class="setting-description" style={{ color: "#e04040" }}>
 							Update check failed: {state.message}
 						</div>
-						<button
-							type="button"
-							class="setting-btn"
-							style={{ marginTop: "8px" }}
-							onClick={checkForUpdate}
-						>
+						<button type="button" class="btn" style={{ marginTop: "8px" }} onClick={checkForUpdate}>
 							Retry
 						</button>
 					</>
