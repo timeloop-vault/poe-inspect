@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+use std::sync::OnceLock;
+
 use poe_dat::tables::BaseItemTypeRow;
 use poe_data::GameData;
 use poe_item::types::{ModSlot, ModSource, Rarity, ValueRange};
@@ -691,4 +694,98 @@ fn fractured_mod_from_header_source() {
         !athletes.is_fractured,
         "Athlete's mod should not be fractured"
     );
+}
+
+// ─── Full game data tests (require extracted datc64 in poe-data/data/) ──────
+
+/// Load full game data (with reverse index for `stat_id` resolution).
+/// Cached via `OnceLock` so it's loaded at most once per test run.
+fn full_game_data() -> &'static GameData {
+    static GD: OnceLock<GameData> = OnceLock::new();
+    GD.get_or_init(|| {
+        let data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../poe-data/data");
+        poe_data::load(&data_dir).expect("full game data required — run poe-data extraction first")
+    })
+}
+
+fn resolve_full(name: &str) -> poe_item::types::ResolvedItem {
+    let raw = poe_item::parse(&fixture(name)).unwrap();
+    poe_item::resolve(&raw, full_game_data())
+}
+
+#[test]
+fn weapon_flat_damage_stat_ids_resolved() {
+    let item = resolve_full("rare-warstaff-flat-phys.txt");
+
+    // "Adds 2 to 4 Physical Damage" (Glinting) should resolve to stat_ids.
+    // NOTE: stat_ids are global_* (not local_*) because find_eligible_mod can't
+    // confirm the mod — base item tag data is incomplete. Once tag extraction is
+    // fixed, apply_confirmed_stat_ids will replace these with local_* because
+    // templates_for_stat("local_*") now returns matching templates via the
+    // attack_/global_ fallback in set_reverse_index().
+    let phys_mod = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Glinting"))
+        .expect("should find Glinting mod (flat phys damage)");
+
+    let stat_ids: Vec<&str> = phys_mod
+        .stat_lines
+        .iter()
+        .filter_map(|sl| sl.stat_ids.as_ref())
+        .flat_map(|ids| ids.iter().map(String::as_str))
+        .collect();
+    assert!(
+        stat_ids
+            .iter()
+            .any(|id| id.contains("added_physical_damage")),
+        "flat phys damage mod should have physical damage stat_id, got: {stat_ids:?}"
+    );
+
+    // "114% increased Physical Damage" (Bloodthirsty) — also local on weapons.
+    let pct_mod = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Bloodthirsty"))
+        .expect("should find Bloodthirsty mod (% phys damage)");
+
+    let pct_ids: Vec<&str> = pct_mod
+        .stat_lines
+        .iter()
+        .filter_map(|sl| sl.stat_ids.as_ref())
+        .flat_map(|ids| ids.iter().map(String::as_str))
+        .collect();
+    assert!(
+        pct_ids.iter().any(|id| id.contains("physical_damage")),
+        "% phys damage mod should have physical damage stat_id, got: {pct_ids:?}"
+    );
+}
+
+#[test]
+fn bow_triple_damage_stat_ids_resolved() {
+    let item = resolve_full("rare-bow-triple-damage.txt");
+
+    // Flat phys, fire, and chaos damage mods should all get stat_ids.
+    for (mod_name, expected_fragment) in [
+        ("Tempered", "added_physical_damage"),
+        ("Carbonising", "added_fire_damage"),
+        ("Malicious", "added_chaos_damage"),
+    ] {
+        let m = item
+            .explicits
+            .iter()
+            .find(|m| m.header.name.as_deref() == Some(mod_name))
+            .unwrap_or_else(|| panic!("should find {mod_name} mod"));
+
+        let ids: Vec<&str> = m
+            .stat_lines
+            .iter()
+            .filter_map(|sl| sl.stat_ids.as_ref())
+            .flat_map(|ids| ids.iter().map(String::as_str))
+            .collect();
+        assert!(
+            ids.iter().any(|id| id.contains(expected_fragment)),
+            "{mod_name} should have stat_id containing '{expected_fragment}', got: {ids:?}"
+        );
+    }
 }

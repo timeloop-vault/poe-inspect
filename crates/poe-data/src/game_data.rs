@@ -265,10 +265,29 @@ impl GameData {
             if !stat.is_local || map.contains_key(&stat.id) {
                 continue;
             }
-            // Try 1: strip "local_" prefix → look up non-local equivalent.
+            // Try 1: strip "local_" prefix, then try "attack_" and "global_"
+            // replacements — merge templates from all matching non-local equivalents.
+            // - stripped: armour/evasion/speed/crit (local_base_evasion_rating → base_evasion_rating)
+            // - attack_: weapon flat damage (local_minimum_added_physical_damage → attack_...)
+            // - global_: weapon flat damage display text (→ global_..., same template as item text)
             if let Some(stripped) = stat.id.strip_prefix("local_") {
-                if let Some(templates) = map.get(stripped).cloned() {
-                    map.insert(stat.id.clone(), templates);
+                let candidates = [
+                    stripped.to_string(),
+                    format!("attack_{stripped}"),
+                    format!("global_{stripped}"),
+                ];
+                let mut merged = Vec::new();
+                for c in &candidates {
+                    if let Some(ts) = map.get(c.as_str()) {
+                        for t in ts {
+                            if !merged.contains(t) {
+                                merged.push(t.clone());
+                            }
+                        }
+                    }
+                }
+                if !merged.is_empty() {
+                    map.insert(stat.id.clone(), merged);
                     continue;
                 }
             }

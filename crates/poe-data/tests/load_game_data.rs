@@ -314,6 +314,45 @@ fn local_stat_template_fallback() {
     );
 }
 
+#[test]
+fn local_weapon_stat_template_fallback() {
+    let Some(gd) = load_test_data() else { return };
+
+    // Weapon flat damage stats use "local_" prefix but their non-local
+    // equivalents use "attack_" prefix, not just the stripped form.
+    // The 1b fallback (local_ → attack_) should resolve these.
+    assert!(
+        gd.templates_for_stat("local_minimum_added_physical_damage")
+            .is_some(),
+        "local phys damage stat should have template via attack_ fallback"
+    );
+    assert!(
+        gd.templates_for_stat("local_maximum_added_physical_damage")
+            .is_some(),
+        "local phys damage max stat should have template via attack_ fallback"
+    );
+    assert!(
+        gd.templates_for_stat("local_minimum_added_fire_damage")
+            .is_some(),
+        "local fire damage stat should have template via attack_ fallback"
+    );
+    assert!(
+        gd.templates_for_stat("local_minimum_added_cold_damage")
+            .is_some(),
+        "local cold damage stat should have template via attack_ fallback"
+    );
+    assert!(
+        gd.templates_for_stat("local_minimum_added_lightning_damage")
+            .is_some(),
+        "local lightning damage stat should have template via attack_ fallback"
+    );
+    assert!(
+        gd.templates_for_stat("local_minimum_added_chaos_damage")
+            .is_some(),
+        "local chaos damage stat should have template via attack_ fallback"
+    );
+}
+
 // ── ClientStrings ───────────────────────────────────────────────────────────
 
 #[test]

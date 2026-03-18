@@ -1,0 +1,28 @@
+Item Class: Bows
+Rarity: Rare
+Corpse Wind
+Ranger Bow
+--------
+Bow
+Physical Damage: 96-188 (augmented)
+Elemental Damage: 211-381 (augmented)
+Chaos Damage: 143-270 (augmented)
+Critical Strike Chance: 6.00%
+Attacks per Second: 1.30
+--------
+Requirements:
+Level: 66
+Dex: 212 (unmet)
+--------
+Sockets: G-B-G-G G
+--------
+Item Level: 85
+--------
+{ Prefix Modifier "Tempered" (Tier: 2) — Damage, Physical, Attack }
+Adds 40(30-40) to 71(63-73) Physical Damage
+{ Prefix Modifier "Carbonising" (Tier: 1) — Damage, Elemental, Fire, Attack }
+Adds 211(165-225) to 381(335-390) Fire Damage
+{ Prefix Modifier "Malicious" (Tier: 1) — Damage, Chaos, Attack }
+Adds 143(98-149) to 270(183-280) Chaos Damage
+{ Suffix Modifier "of Destruction" (Tier: 1) — Damage, Critical }
++38(35-38)% to Global Critical Strike Multiplier
