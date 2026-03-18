@@ -298,10 +298,18 @@ fn resolve_mod(
     // non-local stat_ids (all it knows from stat_descriptions.txt). The real
     // stat_ids come from the Mods table, confirmed via base type tag
     // intersection. Replace reverse index guesses with confirmed truth.
+    //
+    // Multiple mods can share a display name (e.g., "Tempered" exists as both
+    // local flat phys for weapons and global flat phys for jewelry). Try all
+    // eligible candidates — the template matching in apply_confirmed_stat_ids
+    // will only succeed for the variant whose stat_ids share display templates
+    // with the reverse index stat_ids.
     if let Some(mod_name) = &group.header.name {
-        if let Some(mod_row) = game_data.find_eligible_mod(base_type, mod_name, item_class) {
+        for mod_row in game_data.find_eligible_mods(base_type, mod_name, item_class) {
             let real_stat_ids = game_data.mod_stat_ids(mod_row);
-            apply_confirmed_stat_ids(&mut stat_lines, &real_stat_ids, game_data);
+            if apply_confirmed_stat_ids(&mut stat_lines, &real_stat_ids, game_data) {
+                break;
+            }
         }
     }
 
@@ -332,11 +340,15 @@ fn resolve_mod(
 ///
 /// Matching strategy: for each stat line's reverse-index IDs, check if any real ID
 /// from the mod shares the same display template. If so, replace with the real one.
+///
+/// Returns `true` if any `stat_ids` were replaced (indicating this mod candidate
+/// was the correct variant).
 fn apply_confirmed_stat_ids(
     stat_lines: &mut [ResolvedStatLine],
     real_stat_ids: &[String],
     game_data: &GameData,
-) {
+) -> bool {
+    let mut any_changed = false;
     for sl in stat_lines.iter_mut() {
         let Some(ri_ids) = &sl.stat_ids else {
             continue;
@@ -369,8 +381,10 @@ fn apply_confirmed_stat_ids(
 
         if changed {
             sl.stat_ids = Some(confirmed);
+            any_changed = true;
         }
     }
+    any_changed
 }
 
 // ── Generic section classification ─────────────────────────────────────────

@@ -20,6 +20,7 @@ fn test_game_data(base_names: &[&str]) -> GameData {
             width: 1,
             height: 1,
             name: (*name).to_string(),
+            inherits_from: String::new(),
             drop_level: 1,
             implicit_mods: vec![],
             tags: vec![],
@@ -718,11 +719,6 @@ fn weapon_flat_damage_stat_ids_resolved() {
     let item = resolve_full("rare-warstaff-flat-phys.txt");
 
     // "Adds 2 to 4 Physical Damage" (Glinting) should resolve to stat_ids.
-    // NOTE: stat_ids are global_* (not local_*) because find_eligible_mod can't
-    // confirm the mod — base item tag data is incomplete. Once tag extraction is
-    // fixed, apply_confirmed_stat_ids will replace these with local_* because
-    // templates_for_stat("local_*") now returns matching templates via the
-    // attack_/global_ fallback in set_reverse_index().
     let phys_mod = item
         .explicits
         .iter()
@@ -762,14 +758,15 @@ fn weapon_flat_damage_stat_ids_resolved() {
 }
 
 #[test]
-fn bow_triple_damage_stat_ids_resolved() {
+fn bow_triple_damage_has_local_stat_ids() {
     let item = resolve_full("rare-bow-triple-damage.txt");
 
-    // Flat phys, fire, and chaos damage mods should all get stat_ids.
-    for (mod_name, expected_fragment) in [
-        ("Tempered", "added_physical_damage"),
-        ("Carbonising", "added_fire_damage"),
-        ("Malicious", "added_chaos_damage"),
+    // Weapon flat damage mods should resolve to local_ stat_ids (not global_/attack_).
+    // This tests the full pipeline: template fallback + inherited tags + apply_confirmed_stat_ids.
+    for (mod_name, expected_id) in [
+        ("Tempered", "local_minimum_added_physical_damage"),
+        ("Carbonising", "local_minimum_added_fire_damage"),
+        ("Malicious", "local_minimum_added_chaos_damage"),
     ] {
         let m = item
             .explicits
@@ -784,8 +781,8 @@ fn bow_triple_damage_stat_ids_resolved() {
             .flat_map(|ids| ids.iter().map(String::as_str))
             .collect();
         assert!(
-            ids.iter().any(|id| id.contains(expected_fragment)),
-            "{mod_name} should have stat_id containing '{expected_fragment}', got: {ids:?}"
+            ids.contains(&expected_id),
+            "{mod_name} should have local stat_id '{expected_id}', got: {ids:?}"
         );
     }
 }

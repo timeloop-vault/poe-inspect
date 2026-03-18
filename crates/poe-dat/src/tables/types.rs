@@ -73,11 +73,16 @@ pub struct BaseItemTypeRow {
     pub height: i32,
     /// Display name (e.g., "Iron Greaves").
     pub name: String,
+    /// Parent metadata path (e.g., "Metadata/Items/Armours/Boots/AbstractBoots").
+    /// Tags are inherited from this parent (defined in .ot files, not datc64).
+    pub inherits_from: String,
     /// Minimum drop level.
     pub drop_level: i32,
     /// FK list to Mods (implicit mod row indices).
     pub implicit_mods: Vec<u64>,
     /// FK list to Tags (tag row indices).
+    /// NOTE: Only contains base-type-specific tags. Inherited tags from the
+    /// `inherits_from` parent are resolved by `GameData` at load time.
     pub tags: Vec<u64>,
 }
 

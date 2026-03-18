@@ -242,6 +242,34 @@ impl GameData {
         self.shield_by_base.get(base_type).map(|s| s.block)
     }
 
+    /// Merge inherited tags from abstract parent types into each base item.
+    ///
+    /// In the GGPK, `BaseItemTypes.TagsKeys` only stores tags specific to each
+    /// base type. Core tags (e.g., `bow`, `weapon`, `two_hand_weapon`) come from
+    /// `.ot` files via the `InheritsFrom` chain. This method resolves those
+    /// inherited tags using the mapping in `domain::inherited_tags_for_parent()`.
+    pub fn resolve_inherited_tags(&mut self) {
+        let mut resolved = 0;
+        for base in &mut self.base_item_types {
+            let parent_tag_ids = domain::inherited_tags_for_parent(&base.inherits_from);
+            if parent_tag_ids.is_empty() {
+                continue;
+            }
+            for &tag_id in parent_tag_ids {
+                if let Some(&idx) = self.tag_by_id.get(tag_id) {
+                    let fk = idx as u64;
+                    if !base.tags.contains(&fk) {
+                        base.tags.push(fk);
+                    }
+                }
+            }
+            resolved += 1;
+        }
+        if resolved > 0 {
+            tracing::info!(count = resolved, "Inherited tags resolved");
+        }
+    }
+
     /// Set the stat description reverse index.
     ///
     /// Also builds the `stat_id → templates` reverse mapping used by
@@ -505,6 +533,52 @@ impl GameData {
             .map(|(m, _)| m)
     }
 
+    /// Find ALL eligible mods for a base type, sorted by spawn weight (descending).
+    ///
+    /// Like `find_eligible_mod` but returns all candidates instead of just the
+    /// highest-weight one. Useful when multiple mods share a display name
+    /// (e.g., local vs global "Tempered") and the caller needs to try each
+    /// candidate to find the correct variant via template matching.
+    pub fn find_eligible_mods(
+        &self,
+        base_type: &str,
+        mod_name: &str,
+        item_class: &str,
+    ) -> Vec<&ModRow> {
+        let Some(base) = self.base_item_by_name(base_type) else {
+            return vec![];
+        };
+        let base_tags: HashSet<u64> = base.tags.iter().copied().collect();
+        let Some(mod_indices) = self.mods_by_name.get(mod_name) else {
+            return vec![];
+        };
+        let valid_domains = crate::domain::item_class_mod_domains(item_class);
+
+        let mut candidates: Vec<(&ModRow, i32)> = mod_indices
+            .iter()
+            .filter_map(|&idx| {
+                let m = &self.mods[idx];
+                if !valid_domains.contains(&m.domain) {
+                    return None;
+                }
+                let total_weight: i32 = m
+                    .spawn_weight_tags
+                    .iter()
+                    .zip(m.spawn_weight_values.iter())
+                    .filter(|(tag, weight)| **weight > 0 && base_tags.contains(tag))
+                    .map(|(_, weight)| *weight)
+                    .sum();
+                if total_weight > 0 {
+                    Some((m, total_weight))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        candidates.sort_by(|a, b| b.1.cmp(&a.1));
+        candidates.into_iter().map(|(m, _)| m).collect()
+    }
+
     /// Resolve a mod's `stat_keys` to `stat_id` strings.
     ///
     /// Returns the stat IDs for all non-None `stat_keys` in order.
@@ -734,6 +808,11 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
         mods,
         rarities,
     );
+
+    // Resolve inherited tags from abstract parents (.ot files define tags
+    // like "bow", "weapon", "two_hand_weapon" that BaseItemTypes.TagsKeys
+    // doesn't include — only base-type-specific extras are in TagsKeys).
+    gd.resolve_inherited_tags();
 
     // Load reverse index if available
     let ri_path = dat_dir.join("reverse_index.json");

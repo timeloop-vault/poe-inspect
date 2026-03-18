@@ -270,7 +270,7 @@ mod base_item_offsets {
     pub const WIDTH: usize = 24; // i32 (4)
     pub const HEIGHT: usize = 28; // i32 (4)
     pub const NAME: usize = 32; // ref|string (8)
-    pub const _INHERITS: usize = 40; // ref|string (8)
+    pub const INHERITS_FROM: usize = 40; // ref|string (8)
     pub const DROP_LEVEL: usize = 48; // i32 (4)
     pub const _FLAVOUR: usize = 52; // FK (16)
     pub const IMPLICIT_MODS: usize = 68; // list|u64 (16)
@@ -289,6 +289,9 @@ pub fn extract_base_item_types(dat: &DatFile) -> Vec<BaseItemTypeRow> {
                 width: dat.read_i32(row, base_item_offsets::WIDTH)?,
                 height: dat.read_i32(row, base_item_offsets::HEIGHT)?,
                 name: dat.read_string(row, base_item_offsets::NAME)?,
+                inherits_from: dat
+                    .read_string(row, base_item_offsets::INHERITS_FROM)
+                    .unwrap_or_default(),
                 drop_level: dat.read_i32(row, base_item_offsets::DROP_LEVEL)?,
                 implicit_mods: dat.read_list_u64(row, base_item_offsets::IMPLICIT_MODS),
                 tags: dat.read_list_u64(row, base_item_offsets::TAGS),
