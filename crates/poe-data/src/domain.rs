@@ -512,7 +512,7 @@ const fn comp(
     }
 }
 
-/// Phase 1 pseudo stat definitions.
+/// Pseudo stat definitions — trade API aggregates computed from item stats.
 ///
 /// Each component lists explicit `stat_ids` (including local_ variants for weapon
 /// mods). Use `crates/poe-data/data/mod_families.txt` as a reference when
@@ -548,6 +548,29 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
         id: "pseudo_total_chaos_resistance",
         label: "(Pseudo) +#% total to Chaos Resistance",
         components: &[comp(&["base_chaos_damage_resistance_%"], 1.0, false)],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_elemental_resistance",
+        label: "(Pseudo) +#% total Elemental Resistance",
+        components: &[
+            comp(&["base_fire_damage_resistance_%"], 1.0, false),
+            comp(&["base_cold_damage_resistance_%"], 1.0, false),
+            comp(&["base_lightning_damage_resistance_%"], 1.0, false),
+            // All-elements counts for each of the 3 elemental resistances
+            comp(&["base_resist_all_elements_%"], 3.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_resistance",
+        label: "(Pseudo) +#% total Resistance",
+        components: &[
+            comp(&["base_fire_damage_resistance_%"], 1.0, false),
+            comp(&["base_cold_damage_resistance_%"], 1.0, false),
+            comp(&["base_lightning_damage_resistance_%"], 1.0, false),
+            comp(&["base_chaos_damage_resistance_%"], 1.0, false),
+            // All-elements counts for 3 elemental resistances (not chaos)
+            comp(&["base_resist_all_elements_%"], 3.0, false),
+        ],
     },
     // ── Attributes ───────────────────────────────────────────────────
     PseudoDefinition {
@@ -597,6 +620,11 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
             ),
             comp(&["additional_all_attributes"], 1.0, false),
         ],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_all_attributes",
+        label: "(Pseudo) +# total to all Attributes",
+        components: &[comp(&["additional_all_attributes"], 1.0, false)],
     },
     // ── Life / Mana / ES ─────────────────────────────────────────────
     PseudoDefinition {
@@ -650,6 +678,31 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
         label: "(Pseudo) #% increased Movement Speed",
         components: &[comp(&["base_movement_velocity_+%"], 1.0, false)],
     },
+    PseudoDefinition {
+        id: "pseudo_total_attack_speed",
+        label: "(Pseudo) +#% total Attack Speed",
+        components: &[comp(
+            &["attack_speed_+%", "local_attack_speed_+%"],
+            1.0,
+            false,
+        )],
+    },
+    PseudoDefinition {
+        id: "pseudo_total_cast_speed",
+        label: "(Pseudo) +#% total Cast Speed",
+        components: &[comp(&["base_cast_speed_+%"], 1.0, false)],
+    },
+    // ── Critical Strike ─────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_global_critical_strike_chance",
+        label: "(Pseudo) +#% Global Critical Strike Chance",
+        components: &[comp(&["critical_strike_chance_+%"], 1.0, false)],
+    },
+    PseudoDefinition {
+        id: "pseudo_global_critical_strike_multiplier",
+        label: "(Pseudo) +#% Global Critical Strike Multiplier",
+        components: &[comp(&["base_critical_strike_multiplier_+"], 1.0, false)],
+    },
     // ── Damage ───────────────────────────────────────────────────────
     PseudoDefinition {
         id: "pseudo_increased_physical_damage",
@@ -660,6 +713,67 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
             false,
         )],
     },
+    PseudoDefinition {
+        id: "pseudo_increased_elemental_damage",
+        label: "(Pseudo) #% increased Elemental Damage",
+        components: &[comp(&["elemental_damage_+%"], 1.0, false)],
+    },
+    PseudoDefinition {
+        id: "pseudo_increased_fire_damage",
+        label: "(Pseudo) #% increased Fire Damage",
+        components: &[
+            comp(&["fire_damage_+%"], 1.0, false),
+            comp(&["elemental_damage_+%"], 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_increased_cold_damage",
+        label: "(Pseudo) #% increased Cold Damage",
+        components: &[
+            comp(&["cold_damage_+%"], 1.0, false),
+            comp(&["elemental_damage_+%"], 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_increased_lightning_damage",
+        label: "(Pseudo) #% increased Lightning Damage",
+        components: &[
+            comp(&["lightning_damage_+%"], 1.0, false),
+            comp(&["elemental_damage_+%"], 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_increased_spell_damage",
+        label: "(Pseudo) #% increased Spell Damage",
+        components: &[comp(&["spell_damage_+%"], 1.0, false)],
+    },
+    // ── Accuracy ────────────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_total_accuracy_rating",
+        label: "(Pseudo) +# total Accuracy Rating",
+        components: &[comp(&["accuracy_rating"], 1.0, false)],
+    },
+    // ── Regeneration ────────────────────────────────────────────────
+    PseudoDefinition {
+        id: "pseudo_total_life_regen",
+        label: "(Pseudo) # Life Regenerated per Second",
+        components: &[
+            // GGPK stores regen as per-minute; display divides by 60
+            comp(&["life_regeneration_rate_per_minute_%"], 1.0, false),
+        ],
+    },
+    PseudoDefinition {
+        id: "pseudo_increased_mana_regen",
+        label: "(Pseudo) #% increased Mana Regeneration Rate",
+        components: &[comp(&["mana_regeneration_rate_+%"], 1.0, false)],
+    },
+    // ── DPS ─────────────────────────────────────────────────────────
+    // NOTE: Physical DPS, Elemental DPS, and Total DPS are NOT stat-sum
+    // pseudos. They require multiplying (flat damage × attack speed × crit),
+    // which the current PseudoDefinition system cannot express. These need
+    // a computed-property mechanism that reads weapon base damage, local
+    // added damage, local %inc damage, and local attack speed from the
+    // item's resolved properties. TODO: implement as ComputedPseudo.
 ];
 
 /// Returns all pseudo stat definitions.
