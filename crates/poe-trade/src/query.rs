@@ -139,6 +139,8 @@ pub struct QueryFilters {
     pub misc_filters: Option<MiscFilters>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub socket_filters: Option<SocketFilters>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weapon_filters: Option<WeaponFilters>,
 }
 
 #[derive(Debug, Serialize)]
@@ -154,6 +156,25 @@ pub struct SocketFilters {
 pub struct SocketFilterValues {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<IntFilterValue>,
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct WeaponFilters {
+    pub filters: WeaponFilterValues,
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct WeaponFilterValues {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pdps: Option<FilterValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub edps: Option<FilterValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dps: Option<FilterValue>,
 }
 
 /// Integer-valued filter range (trade API requires integers for links/sockets).
@@ -399,8 +420,12 @@ fn resolve_trade_id(
     let stat_ids = stat_line.stat_ids.as_ref()?;
 
     // Pseudo mods carry their trade ID directly — no stat_number lookup needed.
+    // DPS pseudos are excluded: they use weapon_filters, not pseudo stat IDs.
     if category == "pseudo" {
         let pseudo_id = stat_ids.first()?;
+        if poe_data::domain::is_dps_pseudo(pseudo_id) {
+            return None;
+        }
         return Some(format!("pseudo.{pseudo_id}"));
     }
 
@@ -447,7 +472,7 @@ fn compute_filter_value(
     })
 }
 
-/// Build item-level filters (type, misc, sockets).
+/// Build item-level filters (type, misc, sockets, weapon DPS).
 fn build_item_filters(
     item: &ResolvedItem,
     config: &TradeQueryConfig,
@@ -459,8 +484,13 @@ fn build_item_filters(
     let type_filters = build_type_filters(item, type_scope, filter_config);
     let misc_filters = build_misc_filters(item, config, quality, filter_config);
     let socket_filters = build_socket_filters(socket_info, filter_config);
+    let weapon_filters = build_weapon_filters(item, config);
 
-    if type_filters.is_none() && misc_filters.is_none() && socket_filters.is_none() {
+    if type_filters.is_none()
+        && misc_filters.is_none()
+        && socket_filters.is_none()
+        && weapon_filters.is_none()
+    {
         return None;
     }
 
@@ -468,6 +498,7 @@ fn build_item_filters(
         type_filters,
         misc_filters,
         socket_filters,
+        weapon_filters,
     })
 }
 
@@ -654,6 +685,55 @@ fn build_socket_filters(
                 max: None,
             }),
         },
+    })
+}
+
+/// Build weapon DPS filters from computed DPS pseudo mods.
+///
+/// Maps DPS pseudo stat IDs → trade API `weapon_filters` keys (pdps/edps/dps).
+/// Returns `None` for non-weapons or items with no DPS pseudos.
+fn build_weapon_filters(item: &ResolvedItem, config: &TradeQueryConfig) -> Option<WeaponFilters> {
+    let mut pdps = None;
+    let mut edps = None;
+    let mut dps = None;
+
+    for pseudo in &item.pseudo_mods {
+        for sl in &pseudo.stat_lines {
+            let Some(stat_ids) = &sl.stat_ids else {
+                continue;
+            };
+            let Some(pseudo_id) = stat_ids.first() else {
+                continue;
+            };
+            let Some(filter_key) = poe_data::domain::dps_weapon_filter(pseudo_id) else {
+                continue;
+            };
+            if sl.values.is_empty() {
+                continue;
+            }
+
+            let raw_value = sl.values[0].current as f64;
+            let relaxed = (raw_value * config.value_relaxation).floor();
+            let fv = FilterValue {
+                min: Some(relaxed),
+                max: None,
+            };
+
+            match filter_key {
+                "pdps" => pdps = Some(fv),
+                "edps" => edps = Some(fv),
+                "dps" => dps = Some(fv),
+                _ => {}
+            }
+        }
+    }
+
+    if pdps.is_none() && edps.is_none() && dps.is_none() {
+        return None;
+    }
+
+    Some(WeaponFilters {
+        filters: WeaponFilterValues { pdps, edps, dps },
     })
 }
 

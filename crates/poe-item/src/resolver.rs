@@ -112,7 +112,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     };
 
     // Classify generic sections into properties, enchants, description, flavor text, etc.
-    let classified = classify_generic_sections(sections_to_classify, header.rarity);
+    let classified =
+        classify_generic_sections(sections_to_classify, header.rarity, &header.item_class);
 
     // Build enchant mods from detected enchant lines
     let enchants: Vec<ResolvedMod> = classified
@@ -190,7 +191,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     }
 
     // Compute pseudo mods by scanning all mod stat lines against pseudo definitions.
-    let pseudo_mods = compute_pseudo_stats(&implicits, &explicits, &enchants, game_data);
+    let mut pseudo_mods = compute_pseudo_stats(&implicits, &explicits, &enchants, game_data);
+    // Compute DPS pseudos from weapon properties (Physical/Elemental/Chaos/Total DPS).
+    pseudo_mods.extend(compute_dps_pseudos(&properties, game_data));
 
     ResolvedItem {
         header,
@@ -399,7 +402,11 @@ const USAGE_PREFIXES: &[&str] = &[
 /// - **Flavor text**: poetic/lore text (no colons, not instructions, not enchants)
 /// - **Description**: item effect text (currency effects, scarab effects, etc.)
 /// - **Unclassified**: anything else
-fn classify_generic_sections(sections: &[Vec<String>], rarity: Rarity) -> ClassifiedSections {
+fn classify_generic_sections(
+    sections: &[Vec<String>],
+    rarity: Rarity,
+    item_class: &str,
+) -> ClassifiedSections {
     let mut properties = Vec::new();
     let mut enchant_lines = Vec::new();
     let mut description: Option<String> = None;
@@ -411,7 +418,7 @@ fn classify_generic_sections(sections: &[Vec<String>], rarity: Rarity) -> Classi
             continue;
         }
 
-        let classification = classify_single_section(section, rarity);
+        let classification = classify_single_section(section, rarity, item_class);
         match classification {
             SectionKind::Properties(props) => properties.extend(props),
             SectionKind::Enchants(lines) => enchant_lines.extend(lines),
@@ -448,7 +455,7 @@ enum SectionKind {
     Unclassified,
 }
 
-fn classify_single_section(lines: &[String], rarity: Rarity) -> SectionKind {
+fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -> SectionKind {
     let non_empty: Vec<&str> = lines
         .iter()
         .map(String::as_str)
@@ -473,6 +480,19 @@ fn classify_single_section(lines: &[String], rarity: Rarity) -> SectionKind {
     if colon_count > 0 && colon_count == non_empty.len() {
         // All lines are property-like
         let props = parse_property_lines(lines);
+        return SectionKind::Properties(props);
+    }
+
+    // Weapon sections: first line is a weapon type sub-header (e.g., "Warstaff",
+    // "Two Handed Axe", "Bow") without ": ", followed by property lines that all have ": ".
+    // Only weapons have this pattern — armour/accessories start directly with properties.
+    if colon_count > 0
+        && colon_count == non_empty.len() - 1
+        && !non_empty[0].contains(": ")
+        && poe_data::domain::is_weapon_class(item_class)
+    {
+        let property_lines: Vec<String> = lines.iter().skip(1).cloned().collect();
+        let props = parse_property_lines(&property_lines);
         return SectionKind::Properties(props);
     }
 
@@ -936,6 +956,111 @@ fn compute_pseudo_stats(
                 display_type: ModDisplayType::Pseudo,
             });
         }
+    }
+
+    results
+}
+
+// ── DPS computation ─────────────────────────────────────────────────────────
+
+/// Parse a single `"min-max"` damage string into `(f64, f64)`.
+fn parse_damage_value(s: &str) -> Option<(f64, f64)> {
+    let (min_s, max_s) = s.trim().split_once('-')?;
+    let min = min_s.trim().parse::<f64>().ok()?;
+    let max = max_s.trim().parse::<f64>().ok()?;
+    Some((min, max))
+}
+
+/// Parse a property's comma-separated damage ranges.
+///
+/// E.g., `"3-6, 7-108"` → `[(3.0, 6.0), (7.0, 108.0)]`
+fn parse_damage_ranges(value: &str) -> Vec<(f64, f64)> {
+    value
+        .split(',')
+        .filter_map(|segment| parse_damage_value(segment.trim()))
+        .collect()
+}
+
+/// Compute DPS pseudo stats from weapon properties.
+///
+/// Only produces results for weapons (items with an "Attacks per Second" property).
+/// Uses final displayed property values — the game pre-computes base + local mods + quality.
+fn compute_dps_pseudos(properties: &[ItemProperty], game_data: &GameData) -> Vec<ResolvedMod> {
+    // APS is the gate: if it's missing, this isn't a weapon.
+    let aps = properties
+        .iter()
+        .find(|p| p.name == "Attacks per Second")
+        .and_then(|p| p.value.parse::<f64>().ok())
+        .filter(|&v| v > 0.0);
+    let Some(aps) = aps else {
+        return Vec::new();
+    };
+
+    let phys_avg = properties
+        .iter()
+        .find(|p| p.name == "Physical Damage")
+        .and_then(|p| parse_damage_value(&p.value))
+        .map_or(0.0, |(min, max)| f64::midpoint(min, max));
+
+    let ele_avg: f64 = properties
+        .iter()
+        .find(|p| p.name == "Elemental Damage")
+        .map(|p| parse_damage_ranges(&p.value))
+        .unwrap_or_default()
+        .iter()
+        .map(|&(min, max)| f64::midpoint(min, max))
+        .sum();
+
+    let chaos_avg = properties
+        .iter()
+        .find(|p| p.name == "Chaos Damage")
+        .and_then(|p| parse_damage_value(&p.value))
+        .map_or(0.0, |(min, max)| f64::midpoint(min, max));
+
+    let definitions = game_data.dps_pseudo_definitions();
+    let mut results = Vec::new();
+
+    for def in definitions {
+        let value = match def.kind {
+            poe_data::domain::DpsPseudoKind::Physical => phys_avg * aps,
+            poe_data::domain::DpsPseudoKind::Elemental => ele_avg * aps,
+            poe_data::domain::DpsPseudoKind::Chaos => chaos_avg * aps,
+            poe_data::domain::DpsPseudoKind::Total => (phys_avg + ele_avg + chaos_avg) * aps,
+        };
+
+        if value.abs() < f64::EPSILON {
+            continue;
+        }
+
+        #[allow(clippy::cast_possible_truncation)]
+        let rounded = value.round() as i64;
+        let display_text = def.label.replacen('#', &format!("{rounded}"), 1);
+
+        results.push(ResolvedMod {
+            header: ModHeader {
+                source: ModSource::Computed,
+                slot: ModSlot::Pseudo,
+                influence_tier: None,
+                name: None,
+                tier: None,
+                tags: vec![],
+            },
+            stat_lines: vec![ResolvedStatLine {
+                raw_text: def.label.to_string(),
+                display_text,
+                values: vec![ValueRange {
+                    current: rounded,
+                    min: 0,
+                    max: 0,
+                }],
+                stat_ids: Some(vec![def.id.to_string()]),
+                stat_values: None,
+                is_reminder: false,
+                is_unscalable: false,
+            }],
+            is_fractured: false,
+            display_type: ModDisplayType::Pseudo,
+        });
     }
 
     results

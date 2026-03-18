@@ -767,17 +767,88 @@ pub static PSEUDO_DEFINITIONS: &[PseudoDefinition] = &[
         label: "(Pseudo) #% increased Mana Regeneration Rate",
         components: &[comp(&["mana_regeneration_rate_+%"], 1.0, false)],
     },
-    // ── DPS ─────────────────────────────────────────────────────────
-    // NOTE: Physical DPS, Elemental DPS, and Total DPS are NOT stat-sum
-    // pseudos. They require multiplying (flat damage × attack speed × crit),
-    // which the current PseudoDefinition system cannot express. These need
-    // a computed-property mechanism that reads weapon base damage, local
-    // added damage, local %inc damage, and local attack speed from the
-    // item's resolved properties. TODO: implement as ComputedPseudo.
 ];
 
 /// Returns all pseudo stat definitions.
 #[must_use]
 pub fn pseudo_definitions() -> &'static [PseudoDefinition] {
     PSEUDO_DEFINITIONS
+}
+
+// ── DPS pseudo definitions ──────────────────────────────────────────────
+//
+// WHY SEPARATE: DPS is computed from displayed weapon properties (damage × APS),
+// not summed from stat_ids like regular pseudos. The GGPK has no DPS concept —
+// it stores base damage + local mods, and the PoE client computes final values.
+// The trade API handles DPS via `weapon_filters` (pdps/edps/dps), not pseudo IDs.
+
+/// Which kind of DPS this definition computes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DpsPseudoKind {
+    Physical,
+    Elemental,
+    Chaos,
+    Total,
+}
+
+/// Definition of a DPS pseudo stat — computed from weapon properties, not stat sums.
+#[derive(Debug, Clone)]
+pub struct DpsPseudoDefinition {
+    /// Internal ID (e.g., `"pseudo_physical_dps"`). NOT a trade API pseudo stat ID.
+    pub id: &'static str,
+    /// Display label template (e.g., `"(Pseudo) # Physical DPS"`).
+    pub label: &'static str,
+    /// Which DPS component this represents.
+    pub kind: DpsPseudoKind,
+    /// Trade API `weapon_filters` key (e.g., `"pdps"`). `None` if no trade filter exists.
+    pub trade_weapon_filter: Option<&'static str>,
+}
+
+pub static DPS_PSEUDO_DEFINITIONS: &[DpsPseudoDefinition] = &[
+    DpsPseudoDefinition {
+        id: "pseudo_physical_dps",
+        label: "(Pseudo) # Physical DPS",
+        kind: DpsPseudoKind::Physical,
+        trade_weapon_filter: Some("pdps"),
+    },
+    DpsPseudoDefinition {
+        id: "pseudo_elemental_dps",
+        label: "(Pseudo) # Elemental DPS",
+        kind: DpsPseudoKind::Elemental,
+        trade_weapon_filter: Some("edps"),
+    },
+    DpsPseudoDefinition {
+        id: "pseudo_chaos_dps",
+        label: "(Pseudo) # Chaos DPS",
+        kind: DpsPseudoKind::Chaos,
+        // Trade API has no chaos DPS filter
+        trade_weapon_filter: None,
+    },
+    DpsPseudoDefinition {
+        id: "pseudo_total_dps",
+        label: "(Pseudo) # Total DPS",
+        kind: DpsPseudoKind::Total,
+        trade_weapon_filter: Some("dps"),
+    },
+];
+
+/// Returns all DPS pseudo stat definitions.
+#[must_use]
+pub fn dps_pseudo_definitions() -> &'static [DpsPseudoDefinition] {
+    DPS_PSEUDO_DEFINITIONS
+}
+
+/// Whether a pseudo stat ID is a DPS pseudo (not tradeable as a pseudo stat).
+#[must_use]
+pub fn is_dps_pseudo(pseudo_id: &str) -> bool {
+    DPS_PSEUDO_DEFINITIONS.iter().any(|d| d.id == pseudo_id)
+}
+
+/// Get the `weapon_filters` key for a DPS pseudo stat ID, if one exists.
+#[must_use]
+pub fn dps_weapon_filter(pseudo_id: &str) -> Option<&'static str> {
+    DPS_PSEUDO_DEFINITIONS
+        .iter()
+        .find(|d| d.id == pseudo_id)
+        .and_then(|d| d.trade_weapon_filter)
 }

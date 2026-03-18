@@ -112,7 +112,8 @@ fn rare_weapon_builds_stat_filters() {
         assert!(
             filter.id.starts_with("explicit.stat_")
                 || filter.id.starts_with("implicit.stat_")
-                || filter.id.starts_with("crafted.stat_"),
+                || filter.id.starts_with("crafted.stat_")
+                || filter.id.starts_with("pseudo.pseudo_"),
             "unexpected filter ID prefix: {}",
             filter.id
         );

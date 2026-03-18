@@ -357,7 +357,15 @@ impl GameData {
         domain::pseudo_definitions()
     }
 
-    /// All stat template texts for autocomplete (GGPK templates + pseudo labels).
+    /// Get all DPS pseudo stat definitions.
+    ///
+    /// Each definition describes a property-derived DPS computation.
+    /// Used by poe-item's resolver to compute DPS values on weapons.
+    pub fn dps_pseudo_definitions(&self) -> &'static [domain::DpsPseudoDefinition] {
+        domain::dps_pseudo_definitions()
+    }
+
+    /// All stat template texts for autocomplete (GGPK templates + pseudo/DPS labels).
     ///
     /// Returns a sorted list combining reverse index templates with pseudo stat
     /// labels so the profile editor autocomplete finds both.
@@ -369,6 +377,9 @@ impl GameData {
             .unwrap_or_default();
         for pseudo in domain::pseudo_definitions() {
             keys.push(pseudo.label.to_string());
+        }
+        for dps in domain::dps_pseudo_definitions() {
+            keys.push(dps.label.to_string());
         }
         keys.sort();
         keys
@@ -546,6 +557,17 @@ impl GameData {
                 results.push(StatSuggestion {
                     template: pseudo.label.to_string(),
                     stat_ids: vec![pseudo.id.to_string()],
+                    kind: StatSuggestionKind::Single,
+                });
+            }
+        }
+
+        // Include matching DPS pseudo templates.
+        for dps in domain::dps_pseudo_definitions() {
+            if dps.label.to_lowercase().contains(&query_lower) {
+                results.push(StatSuggestion {
+                    template: dps.label.to_string(),
+                    stat_ids: vec![dps.id.to_string()],
                     kind: StatSuggestionKind::Single,
                 });
             }
