@@ -71,6 +71,7 @@ Requires extracted datc64 files in `%TEMP%/poe-dat/`.
 - Pre-computed tier tables (mod group → ordered tiers)
 - Disk caching (serialization to avoid re-parsing GGPK every launch)
 - More pseudo definitions (currently ~25 common ones)
+- **Extract `.ot` files from GGPK** — replace hardcoded `inherited_tags_for_parent()` in `domain.rs` with real tag inheritance from `.ot` (Object Template) files. Currently ~30 abstract parent → tags mappings are hardcoded, verified against mod spawn weights. The `.ot` files are binary assets in GGPK bundles (not datc64), readable via poe-bundle.
 
 ## Dependencies
 
