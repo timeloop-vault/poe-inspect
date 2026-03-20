@@ -3,4 +3,4 @@
 /**
  * Mod slot kind for counting and open-mod queries.
  */
-export type ModSlotKind = "Prefix" | "Suffix" | "Implicit";
+export type ModSlotKind = "Prefix" | "Suffix" | "Implicit" | "Affix";

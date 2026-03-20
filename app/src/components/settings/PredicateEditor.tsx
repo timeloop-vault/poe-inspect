@@ -103,7 +103,9 @@ function defaultFieldValue(kind: FieldKind): unknown {
 		case "text":
 			return "";
 		case "slot":
-			return kind.options[0]?.value ?? "Prefix";
+		case "source":
+			// Optional filter fields default to null (= "Any" / no filter)
+			return null;
 	}
 }
 
@@ -605,6 +607,7 @@ function StatTierEditor({
 	const kind = (r.kind as string) ?? "Tier";
 	const op = (r.op as string) ?? "Le";
 	const value = (r.value as number) ?? 1;
+	const source = (r.source as string | null) ?? null;
 
 	const [suggestions, setSuggestions] = useState<string[]>([]);
 	const [showDropdown, setShowDropdown] = useState(false);
@@ -749,6 +752,17 @@ function StatTierEditor({
 				max={20}
 				value={value}
 				onChange={(v) => updateField("value", Number(v))}
+			/>
+			<OptionalEnumField
+				label="Source"
+				options={[
+					{ value: "Regular", label: "Regular" },
+					{ value: "Fractured", label: "Fractured" },
+					{ value: "MasterCrafted", label: "Crafted" },
+				]}
+				value={source}
+				onChange={(v) => updateField("source", v)}
+				placeholder="Any"
 			/>
 		</div>
 	);
@@ -957,11 +971,22 @@ function FieldWidget({
 			);
 		case "slot":
 			return (
-				<EnumField
+				<OptionalEnumField
 					label={field.label}
 					options={field.kind.options}
-					value={String(value ?? "Prefix")}
+					value={value as string | null}
 					onChange={onChange}
+					placeholder="Any"
+				/>
+			);
+		case "source":
+			return (
+				<OptionalEnumField
+					label={field.label}
+					options={field.kind.options}
+					value={value as string | null}
+					onChange={onChange}
+					placeholder="Any"
 				/>
 			);
 	}
@@ -1043,6 +1068,42 @@ function EnumField({
 				value={value}
 				onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
 			>
+				{options.map((opt) => (
+					<option key={opt.value} value={opt.value}>
+						{opt.label}
+					</option>
+				))}
+			</select>
+		</label>
+	);
+}
+
+/** Enum field with an optional "Any" (null) choice. Used for slot and source filters. */
+function OptionalEnumField({
+	label,
+	options,
+	value,
+	onChange,
+	placeholder,
+}: {
+	label: string;
+	options: { value: string; label: string }[];
+	value: string | null;
+	onChange: (v: string | null) => void;
+	placeholder: string;
+}) {
+	return (
+		<label class="pred-field">
+			<span class="pred-field-label">{label}</span>
+			<select
+				class="pred-select"
+				value={value ?? ""}
+				onChange={(e) => {
+					const v = (e.target as HTMLSelectElement).value;
+					onChange(v === "" ? null : v);
+				}}
+			>
+				<option value="">{placeholder}</option>
 				{options.map((opt) => (
 					<option key={opt.value} value={opt.value}>
 						{opt.label}

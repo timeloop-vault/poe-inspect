@@ -6,16 +6,33 @@
 use poe_data::GameData;
 use poe_item::types::{ModSlot, ModTierKind, ResolvedItem};
 
-use crate::predicate::{Cmp, ModSlotKind, Predicate, RarityValue, StatCondition, TierKindFilter};
+use poe_item::types::ModSource;
+
+use crate::predicate::{
+    Cmp, ModSlotKind, ModSourceKind, Predicate, RarityValue, StatCondition, TierKindFilter,
+};
 use crate::profile::{MatchedRule, Profile, ScoreResult, UnmatchedRule};
 use crate::rule::Rule;
 
 impl ModSlotKind {
-    fn to_mod_slot(self) -> ModSlot {
+    /// Check whether a `ModSlot` matches this filter.
+    fn matches(self, slot: ModSlot) -> bool {
         match self {
-            Self::Prefix => ModSlot::Prefix,
-            Self::Suffix => ModSlot::Suffix,
-            Self::Implicit => ModSlot::Implicit,
+            Self::Prefix => slot == ModSlot::Prefix,
+            Self::Suffix => slot == ModSlot::Suffix,
+            Self::Implicit => slot == ModSlot::Implicit,
+            Self::Affix => slot == ModSlot::Prefix || slot == ModSlot::Suffix,
+        }
+    }
+}
+
+impl ModSourceKind {
+    /// Check whether a mod's source matches this filter.
+    fn matches(self, source: ModSource) -> bool {
+        match self {
+            Self::Regular => source == ModSource::Regular,
+            Self::Fractured => source == ModSource::Fractured,
+            Self::MasterCrafted => source == ModSource::MasterCrafted,
         }
     }
 }
@@ -59,7 +76,7 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
 
         // ── Mod predicates ───────────────────────────────────────────
         Predicate::ModCount { slot, op, value } => {
-            let count = count_mods_in_slot(item, slot.to_mod_slot());
+            let count = count_mods_matching_slot(item, *slot);
             op.eval(&count, value)
         }
 
@@ -81,7 +98,8 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             kind,
             op,
             value,
-        } => eval_stat_tier(item, stat_ids, *kind, *op, *value),
+            source,
+        } => eval_stat_tier(item, stat_ids, *kind, *op, *value, *source),
 
         Predicate::TierCount {
             kind,
@@ -89,7 +107,8 @@ fn eval_predicate(item: &ResolvedItem, pred: &Predicate, gd: &GameData) -> bool 
             value,
             min_count,
             slot,
-        } => eval_tier_count(item, *kind, *op, *value, *min_count, *slot),
+            source,
+        } => eval_tier_count(item, *kind, *op, *value, *min_count, *slot, *source),
 
         Predicate::RollPercent {
             text: _,
@@ -218,9 +237,11 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
     })
 }
 
-/// Count mods in a given slot.
-fn count_mods_in_slot(item: &ResolvedItem, slot: ModSlot) -> u32 {
-    item.all_mods().filter(|m| m.header.slot == slot).count() as u32
+/// Count mods matching a slot filter (supports `Affix` = Prefix + Suffix).
+fn count_mods_matching_slot(item: &ResolvedItem, slot: ModSlotKind) -> u32 {
+    item.all_mods()
+        .filter(|m| slot.matches(m.header.slot))
+        .count() as u32
 }
 
 /// Calculate open mod slots. Returns 0 if we can't determine the max
@@ -231,17 +252,24 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
         return 0;
     };
 
-    let max = match slot {
-        ModSlotKind::Prefix => gd.max_prefixes(rarity_id).unwrap_or(0),
-        ModSlotKind::Suffix => gd.max_suffixes(rarity_id).unwrap_or(0),
-        ModSlotKind::Implicit => return 0, // Implicit count isn't bounded by rarity
-    };
-
-    let mod_slot = slot.to_mod_slot();
-
-    let current = count_mods_in_slot(item, mod_slot);
-    let max_u32 = u32::try_from(max).unwrap_or(0);
-    max_u32.saturating_sub(current)
+    match slot {
+        ModSlotKind::Prefix => {
+            let max = u32::try_from(gd.max_prefixes(rarity_id).unwrap_or(0)).unwrap_or(0);
+            let current = count_mods_matching_slot(item, ModSlotKind::Prefix);
+            max.saturating_sub(current)
+        }
+        ModSlotKind::Suffix => {
+            let max = u32::try_from(gd.max_suffixes(rarity_id).unwrap_or(0)).unwrap_or(0);
+            let current = count_mods_matching_slot(item, ModSlotKind::Suffix);
+            max.saturating_sub(current)
+        }
+        ModSlotKind::Affix => {
+            let open_p = open_mod_count(item, ModSlotKind::Prefix, gd);
+            let open_s = open_mod_count(item, ModSlotKind::Suffix, gd);
+            open_p + open_s
+        }
+        ModSlotKind::Implicit => 0, // Implicit count isn't bounded by rarity
+    }
 }
 
 /// Count total sockets from a socket string like `"R-R-G B"`.
@@ -301,11 +329,18 @@ fn eval_stat_tier(
     kind: TierKindFilter,
     op: Cmp,
     value: u32,
+    source: Option<ModSourceKind>,
 ) -> bool {
     if stat_ids.is_empty() {
         return false;
     }
     item.all_mods().any(|m| {
+        // Optional source filter
+        if let Some(src) = source {
+            if !src.matches(m.header.source) {
+                return false;
+            }
+        }
         // Check if this mod has a matching tier
         let Some(tier_num) = m
             .header
@@ -334,13 +369,20 @@ fn eval_tier_count(
     value: u32,
     min_count: u32,
     slot: Option<ModSlotKind>,
+    source: Option<ModSourceKind>,
 ) -> bool {
     let count = item
         .all_mods()
         .filter(|m| {
             // Optional slot filter
             if let Some(s) = slot {
-                if m.header.slot != s.to_mod_slot() {
+                if !s.matches(m.header.slot) {
+                    return false;
+                }
+            }
+            // Optional source filter
+            if let Some(src) = source {
+                if !src.matches(m.header.source) {
                     return false;
                 }
             }

@@ -100,6 +100,8 @@ pub enum Predicate {
         kind: TierKindFilter,
         op: Cmp,
         value: u32,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        source: Option<ModSourceKind>,
     },
 
     /// Count mods matching a tier/rank condition.
@@ -112,6 +114,8 @@ pub enum Predicate {
         min_count: u32,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         slot: Option<ModSlotKind>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        source: Option<ModSourceKind>,
     },
 
     /// Roll quality: how close the current roll is to the max, as a percentage.
@@ -175,6 +179,21 @@ pub enum ModSlotKind {
     Prefix,
     Suffix,
     Implicit,
+    /// Matches both Prefix and Suffix (any explicit affix).
+    Affix,
+}
+
+/// Mod source filter for predicates that can filter by how a mod was acquired.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub enum ModSourceKind {
+    /// Only regular (dropped) mods.
+    Regular,
+    /// Only fractured mods.
+    Fractured,
+    /// Only master-crafted mods.
+    MasterCrafted,
 }
 
 /// Whether to match Tier mods, Rank mods, or either.

@@ -1494,6 +1494,7 @@ fn stat_tier_matches_explicit_mod() {
         kind: TierKindFilter::Tier,
         op: Cmp::Le,
         value: 8,
+        source: None,
     });
     assert!(
         evaluate(&item, &rule, gd),
@@ -1507,6 +1508,7 @@ fn stat_tier_matches_explicit_mod() {
         kind: TierKindFilter::Tier,
         op: Cmp::Le,
         value: 2,
+        source: None,
     });
     assert!(
         !evaluate(&item, &rule_strict, gd),
@@ -1520,6 +1522,7 @@ fn stat_tier_matches_explicit_mod() {
         kind: TierKindFilter::Tier,
         op: Cmp::Eq,
         value: 3,
+        source: None,
     });
     assert!(
         evaluate(&item, &rule_crit, gd),
@@ -1565,6 +1568,7 @@ fn stat_tier_pseudo_uses_worst_contributing_tier() {
         kind: TierKindFilter::Tier,
         op: Cmp::Le,
         value: 8,
+        source: None,
     });
     assert!(
         evaluate(&item, &rule, gd),
@@ -1578,6 +1582,7 @@ fn stat_tier_pseudo_uses_worst_contributing_tier() {
         kind: TierKindFilter::Tier,
         op: Cmp::Le,
         value: 3,
+        source: None,
     });
     assert!(
         !evaluate(&item, &rule_strict, gd),
@@ -1601,6 +1606,7 @@ fn tier_count_matches_mod_count() {
         value: 10,
         min_count: 3,
         slot: None,
+        source: None,
     });
     assert!(evaluate(&item, &rule, gd), "4 mods with tier <= 10 >= 3");
 
@@ -1611,6 +1617,7 @@ fn tier_count_matches_mod_count() {
         value: 3,
         min_count: 1,
         slot: None,
+        source: None,
     });
     assert!(evaluate(&item, &rule_t3, gd), "1 mod with tier <= 3");
 
@@ -1621,6 +1628,7 @@ fn tier_count_matches_mod_count() {
         value: 3,
         min_count: 2,
         slot: None,
+        source: None,
     });
     assert!(
         !evaluate(&item, &rule_two_t3, gd),
@@ -1634,6 +1642,183 @@ fn tier_count_matches_mod_count() {
         value: 8,
         min_count: 1,
         slot: Some(ModSlotKind::Prefix),
+        source: None,
     });
     assert!(evaluate(&item, &rule_prefix, gd), "3 prefixes with T8");
+}
+
+// ─── ModSourceKind + ModSlotKind::Affix predicates ──────────────────────────
+
+#[test]
+fn tier_count_source_fractured_filters_correctly() {
+    use poe_eval::predicate::{ModSourceKind, TierKindFilter};
+
+    let gd = full_game_data();
+    // rare-gloves-fractured-t1: Scorching(T1, Fractured), Icy(T4), of Masterstroke(T1), of the Ice(T2)
+    let item = resolve_full("rare-gloves-fractured-t1.txt");
+
+    // At least 1 fractured mod with tier <= 1 (Scorching T1 is fractured)
+    let rule = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 1,
+        min_count: 1,
+        slot: None,
+        source: Some(ModSourceKind::Fractured),
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "Scorching T1 is fractured, should match"
+    );
+
+    // At least 2 fractured mods — should fail (only 1 is fractured)
+    let rule_two = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 10,
+        min_count: 2,
+        slot: None,
+        source: Some(ModSourceKind::Fractured),
+    });
+    assert!(
+        !evaluate(&item, &rule_two, gd),
+        "only 1 fractured mod, need 2"
+    );
+
+    // At least 1 regular mod with tier <= 1 (of Masterstroke T1 is regular)
+    let rule_regular = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 1,
+        min_count: 1,
+        slot: None,
+        source: Some(ModSourceKind::Regular),
+    });
+    assert!(
+        evaluate(&item, &rule_regular, gd),
+        "of Masterstroke T1 is regular, should match"
+    );
+
+    // No fractured mod with tier <= 1 in suffix slot (Scorching is a prefix)
+    let rule_frac_suffix = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 1,
+        min_count: 1,
+        slot: Some(ModSlotKind::Suffix),
+        source: Some(ModSourceKind::Fractured),
+    });
+    assert!(
+        !evaluate(&item, &rule_frac_suffix, gd),
+        "no fractured suffix at T1"
+    );
+}
+
+#[test]
+fn tier_count_affix_slot_combines_prefix_and_suffix() {
+    use poe_eval::predicate::TierKindFilter;
+
+    let gd = full_game_data();
+    // rare-gloves-fractured-t1: Scorching(T1 Prefix), Icy(T4 Prefix),
+    //                           of Masterstroke(T1 Suffix), of the Ice(T2 Suffix)
+    // T1-T2 affixes: Scorching(T1), of Masterstroke(T1), of the Ice(T2) = 3
+    let item = resolve_full("rare-gloves-fractured-t1.txt");
+
+    // At least 3 affixes with tier <= 2
+    let rule = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 2,
+        min_count: 3,
+        slot: Some(ModSlotKind::Affix),
+        source: None,
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "3 affixes with tier <= 2 (T1+T1+T2)"
+    );
+
+    // At least 4 affixes with tier <= 2 — should fail
+    let rule_four = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 2,
+        min_count: 4,
+        slot: Some(ModSlotKind::Affix),
+        source: None,
+    });
+    assert!(
+        !evaluate(&item, &rule_four, gd),
+        "only 3 affixes with tier <= 2, need 4"
+    );
+
+    // All 4 affixes with tier <= 10
+    let rule_all = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 10,
+        min_count: 4,
+        slot: Some(ModSlotKind::Affix),
+        source: None,
+    });
+    assert!(
+        evaluate(&item, &rule_all, gd),
+        "all 4 affixes have tier <= 10"
+    );
+}
+
+#[test]
+fn tier_count_affix_with_fractured_source() {
+    use poe_eval::predicate::{ModSourceKind, TierKindFilter};
+
+    let gd = full_game_data();
+    let item = resolve_full("rare-gloves-fractured-t1.txt");
+
+    // 1 fractured affix at T1 (Scorching is fractured prefix)
+    let rule = Rule::pred(Predicate::TierCount {
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 1,
+        min_count: 1,
+        slot: Some(ModSlotKind::Affix),
+        source: Some(ModSourceKind::Fractured),
+    });
+    assert!(evaluate(&item, &rule, gd), "1 fractured affix at T1");
+}
+
+#[test]
+fn stat_tier_source_fractured_filters_correctly() {
+    use poe_eval::predicate::{ModSourceKind, TierKindFilter};
+
+    let gd = full_game_data();
+    // rare-helmet-fractured-dual-influence: "Encased" (T2, Fractured prefix, +Armour)
+    let item = resolve_full("rare-helmet-fractured-dual-influence.txt");
+
+    // StatTier on local_armour — T2 fractured, should match with source filter
+    let rule = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 2,
+        source: Some(ModSourceKind::Fractured),
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "fractured T2 armour mod should match"
+    );
+
+    // Same stat but with Regular source — should NOT match (it's fractured)
+    let rule_regular = Rule::pred(Predicate::StatTier {
+        text: None,
+        stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
+        kind: TierKindFilter::Tier,
+        op: Cmp::Le,
+        value: 2,
+        source: Some(ModSourceKind::Regular),
+    });
+    assert!(
+        !evaluate(&item, &rule_regular, gd),
+        "armour mod is fractured, not regular"
+    );
 }

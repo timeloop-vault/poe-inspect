@@ -8,4 +8,4 @@ import type { EnumOption } from "./EnumOption";
  * The UI maps each variant to a specific widget. New predicates that
  * use existing field kinds get UI for free.
  */
-export type FieldKind = { "type": "comparison", allowedOps: Array<Cmp>, } | { "type": "number", min: number | null, max: number | null, } | { "type": "enum", options: Array<EnumOption>, } | { "type": "orderedEnum", options: Array<EnumOption>, } | { "type": "text", suggestionsFrom: string | null, } | { "type": "slot", options: Array<EnumOption>, };
+export type FieldKind = { "type": "comparison", allowedOps: Array<Cmp>, } | { "type": "number", min: number | null, max: number | null, } | { "type": "enum", options: Array<EnumOption>, } | { "type": "orderedEnum", options: Array<EnumOption>, } | { "type": "text", suggestionsFrom: string | null, } | { "type": "slot", options: Array<EnumOption>, } | { "type": "source", options: Array<EnumOption>, };

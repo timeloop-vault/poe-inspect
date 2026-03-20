@@ -72,8 +72,10 @@ pub enum FieldKind {
         #[serde(rename = "suggestionsFrom")]
         suggestions_from: Option<String>,
     },
-    /// Mod slot dropdown (Prefix / Suffix / Implicit).
+    /// Mod slot dropdown (Prefix / Suffix / Implicit / Affix).
     Slot { options: Vec<EnumOption> },
+    /// Mod source dropdown (Regular / Fractured / `MasterCrafted`).
+    Source { options: Vec<EnumOption> },
 }
 
 /// A selectable option in an enum/ordered-enum field.
@@ -314,6 +316,7 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                         max: Some(20),
                     },
                 },
+                source_field(),
             ],
         },
         PredicateSchema {
@@ -342,17 +345,8 @@ pub fn predicate_schema() -> Vec<PredicateSchema> {
                         max: Some(6),
                     },
                 },
-                PredicateField {
-                    name: "slot".into(),
-                    label: "Slot (optional)".into(),
-                    kind: FieldKind::Slot {
-                        options: vec![
-                            opt("Prefix", "Prefix"),
-                            opt("Suffix", "Suffix"),
-                            opt("Implicit", "Implicit"),
-                        ],
-                    },
-                },
+                slot_field_with_affix(),
+                source_field(),
             ],
         },
         // ── Influence / status predicates ────────────────────────────
@@ -513,6 +507,35 @@ fn slot_field() -> PredicateField {
                 opt("Prefix", "Prefix"),
                 opt("Suffix", "Suffix"),
                 opt("Implicit", "Implicit"),
+            ],
+        },
+    }
+}
+
+fn slot_field_with_affix() -> PredicateField {
+    PredicateField {
+        name: "slot".into(),
+        label: "Slot (optional)".into(),
+        kind: FieldKind::Slot {
+            options: vec![
+                opt("Prefix", "Prefix"),
+                opt("Suffix", "Suffix"),
+                opt("Affix", "Affix (Prefix + Suffix)"),
+                opt("Implicit", "Implicit"),
+            ],
+        },
+    }
+}
+
+fn source_field() -> PredicateField {
+    PredicateField {
+        name: "source".into(),
+        label: "Source (optional)".into(),
+        kind: FieldKind::Source {
+            options: vec![
+                opt("Regular", "Regular"),
+                opt("Fractured", "Fractured"),
+                opt("MasterCrafted", "Crafted"),
             ],
         },
     }

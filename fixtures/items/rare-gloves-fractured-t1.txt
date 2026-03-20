@@ -1,0 +1,25 @@
+Item Class: Gloves
+Rarity: Rare
+Death Grasp
+Vaal Gauntlets
+--------
+Armour: 241
+--------
+Requirements:
+Level: 64
+Str: 100
+--------
+Sockets: R-R R-R
+--------
+Item Level: 85
+--------
+{ Fractured Prefix Modifier "Scorching" (Tier: 1) — Damage, Elemental, Fire, Attack }
+Adds 13(11-15) to 27(23-27) Fire Damage to Attacks
+{ Prefix Modifier "Icy" (Tier: 4) — Damage, Elemental, Cold, Attack }
+Adds 5(5-7) to 12(10-12) Cold Damage to Attacks
+{ Suffix Modifier "of Masterstroke" (Tier: 1) — Life }
+Gain 94(84-110) Life per Enemy Killed
+{ Suffix Modifier "of the Ice" (Tier: 2) — Elemental, Cold, Resistance }
++45(42-45)% to Cold Resistance
+--------
+Fractured Item
