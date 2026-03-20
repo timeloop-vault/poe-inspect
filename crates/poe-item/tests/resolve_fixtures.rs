@@ -786,3 +786,85 @@ fn bow_triple_damage_has_local_stat_ids() {
         );
     }
 }
+
+/// Multi-value "Adds # to # Damage to Attacks" on gloves should resolve to
+/// distinct min and max attack stat IDs (not both minimum).
+#[test]
+fn gloves_attack_damage_has_distinct_min_max_stat_ids() {
+    let item = resolve_full("rare-gloves-fractured-t1.txt");
+
+    // "Scorching" = "Adds 13 to 27 Fire Damage to Attacks" (fractured T1)
+    let scorching = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Scorching"))
+        .expect("should find Scorching mod");
+
+    let stat_ids = scorching.stat_lines[0]
+        .stat_ids
+        .as_ref()
+        .expect("should have stat_ids");
+
+    assert_eq!(
+        stat_ids.len(),
+        2,
+        "multi-value template should have 2 stat IDs"
+    );
+    assert_eq!(
+        stat_ids[0], "attack_minimum_added_fire_damage",
+        "first stat should be minimum"
+    );
+    assert_eq!(
+        stat_ids[1], "attack_maximum_added_fire_damage",
+        "second stat should be maximum"
+    );
+
+    // "Icy" = "Adds 5 to 12 Cold Damage to Attacks"
+    let icy = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Icy"))
+        .expect("should find Icy mod");
+
+    let cold_ids = icy.stat_lines[0]
+        .stat_ids
+        .as_ref()
+        .expect("should have stat_ids");
+
+    assert_eq!(cold_ids.len(), 2);
+    assert_eq!(cold_ids[0], "attack_minimum_added_cold_damage");
+    assert_eq!(cold_ids[1], "attack_maximum_added_cold_damage");
+}
+
+/// Multi-value "Adds # to # Damage" on weapons should resolve to
+/// distinct local min and max stat IDs.
+#[test]
+fn weapon_flat_damage_has_distinct_min_max_stat_ids() {
+    let item = resolve_full("rare-bow-triple-damage.txt");
+
+    // "Tempered" = "Adds X to Y Physical Damage" on a weapon
+    let tempered = item
+        .explicits
+        .iter()
+        .find(|m| m.header.name.as_deref() == Some("Tempered"))
+        .expect("should find Tempered mod");
+
+    let stat_ids = tempered.stat_lines[0]
+        .stat_ids
+        .as_ref()
+        .expect("should have stat_ids");
+
+    assert_eq!(
+        stat_ids.len(),
+        2,
+        "multi-value template should have 2 stat IDs"
+    );
+    assert_eq!(
+        stat_ids[0], "local_minimum_added_physical_damage",
+        "first stat should be local minimum"
+    );
+    assert_eq!(
+        stat_ids[1], "local_maximum_added_physical_damage",
+        "second stat should be local maximum"
+    );
+}

@@ -348,7 +348,12 @@ fn apply_confirmed_stat_ids(
     real_stat_ids: &[String],
     game_data: &GameData,
 ) -> bool {
+    // Track which real_stat_ids have been consumed (by index) to avoid
+    // assigning the same real_id to multiple slots in a multi-value stat
+    // (e.g., min and max sharing the same display template).
+    let mut used_real: Vec<bool> = vec![false; real_stat_ids.len()];
     let mut any_changed = false;
+
     for sl in stat_lines.iter_mut() {
         let Some(ri_ids) = &sl.stat_ids else {
             continue;
@@ -370,10 +375,14 @@ fn apply_confirmed_stat_ids(
             // is a local↔non-local pair (not local replacing attack_*).
             let ri_templates = game_data.templates_for_stat(ri_id);
 
-            for real_id in real_stat_ids {
+            for (j, real_id) in real_stat_ids.iter().enumerate() {
                 if real_id == ri_id {
-                    // Already correct, no replacement needed.
+                    // Already correct — mark as used so other slots don't grab it.
+                    used_real[j] = true;
                     break;
+                }
+                if used_real[j] {
+                    continue;
                 }
                 // Prefer native templates to avoid false matches from fallbacks.
                 // Fall back to full templates only for genuine local↔non-local pairs
@@ -389,6 +398,7 @@ fn apply_confirmed_stat_ids(
                 if let (Some(ri_t), Some(real_t)) = (ri_templates, real_templates) {
                     if ri_t.iter().any(|t| real_t.contains(t)) {
                         confirmed[i].clone_from(real_id);
+                        used_real[j] = true;
                         changed = true;
                         break;
                     }
