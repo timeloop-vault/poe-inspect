@@ -361,6 +361,13 @@ fn apply_confirmed_stat_ids(
             // Find a real stat_id that maps to the same display template as this
             // reverse-index stat_id. This correctly handles local↔non-local pairs
             // that share display text.
+            //
+            // Use native_templates_for_stat for the real_id to avoid false matches
+            // where local_* stats get fallback templates from attack_* equivalents
+            // (e.g., local_minimum_added_fire_damage getting "Adds # to # Fire Damage
+            // to Attacks" template). If the real_id has no native template (common for
+            // local stats), fall back to full templates — but only if the replacement
+            // is a local↔non-local pair (not local replacing attack_*).
             let ri_templates = game_data.templates_for_stat(ri_id);
 
             for real_id in real_stat_ids {
@@ -368,7 +375,17 @@ fn apply_confirmed_stat_ids(
                     // Already correct, no replacement needed.
                     break;
                 }
-                let real_templates = game_data.templates_for_stat(real_id);
+                // Prefer native templates to avoid false matches from fallbacks.
+                // Fall back to full templates only for genuine local↔non-local pairs
+                // (where the local stat has no entry in stat_descriptions.txt).
+                let real_native = game_data.native_templates_for_stat(real_id);
+                let real_templates = if real_native.is_some_and(|t| !t.is_empty()) {
+                    real_native
+                } else if is_local_nonlocal_pair(real_id, ri_id) {
+                    game_data.templates_for_stat(real_id)
+                } else {
+                    None
+                };
                 if let (Some(ri_t), Some(real_t)) = (ri_templates, real_templates) {
                     if ri_t.iter().any(|t| real_t.contains(t)) {
                         confirmed[i].clone_from(real_id);
@@ -385,6 +402,32 @@ fn apply_confirmed_stat_ids(
         }
     }
     any_changed
+}
+
+/// Check if `real_id` is a `local_*` variant of `ri_id` (stripped or global/base).
+///
+/// Returns true for pairs like:
+/// - `local_minimum_added_physical_damage` ↔ `global_minimum_added_physical_damage`
+/// - `local_base_evasion_rating` ↔ `base_evasion_rating`
+///
+/// Returns false for:
+/// - `local_minimum_added_fire_damage` ↔ `attack_minimum_added_fire_damage`
+///   (these are different stat categories with different display text)
+fn is_local_nonlocal_pair(real_id: &str, ri_id: &str) -> bool {
+    let Some(stripped) = real_id.strip_prefix("local_") else {
+        return false;
+    };
+    // Direct match: local_X ↔ X
+    if ri_id == stripped {
+        return true;
+    }
+    // Global match: local_X ↔ global_X
+    if let Some(ri_stripped) = ri_id.strip_prefix("global_") {
+        if stripped == ri_stripped {
+            return true;
+        }
+    }
+    false
 }
 
 // ── Generic section classification ─────────────────────────────────────────

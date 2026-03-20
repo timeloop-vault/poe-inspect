@@ -52,7 +52,12 @@ pub struct GameData {
     stat_to_mods: HashMap<String, Vec<usize>>,
 
     // Reverse mapping: stat_id → display templates (built from reverse_index).
+    // Includes fallback templates for local stats (from attack_/global_ equivalents).
     stat_id_to_templates: HashMap<String, Vec<String>>,
+
+    // Native-only stat_id → templates (from stat_descriptions.txt only, no fallbacks).
+    // Used by poe-item's apply_confirmed_stat_ids to avoid false template matches.
+    native_stat_id_to_templates: HashMap<String, Vec<String>>,
 
     // Reverse mapping: template → all stat_ids (including local equivalents).
     // Built as the inverse of stat_id_to_templates, so it includes local
@@ -156,6 +161,7 @@ impl GameData {
             mods_by_name,
             stat_to_mods,
             stat_id_to_templates: HashMap::new(),
+            native_stat_id_to_templates: HashMap::new(),
             template_to_all_stat_ids: HashMap::new(),
             reverse_index: None,
             client_string_by_id: HashMap::new(),
@@ -284,6 +290,9 @@ impl GameData {
                 }
             }
         }
+
+        // Save native-only map before adding fallbacks.
+        self.native_stat_id_to_templates.clone_from(&map);
 
         // Fallback for local stats: local stats on armour/weapons (flat
         // armour, evasion, energy shield) don't have entries in
@@ -596,6 +605,18 @@ impl GameData {
     /// Requires `set_reverse_index()` to have been called.
     pub fn templates_for_stat(&self, stat_id: &str) -> Option<&[String]> {
         self.stat_id_to_templates.get(stat_id).map(Vec::as_slice)
+    }
+
+    /// Get native display templates for a stat ID (no local→attack/global fallbacks).
+    ///
+    /// Returns `None` if the stat has no entry in `stat_descriptions.txt`.
+    /// Used by `apply_confirmed_stat_ids` to avoid false template matches
+    /// where fallback-injected templates cause local stats to incorrectly
+    /// replace attack-prefixed stats.
+    pub fn native_templates_for_stat(&self, stat_id: &str) -> Option<&[String]> {
+        self.native_stat_id_to_templates
+            .get(stat_id)
+            .map(Vec::as_slice)
     }
 
     /// Get all stat IDs for a display template (including local equivalents).
