@@ -274,6 +274,7 @@ export function TradeSettings() {
 								updateDefaults({ preferPseudos: (e.target as HTMLInputElement).checked })
 							}
 						/>
+						<span class="toggle-track" />
 					</label>
 				</div>
 
@@ -319,6 +320,7 @@ export function TradeSettings() {
 								updateDefaults({ includeCrafted: (e.target as HTMLInputElement).checked })
 							}
 						/>
+						<span class="toggle-track" />
 					</label>
 				</div>
 			</div>

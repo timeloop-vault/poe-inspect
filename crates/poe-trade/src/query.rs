@@ -551,8 +551,8 @@ fn stat_priority(
 ///
 /// Returns the set of `flat_index` values that should be auto-checked.
 /// Only considers candidates without user overrides. When a broader pseudo
-/// is selected (e.g., total resistance), narrower pseudos (e.g., cold res)
-/// are suppressed via `pseudo_subsumes()`.
+/// is eligible (e.g., total resistance), narrower pseudos (e.g., cold res)
+/// are suppressed via `pseudo_subsumes()` — regardless of iteration order.
 fn auto_select_stats(candidates: &[StatCandidate], defaults: &TradeSearchDefaults) -> HashSet<u32> {
     let mut eligible: Vec<&StatCandidate> = candidates
         .iter()
@@ -560,8 +560,20 @@ fn auto_select_stats(candidates: &[StatCandidate], defaults: &TradeSearchDefault
         .collect();
     eligible.sort_by_key(|c| c.priority);
 
-    let mut selected = HashSet::new();
+    // Pre-compute which pseudos are suppressed by broader pseudos in the
+    // eligible set. This ensures order-independent deduplication — even if
+    // "cold resistance" appears before "total resistance" in iteration order,
+    // it's still suppressed because total resistance is in the eligible set.
     let mut suppressed_pseudos: HashSet<&str> = HashSet::new();
+    for c in &eligible {
+        if let Some(ref pid) = c.pseudo_id {
+            for &subsumed in poe_data::domain::pseudo_subsumes(pid) {
+                suppressed_pseudos.insert(subsumed);
+            }
+        }
+    }
+
+    let mut selected = HashSet::new();
     let mut count = 0u32;
 
     for c in &eligible {
@@ -569,7 +581,7 @@ fn auto_select_stats(candidates: &[StatCandidate], defaults: &TradeSearchDefault
             break;
         }
 
-        // Skip pseudos suppressed by a broader pseudo already selected.
+        // Skip pseudos suppressed by a broader pseudo.
         if let Some(ref pid) = c.pseudo_id {
             if suppressed_pseudos.contains(pid.as_str()) {
                 continue;
@@ -578,13 +590,6 @@ fn auto_select_stats(candidates: &[StatCandidate], defaults: &TradeSearchDefault
 
         selected.insert(c.flat_index);
         count += 1;
-
-        // When selecting a pseudo, suppress narrower pseudos.
-        if let Some(ref pid) = c.pseudo_id {
-            for &subsumed in poe_data::domain::pseudo_subsumes(pid) {
-                suppressed_pseudos.insert(subsumed);
-            }
-        }
     }
 
     selected
