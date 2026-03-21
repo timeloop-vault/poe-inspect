@@ -198,8 +198,6 @@ pub struct TradeQueryConfig {
     pub league: String,
     /// Value relaxation factor (0.0–1.0). Default: 0.85 (search for 85%+ of actual value).
     pub value_relaxation: f64,
-    /// Whether to use pseudo stats where available.
-    pub use_pseudo_stats: bool,
     /// Listing status filter for trade searches.
     /// Values match the GGG trade site dropdown:
     /// - `"available"` — Instant Buyout and In Person (trade site default)
@@ -207,6 +205,9 @@ pub struct TradeQueryConfig {
     /// - `"online"` — In Person (Online)
     /// - `"any"` — Any (including offline)
     pub listing_status: String,
+    /// Smart defaults for auto-selecting which stats to include.
+    #[serde(default)]
+    pub search_defaults: TradeSearchDefaults,
 }
 
 impl TradeQueryConfig {
@@ -216,8 +217,47 @@ impl TradeQueryConfig {
         Self {
             league: league.into(),
             value_relaxation: 0.85,
-            use_pseudo_stats: false,
             listing_status: "available".into(),
+            search_defaults: TradeSearchDefaults::default(),
+        }
+    }
+}
+
+// ── Search Defaults ────────────────────────────────────────────────────────
+
+/// Smart defaults for which stats to auto-include in trade searches.
+///
+/// Controls the initial checkbox state in "Edit Search" mode.
+/// User overrides (via `StatFilterOverride`) always take priority.
+///
+/// Not in GGPK — these are user preferences for trade search behavior.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct TradeSearchDefaults {
+    /// Maximum number of stat filters to auto-include. Default: 5.
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
+    pub max_stat_filters: u32,
+    /// Prefer pseudo stats over their component explicits. Default: true.
+    /// When enabled, explicit stats fully covered by an active pseudo are
+    /// auto-excluded (e.g., `+50 Life` excluded when `total Life` pseudo exists).
+    pub prefer_pseudos: bool,
+    /// Only auto-include mods at or above this tier (1 = best).
+    /// `None` = no threshold (any tier). `Some(3)` = T1, T2, T3 only.
+    #[cfg_attr(feature = "ts", ts(type = "number | null"))]
+    pub tier_threshold: Option<u32>,
+    /// Whether to auto-include crafted mods. Default: false (crafted mods are replaceable).
+    pub include_crafted: bool,
+}
+
+impl Default for TradeSearchDefaults {
+    fn default() -> Self {
+        Self {
+            max_stat_filters: 5,
+            prefer_pseudos: true,
+            tier_threshold: None,
+            include_crafted: false,
         }
     }
 }

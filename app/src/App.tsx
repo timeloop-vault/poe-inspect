@@ -448,8 +448,8 @@ export function App() {
 	const tradeConfig: TradeQueryConfig = {
 		league: tradeSettings.league,
 		valueRelaxation: tradeSettings.valueRelaxation,
-		usePseudoStats: false,
 		listingStatus: tradeSettings.listingStatus ?? "available",
+		searchDefaults: tradeSettings.searchDefaults,
 	};
 
 	const tradeFilters = useTradeFilters(

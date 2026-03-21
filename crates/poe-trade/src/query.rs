@@ -4,13 +4,17 @@
 //! produces a serializable `TradeSearchBody` ready for POST to
 //! `/api/trade/search/{league}`.
 
+use std::collections::HashSet;
+
+use poe_data::domain::pseudo_definitions;
 use poe_item::types::{
-    ModDisplayType, Rarity, ResolvedItem, ResolvedMod, ResolvedStatLine, SocketInfo,
+    ModDisplayType, ModTierKind, Rarity, ResolvedItem, ResolvedMod, ResolvedStatLine, SocketInfo,
 };
 use serde::Serialize;
 
 use crate::types::{
-    MappedStat, TradeFilterConfig, TradeQueryConfig, TradeStatsIndex, TypeSearchScope,
+    MappedStat, StatFilterOverride, TradeFilterConfig, TradeQueryConfig, TradeSearchDefaults,
+    TradeStatsIndex, TypeSearchScope,
 };
 
 // ── Result ──────────────────────────────────────────────────────────────────
@@ -242,23 +246,29 @@ pub struct MiscFilterValues {
 /// Maps item mods to trade stat filters using the stats index,
 /// applies value relaxation, and sets appropriate item filters.
 ///
-/// When `filter_config` is `None`, uses default behavior (all stats included,
-/// exact base type). When `Some`, respects per-stat overrides and base type
-/// specificity from the "Edit Search" UI.
+/// When `filter_config` is `None`, uses smart auto-selection based on
+/// `config.search_defaults` (pseudo preference, tier threshold, stat cap).
+/// When `Some`, respects per-stat overrides from the "Edit Search" UI.
 pub fn build_query(
     item: &ResolvedItem,
     index: &TradeStatsIndex,
     config: &TradeQueryConfig,
     filter_config: Option<&TradeFilterConfig>,
 ) -> QueryBuildResult {
-    let mut filters = Vec::new();
-    let mut stats_mapped = 0u32;
-    let mut stats_total = 0u32;
-    let mut unmapped_stats = Vec::new();
-    let mut mapped_stats = Vec::new();
+    let defaults = &config.search_defaults;
+    let is_unique = item.header.rarity == Rarity::Unique;
+
+    // Build pseudo coverage: explicit stat_ids fully covered by active pseudos.
+    let covered = if defaults.prefer_pseudos && !is_unique {
+        pseudo_covered_stat_ids(item)
+    } else {
+        HashSet::new()
+    };
+
+    // ── Pass 1: Collect all stats with metadata ──────────────────────────
+    let mut candidates: Vec<StatCandidate> = Vec::new();
     let mut flat_index = 0u32;
 
-    // Process all mods (enchants → implicits → explicits).
     for resolved_mod in item.all_mods() {
         let category = mod_trade_category(resolved_mod);
 
@@ -266,58 +276,121 @@ pub fn build_query(
             if stat_line.is_reminder {
                 continue;
             }
-            stats_total += 1;
 
-            // Try to map this stat to a trade ID.
             let trade_id = resolve_trade_id(stat_line, category, index);
             let computed_min = compute_filter_value(stat_line, config).and_then(|fv| fv.min);
 
-            // Check user overrides for this stat.
             let user_override = filter_config.and_then(|fc| {
                 fc.stat_overrides
                     .iter()
                     .find(|o| o.stat_index == flat_index)
             });
 
-            let enabled = user_override.is_none_or(|o| o.enabled);
-            let included = enabled && trade_id.is_some();
+            // Determine auto-selection eligibility (only matters without user override).
+            let covered_by_pseudo = defaults.prefer_pseudos
+                && resolved_mod.display_type != ModDisplayType::Pseudo
+                && stat_line.stat_ids.as_ref().is_some_and(|ids| {
+                    !ids.is_empty() && ids.iter().all(|id| covered.contains(id.as_str()))
+                });
 
-            if included {
-                if let Some(ref tid) = trade_id {
-                    // Use override min if provided, otherwise relaxation-computed.
-                    let min_value = user_override.and_then(|o| o.min_override).or(computed_min);
-                    let max_value = user_override.and_then(|o| o.max_override);
+            let excluded_by_tier = defaults.tier_threshold.is_some_and(|threshold| {
+                resolved_mod
+                    .header
+                    .tier
+                    .as_ref()
+                    .is_some_and(|t| t.number() > threshold)
+            });
 
-                    let value = if min_value.is_some() || max_value.is_some() {
-                        Some(FilterValue {
-                            min: min_value,
-                            max: max_value,
-                        })
-                    } else {
-                        None
-                    };
+            let excluded_by_crafted =
+                !defaults.include_crafted && resolved_mod.display_type == ModDisplayType::Crafted;
 
-                    filters.push(StatFilter {
-                        id: tid.clone(),
-                        value,
-                        disabled: None,
-                    });
-                    stats_mapped += 1;
-                }
-            } else if trade_id.is_none() {
-                unmapped_stats.push(stat_line.display_text.clone());
-            }
+            let auto_eligible = trade_id.is_some()
+                && !covered_by_pseudo
+                && !excluded_by_tier
+                && !excluded_by_crafted;
 
-            mapped_stats.push(MappedStat {
-                stat_index: flat_index,
+            let priority = stat_priority(
+                resolved_mod.display_type,
+                resolved_mod.is_fractured,
+                resolved_mod.header.tier.as_ref(),
+            );
+
+            candidates.push(StatCandidate {
+                flat_index,
                 trade_id,
-                display_text: stat_line.display_text.clone(),
                 computed_min,
-                included,
+                user_override: user_override.cloned(),
+                display_text: stat_line.display_text.clone(),
+                auto_eligible,
+                priority,
             });
 
             flat_index += 1;
         }
+    }
+
+    // ── Pass 2: Auto-select within cap ───────────────────────────────────
+    let auto_selected = if is_unique {
+        // Unique items: include all mappable stats (mods are fixed).
+        candidates
+            .iter()
+            .filter(|c| c.trade_id.is_some() && c.user_override.is_none())
+            .map(|c| c.flat_index)
+            .collect::<HashSet<u32>>()
+    } else {
+        auto_select_stats(&candidates, defaults)
+    };
+
+    // ── Pass 3: Build filters and mapped_stats ───────────────────────────
+    let mut filters = Vec::new();
+    let mut stats_mapped = 0u32;
+    let stats_total = candidates.len() as u32;
+    let mut unmapped_stats = Vec::new();
+    let mut mapped_stats = Vec::new();
+
+    for c in &candidates {
+        let included = if let Some(ref ov) = c.user_override {
+            ov.enabled && c.trade_id.is_some()
+        } else {
+            auto_selected.contains(&c.flat_index)
+        };
+
+        if included {
+            if let Some(ref tid) = c.trade_id {
+                let min_value = c
+                    .user_override
+                    .as_ref()
+                    .and_then(|o| o.min_override)
+                    .or(c.computed_min);
+                let max_value = c.user_override.as_ref().and_then(|o| o.max_override);
+
+                let value = if min_value.is_some() || max_value.is_some() {
+                    Some(FilterValue {
+                        min: min_value,
+                        max: max_value,
+                    })
+                } else {
+                    None
+                };
+
+                filters.push(StatFilter {
+                    id: tid.clone(),
+                    value,
+                    disabled: None,
+                });
+                stats_mapped += 1;
+            }
+        } else if c.trade_id.is_none() {
+            unmapped_stats.push(c.display_text.clone());
+        }
+
+        mapped_stats.push(MappedStat {
+            stat_index: c.flat_index,
+            trade_id: c.trade_id.clone(),
+            display_text: c.display_text.clone(),
+            computed_min: c.computed_min,
+            included,
+        });
     }
 
     // Single AND group with all stat filters.
@@ -385,6 +458,100 @@ pub fn build_query(
 #[must_use]
 pub fn trade_url(league: &str, search_id: &str) -> String {
     format!("https://www.pathofexile.com/trade/search/{league}/{search_id}")
+}
+
+// ── Auto-selection helpers ─────────────────────────────────────────────────
+
+/// Internal data for a stat candidate during auto-selection.
+struct StatCandidate {
+    flat_index: u32,
+    trade_id: Option<String>,
+    computed_min: Option<f64>,
+    user_override: Option<StatFilterOverride>,
+    display_text: String,
+    /// Eligible for auto-inclusion (mappable, not covered/excluded).
+    auto_eligible: bool,
+    /// Priority score (lower = selected first).
+    priority: u32,
+}
+
+/// Compute the set of explicit `stat_ids` fully covered by active pseudo stats.
+///
+/// A `stat_id` is "covered" if it appears in a `PseudoComponent` with
+/// `multiplier >= 1.0` for a pseudo that actually exists on this item.
+fn pseudo_covered_stat_ids(item: &ResolvedItem) -> HashSet<String> {
+    // Collect pseudo IDs that are actually present on the item.
+    let active_pseudo_ids: HashSet<&str> = item
+        .pseudo_mods
+        .iter()
+        .flat_map(|pm| pm.stat_lines.iter())
+        .filter_map(|sl| sl.stat_ids.as_ref())
+        .filter_map(|ids| ids.first())
+        .map(String::as_str)
+        .collect();
+
+    let mut covered = HashSet::new();
+    for defn in pseudo_definitions() {
+        if !active_pseudo_ids.contains(defn.id) {
+            continue;
+        }
+        for comp in defn.components {
+            if comp.multiplier >= 1.0 {
+                for &sid in comp.stat_ids {
+                    covered.insert(sid.to_string());
+                }
+            }
+        }
+    }
+    covered
+}
+
+/// Compute the priority score for a stat. Lower = more important = selected first.
+///
+/// Priority groups:
+/// - 100: Pseudo stats (broadest signal)
+/// - 200: Fractured explicits (permanent, define the item)
+/// - 300+tier: Explicits by tier (T1=301, no tier=310)
+/// - 400: Enchants
+/// - 500: Implicits
+/// - 600: Crafted mods (replaceable)
+/// - 700: Unique mods
+fn stat_priority(
+    display_type: ModDisplayType,
+    is_fractured: bool,
+    tier: Option<&ModTierKind>,
+) -> u32 {
+    match display_type {
+        ModDisplayType::Pseudo => 100,
+        _ if is_fractured => 200,
+        ModDisplayType::Prefix | ModDisplayType::Suffix => {
+            let tier_offset = tier.map_or(10, |t| t.number().min(10));
+            300 + tier_offset
+        }
+        ModDisplayType::Enchant => 400,
+        ModDisplayType::Implicit => 500,
+        ModDisplayType::Crafted => 600,
+        ModDisplayType::Unique => 700,
+    }
+}
+
+/// Select which stats to auto-include based on smart defaults.
+///
+/// Returns the set of `flat_index` values that should be auto-checked.
+/// Only considers candidates without user overrides.
+fn auto_select_stats(candidates: &[StatCandidate], defaults: &TradeSearchDefaults) -> HashSet<u32> {
+    let mut eligible: Vec<(u32, u32)> = candidates
+        .iter()
+        .filter(|c| c.auto_eligible && c.user_override.is_none())
+        .map(|c| (c.flat_index, c.priority))
+        .collect();
+    eligible.sort_by_key(|&(_, prio)| prio);
+
+    eligible
+        .iter()
+        .take(defaults.max_stat_filters as usize)
+        .map(|&(idx, _)| idx)
+        .collect()
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -1472,8 +1639,10 @@ mod tests {
 
         // 2 explicit + 2 pseudo = 4 total stats
         assert_eq!(result.stats_total, 4);
-        // 2 explicit mapped via index + 2 pseudo mapped directly = 4
-        assert_eq!(result.stats_mapped, 4);
+        // Life explicit excluded (covered by pseudo_total_life at 1.0 multiplier).
+        // Cold res explicit included (stat_id doesn't match pseudo component).
+        // 2 pseudos included. Total mapped = 3.
+        assert_eq!(result.stats_mapped, 3);
 
         // Check pseudo trade IDs are correctly formatted
         let stat_group = &result.body.query.stats[0];
@@ -1486,5 +1655,200 @@ mod tests {
             trade_ids.contains(&"pseudo.pseudo_total_fire_resistance"),
             "expected pseudo.pseudo_total_fire_resistance in {trade_ids:?}"
         );
+        // Life explicit should NOT be in the query (covered by pseudo)
+        assert!(
+            !trade_ids.iter().any(|id| id.contains("3299347043")),
+            "life explicit should be excluded by pseudo coverage"
+        );
+    }
+
+    // ── Auto-selection tests ─────────────────────────────────────────────
+
+    #[test]
+    fn stat_priority_ordering() {
+        use poe_item::types::*;
+
+        let pseudo = stat_priority(ModDisplayType::Pseudo, false, None);
+        let fractured = stat_priority(ModDisplayType::Prefix, true, None);
+        let t1 = stat_priority(ModDisplayType::Prefix, false, Some(&ModTierKind::Tier(1)));
+        let t3 = stat_priority(ModDisplayType::Suffix, false, Some(&ModTierKind::Tier(3)));
+        let no_tier = stat_priority(ModDisplayType::Prefix, false, None);
+        let enchant = stat_priority(ModDisplayType::Enchant, false, None);
+        let implicit = stat_priority(ModDisplayType::Implicit, false, None);
+        let crafted = stat_priority(ModDisplayType::Crafted, false, None);
+
+        assert!(pseudo < fractured, "pseudo should beat fractured");
+        assert!(fractured < t1, "fractured should beat T1");
+        assert!(t1 < t3, "T1 should beat T3");
+        assert!(t3 < no_tier, "T3 should beat no-tier");
+        assert!(no_tier < enchant, "explicit should beat enchant");
+        assert!(enchant < implicit, "enchant should beat implicit");
+        assert!(implicit < crafted, "implicit should beat crafted");
+    }
+
+    #[test]
+    fn max_stat_filters_caps_auto_selection() {
+        let index = test_index();
+        let mut config = TradeQueryConfig::new("Mirage");
+        config.search_defaults.max_stat_filters = 1;
+        config.search_defaults.prefer_pseudos = false;
+
+        let item = test_item();
+        let result = build_query(&item, &index, &config, None);
+
+        // With cap=1 and prefer_pseudos=false, only the highest-priority stat is included.
+        assert_eq!(result.stats_mapped, 1);
+    }
+
+    #[test]
+    fn prefer_pseudos_off_includes_all_mappable() {
+        use poe_item::types::*;
+        let mut item = test_item();
+        item.pseudo_mods = vec![ResolvedMod {
+            header: ModHeader {
+                source: ModSource::Computed,
+                slot: ModSlot::Pseudo,
+                influence_tier: None,
+                name: None,
+                tier: None,
+                tags: vec![],
+            },
+            stat_lines: vec![ResolvedStatLine {
+                raw_text: "(Pseudo) +# total maximum Life".to_string(),
+                display_text: "(Pseudo) +142 total maximum Life".to_string(),
+                values: vec![ValueRange {
+                    current: 142,
+                    min: 0,
+                    max: 0,
+                }],
+                stat_ids: Some(vec!["pseudo_total_life".to_string()]),
+                stat_values: None,
+                is_reminder: false,
+                is_unscalable: false,
+            }],
+            is_fractured: false,
+            display_type: ModDisplayType::Pseudo,
+        }];
+
+        let index = test_index();
+        let mut config = TradeQueryConfig::new("Mirage");
+        config.search_defaults.prefer_pseudos = false;
+        config.search_defaults.max_stat_filters = 99;
+
+        let result = build_query(&item, &index, &config, None);
+
+        // With prefer_pseudos=false: life explicit NOT excluded, so all 3 map
+        assert_eq!(result.stats_mapped, 3);
+    }
+
+    #[test]
+    fn crafted_excluded_by_default() {
+        use poe_item::types::*;
+        let mut item = test_item();
+        // Replace second explicit with a crafted mod
+        item.explicits[1] = ResolvedMod {
+            header: ModHeader {
+                source: ModSource::MasterCrafted,
+                slot: ModSlot::Suffix,
+                influence_tier: None,
+                name: None,
+                tier: None,
+                tags: vec![],
+            },
+            stat_lines: vec![ResolvedStatLine {
+                raw_text: "+40% to Cold Resistance".to_string(),
+                display_text: "+40% to Cold Resistance".to_string(),
+                values: vec![ValueRange {
+                    current: 40,
+                    min: 36,
+                    max: 41,
+                }],
+                stat_ids: Some(vec!["base_cold_damage_resistance_pct".to_string()]),
+                stat_values: None,
+                is_reminder: false,
+                is_unscalable: false,
+            }],
+            is_fractured: false,
+            display_type: ModDisplayType::Crafted,
+        };
+
+        let index = test_index();
+        let mut config = TradeQueryConfig::new("Mirage");
+        config.search_defaults.include_crafted = false;
+        config.search_defaults.prefer_pseudos = false;
+        config.search_defaults.max_stat_filters = 99;
+
+        let result = build_query(&item, &index, &config, None);
+
+        // Crafted mod excluded by default, only life explicit included
+        assert_eq!(result.stats_mapped, 1);
+
+        // With crafted enabled, both included
+        config.search_defaults.include_crafted = true;
+        let result2 = build_query(&item, &index, &config, None);
+        assert_eq!(result2.stats_mapped, 2);
+    }
+
+    #[test]
+    fn user_override_wins_over_auto_selection() {
+        use crate::types::StatFilterOverride;
+        let index = test_index();
+        let mut config = TradeQueryConfig::new("Mirage");
+        config.search_defaults.max_stat_filters = 0; // Exclude everything
+
+        let item = test_item();
+
+        // Without overrides: nothing auto-selected
+        let result = build_query(&item, &index, &config, None);
+        assert_eq!(result.stats_mapped, 0);
+
+        // With user override enabling stat 0: it's included despite cap=0
+        let filter_config = TradeFilterConfig {
+            stat_overrides: vec![StatFilterOverride {
+                stat_index: 0,
+                enabled: true,
+                min_override: None,
+                max_override: None,
+            }],
+            ..TradeFilterConfig::default()
+        };
+        let result2 = build_query(&item, &index, &config, Some(&filter_config));
+        assert_eq!(result2.stats_mapped, 1);
+    }
+
+    #[test]
+    fn unique_items_bypass_auto_selection() {
+        use poe_item::types::*;
+        let mut item = test_item();
+        item.header.rarity = Rarity::Unique;
+
+        let index = test_index();
+        let mut config = TradeQueryConfig::new("Mirage");
+        config.search_defaults.max_stat_filters = 1; // Would normally cap
+
+        let result = build_query(&item, &index, &config, None);
+
+        // Unique items include all mappable stats regardless of cap
+        assert_eq!(result.stats_mapped, 2);
+    }
+
+    #[test]
+    fn tier_threshold_excludes_low_tiers() {
+        use poe_item::types::*;
+        let mut item = test_item();
+        // Set tier info on explicits
+        item.explicits[0].header.tier = Some(ModTierKind::Tier(1)); // T1 life
+        item.explicits[1].header.tier = Some(ModTierKind::Tier(5)); // T5 cold res
+
+        let index = test_index();
+        let mut config = TradeQueryConfig::new("Mirage");
+        config.search_defaults.tier_threshold = Some(3); // Only T1-T3
+        config.search_defaults.prefer_pseudos = false;
+        config.search_defaults.max_stat_filters = 99;
+
+        let result = build_query(&item, &index, &config, None);
+
+        // T5 cold res excluded, only T1 life included
+        assert_eq!(result.stats_mapped, 1);
     }
 }

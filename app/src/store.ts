@@ -137,6 +137,15 @@ export interface TradeSettings {
 	/** Trade listing status filter. Values: "onlb", "buyout", "online", "any". */
 	listingStatus: string;
 	poesessid: string;
+	/** Smart defaults for stat auto-selection in trade searches. */
+	searchDefaults: TradeSearchDefaults;
+}
+
+export interface TradeSearchDefaults {
+	maxStatFilters: number;
+	preferPseudos: boolean;
+	tierThreshold: number | null;
+	includeCrafted: boolean;
 }
 
 export interface MarketplaceSettings {
@@ -178,6 +187,12 @@ export const defaultTrade: TradeSettings = {
 	valueRelaxation: 0.85,
 	listingStatus: "available",
 	poesessid: "",
+	searchDefaults: {
+		maxStatFilters: 5,
+		preferPseudos: true,
+		tierThreshold: null,
+		includeCrafted: false,
+	},
 };
 
 export const defaultMarketplace: MarketplaceSettings = {
@@ -278,8 +293,13 @@ export async function saveHotkeys(hotkeys: HotkeySettings): Promise<void> {
 
 export async function loadTrade(): Promise<TradeSettings> {
 	const store = await getSettingsStore();
-	const val = await store.get<TradeSettings>("trade");
-	return val ?? { ...defaultTrade };
+	const val = await store.get<Partial<TradeSettings>>("trade");
+	if (!val) return { ...defaultTrade };
+	return {
+		...defaultTrade,
+		...val,
+		searchDefaults: { ...defaultTrade.searchDefaults, ...val.searchDefaults },
+	};
 }
 
 export async function saveTrade(settings: TradeSettings): Promise<void> {

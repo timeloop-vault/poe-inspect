@@ -477,7 +477,24 @@ export function ItemOverlay({
 
 			{/* Pseudo stats — collapsible, auto-expands in trade edit mode */}
 			{item.pseudoMods && item.pseudoMods.length > 0 && (
-				<PseudoSection mods={item.pseudoMods} rarity={rarity} forceOpen={!!tradeEdit} />
+				<PseudoSection
+					mods={item.pseudoMods}
+					rarity={rarity}
+					forceOpen={!!tradeEdit}
+					tradeEdit={
+						tradeEdit
+							? {
+									mappedStats: tradeEdit.mappedStats,
+									isStatEnabled: tradeEdit.isStatEnabled,
+									getStatMin: tradeEdit.getStatMin,
+									getStatMax: tradeEdit.getStatMax,
+									toggleStat: tradeEdit.toggleStat,
+									setStatMin: tradeEdit.setStatMin,
+									setStatMax: tradeEdit.setStatMax,
+								}
+							: undefined
+					}
+				/>
 			)}
 
 			{/* Profile score (primary or swapped watching) */}

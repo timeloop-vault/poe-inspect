@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import {
+	type TradeSearchDefaults,
 	type TradeSettings as TradeSettingsType,
 	defaultTrade,
 	loadTrade,
@@ -56,6 +57,17 @@ export function TradeSettings() {
 		if ("poesessid" in patch) {
 			invoke("set_trade_session", { poesessid: patch.poesessid ?? "" });
 		}
+	}, []);
+
+	const updateDefaults = useCallback((patch: Partial<TradeSearchDefaults>) => {
+		setSettings((prev) => {
+			const next = {
+				...prev,
+				searchDefaults: { ...prev.searchDefaults, ...patch },
+			};
+			saveTrade(next);
+			return next;
+		});
 	}, []);
 
 	async function fetchLeagues() {
@@ -216,6 +228,98 @@ export function TradeSettings() {
 							</option>
 						))}
 					</select>
+				</div>
+			</div>
+
+			<div class="setting-group">
+				<h3>Search Defaults</h3>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Max stat filters
+						<div class="setting-description">
+							Maximum number of stats to auto-include. Higher = more specific search, fewer results.
+						</div>
+					</div>
+					<div class="setting-slider">
+						<input
+							type="range"
+							min={1}
+							max={15}
+							step={1}
+							value={settings.searchDefaults.maxStatFilters}
+							onInput={(e) =>
+								updateDefaults({
+									maxStatFilters: Number((e.target as HTMLInputElement).value),
+								})
+							}
+						/>
+						<span class="slider-value">{settings.searchDefaults.maxStatFilters}</span>
+					</div>
+				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Prefer pseudos
+						<div class="setting-description">
+							Use pseudo stats (total Life, total Resistance) instead of individual mods. Reduces
+							filter count and broadens results.
+						</div>
+					</div>
+					<label class="setting-toggle">
+						<input
+							type="checkbox"
+							checked={settings.searchDefaults.preferPseudos}
+							onChange={(e) =>
+								updateDefaults({ preferPseudos: (e.target as HTMLInputElement).checked })
+							}
+						/>
+					</label>
+				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Tier threshold
+						<div class="setting-description">
+							Only auto-include mods at this tier or better. "Any" includes all tiers.
+						</div>
+					</div>
+					<select
+						class="setting-select"
+						value={settings.searchDefaults.tierThreshold ?? "any"}
+						onChange={(e) => {
+							const val = (e.target as HTMLSelectElement).value;
+							updateDefaults({
+								tierThreshold: val === "any" ? null : Number(val),
+							});
+						}}
+					>
+						<option value="any">Any</option>
+						<option value="1">T1 only</option>
+						<option value="2">T1-T2</option>
+						<option value="3">T1-T3</option>
+						<option value="4">T1-T4</option>
+						<option value="5">T1-T5</option>
+					</select>
+				</div>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Include crafted mods
+						<div class="setting-description">
+							Auto-include bench-crafted mods in trade searches. Off by default since crafted mods
+							are replaceable.
+						</div>
+					</div>
+					<label class="setting-toggle">
+						<input
+							type="checkbox"
+							checked={settings.searchDefaults.includeCrafted}
+							onChange={(e) =>
+								updateDefaults({ includeCrafted: (e.target as HTMLInputElement).checked })
+							}
+						/>
+					</label>
 				</div>
 			</div>
 
