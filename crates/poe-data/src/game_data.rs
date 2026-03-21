@@ -294,19 +294,37 @@ impl GameData {
         // Save native-only map before adding fallbacks.
         self.native_stat_id_to_templates.clone_from(&map);
 
-        // Fallback for local stats: local stats on armour/weapons (flat
-        // armour, evasion, energy shield) don't have entries in
-        // stat_descriptions.txt — PoE renders them as base properties.
-        // For hybrid suggestion display, reuse the non-local template.
+        // Add fallback templates for local stats that lack native descriptions.
+        self.build_local_stat_templates(&mut map);
+
+        // Build inverse: template → all stat_ids (including local equivalents).
+        let mut tmpl_to_ids: HashMap<String, Vec<String>> = HashMap::new();
+        for (stat_id, templates) in &map {
+            for tmpl in templates {
+                let entry = tmpl_to_ids.entry(tmpl.clone()).or_default();
+                if !entry.contains(stat_id) {
+                    entry.push(stat_id.clone());
+                }
+            }
+        }
+        self.template_to_all_stat_ids = tmpl_to_ids;
+
+        self.stat_id_to_templates = map;
+        self.reverse_index = Some(ri);
+    }
+
+    /// Add fallback templates for local stats that lack native stat descriptions.
+    ///
+    /// Local stats (e.g., `local_base_evasion_rating`) don't have entries in
+    /// `stat_descriptions.txt` — `PoE` renders them as base properties. For hybrid
+    /// suggestion display, we reuse the non-local template.
+    fn build_local_stat_templates(&self, map: &mut HashMap<String, Vec<String>>) {
         for stat in &self.stats {
             if !stat.is_local || map.contains_key(&stat.id) {
                 continue;
             }
             // Try 1: strip "local_" prefix, then try "attack_" and "global_"
             // replacements — merge templates from all matching non-local equivalents.
-            // - stripped: armour/evasion/speed/crit (local_base_evasion_rating → base_evasion_rating)
-            // - attack_: weapon flat damage (local_minimum_added_physical_damage → attack_...)
-            // - global_: weapon flat damage display text (→ global_..., same template as item text)
             if let Some(stripped) = stat.id.strip_prefix("local_") {
                 let candidates = [
                     stripped.to_string(),
@@ -338,21 +356,6 @@ impl GameData {
                 }
             }
         }
-
-        // Build inverse: template → all stat_ids (including local equivalents).
-        let mut tmpl_to_ids: HashMap<String, Vec<String>> = HashMap::new();
-        for (stat_id, templates) in &map {
-            for tmpl in templates {
-                let entry = tmpl_to_ids.entry(tmpl.clone()).or_default();
-                if !entry.contains(stat_id) {
-                    entry.push(stat_id.clone());
-                }
-            }
-        }
-        self.template_to_all_stat_ids = tmpl_to_ids;
-
-        self.stat_id_to_templates = map;
-        self.reverse_index = Some(ri);
     }
 
     // ── Lookup by string id ─────────────────────────────────────────────
@@ -513,32 +516,9 @@ impl GameData {
         mod_name: &str,
         item_class: &str,
     ) -> Option<&ModRow> {
-        let base = self.base_item_by_name(base_type)?;
-        let base_tags: HashSet<u64> = base.tags.iter().copied().collect();
-        let mod_indices = self.mods_by_name.get(mod_name)?;
-        let valid_domains = crate::domain::item_class_mod_domains(item_class);
-
-        mod_indices
-            .iter()
-            .filter_map(|&idx| {
-                let m = &self.mods[idx];
-                if !valid_domains.contains(&m.domain) {
-                    return None;
-                }
-                let total_weight: i32 = m
-                    .spawn_weight_tags
-                    .iter()
-                    .zip(m.spawn_weight_values.iter())
-                    .filter(|(tag, weight)| **weight > 0 && base_tags.contains(tag))
-                    .map(|(_, weight)| *weight)
-                    .sum();
-                if total_weight > 0 {
-                    Some((m, total_weight))
-                } else {
-                    None
-                }
-            })
-            .max_by_key(|&(_, weight)| weight)
+        self.find_eligible_mod_candidates(base_type, mod_name, item_class)
+            .into_iter()
+            .next()
             .map(|(m, _)| m)
     }
 
@@ -554,6 +534,26 @@ impl GameData {
         mod_name: &str,
         item_class: &str,
     ) -> Vec<&ModRow> {
+        self.find_eligible_mod_candidates(base_type, mod_name, item_class)
+            .into_iter()
+            .map(|(m, _)| m)
+            .collect()
+    }
+
+    /// Find eligible mod candidates for a base type, sorted by spawn weight (descending).
+    ///
+    /// Uses the GGPK's tag intersection system: a mod is eligible if any of its
+    /// `spawn_weight_tags` overlap with the base type's `tags` AND the weight > 0.
+    ///
+    /// Filters by mod domain (from `item_class_mod_domains`) to exclude mods
+    /// that can't appear on this item type (e.g., monster mods, abyss jewel
+    /// mods on equipment).
+    fn find_eligible_mod_candidates(
+        &self,
+        base_type: &str,
+        mod_name: &str,
+        item_class: &str,
+    ) -> Vec<(&ModRow, i32)> {
         let Some(base) = self.base_item_by_name(base_type) else {
             return vec![];
         };
@@ -585,7 +585,7 @@ impl GameData {
             })
             .collect();
         candidates.sort_by(|a, b| b.1.cmp(&a.1));
-        candidates.into_iter().map(|(m, _)| m).collect()
+        candidates
     }
 
     /// Resolve a mod's `stat_keys` to `stat_id` strings.

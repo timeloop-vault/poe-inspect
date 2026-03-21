@@ -13,6 +13,9 @@ pub mod rule;
 pub mod schema;
 pub mod tier;
 
+mod helpers;
+pub(crate) use helpers::rarity_ggpk_id;
+
 pub use affix::{AffixSummary, Modifiability, analyze_affixes};
 pub use evaluate::{evaluate, score};
 pub use item_result::{ItemEvaluation, WatchingProfileInput, evaluate_item};

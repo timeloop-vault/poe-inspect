@@ -77,6 +77,12 @@ impl DatFile {
         let row_size = if row_count == 0 {
             0
         } else {
+            if rows_total_size % row_count as usize != 0 {
+                return Err(DatError::InconsistentRowSize {
+                    total: rows_total_size,
+                    rows: row_count,
+                });
+            }
             rows_total_size / row_count as usize
         };
 
@@ -232,6 +238,8 @@ pub enum DatError {
     TooShort,
     #[error("data section marker (0xBB*8) not found")]
     NoMarker,
+    #[error("row data size ({total}) not evenly divisible by row count ({rows})")]
+    InconsistentRowSize { total: usize, rows: u32 },
 }
 
 // ── Utilities ────────────────────────────────────────────────────────────────

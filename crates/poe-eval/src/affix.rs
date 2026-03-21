@@ -83,8 +83,7 @@ fn check_modifiability(item: &ResolvedItem) -> Modifiability {
     }
 
     // Check rarity — only Magic/Rare can have explicit affixes
-    let rarity_str = format!("{:?}", item.header.rarity);
-    if poe_data::domain::rarity_to_ggpk_id(&rarity_str).is_none() {
+    if crate::rarity_ggpk_id(item.header.rarity).is_none() {
         return Modifiability::NotApplicable;
     }
 
@@ -108,8 +107,7 @@ fn count_slot(item: &ResolvedItem, slot: ModSlot) -> (u32, bool) {
 
 /// Look up max prefix/suffix counts for this item's rarity.
 fn resolve_max_affixes(item: &ResolvedItem, gd: &GameData) -> (Option<u32>, Option<u32>) {
-    let rarity_str = format!("{:?}", item.header.rarity);
-    let Some(rarity_id) = poe_data::domain::rarity_to_ggpk_id(&rarity_str) else {
+    let Some(rarity_id) = crate::rarity_ggpk_id(item.header.rarity) else {
         return (None, None);
     };
 
