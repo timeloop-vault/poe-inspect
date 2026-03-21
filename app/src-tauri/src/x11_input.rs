@@ -25,8 +25,7 @@ pub fn send_copy_keystroke() -> Result<(), String> {
     // Allow the global shortcut's keyboard grab to deactivate.
     std::thread::sleep(std::time::Duration::from_millis(100));
 
-    let (conn, screen_num) =
-        x11rb::connect(None).map_err(|e| format!("X11 connect: {e}"))?;
+    let (conn, screen_num) = x11rb::connect(None).map_err(|e| format!("X11 connect: {e}"))?;
     let setup = conn.setup();
     let root = setup.roots[screen_num].root;
     let min_kc = setup.min_keycode;
@@ -97,8 +96,7 @@ pub fn send_copy_keystroke() -> Result<(), String> {
         .map_err(|e| format!("XTest: {e}"))?;
     xtest::fake_input(&conn, KEY_PRESS, kc_alt, 0, 0, 0, 0, 0)
         .map_err(|e| format!("XTest: {e}"))?;
-    xtest::fake_input(&conn, KEY_PRESS, kc_c, 0, 0, 0, 0, 0)
-        .map_err(|e| format!("XTest: {e}"))?;
+    xtest::fake_input(&conn, KEY_PRESS, kc_c, 0, 0, 0, 0, 0).map_err(|e| format!("XTest: {e}"))?;
     xtest::fake_input(&conn, KEY_RELEASE, kc_c, 0, 0, 0, 0, 0)
         .map_err(|e| format!("XTest: {e}"))?;
     xtest::fake_input(&conn, KEY_RELEASE, kc_alt, 0, 0, 0, 0, 0)

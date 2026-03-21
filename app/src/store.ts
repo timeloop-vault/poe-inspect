@@ -33,12 +33,15 @@ export const WEIGHT_VALUES: Record<WeightLevel, number> = {
 	critical: 100,
 };
 
+export type UpdateChannel = "stable" | "beta";
+
 export interface GeneralSettings {
 	overlayScale: number;
 	uiScale: number;
 	overlayPosition: OverlayPosition;
 	compactPosition: OverlayPosition;
 	poeVersion: "poe1" | "poe2";
+	updateChannel: UpdateChannel;
 	startMinimized: boolean;
 	launchOnBoot: boolean;
 	requirePoeFocus: boolean;
@@ -157,6 +160,7 @@ export const defaultGeneral: GeneralSettings = {
 	overlayPosition: "cursor",
 	compactPosition: "cursor",
 	poeVersion: "poe1",
+	updateChannel: "stable",
 	startMinimized: true,
 	launchOnBoot: false,
 	requirePoeFocus: true,

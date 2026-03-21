@@ -248,7 +248,10 @@ fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
             Ok(text) if !text.is_empty() => return Some(text),
             Ok(_) => {}
             Err(e) => {
-                eprintln!("[inspect] Clipboard read error (attempt {}): {e}", attempt + 1);
+                eprintln!(
+                    "[inspect] Clipboard read error (attempt {}): {e}",
+                    attempt + 1
+                );
             }
         }
     }
@@ -267,11 +270,21 @@ pub(crate) fn send_copy_keystroke() -> Result<(), String> {
     use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 
     let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
-    enigo.key(Key::Control, Direction::Press).map_err(|e| e.to_string())?;
-    enigo.key(Key::Alt, Direction::Press).map_err(|e| e.to_string())?;
-    enigo.key(Key::Unicode('c'), Direction::Click).map_err(|e| e.to_string())?;
-    enigo.key(Key::Alt, Direction::Release).map_err(|e| e.to_string())?;
-    enigo.key(Key::Control, Direction::Release).map_err(|e| e.to_string())?;
+    enigo
+        .key(Key::Control, Direction::Press)
+        .map_err(|e| e.to_string())?;
+    enigo
+        .key(Key::Alt, Direction::Press)
+        .map_err(|e| e.to_string())?;
+    enigo
+        .key(Key::Unicode('c'), Direction::Click)
+        .map_err(|e| e.to_string())?;
+    enigo
+        .key(Key::Alt, Direction::Release)
+        .map_err(|e| e.to_string())?;
+    enigo
+        .key(Key::Control, Direction::Release)
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -747,11 +760,7 @@ fn dispatch_hotkey_action(app: &tauri::AppHandle, action: &str) {
 /// `global_shortcut` since it should work regardless of focused app.
 ///
 /// On non-Windows, all hotkeys use `global_shortcut` (passthrough not available).
-fn register_hotkeys(
-    app: &tauri::AppHandle,
-    config: &HotkeyConfig,
-    macros: &[ChatMacroConfig],
-) {
+fn register_hotkeys(app: &tauri::AppHandle, config: &HotkeyConfig, macros: &[ChatMacroConfig]) {
     let gs = app.global_shortcut();
     let _ = gs.unregister_all();
 
@@ -776,10 +785,8 @@ fn register_hotkeys(
     #[cfg(target_os = "windows")]
     {
         if let Some(hook_state) = app.try_state::<HotkeyHookState>() {
-            let entries_ref: Vec<(&str, &str)> = hook_entries
-                .iter()
-                .map(|(k, v)| (*k, v.as_str()))
-                .collect();
+            let entries_ref: Vec<(&str, &str)> =
+                hook_entries.iter().map(|(k, v)| (*k, v.as_str())).collect();
             hook_state.0.set_bindings(&entries_ref);
         }
     }
@@ -903,7 +910,9 @@ fn set_autostart(app: tauri::AppHandle, enabled: bool) {
 /// Applies to both keyboard hotkeys and stash scroll.
 #[tauri::command]
 fn set_require_poe_focus(app: tauri::AppHandle, enabled: bool) {
-    app.state::<PoeFocusGate>().0.store(enabled, Ordering::Relaxed);
+    app.state::<PoeFocusGate>()
+        .0
+        .store(enabled, Ordering::Relaxed);
     app.state::<StashScrollState>()
         .0
         .set_require_poe_focus(enabled);
@@ -1255,10 +1264,7 @@ async fn refresh_trade_stats(
     // Cache raw filters response to disk.
     if let Ok(ref filters_resp) = filters_response {
         if let Some(cache_path) = trade_filters_cache_path(&app) {
-            let _ = poe_trade::filter_schema::FilterIndex::save_response(
-                filters_resp,
-                &cache_path,
-            );
+            let _ = poe_trade::filter_schema::FilterIndex::save_response(filters_resp, &cache_path);
         }
     }
 
@@ -1294,17 +1300,44 @@ fn open_url(url: String) -> Result<(), String> {
 
 // ── Update ──────────────────────────────────────────────────────────────────
 
-/// Check for application updates.
+const UPDATER_STABLE: &str =
+    "https://github.com/timeloop-vault/poe-inspect/releases/latest/download/latest.json";
+// TODO: Beta channel requires GitHub Pages (paid plan for private repos).
+// When enabled, deploy updater/beta.json to gh-pages and update this URL to:
+// "https://timeloop-vault.github.io/poe-inspect/updater/beta.json"
+const UPDATER_BETA: &str =
+    "https://github.com/timeloop-vault/poe-inspect/releases/latest/download/latest.json";
+
+fn updater_endpoint(channel: &str) -> &'static str {
+    if channel == "beta" {
+        UPDATER_BETA
+    } else {
+        UPDATER_STABLE
+    }
+}
+
+/// Check for application updates on the given channel ("stable" or "beta").
 ///
 /// Returns update info (version, date, body) if an update is available,
 /// or `null` if the app is up to date.
 #[tauri::command]
 async fn check_for_update(
     app: tauri::AppHandle,
+    channel: String,
 ) -> Result<Option<UpdateInfo>, String> {
     use tauri_plugin_updater::UpdaterExt;
 
-    match app.updater().map_err(|e| e.to_string())?.check().await {
+    let endpoint = updater_endpoint(&channel);
+    eprintln!("[updater] Checking {channel} channel: {endpoint}");
+
+    let updater = app
+        .updater_builder()
+        .endpoints(vec![endpoint.parse().unwrap()])
+        .map_err(|e| e.to_string())?
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    match updater.check().await {
         Ok(Some(update)) => {
             eprintln!("[updater] Update available: {}", update.version);
             Ok(Some(UpdateInfo {
@@ -1322,6 +1355,58 @@ async fn check_for_update(
             Err(e.to_string())
         }
     }
+}
+
+/// Download and install an available update. Re-checks the given channel,
+/// emits "update-progress" events during download, then installs.
+#[tauri::command]
+async fn download_and_install_update(app: tauri::AppHandle, channel: String) -> Result<(), String> {
+    use tauri_plugin_updater::UpdaterExt;
+
+    let endpoint = updater_endpoint(&channel);
+    let updater = app
+        .updater_builder()
+        .endpoints(vec![endpoint.parse().unwrap()])
+        .map_err(|e| e.to_string())?
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let update = updater
+        .check()
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "No update available".to_string())?;
+
+    eprintln!("[updater] Downloading {}", update.version);
+
+    let app_handle = app.clone();
+    let app_handle2 = app.clone();
+    update
+        .download_and_install(
+            move |chunk_length, content_length| {
+                let _ = app_handle.emit(
+                    "update-progress",
+                    serde_json::json!({
+                        "event": "Progress",
+                        "data": {
+                            "chunkLength": chunk_length,
+                            "contentLength": content_length,
+                        }
+                    }),
+                );
+            },
+            move || {
+                let _ = app_handle2.emit(
+                    "update-progress",
+                    serde_json::json!({ "event": "Finished", "data": {} }),
+                );
+            },
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    eprintln!("[updater] Update installed, restart required");
+    Ok(())
 }
 
 #[derive(serde::Serialize, Clone)]
@@ -1387,9 +1472,7 @@ fn get_listing_statuses() -> Vec<poe_trade::ListingStatus> {
 
 /// Fetch the list of active leagues from GGG.
 #[tauri::command]
-async fn fetch_leagues(
-    trade: tauri::State<'_, TradeState>,
-) -> Result<LeagueList, String> {
+async fn fetch_leagues(trade: tauri::State<'_, TradeState>) -> Result<LeagueList, String> {
     let mut client = trade.client.lock().await;
     client.fetch_leagues().await.map_err(|e| e.to_string())
 }
@@ -1667,6 +1750,7 @@ pub fn run() {
             set_trade_session,
             get_trade_index_status,
             check_for_update,
+            download_and_install_update,
         ])
         .setup(|app| {
             // --- System tray ---
@@ -1698,18 +1782,17 @@ pub fn run() {
             // --- Toast notification window (hidden, click-through) ---
             {
                 let url = tauri::WebviewUrl::App("index.html".into());
-                let _toast =
-                    tauri::WebviewWindowBuilder::new(app, "toast", url)
-                        .title("Toast")
-                        .decorations(false)
-                        .transparent(true)
-                        .always_on_top(true)
-                        .skip_taskbar(true)
-                        .resizable(false)
-                        .focused(false)
-                        .visible(false)
-                        .inner_size(300.0, 50.0)
-                        .build()?;
+                let _toast = tauri::WebviewWindowBuilder::new(app, "toast", url)
+                    .title("Toast")
+                    .decorations(false)
+                    .transparent(true)
+                    .always_on_top(true)
+                    .skip_taskbar(true)
+                    .resizable(false)
+                    .focused(false)
+                    .visible(false)
+                    .inner_size(300.0, 50.0)
+                    .build()?;
             }
 
             // --- Linux overlay setup ---
@@ -1773,8 +1856,7 @@ pub fn run() {
                     .unwrap_or("Ctrl");
                 let scroll_state = &app.state::<StashScrollState>().0;
                 scroll_state.set_enabled(stash_scroll);
-                scroll_state
-                    .set_modifier(stash_scroll::ScrollModifier::from_str(scroll_modifier));
+                scroll_state.set_modifier(stash_scroll::ScrollModifier::from_str(scroll_modifier));
                 if stash_scroll {
                     eprintln!("[stash-scroll] Enabled (modifier: {scroll_modifier})");
                 }
@@ -1823,9 +1905,10 @@ pub fn run() {
                     .store("settings.json")
                     .ok()
                     .and_then(|store| {
-                        store
-                            .get("trade")
-                            .and_then(|v| v.get("poesessid").and_then(|v| v.as_str().map(String::from)))
+                        store.get("trade").and_then(|v| {
+                            v.get("poesessid")
+                                .and_then(|v| v.as_str().map(String::from))
+                        })
                     })
                     .filter(|s| !s.is_empty())
                 {

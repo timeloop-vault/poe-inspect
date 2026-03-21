@@ -220,7 +220,12 @@ mod win32 {
     /// Uses the same heuristic as awakened-poe-trade:
     /// left sidebar (~37% of window width), y between 154/1600 and 1192/1600.
     fn is_stash_area(mouse_x: i32, mouse_y: i32, hwnd: isize) -> bool {
-        let mut rect = Rect { left: 0, top: 0, right: 0, bottom: 0 };
+        let mut rect = Rect {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+        };
         if unsafe { GetWindowRect(hwnd, &mut rect) } == 0 {
             return false;
         }
@@ -257,12 +262,24 @@ mod win32 {
         let inputs = [
             InputEvent {
                 input_type: INPUT_KEYBOARD,
-                ki: KeybdInput { wVk: vk, wScan: 0, dwFlags: 0, time: 0, dwExtraInfo: 0 },
+                ki: KeybdInput {
+                    wVk: vk,
+                    wScan: 0,
+                    dwFlags: 0,
+                    time: 0,
+                    dwExtraInfo: 0,
+                },
                 _union_pad: [0; 8],
             },
             InputEvent {
                 input_type: INPUT_KEYBOARD,
-                ki: KeybdInput { wVk: vk, wScan: 0, dwFlags: KEYEVENTF_KEYUP, time: 0, dwExtraInfo: 0 },
+                ki: KeybdInput {
+                    wVk: vk,
+                    wScan: 0,
+                    dwFlags: KEYEVENTF_KEYUP,
+                    time: 0,
+                    dwExtraInfo: 0,
+                },
                 _union_pad: [0; 8],
             },
         ];
@@ -271,11 +288,7 @@ mod win32 {
         }
     }
 
-    unsafe extern "system" fn mouse_hook_proc(
-        code: i32,
-        w_param: usize,
-        l_param: isize,
-    ) -> isize {
+    unsafe extern "system" fn mouse_hook_proc(code: i32, w_param: usize, l_param: isize) -> isize {
         if code == HC_ACTION && w_param as u32 == WM_MOUSEWHEEL {
             let ptr = HOOK_STATE.get();
             if !ptr.is_null() {

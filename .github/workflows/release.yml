@@ -86,39 +86,58 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Using version: $VERSION"
 
+          # Detect pre-release (version contains hyphen after X.Y.Z)
+          if [[ "$VERSION" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Patch version into source files before building.
       # Uses node for all file patching (cross-platform — avoids BSD vs GNU sed differences).
-      # MSI and Cargo.toml require numeric-only versions (X.Y.Z), so pre-release
-      # suffixes like -beta.1 are stripped for those files. tauri.conf.json and
-      # package.json keep the full version for the updater and About page.
+      # Full semver (including pre-release suffix) is used everywhere. MSI is skipped
+      # for pre-releases since WiX requires numeric-only versions (see "Compute bundle
+      # targets" step below).
       - name: Patch version
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # Strip pre-release for MSI/Cargo compatibility (0.1.0-beta.1 → 0.1.0)
-          SEMVER=$(echo "$VERSION" | sed 's/-.*//')
           cd app
           node -e "
             const fs = require('fs');
             const version = '$VERSION';
-            const semver = '$SEMVER';
 
-            // tauri.conf.json — uses semver (MSI requires numeric-only)
+            // tauri.conf.json — full version (drives artifact names + updater manifest)
             const conf = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            conf.version = semver;
+            conf.version = version;
             fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(conf, null, '\t') + '\n');
 
-            // Cargo.toml — replace version line (semver only)
+            // Cargo.toml — full version (Cargo supports semver pre-release identifiers)
             let cargo = fs.readFileSync('src-tauri/Cargo.toml', 'utf8');
-            cargo = cargo.replace(/^version = .*/m, 'version = \"' + semver + '\"');
+            cargo = cargo.replace(/^version = .*/m, 'version = \"' + version + '\"');
             fs.writeFileSync('src-tauri/Cargo.toml', cargo);
 
-            // package.json — full version including pre-release
+            // package.json — full version
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             pkg.version = version;
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
           "
           cd ..
+
+      # MSI (WiX) requires numeric-only versions (X.Y.Z or X.Y.Z.W) — it rejects
+      # pre-release suffixes like -beta.1. NSIS handles them fine (displays full
+      # version string, uses X.Y.Z.0 for the PE binary version). So for pre-releases
+      # on Windows, build only NSIS. All other platform/version combos build all targets.
+      - name: Compute bundle targets
+        id: bundles
+        shell: bash
+        run: |
+          if [[ "${{ steps.version.outputs.prerelease }}" == "true" && "${{ matrix.platform }}" == "windows-latest" ]]; then
+            echo "args=--bundles nsis" >> "$GITHUB_OUTPUT"
+            echo "Pre-release on Windows: building NSIS only (skipping MSI)"
+          else
+            echo "args=" >> "$GITHUB_OUTPUT"
+          fi
 
       # --- Release event: build + attach artifacts to the GitHub Release ---
       - name: Build and publish release
@@ -131,7 +150,7 @@ jobs:
         with:
           projectPath: app
           tauriScript: npx tauri
-          args: --target ${{ matrix.target }}
+          args: --target ${{ matrix.target }} ${{ steps.bundles.outputs.args }}
           tagName: ${{ github.event.release.tag_name }}
           releaseName: ${{ github.event.release.name }}
           releaseId: ${{ github.event.release.id }}
@@ -143,7 +162,7 @@ jobs:
       - name: Build (manual dispatch)
         if: github.event_name == 'workflow_dispatch'
         working-directory: app
-        run: npx tauri build --target ${{ matrix.target }}
+        run: npx tauri build --target ${{ matrix.target }} ${{ steps.bundles.outputs.args }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -161,3 +180,9 @@ jobs:
             app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.exe
             app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.msi
             app/src-tauri/target/${{ matrix.target }}/release/bundle/**/*.sig
+
+  # TODO: Enable when GitHub Pages is available (requires paid plan for private repos).
+  # publish-updater:
+  #   Pushes updater/stable.json and updater/beta.json to gh-pages branch.
+  #   Stable releases update both files; pre-releases update only beta.json.
+  #   See UPDATER_BETA constant in app/src-tauri/src/lib.rs for the expected URL.

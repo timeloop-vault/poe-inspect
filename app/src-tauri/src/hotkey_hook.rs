@@ -166,7 +166,7 @@ pub(crate) fn start() -> (HotkeyHookHandle, std::sync::mpsc::Receiver<String>) {
 
 #[cfg(target_os = "windows")]
 mod win32 {
-    use super::{HookState, ACTION_SENDER, HotkeyBinding, ParsedHotkey};
+    use super::{HookState, HotkeyBinding, ParsedHotkey, ACTION_SENDER};
     use std::sync::atomic::Ordering;
     use std::sync::Arc;
 
@@ -282,9 +282,7 @@ mod win32 {
         w_param: usize,
         l_param: isize,
     ) -> isize {
-        if code == HC_ACTION
-            && (w_param as u32 == WM_KEYDOWN || w_param as u32 == WM_SYSKEYDOWN)
-        {
+        if code == HC_ACTION && (w_param as u32 == WM_KEYDOWN || w_param as u32 == WM_SYSKEYDOWN) {
             let ptr = HOOK_STATE.get();
             if !ptr.is_null() {
                 let state = unsafe { &*ptr };
@@ -319,8 +317,7 @@ mod win32 {
         HOOK_STATE.set(Arc::as_ptr(&state));
 
         let hmod = unsafe { GetModuleHandleW(std::ptr::null()) };
-        let hook =
-            unsafe { SetWindowsHookExW(WH_KEYBOARD_LL, keyboard_hook_proc, hmod, 0) };
+        let hook = unsafe { SetWindowsHookExW(WH_KEYBOARD_LL, keyboard_hook_proc, hmod, 0) };
         if hook == 0 {
             let err = unsafe { GetLastError() };
             eprintln!("[hotkey-hook] Failed to install hook, error={err}");

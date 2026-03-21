@@ -95,8 +95,7 @@ pub fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
     }
 
     // Race both paths concurrently
-    let deadline =
-        std::time::Instant::now() + std::time::Duration::from_millis(500);
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(500);
     while std::time::Instant::now() < deadline {
         // Check Wayland watcher (non-blocking)
         if let Some(rx) = &watcher_rx {
@@ -245,8 +244,7 @@ impl Dispatch<ZwlrDataControlDeviceV1, ()> for WatcherState {
                 if id.is_some() {
                     // Promote incoming offer (same underlying object) to current
                     state.current_offer = state.incoming_offer.take();
-                    state.current_mime_types =
-                        std::mem::take(&mut state.incoming_mime_types);
+                    state.current_mime_types = std::mem::take(&mut state.incoming_mime_types);
                     state.try_fulfill_request(conn);
                 }
             }
@@ -283,8 +281,7 @@ impl Dispatch<ZwlrDataControlOfferV1, ()> for WatcherState {
 /// Run the Wayland event loop. Blocks forever on success.
 fn run_watcher(request: Arc<ClipboardRequest>, ready_tx: mpsc::SyncSender<bool>) {
     let result: Result<(), String> = (|| {
-        let conn =
-            Connection::connect_to_env().map_err(|e| format!("Wayland connect: {e}"))?;
+        let conn = Connection::connect_to_env().map_err(|e| format!("Wayland connect: {e}"))?;
 
         let (globals, mut queue) = registry_queue_init::<WatcherState>(&conn)
             .map_err(|e| format!("Registry init: {e}"))?;

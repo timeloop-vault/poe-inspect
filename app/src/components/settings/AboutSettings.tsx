@@ -1,8 +1,9 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { check } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useState } from "preact/hooks";
+import { type UpdateChannel, loadGeneral } from "../../store";
 
 interface UpdateInfo {
 	version: string;
@@ -19,6 +20,11 @@ type UpdateState =
 	| { status: "up-to-date" }
 	| { status: "error"; message: string };
 
+async function getChannel(): Promise<UpdateChannel> {
+	const settings = await loadGeneral();
+	return settings.updateChannel ?? "stable";
+}
+
 export function AboutSettings() {
 	const [state, setState] = useState<UpdateState>({ status: "idle" });
 	const [appVersion, setAppVersion] = useState("...");
@@ -30,7 +36,8 @@ export function AboutSettings() {
 	const checkForUpdate = useCallback(async () => {
 		setState({ status: "checking" });
 		try {
-			const info = await invoke<UpdateInfo | null>("check_for_update");
+			const channel = await getChannel();
+			const info = await invoke<UpdateInfo | null>("check_for_update", { channel });
 			if (info) {
 				setState({ status: "available", info });
 			} else {
@@ -44,24 +51,27 @@ export function AboutSettings() {
 	const downloadAndInstall = useCallback(async () => {
 		setState({ status: "downloading", percent: 0 });
 		try {
-			const update = await check();
-			if (!update) {
-				setState({ status: "up-to-date" });
-				return;
-			}
 			let totalBytes = 0;
 			let downloadedBytes = 0;
-			await update.downloadAndInstall((progress) => {
-				if (progress.event === "Started" && progress.data.contentLength) {
-					totalBytes = progress.data.contentLength;
-				} else if (progress.event === "Progress") {
-					downloadedBytes += progress.data.chunkLength;
-					const pct = totalBytes > 0 ? Math.round((downloadedBytes / totalBytes) * 100) : 0;
-					setState({ status: "downloading", percent: pct });
-				} else if (progress.event === "Finished") {
-					setState({ status: "ready" });
-				}
-			});
+
+			const unlisten = await listen<{ event: string; data: Record<string, number> }>(
+				"update-progress",
+				(event) => {
+					const { event: kind, data } = event.payload;
+					if (kind === "Progress" && data.chunkLength != null) {
+						downloadedBytes += data.chunkLength;
+						if (data.contentLength != null) totalBytes = data.contentLength;
+						const pct = totalBytes > 0 ? Math.round((downloadedBytes / totalBytes) * 100) : 0;
+						setState({ status: "downloading", percent: pct });
+					} else if (kind === "Finished") {
+						setState({ status: "ready" });
+					}
+				},
+			);
+
+			const channel = await getChannel();
+			await invoke("download_and_install_update", { channel });
+			unlisten();
 			setState({ status: "ready" });
 		} catch (e) {
 			setState({ status: "error", message: String(e) });

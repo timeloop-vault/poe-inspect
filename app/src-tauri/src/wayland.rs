@@ -143,8 +143,7 @@ pub fn read_x11_clipboard(timeout_ms: u64) -> Result<String, String> {
     use x11rb::protocol::xproto::{ConnectionExt, WindowClass};
     use x11rb::protocol::Event;
 
-    let (conn, screen_num) =
-        x11rb::connect(None).map_err(|e| format!("X11 connect: {e}"))?;
+    let (conn, screen_num) = x11rb::connect(None).map_err(|e| format!("X11 connect: {e}"))?;
     let screen = &conn.setup().roots[screen_num];
     let root = screen.root;
 
@@ -203,8 +202,7 @@ pub fn read_x11_clipboard(timeout_ms: u64) -> Result<String, String> {
     conn.flush().map_err(|e| format!("Flush: {e}"))?;
 
     // Poll for the SelectionNotify response with timeout
-    let deadline = std::time::Instant::now()
-        + std::time::Duration::from_millis(timeout_ms);
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
     loop {
         if std::time::Instant::now() >= deadline {
             conn.destroy_window(requestor)
@@ -213,10 +211,12 @@ pub fn read_x11_clipboard(timeout_ms: u64) -> Result<String, String> {
             return Err("Timed out waiting for SelectionNotify".into());
         }
 
-        match conn.poll_for_event().map_err(|e| format!("poll_for_event: {e}"))? {
+        match conn
+            .poll_for_event()
+            .map_err(|e| format!("poll_for_event: {e}"))?
+        {
             Some(Event::SelectionNotify(ev))
-                if ev.requestor == requestor
-                    && ev.selection == atom_clipboard =>
+                if ev.requestor == requestor && ev.selection == atom_clipboard =>
             {
                 if ev.property == x11rb::NONE {
                     conn.destroy_window(requestor)

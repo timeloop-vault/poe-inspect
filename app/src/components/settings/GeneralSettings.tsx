@@ -261,6 +261,39 @@ export function GeneralSettings() {
 			</div>
 
 			<div class="setting-group">
+				<h3>Updates</h3>
+
+				<div class="setting-row">
+					<div class="setting-label">
+						Update channel
+						<div class="setting-description">
+							Beta channel receives pre-release builds. Stable only receives final releases.
+						</div>
+					</div>
+					<div class="setting-radio-group">
+						<label class="setting-radio">
+							<input
+								type="radio"
+								name="update-channel"
+								checked={(settings.updateChannel ?? "stable") === "stable"}
+								onChange={() => update({ updateChannel: "stable" })}
+							/>
+							Stable
+						</label>
+						<label class="setting-radio">
+							<input
+								type="radio"
+								name="update-channel"
+								checked={(settings.updateChannel ?? "stable") === "beta"}
+								onChange={() => update({ updateChannel: "beta" })}
+							/>
+							Beta
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="setting-group">
 				<h3>Display</h3>
 
 				<div class="setting-row">
