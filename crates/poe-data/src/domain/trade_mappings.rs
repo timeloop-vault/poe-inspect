@@ -194,6 +194,35 @@ pub fn strip_quality_prefix(name: &str) -> &str {
     name.strip_prefix(QUALITY_PREFIX).unwrap_or(name)
 }
 
+// ── League mechanic name prefixes ──────────────────────────────────────────
+//
+// WHY HARDCODED: The PoE client prepends league mechanic names to unique item
+// names (e.g., "Foulborn Soulthirst"). The trade API rejects the prefixed name
+// as "Unknown item name". The prefix must be stripped before querying.
+//
+// The GGPK contains the prefix string in ClientStrings
+// (`ModDescriptionLineBrequelMutated` = "Foulborn Unique Modifier").
+// Confirmed via 3.28 Mirage.
+
+/// League mechanic prefixes prepended to unique item names by the `PoE` client.
+///
+/// The trade API does not recognize these prefixes — they must be stripped
+/// from the item name before building trade queries.
+pub const LEAGUE_NAME_PREFIXES: &[&str] = &["Foulborn "];
+
+/// Strip any known league mechanic prefix from an item name.
+///
+/// Returns the original string unchanged if no prefix is found.
+#[must_use]
+pub fn strip_league_prefix(name: &str) -> &str {
+    for prefix in LEAGUE_NAME_PREFIXES {
+        if let Some(stripped) = name.strip_prefix(prefix) {
+            return stripped;
+        }
+    }
+    name
+}
+
 /// Map a mod's display type to the trade API stat category prefix.
 ///
 /// Trade API convention, not in GGPK (verified 2026-03-15).

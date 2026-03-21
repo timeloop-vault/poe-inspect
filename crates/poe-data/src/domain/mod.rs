@@ -31,5 +31,5 @@ pub use tiers::{
 };
 pub use trade_mappings::{
     QUALITY_PREFIX, TRADE_STAT_SUFFIXES, is_armour_class, is_weapon_class, item_class_mod_domains,
-    item_class_trade_category, mod_trade_category, strip_quality_prefix,
+    item_class_trade_category, mod_trade_category, strip_league_prefix, strip_quality_prefix,
 };

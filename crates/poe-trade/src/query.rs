@@ -438,7 +438,11 @@ pub fn build_query(
                 })
             },
             name: match item.header.rarity {
-                Rarity::Unique => item.header.name.clone(),
+                Rarity::Unique => item
+                    .header
+                    .name
+                    .as_deref()
+                    .map(|n| poe_data::domain::strip_league_prefix(n).to_string()),
                 _ => None,
             },
             base_type: match type_scope {
