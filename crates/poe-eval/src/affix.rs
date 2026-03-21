@@ -105,18 +105,16 @@ fn count_slot(item: &ResolvedItem, slot: ModSlot) -> (u32, bool) {
     (count, has_crafted)
 }
 
-/// Look up max prefix/suffix counts for this item's rarity.
+/// Look up max prefix/suffix counts, considering item-class-specific overrides.
 fn resolve_max_affixes(item: &ResolvedItem, gd: &GameData) -> (Option<u32>, Option<u32>) {
     let Some(rarity_id) = crate::rarity_ggpk_id(item.header.rarity) else {
         return (None, None);
     };
 
-    let prefix_max = gd
-        .max_prefixes(rarity_id)
-        .and_then(|v| u32::try_from(v).ok());
-    let suffix_max = gd
-        .max_suffixes(rarity_id)
-        .and_then(|v| u32::try_from(v).ok());
+    let (max_p, max_s) = gd.max_affixes(&item.header.item_class, rarity_id);
+
+    let prefix_max = max_p.and_then(|v| u32::try_from(v).ok());
+    let suffix_max = max_s.and_then(|v| u32::try_from(v).ok());
 
     (prefix_max, suffix_max)
 }

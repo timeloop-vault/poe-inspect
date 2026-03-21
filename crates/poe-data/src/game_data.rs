@@ -491,6 +491,18 @@ impl GameData {
         self.rarity(rarity_id).map(|r| r.max_suffix)
     }
 
+    /// Get max prefix/suffix for an item, considering item-class-specific overrides.
+    ///
+    /// Some item classes (e.g., jewels) have lower affix limits than the global
+    /// `Rarity` table. This method checks for overrides first, then falls back
+    /// to the rarity-based defaults.
+    pub fn max_affixes(&self, item_class: &str, rarity_id: &str) -> (Option<i32>, Option<i32>) {
+        if let Some((p, s)) = crate::domain::item_class_affix_limit(item_class, rarity_id) {
+            return (Some(p), Some(s));
+        }
+        (self.max_prefixes(rarity_id), self.max_suffixes(rarity_id))
+    }
+
     /// Look up mod indices by display name (for direct GGPK mod table access).
     pub fn mods_by_name_indices(&self, name: &str) -> Option<&[usize]> {
         self.mods_by_name.get(name).map(Vec::as_slice)

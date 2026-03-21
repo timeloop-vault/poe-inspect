@@ -12,6 +12,7 @@
 //! See `docs/poe-data-gap-filling.md` for the recurring process.
 
 mod inheritance;
+mod item_limits;
 mod pseudos;
 mod tiers;
 mod trade_mappings;
@@ -19,6 +20,7 @@ mod trade_mappings;
 // ── Re-exports (public API unchanged) ───────────────────────────────────────
 
 pub use inheritance::{LOCAL_STAT_NONLOCAL_FALLBACKS, inherited_tags_for_parent};
+pub use item_limits::item_class_affix_limit;
 pub use pseudos::{
     DPS_PSEUDO_DEFINITIONS, DpsPseudoDefinition, DpsPseudoKind, PSEUDO_DEFINITIONS,
     PseudoComponent, PseudoDefinition, dps_pseudo_definitions, dps_weapon_filter, is_dps_pseudo,

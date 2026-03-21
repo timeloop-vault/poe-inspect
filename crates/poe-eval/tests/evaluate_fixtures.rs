@@ -811,6 +811,81 @@ fn affix_crafted_suffix_detected() {
     assert!(!summary.prefixes.has_crafted);
 }
 
+// ─── Per-item-class affix limits ─────────────────────────────────────────────
+
+/// Rare jewels have max 2 prefix / 2 suffix (not the global 3/3).
+/// A full rare cobalt jewel (2p + 2s) should have 0 open slots.
+#[test]
+fn affix_rare_jewel_max_2_prefix_2_suffix() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-jewel-cobalt-mirrored-corrupted.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    // Jewel-specific limit: 2/2 for Rare
+    assert_eq!(summary.prefixes.max, Some(2));
+    assert_eq!(summary.suffixes.max, Some(2));
+    assert_eq!(summary.prefixes.used, 2);
+    assert_eq!(summary.suffixes.used, 2);
+    assert_eq!(summary.prefixes.open, Some(0));
+    assert_eq!(summary.suffixes.open, Some(0));
+}
+
+/// Rare abyss jewels also have max 2 prefix / 2 suffix.
+#[test]
+fn affix_rare_abyss_jewel_max_2_prefix_2_suffix() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-abyss-jewel-ghastly-eye.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    // Abyss jewel: same 2/2 limit as regular jewels
+    assert_eq!(summary.prefixes.max, Some(2));
+    assert_eq!(summary.suffixes.max, Some(2));
+    assert_eq!(summary.prefixes.used, 2);
+    assert_eq!(summary.suffixes.used, 2);
+    assert_eq!(summary.prefixes.open, Some(0));
+    assert_eq!(summary.suffixes.open, Some(0));
+}
+
+/// `OpenMods` predicate respects jewel-specific limits.
+/// A full rare jewel (2p + 2s) should have 0 open affixes.
+#[test]
+fn open_mods_respects_jewel_limits() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-abyss-jewel-ghastly-eye.txt", &gd);
+
+    // Should have 0 open affixes (2p + 2s = full)
+    let rule_open = Rule::pred(Predicate::OpenMods {
+        slot: ModSlotKind::Affix,
+        op: Cmp::Ge,
+        value: 1,
+    });
+    assert!(!evaluate(&item, &rule_open, &gd));
+
+    // Verify it would have matched with old 3/3 logic (2 open slots)
+    // by checking the count is exactly 0
+    let rule_zero = Rule::pred(Predicate::OpenMods {
+        slot: ModSlotKind::Affix,
+        op: Cmp::Eq,
+        value: 0,
+    });
+    assert!(evaluate(&item, &rule_zero, &gd));
+}
+
+/// Equipment still uses global rarity limits (3/3 for Rare).
+#[test]
+fn affix_equipment_still_uses_rarity_defaults() {
+    let gd = test_game_data_with_rarities(&[]);
+    let item = resolve("rare-belt-crafted.txt", &gd);
+
+    let summary = affix::analyze_affixes(&item, &gd);
+
+    // Belt uses default Rare limits: 3/3
+    assert_eq!(summary.prefixes.max, Some(3));
+    assert_eq!(summary.suffixes.max, Some(3));
+}
+
 // ─── StatValue multi-condition (same-mod check) ─────────────────────────────
 
 // Body armour fixture mod layout (used by many tests below):

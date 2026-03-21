@@ -251,14 +251,16 @@ fn open_mod_count(item: &ResolvedItem, slot: ModSlotKind, gd: &GameData) -> u32 
         return 0;
     };
 
+    let (max_p, max_s) = gd.max_affixes(&item.header.item_class, rarity_id);
+
     match slot {
         ModSlotKind::Prefix => {
-            let max = u32::try_from(gd.max_prefixes(rarity_id).unwrap_or(0)).unwrap_or(0);
+            let max = u32::try_from(max_p.unwrap_or(0)).unwrap_or(0);
             let current = count_mods_matching_slot(item, ModSlotKind::Prefix);
             max.saturating_sub(current)
         }
         ModSlotKind::Suffix => {
-            let max = u32::try_from(gd.max_suffixes(rarity_id).unwrap_or(0)).unwrap_or(0);
+            let max = u32::try_from(max_s.unwrap_or(0)).unwrap_or(0);
             let current = count_mods_matching_slot(item, ModSlotKind::Suffix);
             max.saturating_sub(current)
         }
