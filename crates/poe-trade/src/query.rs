@@ -237,6 +237,8 @@ pub struct MiscFilterValues {
     pub fractured_item: Option<OptionFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quality: Option<FilterValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mutated: Option<OptionFilter>,
 }
 
 // ── Builder ─────────────────────────────────────────────────────────────────
@@ -341,12 +343,10 @@ pub fn build_query(
 
     // ── Pass 2: Auto-select within cap ───────────────────────────────────
     let auto_selected = if is_unique {
-        // Unique items: include all mappable stats (mods are fixed).
-        candidates
-            .iter()
-            .filter(|c| c.trade_id.is_some() && c.user_override.is_none())
-            .map(|c| c.flat_index)
-            .collect::<HashSet<u32>>()
+        // Unique items: the name is the primary filter. Don't auto-select
+        // stats — mods are fixed, and including roll ranges over-constrains.
+        // Users can manually enable specific stats via Edit Search.
+        HashSet::new()
     } else {
         auto_select_stats(&candidates, defaults)
     };
@@ -824,11 +824,22 @@ fn build_misc_filters(
         _ => None,
     };
 
+    // Mutated (Foulborn): auto-include if item name has a league mechanic prefix.
+    let mutated = item
+        .header
+        .name
+        .as_deref()
+        .filter(|n| poe_data::domain::has_league_prefix(n))
+        .map(|_| OptionFilter {
+            option: "true".to_string(),
+        });
+
     if ilvl.is_none()
         && corrupted.is_none()
         && identified.is_none()
         && fractured_item.is_none()
         && quality_filter.is_none()
+        && mutated.is_none()
     {
         return None;
     }
@@ -840,6 +851,7 @@ fn build_misc_filters(
             identified,
             fractured_item,
             quality: quality_filter,
+            mutated,
         },
     })
 }
@@ -1862,19 +1874,20 @@ mod tests {
     }
 
     #[test]
-    fn unique_items_bypass_auto_selection() {
+    fn unique_items_no_auto_stats() {
         use poe_item::types::*;
         let mut item = test_item();
         item.header.rarity = Rarity::Unique;
 
         let index = test_index();
-        let mut config = TradeQueryConfig::new("Mirage");
-        config.search_defaults.max_stat_filters = 1; // Would normally cap
+        let config = TradeQueryConfig::new("Mirage");
 
         let result = build_query(&item, &index, &config, None);
 
-        // Unique items include all mappable stats regardless of cap
-        assert_eq!(result.stats_mapped, 2);
+        // Unique items: name is the filter, no stats auto-selected
+        assert_eq!(result.stats_mapped, 0);
+        // All stats still reported in mapped_stats for Edit Search UI
+        assert_eq!(result.mapped_stats.len(), 2);
     }
 
     #[test]

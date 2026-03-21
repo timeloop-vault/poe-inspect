@@ -223,6 +223,16 @@ pub fn strip_league_prefix(name: &str) -> &str {
     name
 }
 
+/// Whether an item name has a known league mechanic prefix (e.g., "Foulborn").
+///
+/// Used to set the trade API `mutated` misc filter.
+#[must_use]
+pub fn has_league_prefix(name: &str) -> bool {
+    LEAGUE_NAME_PREFIXES
+        .iter()
+        .any(|prefix| name.starts_with(prefix))
+}
+
 /// Map a mod's display type to the trade API stat category prefix.
 ///
 /// Trade API convention, not in GGPK (verified 2026-03-15).
