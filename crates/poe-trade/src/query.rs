@@ -315,6 +315,15 @@ pub fn build_query(
                 resolved_mod.header.tier.as_ref(),
             );
 
+            let pseudo_id = if resolved_mod.display_type == ModDisplayType::Pseudo {
+                stat_line
+                    .stat_ids
+                    .as_ref()
+                    .and_then(|ids| ids.first().cloned())
+            } else {
+                None
+            };
+
             candidates.push(StatCandidate {
                 flat_index,
                 trade_id,
@@ -323,6 +332,7 @@ pub fn build_query(
                 display_text: stat_line.display_text.clone(),
                 auto_eligible,
                 priority,
+                pseudo_id,
             });
 
             flat_index += 1;
@@ -473,6 +483,8 @@ struct StatCandidate {
     auto_eligible: bool,
     /// Priority score (lower = selected first).
     priority: u32,
+    /// Pseudo stat ID (e.g., `"pseudo_total_life"`), if this is a pseudo stat.
+    pseudo_id: Option<String>,
 }
 
 /// Compute the set of explicit `stat_ids` fully covered by active pseudo stats.
@@ -538,20 +550,44 @@ fn stat_priority(
 /// Select which stats to auto-include based on smart defaults.
 ///
 /// Returns the set of `flat_index` values that should be auto-checked.
-/// Only considers candidates without user overrides.
+/// Only considers candidates without user overrides. When a broader pseudo
+/// is selected (e.g., total resistance), narrower pseudos (e.g., cold res)
+/// are suppressed via `pseudo_subsumes()`.
 fn auto_select_stats(candidates: &[StatCandidate], defaults: &TradeSearchDefaults) -> HashSet<u32> {
-    let mut eligible: Vec<(u32, u32)> = candidates
+    let mut eligible: Vec<&StatCandidate> = candidates
         .iter()
         .filter(|c| c.auto_eligible && c.user_override.is_none())
-        .map(|c| (c.flat_index, c.priority))
         .collect();
-    eligible.sort_by_key(|&(_, prio)| prio);
+    eligible.sort_by_key(|c| c.priority);
 
-    eligible
-        .iter()
-        .take(defaults.max_stat_filters as usize)
-        .map(|&(idx, _)| idx)
-        .collect()
+    let mut selected = HashSet::new();
+    let mut suppressed_pseudos: HashSet<&str> = HashSet::new();
+    let mut count = 0u32;
+
+    for c in &eligible {
+        if count >= defaults.max_stat_filters {
+            break;
+        }
+
+        // Skip pseudos suppressed by a broader pseudo already selected.
+        if let Some(ref pid) = c.pseudo_id {
+            if suppressed_pseudos.contains(pid.as_str()) {
+                continue;
+            }
+        }
+
+        selected.insert(c.flat_index);
+        count += 1;
+
+        // When selecting a pseudo, suppress narrower pseudos.
+        if let Some(ref pid) = c.pseudo_id {
+            for &subsumed in poe_data::domain::pseudo_subsumes(pid) {
+                suppressed_pseudos.insert(subsumed);
+            }
+        }
+    }
+
+    selected
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

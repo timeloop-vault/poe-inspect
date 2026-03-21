@@ -24,7 +24,7 @@ pub use item_limits::item_class_affix_limit;
 pub use pseudos::{
     DPS_PSEUDO_DEFINITIONS, DpsPseudoDefinition, DpsPseudoKind, PSEUDO_DEFINITIONS,
     PseudoComponent, PseudoDefinition, dps_pseudo_definitions, dps_weapon_filter, is_dps_pseudo,
-    pseudo_definitions,
+    pseudo_definitions, pseudo_subsumes,
 };
 pub use tiers::{
     TierQuality, classify_rank, classify_tier, classify_tier_relative, rarity_to_ggpk_id,

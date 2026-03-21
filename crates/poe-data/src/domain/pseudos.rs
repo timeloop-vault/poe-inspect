@@ -310,6 +310,40 @@ pub fn pseudo_definitions() -> &'static [PseudoDefinition] {
     PSEUDO_DEFINITIONS
 }
 
+// ── Pseudo hierarchy (subsumption) ──────────────────────────────────────
+//
+// WHY HARDCODED: Some pseudos are strictly broader than others. Total
+// resistance covers elemental resistance which covers individual element
+// resistances. When a broader pseudo is active, narrower ones are
+// redundant in a trade search. This hierarchy doesn't exist in the GGPK.
+
+/// Pseudo IDs that a given pseudo subsumes (makes redundant).
+///
+/// When the key pseudo is auto-selected, the value pseudos should be
+/// auto-excluded to avoid redundant filters. User overrides still win.
+///
+/// Game mechanic, not in GGPK (verified 2026-03-21).
+#[must_use]
+pub fn pseudo_subsumes(pseudo_id: &str) -> &'static [&'static str] {
+    match pseudo_id {
+        // Total resistance covers elemental + individual resistances
+        "pseudo_total_resistance" => &[
+            "pseudo_total_elemental_resistance",
+            "pseudo_total_fire_resistance",
+            "pseudo_total_cold_resistance",
+            "pseudo_total_lightning_resistance",
+            "pseudo_total_chaos_resistance",
+        ],
+        // Elemental resistance covers individual element resistances
+        "pseudo_total_elemental_resistance" => &[
+            "pseudo_total_fire_resistance",
+            "pseudo_total_cold_resistance",
+            "pseudo_total_lightning_resistance",
+        ],
+        _ => &[],
+    }
+}
+
 // ── DPS pseudo definitions ──────────────────────────────────────────────
 //
 // WHY SEPARATE: DPS is computed from displayed weapon properties (damage × APS),

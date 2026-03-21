@@ -50,10 +50,13 @@ export function PseudoSection({
 								statIdx != null && tradeEdit ? tradeEdit.isStatEnabled(statIdx) : false;
 
 							return (
-								<div key={sl.displayText} class="pseudo-line">
+								<div
+									key={sl.displayText}
+									class={`pseudo-line${tradeEdit && !isChecked ? " mod-line-disabled" : ""}`}
+								>
 									{tradeEdit && statIdx != null ? (
 										<>
-											<label class="pseudo-check">
+											<label class="mod-checkbox">
 												<input
 													type="checkbox"
 													checked={isChecked}
@@ -63,28 +66,38 @@ export function PseudoSection({
 											</label>
 											<span class="pseudo-label">{sl.displayText}</span>
 											{isChecked && isMappable && (
-												<span class="pseudo-edit-values">
+												<div class="stat-range-inputs">
 													<input
 														type="number"
-														class="stat-min-input"
+														class="min-value-input"
 														placeholder="min"
-														value={tradeEdit.getStatMin(statIdx) ?? ""}
+														value={
+															tradeEdit.getStatMin(statIdx) != null
+																? Math.round(tradeEdit.getStatMin(statIdx) as number)
+																: ""
+														}
 														onInput={(e) => {
 															const v = (e.target as HTMLInputElement).value;
 															tradeEdit.setStatMin(statIdx, v === "" ? null : Number(v));
 														}}
+														onClick={(e) => (e.target as HTMLInputElement).select()}
 													/>
 													<input
 														type="number"
-														class="stat-max-input"
+														class="min-value-input"
 														placeholder="max"
-														value={tradeEdit.getStatMax(statIdx) ?? ""}
+														value={
+															tradeEdit.getStatMax(statIdx) != null
+																? Math.round(tradeEdit.getStatMax(statIdx) as number)
+																: ""
+														}
 														onInput={(e) => {
 															const v = (e.target as HTMLInputElement).value;
 															tradeEdit.setStatMax(statIdx, v === "" ? null : Number(v));
 														}}
+														onClick={(e) => (e.target as HTMLInputElement).select()}
 													/>
-												</span>
+												</div>
 											)}
 										</>
 									) : (
