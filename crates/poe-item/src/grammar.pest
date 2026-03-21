@@ -104,7 +104,7 @@ mod_group = { mod_header ~ NEWLINE ~ mod_body_line+ }
 trailing_marker = { influence_keyword ~ NEWLINE }
 
 // ─── Modifier header ────────────────────────────────────────────────────────
-// { [Master Crafted] <Slot> Modifier [(InfluenceTier)] ["Name"] [(Tier: N)] [— Tags] }
+// { [Source] <Slot> Modifier [(InfluenceTier)] ["Name"] [(Tier: N)] [— Tags] }
 //
 // Examples:
 //   { Implicit Modifier }
@@ -114,6 +114,7 @@ trailing_marker = { influence_keyword ~ NEWLINE }
 //   { Eater of Worlds Implicit Modifier (Greater) — Life }
 //   { Master Crafted Prefix Modifier "Vagan's" — Attack }
 //   { Master Crafted Suffix Modifier "of Craft" (Rank: 2) — Elemental, Lightning, Resistance }
+//   { Foulborn Unique Modifier }
 
 mod_header = {
     "{ " ~
@@ -127,7 +128,10 @@ mod_header = {
     " }"
 }
 
-mod_source = { "Fractured " | "Master Crafted " }
+// Source/mechanic prefix before the slot keyword. "Fractured" and "Master Crafted"
+// are well-known; league mechanics like "Foulborn" (3.28) add new prefixes each
+// league. Any unknown prefix is treated as Regular source by the tree walker.
+mod_source = { "Fractured " | "Master Crafted " | "Foulborn " }
 
 mod_slot = {
     "Searing Exarch Implicit"

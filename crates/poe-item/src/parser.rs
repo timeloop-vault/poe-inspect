@@ -232,7 +232,10 @@ fn walk_mod_header(pair: pest::iterators::Pair<'_, Rule>) -> ModHeader {
             Rule::mod_source => {
                 source = match inner.as_str().trim() {
                     "Fractured" => ModSource::Fractured,
-                    _ => ModSource::MasterCrafted,
+                    "Master Crafted" => ModSource::MasterCrafted,
+                    // League mechanic prefixes (e.g., "Foulborn") are cosmetic —
+                    // the mod is still a regular source mod.
+                    _ => ModSource::Regular,
                 };
             }
             Rule::mod_slot => {
