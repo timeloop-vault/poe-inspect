@@ -4,10 +4,14 @@ import { ChatMacroSettings } from "./components/settings/ChatMacroSettings";
 import { GeneralSettings } from "./components/settings/GeneralSettings";
 import { HotkeySettings } from "./components/settings/HotkeySettings";
 import { MapDangerSettings } from "./components/settings/MapDangerSettings";
-import { MarketplaceSettings } from "./components/settings/MarketplaceSettings";
 import { ProfileSettings } from "./components/settings/ProfileSettings";
 import { TradeSettings } from "./components/settings/TradeSettings";
 import { loadGeneral } from "./store";
+
+// Marketplace/RQE is experimental — only available in dev builds
+const MarketplaceSettings = import.meta.env.DEV
+	? (await import("./components/settings/MarketplaceSettings")).MarketplaceSettings
+	: null;
 
 type Section =
 	| "general"
@@ -19,16 +23,18 @@ type Section =
 	| "marketplace"
 	| "about";
 
-const sections: { id: Section; label: string }[] = [
+const allSections: { id: Section; label: string; devOnly?: true }[] = [
 	{ id: "general", label: "General" },
 	{ id: "hotkeys", label: "Hotkeys" },
 	{ id: "chat-macros", label: "Chat Macros" },
 	{ id: "profiles", label: "Profiles" },
 	{ id: "map-danger", label: "Map Danger" },
 	{ id: "trade", label: "Trade" },
-	{ id: "marketplace", label: "Marketplace" },
+	{ id: "marketplace", label: "Marketplace", devOnly: true },
 	{ id: "about", label: "About" },
 ];
+
+const sections = allSections.filter((s) => !s.devOnly || import.meta.env.DEV);
 
 export function SettingsApp() {
 	const [active, setActive] = useState<Section>("general");
@@ -80,7 +86,7 @@ export function SettingsApp() {
 				{active === "profiles" && <ProfileSettings />}
 				{active === "map-danger" && <MapDangerSettings />}
 				{active === "trade" && <TradeSettings />}
-				{active === "marketplace" && <MarketplaceSettings />}
+				{active === "marketplace" && MarketplaceSettings && <MarketplaceSettings />}
 				{active === "about" && <AboutSettings />}
 			</main>
 		</div>

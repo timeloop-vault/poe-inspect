@@ -7,7 +7,6 @@ import { type DisplaySettings, ItemOverlay, type ProfileSummary } from "./compon
 import { TradePanel } from "./components/TradePanel";
 import { useTradeFilters } from "./hooks/useTradeFilters";
 import { mockItems } from "./mock-data";
-import { type RqeMatchResult, checkDemand } from "./rqe";
 import {
 	type DangerLevel,
 	type MapDangerConfig,
@@ -26,6 +25,9 @@ import {
 	saveProfiles,
 	syncActiveProfile,
 } from "./store";
+
+// Marketplace/RQE is experimental — only available in dev builds
+const rqe = import.meta.env.DEV ? await import("./rqe") : null;
 import type { ItemPayload, TradeQueryConfig } from "./types";
 
 /** Panel position — either left-anchored or right-anchored. */
@@ -139,7 +141,10 @@ export function App() {
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
 	const [inspectMode, setInspectMode] = useState<"full" | "compact" | "trade" | null>(null);
 	const [compactFading, setCompactFading] = useState(false);
-	const [demandResult, setDemandResult] = useState<RqeMatchResult | null>(null);
+	const [demandResult, setDemandResult] = useState<{
+		count: number;
+		matches: { id: number; owner: string | null }[];
+	} | null>(null);
 	const [marketplaceSettings, setMarketplaceSettings] =
 		useState<MarketplaceSettings>(defaultMarketplace);
 	const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(null);
@@ -383,11 +388,11 @@ export function App() {
 		return () => cancelAnimationFrame(id);
 	}, [panelReady]);
 
-	// Async RQE demand check — runs when a new evaluated item arrives
+	// Async RQE demand check — runs when a new evaluated item arrives (dev only)
 	useEffect(() => {
-		if (!evaluatedItem) return;
+		if (!rqe || !evaluatedItem) return;
 		setDemandResult(null);
-		checkDemand(evaluatedItem.item, marketplaceSettings).then((result) => {
+		rqe.checkDemand(evaluatedItem.item, marketplaceSettings).then((result) => {
 			if (result && result.count > 0) {
 				setDemandResult(result);
 			}
