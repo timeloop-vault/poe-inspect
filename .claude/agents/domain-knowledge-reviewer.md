@@ -106,12 +106,12 @@ The app must NOT define its own scoring/filter/rule logic. It provides a UI to b
 ## Rule 4: Data-first — check GGPK before hardcoding
 
 > **Before hardcoding any PoE game knowledge, check the GGPK data first.**
-> All 911 datc64 tables are extracted to `_reference/ggpk-data-3.28/`.
-> See `docs/ggpk-data-deep-dive.md` for the full inventory and findings.
+> All 911 datc64 tables can be extracted via `./pipeline/update-game-data.sh`.
+> Set `GGPK_DATA_DIR` to the extracted directory. See `docs/ggpk-data-deep-dive.md` for the full inventory.
 
 ### The GGPK data-first checklist
 
-1. **Check `_reference/ggpk-data-3.28/TABLE_INVENTORY.txt`** — search for keywords related to the data you need
+1. **Check `$GGPK_DATA_DIR/TABLE_INVENTORY.txt`** — search for keywords related to the data you need
 2. **Check `ClientStrings`** — this 8,264-row table contains ALL display text GGG uses:
    - `ItemPopup*` — status/influence lines (Corrupted, Fractured Item, Searing Exarch Item, etc.)
    - `ItemDisplay*` — property names (Armour, Evasion Rating, Energy Shield, etc.)

@@ -50,7 +50,7 @@ Key semantics ported from `rqe_lib.erl`:
 
 Unit tests use inline product marketplace data (Electronics, Clothing, Books).
 
-Erlang test fixtures for PoE integration tests at `_reference/rqe/test/data/`:
+PoE integration test fixtures (ported from Erlang suite) at `rqe-server/tests/fixtures/`:
 - `rq/` — 9 reverse query definitions
 - `entry/` — 8 item entry definitions
 - Tested in `rqe-server/tests/poe_fixtures.rs`

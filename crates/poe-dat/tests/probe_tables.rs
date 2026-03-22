@@ -1,18 +1,29 @@
 //! Probe GGPK tables to inventory all available data.
 //!
-//! Run with: cargo test -p poe-dat --test `probe_tables` -- --nocapture
+//! Run with:
+//! ```sh
+//! GGPK_DATA_DIR=/path/to/extracted cargo test -p poe-dat --test probe_tables -- --ignored --nocapture
+//! ```
 //!
-//! Requires all 911 tables extracted to _reference/ggpk-data-3.28/
-//! via: cd crates/poe-query && cargo run --bin `extract_dat` -- -p <`poe_path`> -o ../../_reference/ggpk-data-3.28 --all
+//! Requires all 911 tables extracted via `./pipeline/update-game-data.sh <poe_install_dir>`.
+//! Set `GGPK_DATA_DIR` to the directory containing the extracted `.datc64` files.
 
 use poe_dat::dat_reader::DatFile;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 fn reference_dir() -> &'static Path {
-    Path::new(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../_reference/ggpk-data-3.28"
-    ))
+    static DIR: OnceLock<PathBuf> = OnceLock::new();
+    DIR.get_or_init(|| {
+        if let Ok(dir) = std::env::var("GGPK_DATA_DIR") {
+            return PathBuf::from(dir);
+        }
+        // Fallback to legacy default location
+        PathBuf::from(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../_reference/ggpk-data-3.28"
+        ))
+    })
 }
 
 fn load_dat(name: &str) -> Option<DatFile> {
@@ -54,11 +65,13 @@ fn load_base_item_names() -> Vec<String> {
 // ── Full inventory: row counts for all tables ────────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_all_tables() {
     let dir = reference_dir();
     let mut entries: Vec<_> = std::fs::read_dir(dir)
-        .expect("_reference/ggpk-data-3.28 not found")
+        .expect(
+            "GGPK_DATA_DIR not found — set it to the directory containing extracted datc64 files",
+        )
         .filter_map(std::result::Result::ok)
         .filter(|e| e.path().extension().is_some_and(|ext| ext == "datc64"))
         .collect();
@@ -92,7 +105,7 @@ fn inventory_all_tables() {
 // ── ClientStrings: full dump of ItemDisplay* and ItemPopup* entries ──────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_client_strings() {
     let Some(dat) = load_dat("clientstrings") else {
         eprintln!("Skipping: clientstrings not found");
@@ -183,7 +196,7 @@ fn inventory_client_strings() {
 // ── InfluenceTags: complete dump ─────────────────────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_influence_tags() {
     let Some(dat) = load_dat("influencetags") else {
         eprintln!("Skipping: influencetags not found");
@@ -222,7 +235,7 @@ fn inventory_influence_tags() {
 // ── ArmourTypes: base defence values ─────────────────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 #[allow(clippy::similar_names)] // ev_min/es_min are domain abbreviations (evasion/energy shield)
 fn inventory_armour_types() {
     let Some(dat) = load_dat("armourtypes") else {
@@ -262,7 +275,7 @@ fn inventory_armour_types() {
 // ── WeaponTypes: base weapon stats ───────────────────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_weapon_types() {
     let Some(dat) = load_dat("weapontypes") else {
         eprintln!("Skipping: weapontypes not found");
@@ -302,7 +315,7 @@ fn inventory_weapon_types() {
 // ── ItemClasses: capability flags ────────────────────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_item_class_flags() {
     let Some(dat) = load_dat("itemclasses") else {
         eprintln!("Skipping: itemclasses not found");
@@ -435,7 +448,7 @@ fn inventory_item_class_flags() {
 // ── InfluenceExalts: what exalts exist per influence ─────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_influence_exalts() {
     let Some(dat) = load_dat("influenceexalts") else {
         eprintln!("Skipping: influenceexalts not found");
@@ -468,7 +481,7 @@ fn inventory_influence_exalts() {
 // ── CraftingBenchOptions: sample of bench crafts ─────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_crafting_bench_sample() {
     let Some(dat) = load_dat("craftingbenchoptions") else {
         eprintln!("Skipping: craftingbenchoptions not found");
@@ -482,7 +495,7 @@ fn inventory_crafting_bench_sample() {
 // ── ComponentAttributeRequirements: str/dex/int per base ─────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_attribute_requirements() {
     let Some(dat) = load_dat("componentattributerequirements") else {
         eprintln!("Skipping: componentattributerequirements not found");
@@ -513,7 +526,7 @@ fn inventory_attribute_requirements() {
 // ── ShieldTypes: base shield values ──────────────────────────────────────────
 
 #[test]
-#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
 fn inventory_shield_types() {
     let Some(dat) = load_dat("shieldtypes") else {
         eprintln!("Skipping: shieldtypes not found");
