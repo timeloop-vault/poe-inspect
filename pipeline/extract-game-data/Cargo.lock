@@ -224,7 +224,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 [[package]]
 name = "poe_bundle"
 version = "0.1.5"
-source = "git+https://github.com/Svampen/poe-bundle.git?branch=fix%2Fpoe-3.21.2-compat#a8940ff88d6e7a219779cd662e6dc85811e045cf"
+source = "git+https://github.com/ex-nihil/poe-bundle.git#98f1f658516f4d83d98f45c3df24fa822457a711"
 dependencies = [
  "byteorder",
  "cmake",

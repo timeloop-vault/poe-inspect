@@ -9,5 +9,5 @@ name = "extract-game-data"
 path = "src/main.rs"
 
 [dependencies]
-poe_bundle = { git = "https://github.com/Svampen/poe-bundle.git", branch = "fix/poe-3.21.2-compat" }
+poe_bundle = { git = "https://github.com/ex-nihil/poe-bundle.git" }
 clap = { version = "4.0", features = ["derive"] }
