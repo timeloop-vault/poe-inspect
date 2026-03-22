@@ -10,8 +10,6 @@ Real-time item evaluation overlay for Path of Exile.
 
 | Crate | Status | Notes |
 |-------|--------|-------|
-| poe-bundle | **Done** | GGPK extraction, Oodle FFI, patched for 3.28 |
-| poe-query | **Done** | Generic dat reader + schema, PQL queries |
 | poe-dat (stat_desc) | **Done** | PEST parser + reverse index (15.5k patterns, 100% hit rate) |
 | poe-dat (tables) | **Done** | 7 tables extracted: Stats, Tags, ItemClasses, BaseItemTypes, ModFamily, ModType, Mods |
 | poe-data | **Done** | `GameData` struct with indexed tables, FK resolution, loader |
@@ -34,14 +32,15 @@ Real-time item evaluation overlay for Path of Exile.
 
 ```
 crates/
-  poe-dat/         — Read/parse .dat/.dat64 files and stat description files from GGPK
+  poe-dat/         — Read/parse datc64 files and stat description files from GGPK
   poe-data/        — Game data types and lookup tables (depends on poe-dat)
   poe-item/        — Parse Ctrl+Alt+C item text into structured types (depends on poe-data)
   poe-eval/        — Evaluate parsed items against user-defined filter rules (depends on poe-item, poe-data)
   poe-trade/       — Trade API client: stats index, query builder, price lookup (depends on poe-item, poe-data)
-  poe-bundle/      — (owned) ex-nihil/poe-bundle — Rust library for reading PoE GGPK bundles (Oodle FFI)
-  poe-query/       — (owned) ex-nihil/poe-query — Query tool for .dat files using PQL + dat-schema
 app/               — Tauri v2 overlay application
+pipeline/
+  extract-game-data/ — Standalone crate to extract datc64 tables from GGPK (depends on poe-bundle)
+  update-game-data.sh — Convenience script to extract and copy game data into the repo
 fixtures/
   items/           — Shared Ctrl+Alt+C item text fixtures (used by poe-item, poe-eval, etc.)
 docs/
@@ -56,10 +55,9 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 
 ## Architecture Decisions
 
-- **Own the data pipeline**: Parse GGPK data directly (via poe-bundle) rather than depending on RePoE. Avoids 1000+ lines of reshaping code that v1 needed.
+- **Own the data pipeline**: Parse GGPK data directly rather than depending on RePoE. Avoids 1000+ lines of reshaping code that v1 needed. GGPK extraction uses [poe-bundle](https://github.com/ex-nihil/poe-bundle) (external dependency, not vendored).
 - **Own the schema**: Community dat-schema is a starting point, not a dependency. We must be able to reverse-engineer new fields ourselves on league launch (see `docs/ggpk-data-inventory.md`).
-- **poe-bundle/poe-query are owned code**: Converted from submodules. Patched for PoE 3.21.2+ (MurmurHash64A, datc64, updated schema).
-- **poe-dat owns DatFile**: The datc64 binary reader (`DatFile`) lives in poe-dat. poe-query depends on poe-dat and extends `DatFile` with spec-driven reading via `DatFileQueryExt` extension trait. One source of truth for the core reader.
+- **poe-dat owns DatFile**: The datc64 binary reader (`DatFile`) lives in poe-dat. One source of truth for the core reader.
 - **poe-dat = "our queries"**: Not a new generic dat layer. Typed table extractions for the ~15 specific tables we need, with compile-time field offsets. Can be used as a library or CLI.
 - **Section-first parser**: Split item text on `--------` separators → classify sections → parse with typed handlers.
 - **Iterative build order**: poe-dat → poe-data → poe-item → poe-eval → app. Prove each layer before building the next.
@@ -72,22 +70,24 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
   2. Check `ClientStrings` for display text (`ItemPopup*`, `ItemDisplay*`, `ModDescriptionLine*`)
   3. If the data exists in GGPK: extract it in poe-dat, expose it in poe-data
   4. If the data is a trade API convention (not in GGPK): hardcode it with a comment citing the source and date, e.g. `// Trade API convention, not in GGPK (verified 2026-03-15)`
-  5. Extract all 911 tables with: `cd crates/poe-query && cargo run --bin extract_dat -- -p <poe_path> -o ../../_reference/ggpk-data-3.28 --all`
+  5. Extract core tables with: `./pipeline/update-game-data.sh <poe_path>`
 
 ## Dependency Graph
 
 ```
-poe-bundle (GGPK extraction, Oodle FFI)
-    ↓
+poe-bundle (external: github.com/ex-nihil/poe-bundle — GGPK extraction)
+    ↓ (used by pipeline only, not linked into app)
+pipeline/extract-game-data → crates/poe-data/data/*.datc64
+
 poe-dat (datc64 binary reader + typed table extraction + stat descriptions)
-    ↑ depends on             ↓
-poe-query (spec-driven       poe-data (game-domain types + indexed lookups)
-  reader, PQL queries)       /     \
-                        poe-item    |
-                         /    \     |
-                   poe-eval  poe-trade (trade API client)
-                        \       /
-                         app (Tauri overlay)
+    ↓
+poe-data (game-domain types + indexed lookups)
+   /     \
+poe-item    |
+ /    \     |
+poe-eval  poe-trade (trade API client)
+    \       /
+     app (Tauri overlay)
 ```
 
 ## Conventions
@@ -122,9 +122,8 @@ Run all of these and fix any errors before committing. A pre-commit hook enforce
 ## Build Notes
 
 - **Pre-commit hook**: Run `git config core.hooksPath .githooks` after cloning to activate the pre-commit hook (Rust fmt/clippy + TS tsc/biome). The hook is tracked in `.githooks/`.
-- **poe-bundle/poe-query** are excluded from the workspace — build from their own directories
-- **cmake required** for poe-bundle (Oodle C++ lib). VS BuildTools cmake path must be on PATH
-- **dat-schema** must be copied to `target/debug/dat-schema/` next to the poe_query binary for dev testing
+- **pipeline/extract-game-data** is excluded from the workspace — depends on [poe-bundle](https://github.com/ex-nihil/poe-bundle) (requires cmake for Oodle C++ lib)
+- **Game data extraction**: Run `./pipeline/update-game-data.sh <poe_install_dir>` to update datc64 files
 
 ## Related Projects (Reference Only)
 

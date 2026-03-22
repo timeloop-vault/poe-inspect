@@ -109,11 +109,10 @@ src/
 | ItemClassCategories | ~10 | — | id, text |
 
 ### Extracting Raw Files
-Use `extract_dat` binary (in poe-query crate):
+Use the pipeline tool:
 ```sh
-cd crates/poe-query
-cargo run --bin extract_dat -- -p "D:/games/PathofExile"
-# Writes to %TEMP%/poe-dat/{table}.datc64
+./pipeline/update-game-data.sh <poe_install_dir>
+# Extracts core tables to crates/poe-data/data/
 ```
 
 ### Testing

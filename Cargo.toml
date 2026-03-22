@@ -12,8 +12,6 @@ members = [
     "rqe-server",
 ]
 exclude = [
-    "crates/poe-bundle",
-    "crates/poe-query",
     "app/src-tauri",
     "pipeline/extract-game-data",
 ]

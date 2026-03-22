@@ -73,7 +73,7 @@ MarketplaceSettings.tsx
 ┌─────────────────────────────────────────────┐
 │  Demand Marketplace                         │
 │  ┌─────────────────────────────────────────┐│
-│  │ ● Connected as Stefan#1234    [Logout] ││
+│  │ ● Connected as PlayerName#1234    [Logout] ││
 │  │   3 want lists · 12 DAG nodes          ││
 │  └─────────────────────────────────────────┘│
 ```
@@ -100,7 +100,7 @@ MarketplaceSettings.tsx
 │  [+ Add Want List]                          │
 ```
 
-- Loaded from `GET /queries?owner=Stefan#1234` (needs server endpoint)
+- Loaded from `GET /queries?owner=PlayerName#1234` (needs server endpoint)
 - Each row shows name (from first label), condition count
 - Edit opens QueryEditor
 - Delete confirms then `DELETE /queries/{id}`
@@ -151,7 +151,7 @@ MarketplaceSettings.tsx
 
 ```typescript
 interface MarketplaceSettings {
-    accountName: string | null;   // "Stefan#1234"
+    accountName: string | null;   // "PlayerName#1234"
     serverUrl: string;            // "http://localhost:8080"
     apiKey: string | null;        // for auth
     enabled: boolean;             // enable RQE check on item inspect
