@@ -54,6 +54,7 @@ fn load_base_item_names() -> Vec<String> {
 // ── Full inventory: row counts for all tables ────────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_all_tables() {
     let dir = reference_dir();
     let mut entries: Vec<_> = std::fs::read_dir(dir)
@@ -91,6 +92,7 @@ fn inventory_all_tables() {
 // ── ClientStrings: full dump of ItemDisplay* and ItemPopup* entries ──────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_client_strings() {
     let Some(dat) = load_dat("clientstrings") else {
         eprintln!("Skipping: clientstrings not found");
@@ -181,6 +183,7 @@ fn inventory_client_strings() {
 // ── InfluenceTags: complete dump ─────────────────────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_influence_tags() {
     let Some(dat) = load_dat("influencetags") else {
         eprintln!("Skipping: influencetags not found");
@@ -219,6 +222,7 @@ fn inventory_influence_tags() {
 // ── ArmourTypes: base defence values ─────────────────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 #[allow(clippy::similar_names)] // ev_min/es_min are domain abbreviations (evasion/energy shield)
 fn inventory_armour_types() {
     let Some(dat) = load_dat("armourtypes") else {
@@ -258,6 +262,7 @@ fn inventory_armour_types() {
 // ── WeaponTypes: base weapon stats ───────────────────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_weapon_types() {
     let Some(dat) = load_dat("weapontypes") else {
         eprintln!("Skipping: weapontypes not found");
@@ -297,6 +302,7 @@ fn inventory_weapon_types() {
 // ── ItemClasses: capability flags ────────────────────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_item_class_flags() {
     let Some(dat) = load_dat("itemclasses") else {
         eprintln!("Skipping: itemclasses not found");
@@ -429,6 +435,7 @@ fn inventory_item_class_flags() {
 // ── InfluenceExalts: what exalts exist per influence ─────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_influence_exalts() {
     let Some(dat) = load_dat("influenceexalts") else {
         eprintln!("Skipping: influenceexalts not found");
@@ -461,6 +468,7 @@ fn inventory_influence_exalts() {
 // ── CraftingBenchOptions: sample of bench crafts ─────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_crafting_bench_sample() {
     let Some(dat) = load_dat("craftingbenchoptions") else {
         eprintln!("Skipping: craftingbenchoptions not found");
@@ -474,6 +482,7 @@ fn inventory_crafting_bench_sample() {
 // ── ComponentAttributeRequirements: str/dex/int per base ─────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_attribute_requirements() {
     let Some(dat) = load_dat("componentattributerequirements") else {
         eprintln!("Skipping: componentattributerequirements not found");
@@ -504,6 +513,7 @@ fn inventory_attribute_requirements() {
 // ── ShieldTypes: base shield values ──────────────────────────────────────────
 
 #[test]
+#[ignore = "requires local GGPK data in _reference/ggpk-data-3.28/"]
 fn inventory_shield_types() {
     let Some(dat) = load_dat("shieldtypes") else {
         eprintln!("Skipping: shieldtypes not found");
