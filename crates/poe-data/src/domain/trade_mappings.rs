@@ -186,12 +186,34 @@ pub fn item_class_mod_domains(item_class: &str) -> &'static [u32] {
 /// before sending to the trade API or looking up in `BaseItemTypes`.
 pub const QUALITY_PREFIX: &str = "Superior ";
 
+/// Base type prefixes that the trade API does not recognize.
+///
+/// The `PoE` client prepends these to the base type name (e.g.,
+/// `"Synthesised Two-Stone Ring"`). The trade API expects the bare base type
+/// (`"Two-Stone Ring"`), so these must be stripped before querying.
+///
+/// Trade API convention, not in GGPK (verified 2026-03-22).
+pub const BASE_TYPE_PREFIXES: &[&str] = &["Synthesised "];
+
 /// Strip the quality prefix from an item name, if present.
 ///
 /// Returns the original string unchanged if the prefix is not found.
 #[must_use]
 pub fn strip_quality_prefix(name: &str) -> &str {
     name.strip_prefix(QUALITY_PREFIX).unwrap_or(name)
+}
+
+/// Strip any known non-trade prefix from a base type name.
+///
+/// Returns the original string unchanged if no prefix is found.
+#[must_use]
+pub fn strip_base_type_prefix(name: &str) -> &str {
+    for prefix in BASE_TYPE_PREFIXES {
+        if let Some(stripped) = name.strip_prefix(prefix) {
+            return stripped;
+        }
+    }
+    name
 }
 
 // ── League mechanic name prefixes ──────────────────────────────────────────

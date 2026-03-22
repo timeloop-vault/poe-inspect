@@ -446,7 +446,9 @@ pub fn build_query(
                 _ => None,
             },
             base_type: match type_scope {
-                TypeSearchScope::BaseType => Some(item.header.base_type.clone()),
+                TypeSearchScope::BaseType => Some(
+                    poe_data::domain::strip_base_type_prefix(&item.header.base_type).to_string(),
+                ),
                 TypeSearchScope::ItemClass | TypeSearchScope::Any => None,
             },
             stats,
