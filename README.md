@@ -2,61 +2,75 @@
 
 Real-time item evaluation overlay for Path of Exile. Press a hotkey, get instant tier analysis, scoring, and trade pricing — right on top of the game.
 
-<!-- TODO: add hero screenshot (overlay on a real item in-game) -->
-<!-- ![PoE Inspect overlay showing item evaluation](docs/screenshots/hero.png) -->
+![PoE Inspect overlay showing item evaluation with price check results](docs/screenshots/overlay-price-check.png)
 
 ## Features
 
 ### Item Evaluation Overlay
 
-Hover over any item in PoE and press **Ctrl+I**. The overlay appears near your cursor showing:
+Hover over any item in PoE and press **Ctrl+I**. The overlay replaces PoE's default tooltip with a rich evaluation panel showing tier analysis, roll quality, and scoring.
 
-- **Mod tier colors** — each affix is colored by tier quality (T1 green through T5 red, customizable)
-- **Roll quality bars** — see how close each roll is to its maximum value
-- **Prefix/Suffix badges** — know at a glance which mods are prefixes vs suffixes
-- **Open affix count** — see available crafting slots
+PoE's native tooltip vs PoE Inspect on the same item:
+
+| PoE tooltip | PoE Inspect overlay |
+|:-----------:|:-------------------:|
+| ![PoE native tooltip](docs/screenshots/poe-native-tooltip.png) | ![PoE Inspect overlay](docs/screenshots/overlay-inspect.png) |
+
+And for a rare staff:
+
+| PoE tooltip | PoE Inspect overlay |
+|:-----------:|:-------------------:|
+| ![PoE native staff tooltip](docs/screenshots/poe-native-staff.png) | ![PoE Inspect staff overlay](docs/screenshots/overlay-staff-default.png) |
+
+Every mod gets:
+
+- **Tier badge** — T1 through T9, color-coded by quality (green = best, red = low)
+- **Prefix/Suffix label** — P for prefix, S for suffix, C for crafted
+- **Roll quality bar** — see how close each roll is to its maximum value
+- **Stat IDs** — optional display of internal stat identifiers (power user toggle)
+- **Open affix count** — see available crafting slots at a glance
 - **Pseudo stats** — computed totals for resistances, life, attributes, DPS, and more
-
-<!-- TODO: add overlay screenshot -->
-<!-- ![Overlay with tier colors and roll bars](docs/screenshots/overlay-item.png) -->
 
 ### Inline Trade Search
 
-Price check items without leaving the game. The trade panel shows:
+Price check items without leaving the game. Click **Price Check** to query the official trade site and see sorted price results. Click **Open Trade** to jump to pathofexile.com/trade with a pre-built search.
 
-- **Price Check** — query the official trade site and see sorted price results
-- **Open Trade** — jump to pathofexile.com/trade with a pre-built search
-- **Edit Search** — toggle inline filter editing directly on the overlay:
-  - Click mods to include/exclude them from the search
-  - Adjust min/max values per stat
-  - Change rarity, type scope, and item properties
-  - Pseudo stats automatically map to trade API filters
+![Overlay with price check results showing listings](docs/screenshots/overlay-price-check.png)
 
-<!-- TODO: add trade panel screenshot -->
-<!-- ![Trade panel with price results](docs/screenshots/trade-panel.png) -->
+Click **Edit Search** to toggle inline filter editing directly on the overlay — toggle mods on/off, adjust min/max values, change rarity and type scope, configure socket filters:
 
-### Compact Inspect
-
-Press **Ctrl+Shift+I** for a quick glance without breaking your flow. A small pill appears near your cursor showing the item name, score percentage, and map danger verdict — then auto-dismisses after 2.5 seconds.
-
-<!-- TODO: add compact pill screenshot -->
-<!-- ![Compact pill overlay](docs/screenshots/compact-pill.png) -->
+![Inline trade filter editing with checkboxes and value inputs](docs/screenshots/overlay-trade-edit.png)
 
 ### Scoring Profiles
 
-Create multiple evaluation profiles for different builds or playstyles:
+Create multiple evaluation profiles for different builds or playstyles. Each profile scores items independently — switch the active profile with a hotkey and the overlay updates instantly.
 
-- **Scoring rules** — weight individual stats, create compound rules (AND/OR groups)
-- **Multiple profiles** — switch instantly with a hotkey or tray menu
-- **Watching mode** — set secondary profiles that show colored dots on items matching their criteria
+**Default profile (0% — item doesn't match):**
+
+![Staff evaluated with default profile showing 0% score](docs/screenshots/overlay-staff-default.png)
+
+**Switch to a matching profile (100% — exactly what you need):**
+
+![Same staff with Topic profile showing 100% score](docs/screenshots/overlay-staff-watching.png)
+
+Profiles support:
+
+- **Compound scoring rules** — weight individual stats, create AND/OR groups with type and class filters
+- **Watching mode** — secondary profiles show colored dots on items matching their criteria (see the Scripter/Topic/Flicker badges at the bottom)
 - **Import/Export** — share profiles as JSON files with friends or the community
 - **Custom tier colors** — pick your own color scheme per profile
 
-![Profile editor with scoring rules](docs/screenshots/profile-editor.jpg)
+### Compact Inspect
+
+Press **Ctrl+Shift+I** for a quick glance without breaking your flow. A small pill appears near your cursor showing the item name, score percentage, and map danger verdict — then auto-dismisses after 2.5 seconds. No need to open the full overlay:
+
+![Compact badge showing 100% score alongside PoE tooltip](docs/screenshots/overlay-compact-badge.png)
 
 ### Map Danger Assessment
 
-Classify map mods as **Deadly**, **Warning**, or **Safe** for your build. The compact overlay shows a map verdict at a glance — red for dangerous mods, green for safe ones.
+Classify map mods as **Deadly**, **Warning**, or **Safe** for your build. The overlay shows a map verdict at a glance — dangerous mods are highlighted and the overall danger level is displayed prominently.
+
+![Map overlay showing CAUTION verdict with mod danger highlights](docs/screenshots/overlay-map-danger.png)
 
 ### Chat Macros
 
@@ -92,7 +106,11 @@ Download the latest release from the [Releases](https://github.com/timeloop-vaul
 
 ### General
 
-![General settings](docs/screenshots/settings-general.jpg)
+Configure overlay appearance, game version, startup behavior, and display toggles.
+
+![General settings — scale, position, game version, startup](docs/screenshots/settings-general-1.png)
+
+![General settings — behavior, updates, display toggles](docs/screenshots/settings-general-2.png)
 
 - **UI Scale / Overlay Scale** — adjust the size of the settings window and overlay independently
 - **Overlay Position** — "At cursor" (follows your mouse) or "Next to panel" (anchored beside PoE's inventory/stash)
@@ -101,30 +119,41 @@ Download the latest release from the [Releases](https://github.com/timeloop-vaul
 - **Startup** — start minimized to tray, launch on system startup
 - **Focus gate** — only respond to hotkeys when PoE is the active window
 - **Stash scrolling** — use scroll wheel to navigate stash tabs (with configurable modifier key)
+- **Update channel** — Stable or Beta
 - **Display toggles** — show/hide roll bars, tier badges, prefix/suffix labels, open affix count, stat IDs
 
 ### Hotkeys
 
-![Hotkey settings](docs/screenshots/settings-hotkeys.jpg)
-
 Six configurable hotkeys with conflict detection:
 
-| Action | Default | Description |
-|--------|---------|-------------|
-| Inspect Item | Ctrl+I | Full overlay with evaluation |
-| Compact Inspect | Ctrl+Shift+I | Quick pill near cursor |
-| Trade Inspect | Ctrl+T | Overlay focused on trade filters |
-| Dismiss Overlay | Escape | Close current overlay |
-| Open Settings | Ctrl+Shift+S | Open settings window |
-| Cycle Profile | Ctrl+Shift+P | Switch active profile |
+| Action          | Default      | Description                      |
+| --------------- | ------------ | -------------------------------- |
+| Inspect Item    | Ctrl+I       | Full overlay with evaluation     |
+| Compact Inspect | Ctrl+Shift+I | Quick pill near cursor           |
+| Trade Inspect   | Ctrl+T       | Overlay focused on trade filters |
+| Dismiss Overlay | Escape       | Close current overlay            |
+| Open Settings   | Ctrl+Alt+S   | Open settings window             |
+| Cycle Profile   | Ctrl+P       | Switch active profile            |
 
 Click any hotkey button and press your desired key combination to rebind.
 
 ### Profiles
 
-![Profile settings](docs/screenshots/settings-profiles.jpg)
+Profiles control how items are scored. Build custom scoring rules with compound logic, type filters, and stat weights.
 
-Profiles control how items are scored. Each profile has:
+**Scoring tab** — define rules with AND/OR groups, item class filters, and stat thresholds:
+
+![Profile editor scoring tab with compound rules](docs/screenshots/profile-editor-scoring.png)
+
+A more advanced profile with DPS-focused rules:
+
+![Flicker profile with DPS and stat rules](docs/screenshots/profile-editor-flicker.png)
+
+**Display tab** — customize tier colors and mod highlighting per profile:
+
+![Profile editor display tab with color pickers and preview](docs/screenshots/profile-editor-display.png)
+
+Each profile has:
 
 - **Role** — Primary (active scorer), Watching (shows colored dot), or Off
 - **Scoring rules** — start from the Generic profile or build custom rules
@@ -135,21 +164,34 @@ Use **Import/Export** to share profiles as JSON files.
 
 ### Trade
 
-![Trade settings](docs/screenshots/settings-trade.jpg)
+Configure league, search defaults, and authentication for trade queries.
+
+![Trade settings — league, search parameters, defaults](docs/screenshots/settings-trade-1.png)
+
+![Trade settings — defaults, authentication, stats index](docs/screenshots/settings-trade-2.png)
 
 - **League** — auto-populated from the GGG API, supports private leagues
 - **Value Relaxation** — broaden searches by accepting lower rolls (50-100%)
 - **Listing Status** — filter by seller availability
 - **Search Defaults** — max stats, prefer pseudos, tier threshold, include crafted mods
 - **POESESSID** — optional session cookie for "online only" results
+- **Stats Index** — refresh trade stat mappings from the official API
 
 ### Map Danger
 
-Classify map mods by danger level for your build. Search through all map mods and tag each as Deadly, Warning, or Safe. Your classifications persist per profile and drive the compact overlay verdict.
+Classify map mods by danger level for your build. Each profile has its own independent danger classifications.
 
-### Chat Macros
+![Map danger settings — mod list with danger classifications](docs/screenshots/settings-map-danger-1.png)
 
-Add custom hotkeys that type chat commands for you. Set the command text and choose whether to auto-send (press Enter after pasting).
+Use the "Classified only" filter to review your configured mods:
+
+![Map danger settings — classified mods filtered](docs/screenshots/settings-map-danger-2.png)
+
+### About
+
+![About page showing version and update checker](docs/screenshots/settings-about.png)
+
+Check for updates and see the current app version. Supports automatic download and install.
 
 ## Building from Source
 
@@ -206,8 +248,8 @@ Features in development:
 
 ## Platform Support
 
-| Platform | Status |
-|----------|--------|
-| Windows | Fully supported |
-| Linux (X11/Wayland) | Supported |
-| macOS | Planned |
+| Platform            | Status          |
+| ------------------- | --------------- |
+| Windows             | Fully supported |
+| Linux (X11/Wayland) | Supported       |
+| macOS               | Planned         |
