@@ -89,7 +89,7 @@ pub fn acquire_clipboard(app: &tauri::AppHandle) -> Option<String> {
         .map(|w| w.request_next());
 
     // Send one keystroke
-    if let Err(e) = super::send_copy_keystroke() {
+    if let Err(e) = crate::clipboard_acquire::send_copy_keystroke() {
         eprintln!("[inspect] Keystroke FAILED: {e}");
         return None;
     }

@@ -24,9 +24,9 @@ use tauri_plugin_store::StoreExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 use crate::commands::evaluate::default_profile;
-use crate::commands::hotkey::{
-    dispatch_hotkey_action, load_chat_macros, load_hotkey_config, register_hotkeys, HotkeyConfig,
-};
+use crate::commands::hotkey::{load_chat_macros, load_hotkey_config, register_hotkeys, HotkeyConfig};
+#[cfg(target_os = "windows")]
+use crate::commands::hotkey::dispatch_hotkey_action;
 use crate::game_data::{load_game_data, GameDataState};
 use crate::windows::{show_debug_overlay, show_settings};
 
