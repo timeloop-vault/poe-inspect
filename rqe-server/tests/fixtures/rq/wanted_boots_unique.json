@@ -1,0 +1,181 @@
+[
+    {
+        "key": "item_category",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "list",
+        "value": [
+            {
+                "key": "explicit stat_1 % increased Armour",
+                "value": 4,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<"
+                }
+            },
+            {
+                "key": "explicit stat_1 % increased Armour",
+                "value": 20,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": ">"
+                }
+            }
+        ],
+        "type": "list",
+        "typeOptions": {
+            "operator": "not"
+        }
+    },
+    {
+        "key": "item_rarity",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "name",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "sockets r",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "sockets r",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "sockets g",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "sockets g",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "sockets b",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "sockets b",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "sockets w",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "sockets w",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "links r",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "links r",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "links g",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "links g",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "links b",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "links b",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "links w",
+        "value": 0,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    },
+    {
+        "key": "links w",
+        "value": 6,
+        "type": "integer",
+        "typeOptions": {
+            "operator": ">="
+        }
+    },
+    {
+        "key": "links total",
+        "value": 3,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<="
+        }
+    }
+]

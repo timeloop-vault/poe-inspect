@@ -1,0 +1,16 @@
+{
+    "item_rarity": "Rare",
+    "name": "Hypnotic Whorl",
+    "item_class": "Paua Ring",
+    "item_category": "Ring",
+    "requirement_level": 59,
+    "item_level": 80,
+    "implicit maximum Mana": 23,
+    "explicit stat_1 Adds # to # Lightning Damage": 1,
+    "explicit stat_2 Adds # to # Lightning Damage": 18,
+    "explicit stat_1 Adds # to # Cold Damage": 9,
+    "explicit stat_2 Adds # to # Cold Damage": 13,
+    "explicit stat_1 Dexterity": 64,
+    "explicit stat_1 maximum Mana": 63,
+    "explicit stat_1 Lightning Resistance": 23
+}

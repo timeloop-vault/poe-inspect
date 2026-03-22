@@ -1,0 +1,76 @@
+[
+    {
+        "key": "item_rarity_2",
+        "value": "Non-Unique",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "item_category",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "list",
+        "value": [
+            {
+                "key": "explicit stat_1 % increased Armour",
+                "value": 4,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<"
+                }
+            },
+            {
+                "key": "explicit stat_1 % increased Armour",
+                "value": 20,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": ">"
+                }
+            }
+        ],
+        "type": "list",
+        "typeOptions": {
+            "operator": "not"
+        }
+    },
+    {
+        "key": "list",
+        "value": [
+            {
+                "key": "explicit stat_1 +% to Fire and Cold Resistances",
+                "value": 4,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<"
+                }
+            },
+            {
+                "key": "explicit stat_1 +% to Fire and Cold Resistances",
+                "value": 20,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": ">"
+                }
+            }
+        ],
+        "type": "list",
+        "typeOptions": {
+            "operator": "and"
+        }
+    },
+    {
+        "key": "item_rarity",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "name",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    }
+]

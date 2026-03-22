@@ -1,0 +1,26 @@
+[
+    {
+        "key": "item_rarity_2",
+        "value": "Non-Unique",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "item_category",
+        "value": "Crimson Jewel",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "item_rarity",
+        "value": "Rare",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "name",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    }
+]

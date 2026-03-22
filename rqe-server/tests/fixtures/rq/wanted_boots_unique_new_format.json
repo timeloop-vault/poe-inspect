@@ -1,0 +1,58 @@
+[
+    {
+        "key": "item_category",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "list",
+        "value": [
+            {
+                "key": "implicit maximum Mana",
+                "value": 10,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": ">"
+                }
+            }
+        ],
+        "type": "list",
+        "typeOptions": {
+            "operator": "not"
+        }
+    },
+    {
+        "key": "list",
+        "value": [
+            {
+                "key": "explicit stat_1 Adds # to # Lightning Damage",
+                "value": 1,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<="
+                }
+            },
+            {
+                "key": "explicit stat_2 Adds # to # Lightning Damage",
+                "value": 10,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<"
+                }
+            }
+        ],
+        "type": "list",
+        "typeOptions": {
+            "operator": "and"
+        }
+    },
+    {
+        "key": "explicit stat_1 Lightning Resistance",
+        "value": 15,
+        "type": "integer",
+        "typeOptions": {
+            "operator": "<"
+        }
+    }
+]

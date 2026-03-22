@@ -1,0 +1,68 @@
+[
+    {
+        "key": "item_rarity_2",
+        "value": "Non-Unique",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "item_category",
+        "value": "Crimson Jewel",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "list",
+        "value": [
+            {
+                "key": "explicit stat_1 % increased Armour",
+                "value": 4,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<"
+                }
+            },
+            {
+                "key": "explicit stat_1 % increased Armour",
+                "value": 20,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": ">"
+                }
+            },
+            {
+                "key": "explicit stat_1 +#% total to lightning resistance",
+                "value": 60,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": ">"
+                }
+            },
+            {
+                "key": "explicit stat_1 +#% total to lightning resistance",
+                "value": 30,
+                "type": "integer",
+                "typeOptions": {
+                    "operator": "<"
+                }
+            }
+        ],
+        "type": "list",
+        "typeOptions": {
+            "operator": "count",
+            "count": 1
+        }
+    },
+    {
+        "key": "item_rarity",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    },
+    {
+        "key": "name",
+        "value": "_",
+        "type": "string",
+        "typeOptions": null
+    }
+]

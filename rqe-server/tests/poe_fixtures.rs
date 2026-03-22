@@ -1,15 +1,15 @@
-//! PoE-specific integration tests using Erlang RQE fixtures.
+//! PoE-specific integration tests using RQE fixtures (ported from Erlang suite).
 //!
 //! These tests validate that the generic reverse query engine works correctly
 //! with `PoE` domain data (crimson jewels, boots, rings, etc.). The fixtures
-//! live at `_reference/rqe/test/data/` and match the original Erlang test suite.
+//! live at `rqe-server/tests/fixtures/`.
 
 use poe_rqe::eval::{Entry, evaluate};
 use poe_rqe::index::{IndexedStore, SelectivityConfig};
 use poe_rqe::predicate::Condition;
 use poe_rqe::store::QueryStore;
 
-const FIXTURE_BASE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../_reference/rqe/test/data/");
+const FIXTURE_BASE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/");
 
 fn load_rq(filename: &str) -> Vec<Condition> {
     let path = format!("{FIXTURE_BASE}rq/{filename}");
@@ -412,8 +412,8 @@ fn round_trip_all_rq_files() {
 #[test]
 fn deserialize_full_rq_file() {
     let path = format!("{FIXTURE_BASE}rq/wanted_crimson_mod.json");
-    let json =
-        std::fs::read_to_string(&path).expect("test data file should exist at _reference/rqe/");
+    let json = std::fs::read_to_string(&path)
+        .expect("test data file should exist at rqe-server/tests/fixtures/");
     let conditions: Vec<Condition> = serde_json::from_str(&json).unwrap();
     assert_eq!(conditions.len(), 3);
 }

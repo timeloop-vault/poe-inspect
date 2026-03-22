@@ -37,4 +37,11 @@ npx biome check . 2>&1 || {
 }
 
 cd "$REPO_ROOT"
+
+echo "=== pre-commit: cargo test (workspace) ==="
+cargo test --workspace 2>&1 || {
+    echo "ERROR: workspace tests failed. Fix them before committing."
+    exit 1
+}
+
 echo "=== pre-commit: all checks passed ==="
