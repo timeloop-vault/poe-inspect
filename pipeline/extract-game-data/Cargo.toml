@@ -1,0 +1,13 @@
+[package]
+name = "extract-game-data"
+version = "0.1.0"
+edition = "2021"
+description = "Extract datc64 tables from PoE GGPK for the poe-inspect pipeline"
+
+[[bin]]
+name = "extract-game-data"
+path = "src/main.rs"
+
+[dependencies]
+poe_bundle = { git = "https://github.com/Svampen/poe-bundle.git", branch = "fix/poe-3.21.2-compat" }
+clap = { version = "4.0", features = ["derive"] }
