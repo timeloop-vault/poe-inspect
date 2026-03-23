@@ -11,6 +11,10 @@ export type ModTierResult = {
  */
 tier: number | null, 
 /**
+ * Total number of tiers for this mod (from GGPK Mods table).
+ */
+totalTiers: number | null, 
+/**
  * Whether this is a "tier" (regular mod) or "rank" (bench craft).
  */
 tierKind: TierKind | null, 

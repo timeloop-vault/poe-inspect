@@ -17,6 +17,8 @@ pub struct ModTierInfo {
     pub slot: ModSlot,
     /// Raw tier number (if available).
     pub tier: Option<u32>,
+    /// Total number of tiers for this mod (from GGPK Mods table).
+    pub total_tiers: Option<u32>,
     /// Computed quality level.
     pub quality: TierQuality,
 }
@@ -51,19 +53,17 @@ fn analyze_mod(m: &ResolvedMod, gd: &GameData) -> ModTierInfo {
         None => None,
     };
 
+    let total_tiers = m
+        .header
+        .name
+        .as_deref()
+        .and_then(|name| gd.tier_count_for_mod(name));
+
     let quality = match &m.header.tier {
-        Some(ModTierKind::Tier(n)) => {
-            // Try relative classification using actual tier count from GGPK
-            let total = m
-                .header
-                .name
-                .as_deref()
-                .and_then(|name| gd.tier_count_for_mod(name));
-            match total {
-                Some(total) => classify_tier_relative(*n, total),
-                None => classify_tier(*n),
-            }
-        }
+        Some(ModTierKind::Tier(n)) => match total_tiers {
+            Some(total) => classify_tier_relative(*n, total),
+            None => classify_tier(*n),
+        },
         Some(ModTierKind::Rank(n)) => classify_rank(*n),
         None => TierQuality::Unknown,
     };
@@ -72,6 +72,7 @@ fn analyze_mod(m: &ResolvedMod, gd: &GameData) -> ModTierInfo {
         name: m.header.name.clone(),
         slot: m.header.slot,
         tier,
+        total_tiers,
         quality,
     }
 }

@@ -297,7 +297,7 @@ export function GeneralSettings() {
 				<h3>Display</h3>
 
 				<div class="setting-row">
-					<div class="setting-label">Show roll quality bars</div>
+					<div class="setting-label">Show tier rank bars</div>
 					<Toggle checked={settings.showRollBars} onChange={(v) => update({ showRollBars: v })} />
 				</div>
 

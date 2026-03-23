@@ -26,10 +26,14 @@ Every mod gets:
 
 - **Tier badge** — T1 through T9, color-coded by quality (green = best, red = low)
 - **Prefix/Suffix label** — P for prefix, S for suffix, C for crafted
-- **Roll quality bar** — see how close each roll is to its maximum value
+- **Tier rank bar** — shows where this tier sits among all possible tiers for the mod (T1/T7 = 100%, T7/T7 = 0%). Hover to see the roll quality within the tier.
 - **Stat IDs** — optional display of internal stat identifiers (power user toggle)
 - **Open affix count** — see available crafting slots at a glance
 - **Pseudo stats** — computed totals for resistances, life, attributes, DPS, and more
+
+| Tier rank bars | Roll quality on hover |
+|:--------------:|:---------------------:|
+| ![Tier rank bars on overlay](docs/screenshots/overlay-tier-rank.png) | ![Roll quality tooltip on hover](docs/screenshots/overlay-tier-rank-hover.png) |
 
 ### Inline Trade Search
 
@@ -120,7 +124,7 @@ Configure overlay appearance, game version, startup behavior, and display toggle
 - **Focus gate** — only respond to hotkeys when PoE is the active window
 - **Stash scrolling** — use scroll wheel to navigate stash tabs (with configurable modifier key)
 - **Update channel** — Stable or Beta
-- **Display toggles** — show/hide roll bars, tier badges, prefix/suffix labels, open affix count, stat IDs
+- **Display toggles** — show/hide tier rank bars, tier badges, prefix/suffix labels, open affix count, stat IDs
 
 ### Hotkeys
 

@@ -65,11 +65,6 @@
 	--quality-low: #8c7060;
 	--quality-unique: rgb(175, 96, 37);
 
-	/* Roll quality colors */
-	--roll-high: #38d838;
-	--roll-mid: #c8b040;
-	--roll-low: #8c5040;
-
 	/* Mod type colors (hardcoded in PoE client) */
 	--crafted-color: #b4b4ff;
 	--enchant-color: #b4e8ff;
@@ -633,9 +628,9 @@ body,
 	margin-top: 1px;
 }
 
-/* --- Roll quality bar --- */
+/* --- Tier rank bar --- */
 
-.roll-quality {
+.tier-rank {
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -643,7 +638,7 @@ body,
 	padding-top: 3px;
 }
 
-.roll-bar {
+.tier-rank-bar {
 	width: 32px;
 	height: 4px;
 	background: rgba(255, 255, 255, 0.08);
@@ -651,25 +646,29 @@ body,
 	overflow: hidden;
 }
 
-.roll-fill {
+.tier-rank-fill {
 	height: 100%;
 	border-radius: 2px;
 	transition: width 0.2s;
 }
 
-.roll-fill.roll-high {
-	background: var(--roll-high);
+.tier-rank-fill.quality-best {
+	background: var(--quality-best);
 }
 
-.roll-fill.roll-mid {
-	background: var(--roll-mid);
+.tier-rank-fill.quality-good {
+	background: var(--quality-good);
 }
 
-.roll-fill.roll-low {
-	background: var(--roll-low);
+.tier-rank-fill.quality-mid {
+	background: var(--quality-mid);
 }
 
-.roll-pct {
+.tier-rank-fill.quality-low {
+	background: var(--quality-low);
+}
+
+.tier-rank-pct {
 	font-size: 10px;
 	color: var(--poe-text-dim);
 	min-width: 28px;

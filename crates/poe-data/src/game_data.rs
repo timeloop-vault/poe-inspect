@@ -42,8 +42,8 @@ pub struct GameData {
     rarity_by_id: HashMap<String, usize>,
     item_class_category_by_id: HashMap<String, usize>,
 
-    // Pre-computed tier counts: (family_fk, generation_type) → number of tiers
-    family_tier_counts: HashMap<(u64, u32), u32>,
+    // Pre-computed tier counts: (family_fk, generation_type, domain) → number of tiers
+    family_tier_counts: HashMap<(u64, u32, u32), u32>,
 
     // Mod name → indices into self.mods (multiple tiers share a name).
     mods_by_name: HashMap<String, Vec<usize>>,
@@ -105,13 +105,15 @@ impl GameData {
         let rarity_by_id = index_by(&rarities, |r| r.id.clone());
         let item_class_category_by_id = index_by(&item_class_categories, |c| c.id.clone());
 
-        // Pre-compute tier counts per (family, generation_type) group.
-        // Mods sharing the same primary family + gen type form a tier chain.
-        let mut family_tier_counts: HashMap<(u64, u32), u32> = HashMap::new();
+        // Pre-compute tier counts per (family, generation_type, domain) group.
+        // Mods sharing the same primary family + gen type + domain form a tier chain.
+        // Domain is critical: the same family spans multiple domains (item, crafted,
+        // delve, etc.) and counting across all of them inflates the tier count.
+        let mut family_tier_counts: HashMap<(u64, u32, u32), u32> = HashMap::new();
         for m in &mods {
             if let Some(&family_fk) = m.families.first() {
                 *family_tier_counts
-                    .entry((family_fk, m.generation_type))
+                    .entry((family_fk, m.generation_type, m.domain))
                     .or_insert(0) += 1;
             }
         }
@@ -471,13 +473,13 @@ impl GameData {
 
     /// Get the total number of tiers for a mod (by display name).
     ///
-    /// Looks up the mod in the Mods table, finds its family + generation type,
-    /// then returns how many mods share that family/gen combo (= tier count).
+    /// Looks up the mod in the Mods table, finds its family + generation type
+    /// + domain, then returns how many mods share that combination (= tier count).
     pub fn tier_count_for_mod(&self, mod_name: &str) -> Option<u32> {
         let mod_row = self.mods.iter().find(|m| m.name == mod_name)?;
         let family_fk = *mod_row.families.first()?;
         self.family_tier_counts
-            .get(&(family_fk, mod_row.generation_type))
+            .get(&(family_fk, mod_row.generation_type, mod_row.domain))
             .copied()
     }
 

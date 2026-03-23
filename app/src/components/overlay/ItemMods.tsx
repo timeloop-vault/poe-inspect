@@ -61,6 +61,12 @@ function rollQuality(mod: ResolvedMod): number | null {
 	return Math.round(((vr.current - vr.min) / range) * 100);
 }
 
+/** Calculate tier rank as 0-100 percentage (T1 = 100%, worst tier = 0%). */
+function tierRankPercent(tier: ModTierResult): number | null {
+	if (tier.tier == null || tier.totalTiers == null || tier.totalTiers <= 1) return null;
+	return Math.round(((tier.totalTiers - tier.tier) / (tier.totalTiers - 1)) * 100);
+}
+
 /** Short label for mod type */
 function modTypeLabel(displayType: ModType): string | null {
 	switch (displayType) {
@@ -184,7 +190,8 @@ export function ModLine({
 	display: DisplaySettings;
 	tradeEdit?: ModTradeEdit | undefined;
 }) {
-	const quality = rollQuality(mod);
+	const roll = rollQuality(mod);
+	const rankPct = tierRankPercent(tier);
 	const typeLabel = modTypeLabel(mod.displayType);
 	const qualityCls = mod.displayType === "unique" ? "quality-unique" : qualityClass(tier.quality);
 	const isCrafted = mod.header.source === "masterCrafted";
@@ -262,15 +269,15 @@ export function ModLine({
 				/>
 			) : (
 				display.showRollBars &&
-				quality !== null && (
-					<div class="roll-quality" title={`Roll: ${quality}%`}>
-						<div class="roll-bar">
+				rankPct !== null && (
+					<div class="tier-rank" title={roll != null ? `Roll: ${roll}%` : undefined}>
+						<div class="tier-rank-bar">
 							<div
-								class={`roll-fill ${quality >= 80 ? "roll-high" : quality >= 50 ? "roll-mid" : "roll-low"}`}
-								style={{ width: `${quality}%` }}
+								class={`tier-rank-fill ${qualityClass(tier.quality)}`}
+								style={{ width: `${rankPct}%` }}
 							/>
 						</div>
-						<span class="roll-pct">{quality}%</span>
+						<span class="tier-rank-pct">{rankPct}%</span>
 					</div>
 				)
 			)}
@@ -324,7 +331,12 @@ export function buildModTradeEdit(
 	};
 }
 
-export const emptyTier: ModTierResult = { tier: null, tierKind: null, quality: null };
+export const emptyTier: ModTierResult = {
+	tier: null,
+	totalTiers: null,
+	tierKind: null,
+	quality: null,
+};
 
 /**
  * Render a list of mods with trade edit support.

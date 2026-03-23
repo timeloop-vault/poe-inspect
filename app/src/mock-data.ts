@@ -247,15 +247,15 @@ export const rareBoots: ItemPayload = {
 	eval: {
 		modTiers: [
 			// implicits (0 enchants, 2 implicits)
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
 			// explicits
-			{ tier: 2, tierKind: "tier", quality: "great" },
-			{ tier: 2, tierKind: "tier", quality: "great" },
-			{ tier: 1, tierKind: "tier", quality: "best" },
-			{ tier: 8, tierKind: "tier", quality: "low" },
-			{ tier: 5, tierKind: "tier", quality: "mid" },
-			{ tier: 1, tierKind: "rank", quality: "mid" },
+			{ tier: 2, totalTiers: 12, tierKind: "tier", quality: "great" },
+			{ tier: 2, totalTiers: 10, tierKind: "tier", quality: "great" },
+			{ tier: 1, totalTiers: 8, tierKind: "tier", quality: "best" },
+			{ tier: 8, totalTiers: 10, tierKind: "tier", quality: "low" },
+			{ tier: 5, totalTiers: 8, tierKind: "tier", quality: "mid" },
+			{ tier: 1, totalTiers: 3, tierKind: "rank", quality: "mid" },
 		],
 		affixSummary: {
 			openPrefixes: 0,
@@ -481,15 +481,15 @@ export const rareBodyArmour: ItemPayload = {
 	eval: {
 		modTiers: [
 			// enchants
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
 			// implicits (none)
 			// explicits
-			{ tier: 1, tierKind: "tier", quality: "best" },
-			{ tier: 7, tierKind: "tier", quality: "low" },
-			{ tier: 7, tierKind: "tier", quality: "low" },
-			{ tier: 1, tierKind: "tier", quality: "best" },
-			{ tier: 4, tierKind: "tier", quality: "good" },
+			{ tier: 1, totalTiers: 10, tierKind: "tier", quality: "best" },
+			{ tier: 7, totalTiers: 8, tierKind: "tier", quality: "low" },
+			{ tier: 7, totalTiers: 8, tierKind: "tier", quality: "low" },
+			{ tier: 1, totalTiers: 12, tierKind: "tier", quality: "best" },
+			{ tier: 4, totalTiers: 8, tierKind: "tier", quality: "good" },
 		],
 		affixSummary: {
 			openPrefixes: 0,
@@ -704,14 +704,14 @@ export const uniqueRing: ItemPayload = {
 	eval: {
 		modTiers: [
 			// implicit
-			{ tier: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
 			// explicits (unique mods have no tier/quality)
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
-			{ tier: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
+			{ tier: null, totalTiers: null, tierKind: null, quality: null },
 		],
 		affixSummary: {
 			openPrefixes: 0,

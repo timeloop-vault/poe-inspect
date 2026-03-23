@@ -51,6 +51,9 @@ pub struct ModTierResult {
     /// Tier/rank number (from Ctrl+Alt+C header).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tier: Option<u32>,
+    /// Total number of tiers for this mod (from GGPK Mods table).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_tiers: Option<u32>,
     /// Whether this is a "tier" (regular mod) or "rank" (bench craft).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tier_kind: Option<poe_item::types::TierDisplayKind>,
@@ -144,6 +147,7 @@ pub fn evaluate_item(
             };
             ModTierResult {
                 tier: tier_info.tier,
+                total_tiers: tier_info.total_tiers,
                 tier_kind,
                 quality,
             }
