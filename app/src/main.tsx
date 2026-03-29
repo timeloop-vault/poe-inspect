@@ -1,9 +1,6 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import type { ComponentType } from "preact";
 import { render } from "preact";
-import { App } from "./App";
-import { BrowserApp } from "./BrowserApp";
-import { SettingsApp } from "./SettingsApp";
-import { ToastApp } from "./ToastApp";
 import "./styles/overlay.css";
 import "./styles/settings.css";
 import "./styles/browser.css";
@@ -11,15 +8,25 @@ if (import.meta.env.DEV) {
 	import("tauri-plugin-mcp").then((m) => m.setupPluginListeners());
 }
 
+// Dynamic imports so each window only loads its own module tree.
+// App.tsx has a top-level await (RQE) that blocks all other windows
+// if imported statically.
 const windowLabel = getCurrentWebviewWindow().label;
-const Root =
-	windowLabel === "settings"
-		? SettingsApp
-		: windowLabel === "toast"
-			? ToastApp
-			: windowLabel === "browser"
-				? BrowserApp
-				: App;
+let Root: ComponentType;
+switch (windowLabel) {
+	case "settings":
+		Root = (await import("./SettingsApp")).SettingsApp;
+		break;
+	case "toast":
+		Root = (await import("./ToastApp")).ToastApp;
+		break;
+	case "browser":
+		Root = (await import("./BrowserApp")).BrowserApp;
+		break;
+	default:
+		Root = (await import("./App")).App;
+		break;
+}
 
 // Properly unmount previous Preact tree before mounting a new one.
 // When Vite HMR re-executes this module, the old tree's useEffect cleanup
