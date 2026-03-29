@@ -82,6 +82,33 @@
 	padding-left: 13px;
 }
 
+.settings-nav-spacer {
+	flex: 1;
+}
+
+.settings-nav-action {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 10px 16px;
+	margin-top: 4px;
+	background: none;
+	border: none;
+	border-top: 1px solid var(--poe-border);
+	color: var(--poe-accent);
+	font-family: inherit;
+	font-size: 14px;
+	cursor: pointer;
+	text-align: left;
+	transition: background 0.1s, color 0.1s;
+}
+
+.settings-nav-action:hover {
+	background: rgba(175, 96, 37, 0.1);
+	color: var(--poe-header);
+}
+
 /* --- Content area --- */
 
 .settings-content {

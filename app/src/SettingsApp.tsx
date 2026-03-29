@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "preact/hooks";
 import { AboutSettings } from "./components/settings/AboutSettings";
 import { ChatMacroSettings } from "./components/settings/ChatMacroSettings";
@@ -77,6 +78,14 @@ export function SettingsApp() {
 						{s.label}
 					</button>
 				))}
+				<div class="settings-nav-spacer" />
+				<button
+					type="button"
+					class="settings-nav-action"
+					onClick={() => invoke("open_browser_window")}
+				>
+					Open PoE Browser
+				</button>
 			</nav>
 
 			<main class="settings-content">
