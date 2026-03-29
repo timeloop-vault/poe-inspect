@@ -196,6 +196,8 @@ pub struct ModTierStat {
     pub min: i32,
     /// Maximum roll value.
     pub max: i32,
+    /// Display template (e.g., `"+# to maximum Life"`).
+    pub display_text: String,
 }
 
 // ── GameData browser methods ────────────────────────────────────────────────
@@ -350,6 +352,14 @@ impl GameData {
             }
             // Filter: domain must match item class.
             if !valid_domains.contains(&m.domain) {
+                continue;
+            }
+            // Filter: skip bench craft mods (domain 9) — separate crafting section.
+            if m.domain == 9 {
+                continue;
+            }
+            // Filter: skip essence-only mods (not rollable via normal crafting).
+            if m.is_essence_only {
                 continue;
             }
             // Filter: must have a family.
@@ -525,14 +535,28 @@ impl GameData {
                 continue;
             }
             if let Some(stat_id) = self.stat_id(fk) {
+                let display_text = self
+                    .templates_for_stat(stat_id)
+                    .and_then(|ts| ts.first())
+                    .cloned()
+                    .unwrap_or_else(|| stat_id.to_string());
                 stats.push(ModTierStat {
                     stat_id: stat_id.to_string(),
                     min,
                     max,
+                    display_text,
                 });
             }
         }
         stats
+    }
+
+    /// Get the max prefix/suffix count for a given item class and rarity.
+    ///
+    /// Delegates to `GameData::max_affixes` which handles jewel overrides.
+    pub fn browser_affix_limits(&self, item_class: &str, rarity: &str) -> (i32, i32) {
+        let (p, s) = self.max_affixes(item_class, rarity);
+        (p.unwrap_or(0), s.unwrap_or(0))
     }
 }
 
@@ -821,5 +845,110 @@ mod tests {
         let gd = full_game_data();
         let results = gd.browser_search("", 10);
         assert!(results.is_empty());
+    }
+
+    #[test]
+    fn mod_pool_excludes_essence_only() {
+        let gd = full_game_data();
+        let result = gd
+            .browser_mod_pool(&ModPoolQuery {
+                base_type: "Vaal Regalia".to_string(),
+                item_level: 86,
+                generation_types: vec![],
+                taken_mod_ids: vec![],
+            })
+            .unwrap();
+
+        // Collect all mod IDs from the pool.
+        let pool_mod_ids: Vec<&str> = result
+            .prefixes
+            .iter()
+            .chain(result.suffixes.iter())
+            .flat_map(|f| &f.tiers)
+            .map(|t| t.mod_id.as_str())
+            .collect();
+
+        // Verify none of them are essence-only in the raw mods table.
+        for mod_id in &pool_mod_ids {
+            if let Some(m) = gd.mod_by_id(mod_id) {
+                assert!(
+                    !m.is_essence_only,
+                    "Essence-only mod {mod_id} should not appear in browser pool"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mod_pool_excludes_bench_crafts() {
+        let gd = full_game_data();
+        let result = gd
+            .browser_mod_pool(&ModPoolQuery {
+                base_type: "Vaal Regalia".to_string(),
+                item_level: 86,
+                generation_types: vec![],
+                taken_mod_ids: vec![],
+            })
+            .unwrap();
+
+        let pool_mod_ids: Vec<&str> = result
+            .prefixes
+            .iter()
+            .chain(result.suffixes.iter())
+            .flat_map(|f| &f.tiers)
+            .map(|t| t.mod_id.as_str())
+            .collect();
+
+        for mod_id in &pool_mod_ids {
+            if let Some(m) = gd.mod_by_id(mod_id) {
+                assert!(
+                    m.domain != 9,
+                    "Bench craft mod {mod_id} (domain 9) should not appear in browser pool"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mod_pool_stats_have_display_text() {
+        let gd = full_game_data();
+        let result = gd
+            .browser_mod_pool(&ModPoolQuery {
+                base_type: "Vaal Regalia".to_string(),
+                item_level: 86,
+                generation_types: vec![],
+                taken_mod_ids: vec![],
+            })
+            .unwrap();
+
+        // At least some stats should have resolved display text (not just stat_id).
+        let has_template = result
+            .prefixes
+            .iter()
+            .chain(result.suffixes.iter())
+            .flat_map(|f| &f.tiers)
+            .flat_map(|t| &t.stats)
+            .any(|s| s.display_text.contains('#'));
+        assert!(
+            has_template,
+            "At least some stats should have template display text with '#' placeholder"
+        );
+    }
+
+    #[test]
+    fn affix_limits_rare_equipment() {
+        let gd = full_game_data();
+        // Uses display name (same as BaseTypeDetail.itemClassName).
+        let (p, s) = gd.browser_affix_limits("Body Armours", "Rare");
+        assert_eq!(p, 3, "Rare body armour should have 3 prefixes");
+        assert_eq!(s, 3, "Rare body armour should have 3 suffixes");
+    }
+
+    #[test]
+    fn affix_limits_rare_jewel() {
+        let gd = full_game_data();
+        let (p, s) = gd.browser_affix_limits("Jewels", "Rare");
+        assert_eq!(p, 2, "Rare jewel should have 2 prefixes");
+        assert_eq!(s, 2, "Rare jewel should have 2 suffixes");
     }
 }

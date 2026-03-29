@@ -31,6 +31,16 @@ pub(crate) fn browser_mod_pool(
     state.0.browser_mod_pool(&query)
 }
 
+/// Get the max prefix/suffix count for a given item class and rarity.
+#[tauri::command]
+pub(crate) fn browser_affix_limits(
+    item_class: String,
+    rarity: String,
+    state: tauri::State<'_, GameDataState>,
+) -> (i32, i32) {
+    state.0.browser_affix_limits(&item_class, &rarity)
+}
+
 /// Show the browser window (pre-created at startup, hidden by default).
 #[tauri::command]
 pub(crate) fn open_browser_window(app: tauri::AppHandle) -> Result<(), String> {

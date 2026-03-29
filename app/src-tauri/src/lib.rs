@@ -235,6 +235,7 @@ pub fn run() {
             commands::browser::browser_search,
             commands::browser::browser_base_type_detail,
             commands::browser::browser_mod_pool,
+            commands::browser::browser_affix_limits,
             commands::browser::open_browser_window,
         ])
         .setup(|app| {
