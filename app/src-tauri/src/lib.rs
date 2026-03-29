@@ -232,6 +232,10 @@ pub fn run() {
             commands::trade::get_trade_index_status,
             commands::updates::check_for_update,
             commands::updates::download_and_install_update,
+            commands::browser::browser_search,
+            commands::browser::browser_base_type_detail,
+            commands::browser::browser_mod_pool,
+            commands::browser::open_browser_window,
         ])
         .setup(|app| {
             // --- System tray ---

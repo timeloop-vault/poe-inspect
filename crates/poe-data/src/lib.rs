@@ -3,6 +3,7 @@
 //! Holds poe-dat's raw table rows with id-based indexes for fast lookup.
 //! Also owns hardcoded `PoE` domain knowledge (see `domain` module).
 
+pub mod browser;
 pub mod domain;
 mod game_data;
 

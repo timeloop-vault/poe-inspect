@@ -1,3 +1,4 @@
+pub(crate) mod browser;
 pub(crate) mod chat_macro;
 pub(crate) mod evaluate;
 pub(crate) mod hotkey;
