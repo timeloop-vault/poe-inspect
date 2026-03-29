@@ -1,9 +1,19 @@
 /* Browser window — two-panel item builder layout */
 
+/* Ensure full height chain for zoom-aware layout (100% not 100vh).
+   Scoped via :has() so it only applies when browser layout is present.
+   Settings already handles this via its own layout. */
+html:has(.browser-layout),
+html:has(.browser-layout) body,
+html:has(.browser-layout) #root {
+	height: 100%;
+	margin: 0;
+}
+
 .browser-layout {
 	display: flex;
 	flex-direction: column;
-	height: 100vh;
+	height: 100%;
 	overflow: hidden;
 	background: var(--poe-bg);
 	color: var(--poe-text);
