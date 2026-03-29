@@ -299,13 +299,33 @@ impl ReverseIndex {
 
     /// Save the reverse index to a JSON file.
     ///
+    /// Converts `template_map` to a `BTreeMap` before serializing so the
+    /// output is deterministic across runs (`HashMap` iteration order is
+    /// randomized by Rust's default hasher).
+    ///
     /// # Errors
     ///
     /// Returns `std::io::Error` if the file can't be created or serialization fails.
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
+        // Build a serializable snapshot with sorted template_map keys.
+        #[derive(Serialize)]
+        struct Snapshot<'a> {
+            entries: &'a [PatternEntry],
+            template_map: std::collections::BTreeMap<&'a str, &'a Vec<usize>>,
+        }
+        let sorted_map: std::collections::BTreeMap<&str, &Vec<usize>> = self
+            .template_map
+            .iter()
+            .map(|(k, v)| (k.as_str(), v))
+            .collect();
+        let snapshot = Snapshot {
+            entries: &self.entries,
+            template_map: sorted_map,
+        };
+
         let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
-        serde_json::to_writer(writer, self).map_err(std::io::Error::other)
+        serde_json::to_writer(writer, &snapshot).map_err(std::io::Error::other)
     }
 
     /// Load a reverse index from a JSON file.
