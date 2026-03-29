@@ -111,9 +111,12 @@ Run all of these and fix any errors before committing. A pre-commit hook enforce
 4. `cd app && npx tsc --noEmit` — TypeScript strict type checking
 5. `cd app && npx biome check --write --unsafe .` — format + lint frontend
 
+### Dependencies
+- **Keep dependencies up to date** — run `cargo update` (workspace) + `cargo update --manifest-path app/src-tauri/Cargo.toml` (Tauri) + `cd app && npm update` regularly. Prefer updating deps over adding overrides/workarounds for vulnerabilities.
+- **Commit all lock files** when dependencies change — both `Cargo.lock` files and `app/package-lock.json` are tracked
+
 ### Git / CLI
 - **Never chain `cd` with other commands** (`cd path && cmd`) — chained commands don't match allowed permissions and trigger prompts. Use flags when possible (`cargo check -p poe-trade`, `cargo check --manifest-path app/src-tauri/Cargo.toml`). When a tool requires cwd (vite, biome), run `cd app` as a separate Bash call first, then the command in the next call (cwd persists between calls). Always `cd` back to repo root after.
-- **Commit all Cargo.lock files** when dependencies change — both `app/src-tauri/Cargo.lock` and workspace `Cargo.lock` are tracked
 
 ### Documentation
 - Decisions and research go in `docs/`
