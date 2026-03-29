@@ -31,25 +31,13 @@ pub(crate) fn browser_mod_pool(
     state.0.browser_mod_pool(&query)
 }
 
-/// Open the browser window (create if it doesn't exist, else show + focus).
+/// Show the browser window (pre-created at startup, hidden by default).
 #[tauri::command]
 pub(crate) fn open_browser_window(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(window) = app.get_webview_window("browser") {
-        window.show().map_err(|e| e.to_string())?;
-        window.set_focus().map_err(|e| e.to_string())?;
-        return Ok(());
-    }
-    let url = tauri::WebviewUrl::App("index.html".into());
-    tauri::WebviewWindowBuilder::new(&app, "browser", url)
-        .title("PoE Inspect — Browser")
-        .inner_size(1100.0, 750.0)
-        .min_inner_size(800.0, 500.0)
-        .decorations(true)
-        .resizable(true)
-        .visible(true)
-        .center()
-        .build()
-        .map_err(|e| e.to_string())?;
-    Ok(()
-    )
+    let window = app
+        .get_webview_window("browser")
+        .ok_or("browser window not found")?;
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())?;
+    Ok(())
 }

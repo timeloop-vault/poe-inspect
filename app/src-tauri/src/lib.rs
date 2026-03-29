@@ -410,9 +410,9 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            // Hide settings window on close instead of destroying it,
+            // Hide settings/browser windows on close instead of destroying them,
             // and save window state so position/size persists across restarts
-            if window.label() == "settings" {
+            if window.label() == "settings" || window.label() == "browser" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                     let _ = window
                         .app_handle()

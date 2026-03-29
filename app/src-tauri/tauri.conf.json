@@ -39,6 +39,19 @@
 				"visible": false,
 				"center": true,
 				"dragDropEnabled": false
+			},
+			{
+				"label": "browser",
+				"title": "PoE Inspect — Browser",
+				"url": "index.html",
+				"width": 1100,
+				"height": 750,
+				"minWidth": 800,
+				"minHeight": 500,
+				"decorations": true,
+				"resizable": true,
+				"visible": false,
+				"center": true
 			}
 		],
 		"security": {
