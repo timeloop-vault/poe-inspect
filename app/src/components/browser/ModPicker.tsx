@@ -1,21 +1,35 @@
 import { useCallback, useRef, useState } from "preact/hooks";
-import type { ModFamily, ModPoolResult, ModTierStat } from "./useItemBuilder";
+import type { ModFamily, ModPoolResult, ModTier, ModTierStat } from "./useItemBuilder";
 
-function formatStat(s: ModTierStat): string {
+function formatStatRange(s: ModTierStat): string {
 	if (s.min === s.max) return s.displayText.replace("#", `${s.min}`);
 	return s.displayText.replace("#", `(${s.min}-${s.max})`);
 }
 
-function ModPickerRow({
+/** Summary stat line for the family header — uses the best tier's range. */
+function familyStatSummary(tier: ModTier): string {
+	return tier.stats.map((s) => formatStatRange(s)).join(", ");
+}
+
+/** Compact tier range — just the numbers, no template text. */
+function tierValueRange(tier: ModTier): string {
+	return tier.stats.map((s) => (s.min === s.max ? `${s.min}` : `${s.min}-${s.max}`)).join(", ");
+}
+
+function ModFamilyRow({
 	family,
 	isPrefix,
 	canSlot,
-	onSlot,
+	expanded,
+	onToggle,
+	onSlotTier,
 }: {
 	family: ModFamily;
 	isPrefix: boolean;
 	canSlot: boolean;
-	onSlot: (family: ModFamily, isPrefix: boolean) => void;
+	expanded: boolean;
+	onToggle: () => void;
+	onSlotTier: (family: ModFamily, tier: ModTier, isPrefix: boolean) => void;
 }) {
 	const bestTier = family.tiers.find((t) => t.eligible) ?? family.tiers[0];
 	if (!bestTier) return null;
@@ -23,34 +37,42 @@ function ModPickerRow({
 	const disabled = family.taken || !canSlot;
 
 	return (
-		<button
-			type="button"
-			class={`picker-row ${disabled ? "disabled" : ""} ${family.taken ? "taken" : ""}`}
-			onClick={() => {
-				if (!disabled) onSlot(family, isPrefix);
-			}}
-			disabled={disabled}
-		>
-			<span class={`picker-slot-badge ${isPrefix ? "prefix" : "suffix"}`}>
-				{isPrefix ? "P" : "S"}
-			</span>
-			<span class="picker-mod-info">
-				<span class="picker-mod-header">
-					<span class="picker-mod-name">{bestTier.name}</span>
-					<span class="picker-mod-tier">T{bestTier.tier}</span>
-					<span class="picker-mod-meta">
-						ilvl {bestTier.requiredLevel} &middot; w:{bestTier.spawnWeight}
-					</span>
+		<div class={`picker-family ${disabled ? "disabled" : ""} ${family.taken ? "taken" : ""}`}>
+			{/* Family header — shows stat description, click to expand tiers */}
+			<button type="button" class="picker-family-header" onClick={onToggle} disabled={disabled}>
+				<span class={`picker-slot-badge ${isPrefix ? "prefix" : "suffix"}`}>
+					{isPrefix ? "P" : "S"}
 				</span>
-				<span class="picker-mod-stats">
-					{bestTier.stats.map((s) => (
-						<span key={s.statId} class="picker-stat-line">
-							{formatStat(s)}
-						</span>
+				<span class="picker-family-stats">{familyStatSummary(bestTier)}</span>
+				<span class="picker-family-meta">
+					{family.tiers.length}T &middot; ilvl {bestTier.requiredLevel}
+				</span>
+				<span class="picker-expand">{expanded ? "\u25B2" : "\u25BC"}</span>
+			</button>
+
+			{/* Expanded tier list */}
+			{expanded && (
+				<div class="picker-tiers">
+					{family.tiers.map((t) => (
+						<button
+							type="button"
+							key={t.modId}
+							class={`picker-tier-row ${t.eligible ? "" : "ineligible"}`}
+							onClick={() => {
+								if (t.eligible && !disabled) onSlotTier(family, t, isPrefix);
+							}}
+							disabled={!t.eligible || disabled}
+						>
+							<span class="picker-tier-num">T{t.tier}</span>
+							<span class="picker-tier-values">{tierValueRange(t)}</span>
+							<span class="picker-tier-meta">
+								ilvl {t.requiredLevel} &middot; w:{t.spawnWeight}
+							</span>
+						</button>
 					))}
-				</span>
-			</span>
-		</button>
+				</div>
+			)}
+		</div>
 	);
 }
 
@@ -60,7 +82,7 @@ export function ModPicker({
 	slottedSuffixCount,
 	maxPrefixes,
 	maxSuffixes,
-	onSlotMod,
+	onSlotTier,
 	isClusterJewel,
 }: {
 	pool: ModPoolResult;
@@ -68,11 +90,12 @@ export function ModPicker({
 	slottedSuffixCount: number;
 	maxPrefixes: number;
 	maxSuffixes: number;
-	onSlotMod: (family: ModFamily, isPrefix: boolean) => void;
+	onSlotTier: (family: ModFamily, tier: ModTier, isPrefix: boolean) => void;
 	isClusterJewel: boolean;
 }) {
 	const [filter, setFilter] = useState<"all" | "prefix" | "suffix">("all");
 	const [search, setSearch] = useState("");
+	const [expandedFamily, setExpandedFamily] = useState<string | null>(null);
 	const searchRef = useRef<HTMLInputElement>(null);
 
 	const canSlotPrefix = slottedPrefixCount < maxPrefixes;
@@ -84,7 +107,6 @@ export function ModPicker({
 			const q = search.toLowerCase();
 			const bestTier = family.tiers.find((t) => t.eligible) ?? family.tiers[0];
 			if (!bestTier) return false;
-			if (bestTier.name.toLowerCase().includes(q)) return true;
 			return bestTier.stats.some(
 				(s) => s.displayText.toLowerCase().includes(q) || s.statId.toLowerCase().includes(q),
 			);
@@ -105,12 +127,12 @@ export function ModPicker({
 		}
 	}
 
-	// Sort: available first, then taken. Within each group, alphabetical.
+	// Sort by stat description text (not mod name).
 	families.sort((a, b) => {
 		if (a.family.taken !== b.family.taken) return a.family.taken ? 1 : -1;
-		const aName = a.family.tiers[0]?.name ?? "";
-		const bName = b.family.tiers[0]?.name ?? "";
-		return aName.localeCompare(bName);
+		const aText = a.family.tiers[0]?.stats[0]?.displayText ?? "";
+		const bText = b.family.tiers[0]?.stats[0]?.displayText ?? "";
+		return aText.localeCompare(bText);
 	});
 
 	return (
@@ -157,12 +179,16 @@ export function ModPicker({
 
 			<div class="picker-list">
 				{families.map(({ family, isPrefix }) => (
-					<ModPickerRow
+					<ModFamilyRow
 						key={family.familyId}
 						family={family}
 						isPrefix={isPrefix}
 						canSlot={isPrefix ? canSlotPrefix : canSlotSuffix}
-						onSlot={onSlotMod}
+						expanded={expandedFamily === family.familyId}
+						onToggle={() =>
+							setExpandedFamily((prev) => (prev === family.familyId ? null : family.familyId))
+						}
+						onSlotTier={onSlotTier}
 					/>
 				))}
 				{families.length === 0 && (

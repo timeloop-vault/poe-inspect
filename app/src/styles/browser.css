@@ -465,14 +465,26 @@ button.card-mod-slot.filled.suffix {
 	font-size: 13px;
 }
 
-/* ── Picker row ───────────────────────────────────────────────────────── */
+/* ── Picker family ────────────────────────────────────────────────────── */
 
-button.picker-row {
+.picker-family {
+	border-radius: 3px;
+}
+
+.picker-family.taken {
+	opacity: 0.35;
+}
+
+.picker-family.disabled:not(.taken) {
+	opacity: 0.5;
+}
+
+button.picker-family-header {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 8px;
 	width: 100%;
-	padding: 6px 8px;
+	padding: 5px 8px;
 	background: rgba(255, 255, 255, 0.02);
 	border: none;
 	border-radius: 3px;
@@ -483,16 +495,8 @@ button.picker-row {
 	cursor: pointer;
 }
 
-button.picker-row:hover:not(:disabled) {
+button.picker-family-header:hover:not(:disabled) {
 	background: rgba(175, 96, 37, 0.1);
-}
-
-button.picker-row.disabled {
-	cursor: default;
-}
-
-button.picker-row.taken {
-	opacity: 0.35;
 }
 
 .picker-slot-badge {
@@ -505,7 +509,6 @@ button.picker-row.taken {
 	font-size: 11px;
 	font-weight: bold;
 	flex-shrink: 0;
-	margin-top: 1px;
 }
 
 .picker-slot-badge.prefix {
@@ -518,44 +521,71 @@ button.picker-row.taken {
 	color: rgb(0, 200, 100);
 }
 
-.picker-mod-info {
-	display: flex;
-	flex-direction: column;
-	gap: 1px;
+.picker-family-stats {
 	flex: 1;
-	min-width: 0;
-}
-
-.picker-mod-header {
-	display: flex;
-	align-items: baseline;
-	gap: 6px;
-}
-
-.picker-mod-name {
-	color: var(--poe-header);
+	color: var(--poe-text);
 	font-size: 13px;
+	line-height: 1.4;
 }
 
-.picker-mod-tier {
-	color: var(--poe-accent);
-	font-size: 11px;
-}
-
-.picker-mod-meta {
+.picker-family-meta {
 	color: var(--poe-text-dim);
 	font-size: 10px;
-	margin-left: auto;
 	white-space: nowrap;
 }
 
-.picker-mod-stats {
-	display: flex;
-	flex-direction: column;
+.picker-expand {
+	color: var(--poe-text-dim);
+	font-size: 10px;
+	width: 14px;
+	text-align: center;
 }
 
-.picker-stat-line {
-	color: var(--poe-text);
+/* ── Expanded tier rows ───────────────────────────────────────────────── */
+
+.picker-tiers {
+	padding: 2px 8px 4px 36px;
+	background: rgba(0, 0, 0, 0.15);
+	border-radius: 0 0 3px 3px;
+}
+
+button.picker-tier-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 3px 4px;
+	background: none;
+	border: none;
+	border-radius: 2px;
+	color: inherit;
+	font-family: inherit;
 	font-size: 12px;
-	line-height: 1.4;
+	text-align: left;
+	cursor: pointer;
+}
+
+button.picker-tier-row:hover:not(:disabled) {
+	background: rgba(175, 96, 37, 0.15);
+}
+
+button.picker-tier-row.ineligible {
+	opacity: 0.3;
+	cursor: default;
+}
+
+.picker-tier-num {
+	color: var(--poe-accent);
+	min-width: 24px;
+}
+
+.picker-tier-values {
+	flex: 1;
+	color: var(--poe-text);
+}
+
+.picker-tier-meta {
+	color: var(--poe-text-dim);
+	font-size: 10px;
+	white-space: nowrap;
 }

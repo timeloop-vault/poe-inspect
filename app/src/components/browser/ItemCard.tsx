@@ -41,7 +41,6 @@ function ModSlot({
 					{isPrefix ? "P" : "S"}
 				</span>
 				<span class="card-mod-tier">T{mod.tier}</span>
-				<span class="card-mod-name">{mod.name}</span>
 			</span>
 			<span class="card-mod-stats">
 				{mod.stats.map((s) => (

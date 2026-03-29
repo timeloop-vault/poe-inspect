@@ -197,19 +197,16 @@ export function useItemBuilder() {
 		[detail, slottedPrefixes, slottedSuffixes, refreshPool],
 	);
 
-	// Slot a mod into the next empty prefix or suffix slot.
-	const slotMod = useCallback(
-		(family: ModFamily, isPrefix: boolean) => {
+	// Internal: slot a specific tier into the next empty slot.
+	const doSlot = useCallback(
+		(family: ModFamily, tier: ModTier, isPrefix: boolean) => {
 			if (!detail) return;
-			const bestTier = family.tiers.find((t) => t.eligible) ?? family.tiers[0];
-			if (!bestTier) return;
-
 			const mod: SlottedMod = {
 				familyId: family.familyId,
-				modId: bestTier.modId,
-				name: bestTier.name,
-				tier: bestTier.tier,
-				stats: bestTier.stats,
+				modId: tier.modId,
+				name: tier.name,
+				tier: tier.tier,
+				stats: tier.stats,
 				isPrefix,
 			};
 
@@ -234,6 +231,23 @@ export function useItemBuilder() {
 			}
 		},
 		[detail, itemLevel, slottedPrefixes, slottedSuffixes, refreshPool],
+	);
+
+	// Slot the best eligible tier from a family.
+	const slotMod = useCallback(
+		(family: ModFamily, isPrefix: boolean) => {
+			const bestTier = family.tiers.find((t) => t.eligible) ?? family.tiers[0];
+			if (bestTier) doSlot(family, bestTier, isPrefix);
+		},
+		[doSlot],
+	);
+
+	// Slot a specific tier from a family.
+	const slotTier = useCallback(
+		(family: ModFamily, tier: ModTier, isPrefix: boolean) => {
+			doSlot(family, tier, isPrefix);
+		},
+		[doSlot],
 	);
 
 	// Unslot a mod by index.
@@ -282,6 +296,7 @@ export function useItemBuilder() {
 		setRarity,
 		setItemLevel: setItemLevelAndRefresh,
 		slotMod,
+		slotTier,
 		unslotMod,
 		clearAllMods,
 	};

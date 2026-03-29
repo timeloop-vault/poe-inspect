@@ -49,7 +49,7 @@ export function BrowserApp() {
 								slottedSuffixCount={builder.slottedSuffixes.filter(Boolean).length}
 								maxPrefixes={builder.maxPrefixes}
 								maxSuffixes={builder.maxSuffixes}
-								onSlotMod={builder.slotMod}
+								onSlotTier={builder.slotTier}
 								isClusterJewel={isClusterJewel}
 							/>
 						)}
