@@ -1,9 +1,9 @@
 import { CardHeader, CardSeparator } from "./ItemCardHeader";
 import type { BaseTypeDetail, BrowserRarity, ModTierStat, SlottedMod } from "./useItemBuilder";
 
+/** Display text for a slotted mod stat (fully formatted with transforms). */
 function formatStat(s: ModTierStat): string {
-	if (s.min === s.max) return s.displayText.replace("#", `${s.min}`);
-	return s.displayText.replace("#", `(${s.min}-${s.max})`);
+	return s.displayText;
 }
 
 function defVal(min: number, max: number): string {

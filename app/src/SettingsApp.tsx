@@ -79,13 +79,15 @@ export function SettingsApp() {
 					</button>
 				))}
 				<div class="settings-nav-spacer" />
-				<button
-					type="button"
-					class="settings-nav-action"
-					onClick={() => invoke("open_browser_window")}
-				>
-					Open PoE Browser
-				</button>
+				{import.meta.env.DEV && (
+					<button
+						type="button"
+						class="settings-nav-action"
+						onClick={() => invoke("open_browser_window")}
+					>
+						Open PoE Browser
+					</button>
+				)}
 			</nav>
 
 			<main class="settings-content">

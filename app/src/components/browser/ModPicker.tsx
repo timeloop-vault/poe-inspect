@@ -1,19 +1,14 @@
 import { useCallback, useRef, useState } from "preact/hooks";
-import type { ModFamily, ModPoolResult, ModTier, ModTierStat } from "./useItemBuilder";
+import type { ModFamily, ModPoolResult, ModTier } from "./useItemBuilder";
 
-function formatStatRange(s: ModTierStat): string {
-	if (s.min === s.max) return s.displayText.replace("#", `${s.min}`);
-	return s.displayText.replace("#", `(${s.min}-${s.max})`);
-}
-
-/** Summary stat line for the family header — uses the best tier's range. */
+/** Family header label: stat template with # placeholder. */
 function familyStatSummary(tier: ModTier): string {
-	return tier.stats.map((s) => formatStatRange(s)).join(", ");
+	return tier.stats.map((s) => s.statTemplate).join(", ");
 }
 
-/** Compact tier range — just the numbers, no template text. */
-function tierValueRange(tier: ModTier): string {
-	return tier.stats.map((s) => (s.min === s.max ? `${s.min}` : `${s.min}-${s.max}`)).join(", ");
+/** Tier row: full formatted display text (transforms applied). */
+function tierDisplayText(tier: ModTier): string {
+	return tier.stats.map((s) => s.displayText).join(", ");
 }
 
 function ModFamilyRow({
@@ -64,7 +59,7 @@ function ModFamilyRow({
 							disabled={!t.eligible || disabled}
 						>
 							<span class="picker-tier-num">T{t.tier}</span>
-							<span class="picker-tier-values">{tierValueRange(t)}</span>
+							<span class="picker-tier-values">{tierDisplayText(t)}</span>
 							<span class="picker-tier-meta">
 								ilvl {t.requiredLevel} &middot; w:{t.spawnWeight}
 							</span>
@@ -108,7 +103,7 @@ export function ModPicker({
 			const bestTier = family.tiers.find((t) => t.eligible) ?? family.tiers[0];
 			if (!bestTier) return false;
 			return bestTier.stats.some(
-				(s) => s.displayText.toLowerCase().includes(q) || s.statId.toLowerCase().includes(q),
+				(s) => s.statTemplate.toLowerCase().includes(q) || s.statId.toLowerCase().includes(q),
 			);
 		},
 		[search],
@@ -130,8 +125,8 @@ export function ModPicker({
 	// Sort by stat description text (not mod name).
 	families.sort((a, b) => {
 		if (a.family.taken !== b.family.taken) return a.family.taken ? 1 : -1;
-		const aText = a.family.tiers[0]?.stats[0]?.displayText ?? "";
-		const bText = b.family.tiers[0]?.stats[0]?.displayText ?? "";
+		const aText = a.family.tiers[0]?.stats[0]?.statTemplate ?? "";
+		const bText = b.family.tiers[0]?.stats[0]?.statTemplate ?? "";
 		return aText.localeCompare(bText);
 	});
 

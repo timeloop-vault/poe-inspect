@@ -254,6 +254,73 @@ impl ReverseIndex {
             .map(|&idx| self.entries[idx].stat_ids.clone())
     }
 
+    /// Format raw stat values into display text using stat description rules.
+    ///
+    /// Given a stat ID and raw GGPK values, finds the matching variant (by
+    /// range conditions), applies forward transforms, and fills the template.
+    /// Returns `None` if no matching entry is found.
+    ///
+    /// For single-stat descriptions, pass `&[value]`.
+    pub fn format_stat_values(&self, stat_id: &str, raw_values: &[i64]) -> Option<String> {
+        for (idx, entry) in self.entries.iter().enumerate() {
+            if !entry.stat_ids.iter().any(|s| s == stat_id) {
+                continue;
+            }
+            if entry.stat_ids.len() != raw_values.len() {
+                continue;
+            }
+
+            // Check range conditions against raw values.
+            let ranges_match = entry
+                .ranges
+                .iter()
+                .zip(raw_values.iter())
+                .all(|(range, &raw)| range.matches(raw));
+            if !ranges_match {
+                continue;
+            }
+
+            // Apply forward transforms.
+            let mut display_values: Vec<f64> = raw_values.iter().map(|&v| v as f64).collect();
+            for transform in &entry.transforms {
+                if transform.stat_index < display_values.len() {
+                    display_values[transform.stat_index] =
+                        forward_transform(&transform.kind, raw_values[transform.stat_index]);
+                }
+            }
+
+            // Find the template key for this entry.
+            let template_key = self
+                .template_map
+                .iter()
+                .find(|(_, indices)| indices.contains(&idx))
+                .map(|(key, _)| key)?;
+
+            // Fill template: replace \x00 placeholders with display values.
+            let mut result = String::new();
+            let mut value_idx = 0;
+            for ch in template_key.chars() {
+                if ch == '\x00' {
+                    if let Some(&val) = display_values.get(value_idx) {
+                        #[expect(clippy::cast_possible_truncation)]
+                        if (val - val.round()).abs() < 0.001 {
+                            result.push_str(&(val as i64).to_string());
+                        } else {
+                            use std::fmt::Write as _;
+                            let _ = write!(result, "{val:.1}");
+                        }
+                        value_idx += 1;
+                    }
+                } else {
+                    result.push(ch);
+                }
+            }
+
+            return Some(result);
+        }
+        None
+    }
+
     /// Merge entries from another parsed stat description file into this index.
     ///
     /// Appends all English variants from `file` as new entries. This is used to
@@ -478,6 +545,69 @@ fn build_regex_pattern(segments: &[Segment]) -> Option<String> {
     }
     pattern.push('$');
     Some(pattern)
+}
+
+/// Apply a forward transform to convert a raw GGPK stat value to display value.
+#[allow(clippy::match_same_arms)] // Groups intentionally separate for readability.
+fn forward_transform(kind: &TransformKind, raw: i64) -> f64 {
+    let v = raw as f64;
+    match kind {
+        TransformKind::Negate => -v,
+        TransformKind::NegateAndDouble => -v * 2.0,
+        TransformKind::Double => v * 2.0,
+
+        TransformKind::MillisecondsToSeconds
+        | TransformKind::MillisecondsToSeconds0dp
+        | TransformKind::MillisecondsToSeconds1dp
+        | TransformKind::MillisecondsToSeconds2dp
+        | TransformKind::MillisecondsToSeconds2dpIfRequired
+        | TransformKind::DivideByOneThousand => v / 1000.0,
+
+        TransformKind::DecisecondsToSeconds
+        | TransformKind::DivideByTen0dp
+        | TransformKind::DivideByTen1dp
+        | TransformKind::DivideByTen1dpIfRequired => v / 10.0,
+
+        TransformKind::PerMinuteToPerSecond
+        | TransformKind::PerMinuteToPerSecond0dp
+        | TransformKind::PerMinuteToPerSecond1dp
+        | TransformKind::PerMinuteToPerSecond2dp
+        | TransformKind::PerMinuteToPerSecond2dpIfRequired => v / 60.0,
+
+        TransformKind::DivideByTwo0dp => v / 2.0,
+        TransformKind::DivideByThree => v / 3.0,
+        TransformKind::DivideByFour => v / 4.0,
+        TransformKind::DivideByFive => v / 5.0,
+        TransformKind::DivideBySix => v / 6.0,
+        TransformKind::DivideByTwelve => v / 12.0,
+        TransformKind::DivideByFifteen0dp => v / 15.0,
+        TransformKind::DivideByTwenty => v / 20.0,
+        TransformKind::DivideByTwentyThenDouble0dp => v / 20.0 * 2.0,
+
+        TransformKind::DivideByOneHundred
+        | TransformKind::DivideByOneHundred2dp
+        | TransformKind::DivideByOneHundred2dpIfRequired => v / 100.0,
+        TransformKind::DivideByOneHundredAndNegate => -v / 100.0,
+
+        TransformKind::TimesOnePointFive => v * 1.5,
+        TransformKind::TimesTwenty => v * 20.0,
+        TransformKind::PlusTwoHundred => v + 200.0,
+        TransformKind::ThirtyPercentOfValue => v * 0.3,
+        TransformKind::SixtyPercentOfValue => v * 0.6,
+        TransformKind::MultiplicativeDamageModifier | TransformKind::OldLeechPercent => v,
+        TransformKind::PermyriadPerMinuteToPercentPerSecond => v / 10000.0 / 60.0,
+        TransformKind::OldLeechPermyriad => v / 100.0,
+        TransformKind::LocationsToMetres => v / 10.0,
+
+        TransformKind::ModValueToItemClass
+        | TransformKind::DisplayIndexableSupport
+        | TransformKind::DisplayIndexableSkill
+        | TransformKind::PassiveHash
+        | TransformKind::AfflictionRewardType
+        | TransformKind::TreeExpansionJewelPassive
+        | TransformKind::WeaponTreeUniqueBaseTypeName
+        | TransformKind::Other(_) => v,
+    }
 }
 
 /// Reverse a transform to recover the raw stat value from a displayed value.

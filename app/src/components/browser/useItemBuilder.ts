@@ -44,6 +44,9 @@ export interface ModTierStat {
 	statId: string;
 	min: number;
 	max: number;
+	/** Template with # placeholder (e.g., "#% increased Physical Damage"). */
+	statTemplate: string;
+	/** Formatted text for the min value (e.g., "170% increased Physical Damage"). */
 	displayText: string;
 }
 

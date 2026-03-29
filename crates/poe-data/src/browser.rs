@@ -192,11 +192,15 @@ pub struct ModTier {
 pub struct ModTierStat {
     /// Stat ID (e.g., `base_maximum_life`).
     pub stat_id: String,
-    /// Minimum roll value.
+    /// Raw minimum roll value (GGPK).
     pub min: i32,
-    /// Maximum roll value.
+    /// Raw maximum roll value (GGPK).
     pub max: i32,
-    /// Display template (e.g., `"+# to maximum Life"`).
+    /// Stat template with `#` placeholder (e.g., `"#% increased Physical Damage"`).
+    /// Used as the family header label.
+    pub stat_template: String,
+    /// Formatted display text for the min value with transforms applied
+    /// (e.g., `"170% increased Physical Damage"`). Used in tier rows.
     pub display_text: String,
 }
 
@@ -342,8 +346,11 @@ impl GameData {
             })
             .collect();
 
-        // Collect eligible mods grouped by (family, generation_type).
-        let mut family_groups: HashMap<(u64, u32), Vec<EligibleMod>> = HashMap::new();
+        // Group key: (family, generation_type, sorted stat_keys).
+        // The stat_keys ensure pure mods (e.g., "% increased Physical Damage")
+        // and hybrid mods (e.g., "% increased Phys + Accuracy") separate even
+        // when they share a mod family.
+        let mut family_groups: HashMap<(u64, u32, Vec<u64>), Vec<EligibleMod>> = HashMap::new();
 
         for m in &self.mods {
             // Filter: must be prefix or suffix.
@@ -387,8 +394,12 @@ impl GameData {
                 .filter_map(|&fk| self.tag_id(fk).map(String::from))
                 .collect();
 
+            // Build stat key signature: sorted list of active stat FKs.
+            let mut stat_sig: Vec<u64> = m.stat_keys.iter().flatten().copied().collect();
+            stat_sig.sort_unstable();
+
             family_groups
-                .entry((family_fk, m.generation_type))
+                .entry((family_fk, m.generation_type, stat_sig))
                 .or_default()
                 .push(EligibleMod {
                     mod_id: m.id.clone(),
@@ -407,7 +418,7 @@ impl GameData {
         let mut available_prefix_count = 0u32;
         let mut available_suffix_count = 0u32;
 
-        for ((family_fk, gen_type), mut mods) in family_groups {
+        for ((family_fk, gen_type, _stat_sig), mut mods) in family_groups {
             // Sort by level descending (T1 = highest level).
             mods.sort_by(|a, b| b.level.cmp(&a.level).then_with(|| a.mod_id.cmp(&b.mod_id)));
 
@@ -524,8 +535,14 @@ impl GameData {
     }
 
     /// Extract stat info for a mod tier.
+    ///
+    /// `display_text` is the fully formatted display text for the min value
+    /// (e.g., "170% increased Physical Damage") using forward transforms from
+    /// the stat description system. Falls back to the raw stat template if
+    /// no reverse index is available.
     fn extract_mod_tier_stats(&self, m: &poe_dat::tables::ModRow) -> Vec<ModTierStat> {
         let mut stats = Vec::new();
+        let ri = self.reverse_index.as_ref();
         for (i, stat_fk) in m.stat_keys.iter().enumerate() {
             let Some(&fk) = stat_fk.as_ref() else {
                 continue;
@@ -535,15 +552,23 @@ impl GameData {
                 continue;
             }
             if let Some(stat_id) = self.stat_id(fk) {
-                let display_text = self
+                // Stat template: "#% increased Physical Damage" (with # placeholder).
+                let stat_template = self
                     .templates_for_stat(stat_id)
                     .and_then(|ts| ts.first())
                     .cloned()
                     .unwrap_or_else(|| stat_id.to_string());
+
+                // Forward-format for the min value (applies negate etc.).
+                let display_text = ri
+                    .and_then(|ri| ri.format_stat_values(stat_id, &[i64::from(min)]))
+                    .unwrap_or_else(|| stat_template.replace('#', &min.to_string()));
+
                 stats.push(ModTierStat {
                     stat_id: stat_id.to_string(),
                     min,
                     max,
+                    stat_template,
                     display_text,
                 });
             }
@@ -921,17 +946,23 @@ mod tests {
             })
             .unwrap();
 
-        // At least some stats should have resolved display text (not just stat_id).
-        let has_template = result
+        let all_stats: Vec<_> = result
             .prefixes
             .iter()
             .chain(result.suffixes.iter())
             .flat_map(|f| &f.tiers)
             .flat_map(|t| &t.stats)
-            .any(|s| s.display_text.contains('#'));
+            .collect();
+
+        // stat_template should have '#' placeholders.
+        let has_template = all_stats.iter().any(|s| s.stat_template.contains('#'));
+        assert!(has_template, "stat_template should contain '#' placeholder");
+
+        // display_text should be fully formatted (no '#').
+        let has_placeholder = all_stats.iter().any(|s| s.display_text.contains('#'));
         assert!(
-            has_template,
-            "At least some stats should have template display text with '#' placeholder"
+            !has_placeholder,
+            "display_text should be fully formatted, no '#'"
         );
     }
 
