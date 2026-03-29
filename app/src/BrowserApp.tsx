@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { loadGeneral } from "./store";
 
 // ── Types mirroring Rust browser module ────────────────────────────────────
 
@@ -445,11 +446,19 @@ export function BrowserApp() {
 		}).then(setPool);
 	}, [detail, itemLevel]);
 
-	// Set background for this window.
+	const [uiScale, setUiScale] = useState(100);
+
+	// Set background + load UI scale from settings store.
 	useEffect(() => {
 		document.documentElement.style.background = "rgba(12, 10, 8, 1)";
 		document.body.style.background = "rgba(12, 10, 8, 1)";
+		loadGeneral().then((s) => setUiScale(s.uiScale));
 	}, []);
+
+	// Apply zoom for global scaling (same as settings window).
+	useEffect(() => {
+		document.documentElement.style.zoom = uiScale !== 100 ? `${uiScale / 100}` : "";
+	}, [uiScale]);
 
 	return (
 		<div class="browser-layout">
