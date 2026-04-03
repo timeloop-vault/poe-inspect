@@ -1,6 +1,6 @@
 /// Generate TypeScript type definitions from Rust types via ts-rs.
 ///
-/// Usage: generate-ts-types -o <output_dir>
+/// Usage: generate-ts-types -o <`output_dir`>
 ///
 /// Replaces the old `cargo test --features ts -- export_bindings` pattern.
 /// All types with `#[derive(TS)]` are exported to the output directory.
@@ -32,7 +32,8 @@ fn main() {
 
     // Export root types with all dependencies.
     // export_all() transitively exports all referenced types.
-    let exports: Vec<(&str, Box<dyn Fn() -> Result<(), ts_rs::ExportError>>)> = vec![
+    type ExportFn = Box<dyn Fn() -> Result<(), ts_rs::ExportError>>;
+    let exports: Vec<(&str, ExportFn)> = vec![
         // poe-item: ResolvedItem pulls in all item types
         ("ResolvedItem", Box::new(|| poe_item::types::ResolvedItem::export_all(&cfg))),
         // poe-eval: ItemEvaluation pulls in all eval types
