@@ -54,8 +54,14 @@ echo ""
 
 ART_DIR="$REPO_ROOT/app/src/assets/uniques"
 UNIQUE_ITEMS="$DATA_DIR/unique_items.json"
+REVERSE_INDEX="$DATA_DIR/reverse_index.json"
+MOD_FAMILIES="$DATA_DIR/mod_families.txt"
 
-"$EXTRACT_BIN" -p "$POE_PATH" -o "$DATA_DIR" --art-dir "$ART_DIR" --unique-items "$UNIQUE_ITEMS"
+"$EXTRACT_BIN" -p "$POE_PATH" -o "$DATA_DIR" \
+  --art-dir "$ART_DIR" \
+  --unique-items "$UNIQUE_ITEMS" \
+  --reverse-index "$REVERSE_INDEX" \
+  --mod-families "$MOD_FAMILIES"
 
 echo ""
 echo "Next steps:"

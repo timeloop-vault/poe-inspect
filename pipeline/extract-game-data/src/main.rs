@@ -64,6 +64,16 @@ struct Args {
     /// Fetches the trade API, cross-references with GGPK art, writes enriched JSON.
     #[arg(long, value_name = "UNIQUE_ITEMS_JSON")]
     unique_items: Option<PathBuf>,
+
+    /// Output path for `reverse_index.json`.
+    /// Extracts stat description files from GGPK, builds the reverse lookup index.
+    #[arg(long, value_name = "REVERSE_INDEX_JSON")]
+    reverse_index: Option<PathBuf>,
+
+    /// Output path for `mod_families.txt`.
+    /// Dumps sorted mod family IDs from the Mods table.
+    #[arg(long, value_name = "MOD_FAMILIES_TXT")]
+    mod_families: Option<PathBuf>,
 }
 
 fn main() {
@@ -118,6 +128,18 @@ fn main() {
     if let Some(ref unique_items_path) = args.unique_items {
         println!("\n--- Generating unique_items.json ---");
         generate_unique_items(unique_items_path, &art_map);
+    }
+
+    // Build reverse index if --reverse-index is specified
+    if let Some(ref ri_path) = args.reverse_index {
+        println!("\n--- Building reverse index ---");
+        build_reverse_index(&bundles, ri_path);
+    }
+
+    // Dump mod families if --mod-families is specified
+    if let Some(ref mf_path) = args.mod_families {
+        println!("\n--- Dumping mod families ---");
+        dump_mod_families(&output_dir, mf_path);
     }
 
     println!("\nDone.");
@@ -362,6 +384,113 @@ fn generate_unique_items(output_path: &Path, art_map: &HashMap<String, String>) 
     println!(
         "  Wrote {} unique items ({with_art} with art) to {}",
         uniques.len(),
+        output_path.display()
+    );
+}
+
+// ── Stat description GGPK paths ────────────────────────────────────────────
+
+/// Base + additional stat description files to merge into the reverse index.
+const STAT_DESC_FILES: &[&str] = &[
+    "metadata/statdescriptions/stat_descriptions.txt",
+    "metadata/statdescriptions/map_stat_descriptions.txt",
+    "metadata/statdescriptions/atlas_stat_descriptions.txt",
+    "metadata/statdescriptions/sanctum_relic_stat_descriptions.txt",
+    "metadata/statdescriptions/heist_equipment_stat_descriptions.txt",
+    "metadata/statdescriptions/expedition_relic_stat_descriptions.txt",
+];
+
+/// Extract stat description files from GGPK, parse them, build the reverse
+/// index, and save as JSON. Replaces the old `save_reverse_index` test.
+fn build_reverse_index(bundles: &BundleReader, output_path: &Path) {
+    use poe_dat::stat_desc;
+
+    let mut index: Option<stat_desc::ReverseIndex> = None;
+
+    for ggpk_path in STAT_DESC_FILES {
+        print!("  {ggpk_path:<65}");
+        let bytes = match bundles.bytes(ggpk_path) {
+            Ok(b) => b,
+            Err(e) => {
+                println!(" SKIP ({e:?})");
+                continue;
+            }
+        };
+
+        // Stat desc files are UTF-16LE in the GGPK — convert to UTF-8.
+        let utf16: Vec<u16> = bytes
+            .chunks_exact(2)
+            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .collect();
+        // Strip BOM if present (U+FEFF)
+        let utf16 = if utf16.first() == Some(&0xFEFF) {
+            &utf16[1..]
+        } else {
+            &utf16
+        };
+        let text = String::from_utf16_lossy(utf16);
+
+        let file = match stat_desc::parse(&text) {
+            Ok(f) => f,
+            Err(e) => {
+                println!(" PARSE ERROR: {e}");
+                continue;
+            }
+        };
+
+        if let Some(ref mut idx) = index {
+            let before = idx.len();
+            idx.merge(&file);
+            println!(" +{} (total: {})", idx.len() - before, idx.len());
+        } else {
+            let idx = stat_desc::ReverseIndex::from_file(&file);
+            println!(" {} patterns", idx.len());
+            index = Some(idx);
+        }
+    }
+
+    let Some(index) = index else {
+        eprintln!("  ERROR: no stat description files found in GGPK");
+        return;
+    };
+
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+    index
+        .save(output_path)
+        .expect("failed to save reverse index");
+
+    let size = std::fs::metadata(output_path)
+        .map(|m| m.len())
+        .unwrap_or(0);
+    println!(
+        "  Wrote {} patterns ({} bytes) to {}",
+        index.len(),
+        size,
+        output_path.display()
+    );
+}
+
+/// Dump sorted mod family IDs from the extracted Mods table.
+/// Replaces the old `dump_mod_families_txt` test.
+fn dump_mod_families(dat_dir: &Path, output_path: &Path) {
+    let Some(dat) = load_dat(dat_dir, "modfamily") else {
+        eprintln!("  ERROR: modfamily.datc64 not found");
+        return;
+    };
+
+    let rows = tables::extract_mod_families(&dat);
+    let mut names: Vec<&str> = rows.iter().map(|f| f.id.as_str()).collect();
+    names.sort_unstable();
+
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+    std::fs::write(output_path, names.join("\n")).expect("failed to write mod families");
+    println!(
+        "  Wrote {} families to {}",
+        names.len(),
         output_path.display()
     );
 }
