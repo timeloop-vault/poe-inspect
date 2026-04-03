@@ -284,10 +284,14 @@ export function useTradeFilters(
 	// Find the rarity filter
 	const rarityFilter = filterMap.get("rarity") ?? null;
 
-	// Translate state into TradeFilterConfig for Rust
-	const filterConfig: TradeFilterConfig | null = editMode
-		? buildFilterConfig(typeScope, statOverrides, filterOverrides, filterMap, selectedUniqueName)
-		: null;
+	// Translate state into TradeFilterConfig for Rust.
+	// Build a config when in edit mode OR when a unique name is selected
+	// (disambiguation override must reach the query builder even without edit mode).
+	const hasUniqueOverride = selectedUniqueName != null;
+	const filterConfig: TradeFilterConfig | null =
+		editMode || hasUniqueOverride
+			? buildFilterConfig(typeScope, statOverrides, filterOverrides, filterMap, selectedUniqueName)
+			: null;
 
 	const needsDisambiguation = uniqueCandidates.length > 0 && selectedUniqueName === null;
 
