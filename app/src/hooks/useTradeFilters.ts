@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import type { EditFilter } from "../generated/EditFilter";
 import type { TradeEditSchema } from "../generated/TradeEditSchema";
+import type { UniqueCandidate } from "../generated/UniqueCandidate";
 import type {
 	MappedStat,
 	QueryBuildResult,
@@ -55,8 +56,8 @@ export interface TradeFilters {
 	rarityFilter: EditFilter | null;
 	/** Whether an unidentified unique needs the user to pick which unique it is. */
 	needsDisambiguation: boolean;
-	/** Possible unique names for this base type (empty when not applicable). */
-	uniqueCandidates: string[];
+	/** Possible uniques for this base type (empty when not applicable). */
+	uniqueCandidates: UniqueCandidate[];
 	/** The user's selected unique name (null = not yet selected). */
 	selectedUniqueName: string | null;
 	/** Set the selected unique name for disambiguation. */
@@ -74,7 +75,7 @@ export function useTradeFilters(
 	itemText: string,
 	config: TradeQueryConfig,
 	autoEdit?: boolean,
-	itemUniqueCandidates?: string[],
+	itemUniqueCandidates?: UniqueCandidate[],
 ): TradeFilters {
 	const [editMode, setEditMode] = useState(false);
 	const [mappedStats, setMappedStats] = useState<MappedStat[]>([]);
@@ -83,7 +84,7 @@ export function useTradeFilters(
 	const [socketInfo, setSocketInfo] = useState<SocketInfo | null>(null);
 	const [quality, setQuality] = useState<number | null>(null);
 	const [pendingAutoEdit, setPendingAutoEdit] = useState(false);
-	const [uniqueCandidates, setUniqueCandidates] = useState<string[]>([]);
+	const [uniqueCandidates, setUniqueCandidates] = useState<UniqueCandidate[]>([]);
 	const [selectedUniqueName, setSelectedUniqueName] = useState<string | null>(null);
 
 	// Schema-driven filter state (moved from TradePanel)

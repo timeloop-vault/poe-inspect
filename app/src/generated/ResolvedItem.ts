@@ -7,6 +7,7 @@ import type { ResolvedHeader } from "./ResolvedHeader";
 import type { ResolvedMod } from "./ResolvedMod";
 import type { SocketInfo } from "./SocketInfo";
 import type { StatusKind } from "./StatusKind";
+import type { UniqueCandidate } from "./UniqueCandidate";
 
 /**
  * Fully resolved item — output of Pass 2 (resolver).
@@ -79,7 +80,7 @@ pseudoMods: Array<ResolvedMod>,
  * For unidentified unique items: possible unique names sharing this base type.
  * Empty for identified items or non-uniques.
  */
-uniqueCandidates: Array<string>, 
+uniqueCandidates: Array<UniqueCandidate>, 
 /**
  * Remaining unclassified generic sections.
  */

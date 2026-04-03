@@ -397,10 +397,23 @@ pub struct ResolvedItem {
     /// For unidentified unique items: possible unique names sharing this base type.
     /// Empty for identified items or non-uniques.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
-    pub unique_candidates: Vec<String>,
+    pub unique_candidates: Vec<UniqueCandidate>,
     /// Remaining unclassified generic sections.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
     pub unclassified_sections: Vec<Vec<String>>,
+}
+
+/// A candidate unique item for disambiguation (unidentified unique picker).
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+#[cfg_attr(feature = "ts", ts(export))]
+pub struct UniqueCandidate {
+    /// Unique item name (e.g., `"Headhunter"`).
+    pub name: String,
+    /// Art filename (e.g., `"headhunter.png"`). Empty if no art available.
+    pub art: String,
 }
 
 /// Gem-specific structured data extracted from generic sections.

@@ -15,7 +15,7 @@ use regex::Regex;
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
     ModSource, ModTierKind, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
-    ResolvedStatLine, Section, SocketInfo, StatusKind, VaalGemData, ValueRange,
+    ResolvedStatLine, Section, SocketInfo, StatusKind, UniqueCandidate, VaalGemData, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -200,7 +200,10 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         game_data
             .uniques_for_base_type(&header.base_type)
             .iter()
-            .map(|u| u.name.clone())
+            .map(|u| UniqueCandidate {
+                name: u.name.clone(),
+                art: u.art.clone(),
+            })
             .collect()
     } else {
         Vec::new()

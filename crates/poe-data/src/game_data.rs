@@ -26,6 +26,8 @@ use crate::domain::{self, LOCAL_STAT_NONLOCAL_FALLBACKS};
 pub struct UniqueItemEntry {
     pub name: String,
     pub base_type: String,
+    /// Art filename (e.g., `"headhunter.png"`). Empty if no art available.
+    pub art: String,
 }
 
 // ── GameData ────────────────────────────────────────────────────────────────
@@ -221,12 +223,18 @@ impl GameData {
                 obj.get("name").and_then(serde_json::Value::as_str),
                 obj.get("base_type").and_then(serde_json::Value::as_str),
             ) {
+                let art = obj
+                    .get("art")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("")
+                    .to_string();
                 by_base
                     .entry(base_type.to_string())
                     .or_default()
                     .push(UniqueItemEntry {
                         name: name.to_string(),
                         base_type: base_type.to_string(),
+                        art,
                     });
                 count += 1;
             }

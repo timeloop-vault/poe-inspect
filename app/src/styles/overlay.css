@@ -973,6 +973,9 @@ body,
 }
 
 .unique-picker-item {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 	padding: 3px 8px;
 	background: rgba(255, 255, 255, 0.04);
 	border: 1px solid var(--poe-border);
@@ -982,6 +985,13 @@ body,
 	font-size: 11px;
 	cursor: pointer;
 	transition: background 0.15s, border-color 0.15s;
+}
+
+.unique-picker-art {
+	width: 24px;
+	height: 24px;
+	object-fit: contain;
+	image-rendering: pixelated;
 }
 
 .unique-picker-item:hover {

@@ -611,7 +611,9 @@ fn unidentified_unique_header() {
         item.unique_candidates.len()
     );
     assert!(
-        item.unique_candidates.contains(&"Headhunter".to_string()),
+        item.unique_candidates
+            .iter()
+            .any(|c| c.name == "Headhunter"),
         "candidates should include Headhunter"
     );
 }
