@@ -1,6 +1,6 @@
+use crate::commands::inspect::ItemPayload;
 use crate::game_data::GameDataState;
 use crate::ProfileState;
-use crate::commands::inspect::ItemPayload;
 
 /// Built-in default profile — compiled into the binary, can never be deleted.
 const DEFAULT_PROFILE_JSON: &str = include_str!("../../data/profiles/generic.json");
@@ -97,7 +97,10 @@ pub(crate) fn get_predicate_schema() -> Vec<poe_eval::PredicateSchema> {
 /// Return suggestion values for a given data source.
 /// Used by the profile editor for autocomplete on text fields.
 #[tauri::command]
-pub(crate) fn get_suggestions(source: String, state: tauri::State<'_, GameDataState>) -> Vec<String> {
+pub(crate) fn get_suggestions(
+    source: String,
+    state: tauri::State<'_, GameDataState>,
+) -> Vec<String> {
     let gd = &state.0;
     match source.as_str() {
         "item_classes" => {

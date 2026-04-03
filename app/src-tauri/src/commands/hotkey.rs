@@ -7,9 +7,9 @@ use tauri_plugin_global_shortcut::ShortcutState;
 use crate::commands::chat_macro::execute_chat_macro;
 use crate::commands::inspect::{handle_inspect, handle_inspect_with_mode};
 use crate::windows::show_settings;
-use crate::{ChatMacroConfig, ChatMacroState, HotkeyState};
 #[cfg(not(target_os = "windows"))]
 use crate::PoeFocusGate;
+use crate::{ChatMacroConfig, ChatMacroState, HotkeyState};
 
 /// Global shortcut config — only inspect and settings are registered as global
 /// shortcuts. Dismiss is handled at the overlay window level to avoid consuming

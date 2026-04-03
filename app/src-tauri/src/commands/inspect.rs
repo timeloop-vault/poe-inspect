@@ -1,11 +1,9 @@
 use tauri::{Emitter, Manager};
 
-use crate::game_data::GameDataState;
-use crate::windows::{
-    get_cursor_position, setup_fullscreen_overlay, OverlayPosition,
-};
-use crate::ProfileState;
 use crate::clipboard_acquire::acquire_clipboard;
+use crate::game_data::GameDataState;
+use crate::windows::{get_cursor_position, setup_fullscreen_overlay, OverlayPosition};
+use crate::ProfileState;
 
 /// Combined frontend payload: item display data + evaluation results.
 /// Owned by the app — this is orchestration, not domain logic.

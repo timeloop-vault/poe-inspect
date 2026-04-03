@@ -248,7 +248,9 @@ pub(crate) fn get_listing_statuses() -> Vec<poe_trade::ListingStatus> {
 
 /// Fetch the list of active leagues from GGG.
 #[tauri::command]
-pub(crate) async fn fetch_leagues(trade: tauri::State<'_, TradeState>) -> Result<LeagueList, String> {
+pub(crate) async fn fetch_leagues(
+    trade: tauri::State<'_, TradeState>,
+) -> Result<LeagueList, String> {
     let mut client = trade.client.lock().await;
     client.fetch_leagues().await.map_err(|e| e.to_string())
 }

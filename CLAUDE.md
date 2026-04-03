@@ -112,9 +112,11 @@ This is a standalone binary (not test-based). Root types in `poe-item`, `poe-eva
 
 ### Pre-commit checklist (MANDATORY before every commit)
 Run all of these and fix any errors before committing. A pre-commit hook enforces this automatically.
-1. `cargo fmt` — format all Rust code
+1. `cargo fmt` — format all Rust code (workspace + all excluded crates)
 2. `cargo clippy --workspace --tests` — zero warnings policy
 3. `cargo clippy --manifest-path app/src-tauri/Cargo.toml --tests` — Tauri app (excluded from workspace)
+4. `cargo clippy --manifest-path pipeline/extract-game-data/Cargo.toml` — pipeline tool
+5. `cargo clippy --manifest-path pipeline/generate-ts-types/Cargo.toml` — pipeline tool
 4. `cd app && npx tsc --noEmit` — TypeScript strict type checking
 5. `cd app && npx biome check --write --unsafe .` — format + lint frontend
 

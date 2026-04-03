@@ -10,6 +10,18 @@ cargo fmt --check 2>&1 || {
     echo "ERROR: cargo fmt check failed. Run 'cargo fmt' and re-stage."
     exit 1
 }
+cargo fmt --check --manifest-path "$REPO_ROOT/app/src-tauri/Cargo.toml" 2>&1 || {
+    echo "ERROR: cargo fmt check failed in app/src-tauri. Run 'cargo fmt' and re-stage."
+    exit 1
+}
+cargo fmt --check --manifest-path "$REPO_ROOT/pipeline/extract-game-data/Cargo.toml" 2>&1 || {
+    echo "ERROR: cargo fmt check failed in pipeline/extract-game-data. Run 'cargo fmt' and re-stage."
+    exit 1
+}
+cargo fmt --check --manifest-path "$REPO_ROOT/pipeline/generate-ts-types/Cargo.toml" 2>&1 || {
+    echo "ERROR: cargo fmt check failed in pipeline/generate-ts-types. Run 'cargo fmt' and re-stage."
+    exit 1
+}
 
 echo "=== pre-commit: cargo clippy (workspace) ==="
 cargo clippy --workspace --tests -- -D warnings 2>&1 || {
@@ -20,6 +32,18 @@ cargo clippy --workspace --tests -- -D warnings 2>&1 || {
 echo "=== pre-commit: cargo clippy (tauri app) ==="
 cargo clippy --manifest-path "$REPO_ROOT/app/src-tauri/Cargo.toml" --tests -- -D warnings 2>&1 || {
     echo "ERROR: clippy warnings in tauri app. Fix them before committing."
+    exit 1
+}
+
+echo "=== pre-commit: cargo clippy (pipeline: extract-game-data) ==="
+cargo clippy --manifest-path "$REPO_ROOT/pipeline/extract-game-data/Cargo.toml" -- -D warnings 2>&1 || {
+    echo "ERROR: clippy warnings in extract-game-data. Fix them before committing."
+    exit 1
+}
+
+echo "=== pre-commit: cargo clippy (pipeline: generate-ts-types) ==="
+cargo clippy --manifest-path "$REPO_ROOT/pipeline/generate-ts-types/Cargo.toml" -- -D warnings 2>&1 || {
+    echo "ERROR: clippy warnings in generate-ts-types. Fix them before committing."
     exit 1
 }
 

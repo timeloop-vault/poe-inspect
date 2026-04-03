@@ -95,9 +95,7 @@ fn main() {
             .paths
             .iter()
             .filter(|p| {
-                p.starts_with("data/")
-                    && p.ends_with(".datc64")
-                    && p.matches('/').count() == 1
+                p.starts_with("data/") && p.ends_with(".datc64") && p.matches('/').count() == 1
             })
             .filter_map(|p| {
                 p.strip_prefix("data/")
@@ -245,7 +243,13 @@ fn extract_unique_art(
         // Derive a filesystem-safe filename from the unique name
         let safe_name: String = name
             .chars()
-            .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { '_' })
+            .map(|c| {
+                if c.is_alphanumeric() {
+                    c.to_ascii_lowercase()
+                } else {
+                    '_'
+                }
+            })
             .collect();
         let png_filename = format!("{safe_name}.png");
 
@@ -286,9 +290,7 @@ fn extract_unique_art(
         eprintln!("  ... and {} more errors", errors - 5);
     }
 
-    println!(
-        "\n  Art extracted: {extracted}, Skipped (alt art): {skipped}, Errors: {errors}"
-    );
+    println!("\n  Art extracted: {extracted}, Skipped (alt art): {skipped}, Errors: {errors}");
 
     name_to_art
 }
@@ -461,9 +463,7 @@ fn build_reverse_index(bundles: &BundleReader, output_path: &Path) {
         .save(output_path)
         .expect("failed to save reverse index");
 
-    let size = std::fs::metadata(output_path)
-        .map(|m| m.len())
-        .unwrap_or(0);
+    let size = std::fs::metadata(output_path).map(|m| m.len()).unwrap_or(0);
     println!(
         "  Wrote {} patterns ({} bytes) to {}",
         index.len(),
@@ -555,8 +555,7 @@ fn dds_to_png(dds_bytes: &[u8], out_path: &Path) -> Result<(), String> {
     // Write PNG
     let img = image::RgbaImage::from_raw(width, height, rgba)
         .ok_or_else(|| "failed to create image buffer".to_string())?;
-    img.save(out_path)
-        .map_err(|e| format!("PNG write: {e}"))?;
+    img.save(out_path).map_err(|e| format!("PNG write: {e}"))?;
 
     Ok(())
 }

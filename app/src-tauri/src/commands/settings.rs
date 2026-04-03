@@ -3,8 +3,8 @@ use std::sync::atomic::Ordering;
 use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 
-use crate::{PoeFocusGate, StashScrollState};
 use crate::stash_scroll;
+use crate::{PoeFocusGate, StashScrollState};
 
 /// Get the current autostart state.
 #[tauri::command]

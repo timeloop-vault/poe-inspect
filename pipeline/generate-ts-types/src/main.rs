@@ -18,6 +18,17 @@ struct Args {
     output: PathBuf,
 }
 
+/// Export a single root type, counting successes/errors.
+fn export<T: TS + 'static>(name: &str, cfg: &Config, count: &mut u32, errors: &mut u32) {
+    match T::export_all(cfg) {
+        Ok(()) => *count += 1,
+        Err(e) => {
+            eprintln!("  ERROR exporting {name}: {e}");
+            *errors += 1;
+        }
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -30,56 +41,39 @@ fn main() {
     let mut count = 0u32;
     let mut errors = 0u32;
 
-    // Export root types with all dependencies.
-    // export_all() transitively exports all referenced types.
-    type ExportFn = Box<dyn Fn() -> Result<(), ts_rs::ExportError>>;
-    let exports: Vec<(&str, ExportFn)> = vec![
-        // poe-item: ResolvedItem pulls in all item types
-        ("ResolvedItem", Box::new(|| poe_item::types::ResolvedItem::export_all(&cfg))),
-        // poe-eval: ItemEvaluation pulls in all eval types
-        ("ItemEvaluation", Box::new(|| poe_eval::ItemEvaluation::export_all(&cfg))),
-        // poe-trade: root types for trade query + edit schema
-        ("QueryBuildResult", Box::new(|| poe_trade::QueryBuildResult::export_all(&cfg))),
-        ("TradeSearchBody", Box::new(|| poe_trade::TradeSearchBody::export_all(&cfg))),
-        ("TradeFilterConfig", Box::new(|| poe_trade::TradeFilterConfig::export_all(&cfg))),
-        ("TradeQueryConfig", Box::new(|| poe_trade::TradeQueryConfig::export_all(&cfg))),
-        ("PriceCheckResult", Box::new(|| poe_trade::PriceCheckResult::export_all(&cfg))),
-        ("LeagueList", Box::new(|| poe_trade::LeagueList::export_all(&cfg))),
-        ("ListingStatus", Box::new(|| poe_trade::ListingStatus::export_all(&cfg))),
-        // poe-trade: filter schema types
-        ("TradeEditSchema", Box::new(|| poe_trade::filter_schema::TradeEditSchema::export_all(&cfg))),
-        // poe-eval: profile/rule editor types
-        ("Profile", Box::new(|| poe_eval::Profile::export_all(&cfg))),
-        ("PredicateSchema", Box::new(|| poe_eval::PredicateSchema::export_all(&cfg))),
-        // poe-data: stat suggestions
-        ("StatSuggestion", Box::new(|| poe_data::StatSuggestion::export_all(&cfg))),
-    ];
-
-    for (name, export_fn) in &exports {
-        match export_fn() {
-            Ok(()) => count += 1,
-            Err(e) => {
-                eprintln!("  ERROR exporting {name}: {e}");
-                errors += 1;
-            }
-        }
-    }
+    // poe-item: ResolvedItem pulls in all item types
+    export::<poe_item::types::ResolvedItem>("ResolvedItem", &cfg, &mut count, &mut errors);
+    // poe-eval: ItemEvaluation + Profile + PredicateSchema
+    export::<poe_eval::ItemEvaluation>("ItemEvaluation", &cfg, &mut count, &mut errors);
+    export::<poe_eval::Profile>("Profile", &cfg, &mut count, &mut errors);
+    export::<poe_eval::PredicateSchema>("PredicateSchema", &cfg, &mut count, &mut errors);
+    // poe-trade: query + config + results
+    export::<poe_trade::QueryBuildResult>("QueryBuildResult", &cfg, &mut count, &mut errors);
+    export::<poe_trade::TradeSearchBody>("TradeSearchBody", &cfg, &mut count, &mut errors);
+    export::<poe_trade::TradeFilterConfig>("TradeFilterConfig", &cfg, &mut count, &mut errors);
+    export::<poe_trade::TradeQueryConfig>("TradeQueryConfig", &cfg, &mut count, &mut errors);
+    export::<poe_trade::PriceCheckResult>("PriceCheckResult", &cfg, &mut count, &mut errors);
+    export::<poe_trade::LeagueList>("LeagueList", &cfg, &mut count, &mut errors);
+    export::<poe_trade::ListingStatus>("ListingStatus", &cfg, &mut count, &mut errors);
+    // poe-trade: filter schema
+    export::<poe_trade::filter_schema::TradeEditSchema>(
+        "TradeEditSchema",
+        &cfg,
+        &mut count,
+        &mut errors,
+    );
+    // poe-data: stat suggestions
+    export::<poe_data::StatSuggestion>("StatSuggestion", &cfg, &mut count, &mut errors);
 
     // Count actual .ts files written (export_all writes dependencies too)
     let ts_files = std::fs::read_dir(&args.output)
         .map(|entries| {
             entries
                 .filter_map(Result::ok)
-                .filter(|e| {
-                    e.path()
-                        .extension()
-                        .is_some_and(|ext| ext == "ts")
-                })
+                .filter(|e| e.path().extension().is_some_and(|ext| ext == "ts"))
                 .count()
         })
         .unwrap_or(0);
 
-    println!(
-        "  Exported {count} root types ({ts_files} .ts files written), {errors} errors"
-    );
+    println!("  Exported {count} root types ({ts_files} .ts files written), {errors} errors");
 }
