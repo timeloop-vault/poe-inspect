@@ -577,6 +577,32 @@ fn unidentified_flag() {
         item.explicits.is_empty(),
         "unidentified item should have no explicits"
     );
+    // Unidentified rare: name1 is the base type, not the item name.
+    assert_eq!(item.header.base_type, "Vaal Axe");
+    assert!(
+        item.header.name.is_none(),
+        "unidentified item should have no name"
+    );
+}
+
+#[test]
+fn unidentified_unique_header() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("unique-belt-unidentified.txt", &gd);
+    assert!(item.is_unidentified);
+    assert_eq!(item.header.rarity, Rarity::Unique);
+    // Unidentified unique: only the base type is visible, not the unique name.
+    assert_eq!(item.header.base_type, "Leather Belt");
+    assert!(
+        item.header.name.is_none(),
+        "unidentified unique should have no name"
+    );
+    assert!(
+        item.explicits.is_empty(),
+        "unidentified item should have no explicits"
+    );
+    // Implicit should still be parsed.
+    assert_eq!(item.implicits.len(), 1);
 }
 
 // ─── Divination card ─────────────────────────────────────────────────────────

@@ -227,12 +227,25 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
 
 fn resolve_header(header: &Header, game_data: &GameData) -> ResolvedHeader {
     match header.rarity {
-        Rarity::Rare | Rarity::Unique => ResolvedHeader {
-            item_class: header.item_class.clone(),
-            rarity: header.rarity,
-            name: Some(header.name1.clone()),
-            base_type: header.name2.clone().unwrap_or_default(),
-        },
+        Rarity::Rare | Rarity::Unique => {
+            if let Some(ref base_type) = header.name2 {
+                // Identified: name1 is the item name, name2 is the base type.
+                ResolvedHeader {
+                    item_class: header.item_class.clone(),
+                    rarity: header.rarity,
+                    name: Some(header.name1.clone()),
+                    base_type: base_type.clone(),
+                }
+            } else {
+                // Unidentified: only one name line, which is the base type.
+                ResolvedHeader {
+                    item_class: header.item_class.clone(),
+                    rarity: header.rarity,
+                    name: None,
+                    base_type: header.name1.clone(),
+                }
+            }
+        }
         Rarity::Magic => {
             // Strip quality prefix before extracting base type from magic name.
             let name = poe_data::domain::strip_quality_prefix(&header.name1);

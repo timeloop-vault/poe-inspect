@@ -1,0 +1,10 @@
+Item Class: Belts
+Rarity: Unique
+Leather Belt
+--------
+Item Level: 85
+--------
+{ Implicit Modifier — Life }
++28(25-40) to maximum Life
+--------
+Unidentified
