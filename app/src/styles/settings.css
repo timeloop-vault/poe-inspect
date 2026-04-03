@@ -385,6 +385,47 @@
 	margin-bottom: 16px;
 }
 
+.import-code-box {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 16px;
+	padding: 12px;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(175, 96, 37, 0.3);
+	border-radius: 4px;
+}
+
+.import-code-input {
+	width: 100%;
+	min-height: 60px;
+	padding: 8px;
+	background: rgba(0, 0, 0, 0.4);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 3px;
+	color: var(--poe-text, #d0cfc7);
+	font-family: monospace;
+	font-size: 12px;
+	resize: vertical;
+	box-sizing: border-box;
+}
+
+.import-code-input:focus {
+	border-color: rgba(175, 96, 37, 0.6);
+	outline: none;
+}
+
+.import-code-error {
+	color: #e74c3c;
+	font-size: 12px;
+}
+
+.btn-flash {
+	background: rgba(46, 204, 113, 0.3) !important;
+	border-color: rgba(46, 204, 113, 0.5) !important;
+	color: #2ecc71 !important;
+}
+
 .profile-item {
 	display: flex;
 	align-items: center;

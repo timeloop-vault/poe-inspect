@@ -83,9 +83,17 @@ export interface ProfileListProps {
 	onEdit: (id: string) => void;
 	onDuplicate: (id: string) => void;
 	onExport: (id: string) => void;
+	onShare: (id: string) => void;
+	shareFlash: string | null;
 	onDelete: (id: string) => void;
 	onAdd: () => void;
 	onImport: () => void;
+	importingCode: boolean;
+	onToggleImportCode: () => void;
+	codeInput: string;
+	onCodeInputChange: (value: string) => void;
+	codeError: string | null;
+	onImportFromCode: () => void;
 }
 
 export function ProfileList({
@@ -95,9 +103,17 @@ export function ProfileList({
 	onEdit,
 	onDuplicate,
 	onExport,
+	onShare,
+	shareFlash,
 	onDelete,
 	onAdd,
 	onImport,
+	importingCode,
+	onToggleImportCode,
+	codeInput,
+	onCodeInputChange,
+	codeError,
+	onImportFromCode,
 }: ProfileListProps) {
 	return (
 		<>
@@ -108,9 +124,33 @@ export function ProfileList({
 					+ New
 				</button>
 				<button type="button" class="btn" onClick={onImport}>
-					Import
+					Import File
+				</button>
+				<button type="button" class="btn" onClick={onToggleImportCode}>
+					{importingCode ? "Cancel" : "Import Code"}
 				</button>
 			</div>
+
+			{importingCode && (
+				<div class="import-code-box">
+					<textarea
+						class="import-code-input"
+						placeholder="Paste a profile share code here..."
+						value={codeInput}
+						onInput={(e) => onCodeInputChange((e.target as HTMLTextAreaElement).value)}
+						rows={3}
+					/>
+					{codeError && <div class="import-code-error">{codeError}</div>}
+					<button
+						type="button"
+						class="btn btn-primary"
+						onClick={onImportFromCode}
+						disabled={!codeInput.trim()}
+					>
+						Import
+					</button>
+				</div>
+			)}
 
 			<div class="setting-description" style={{ marginTop: "6px", marginBottom: "6px" }}>
 				{"\u2605"} Primary = scored in overlay &nbsp; {"\u25CF"} Watching = background indicator
@@ -162,9 +202,17 @@ export function ProfileList({
 								type="button"
 								class="btn btn-small"
 								onClick={() => onExport(profile.id)}
-								title="Export"
+								title="Export as JSON file"
 							>
 								Export
+							</button>
+							<button
+								type="button"
+								class={`btn btn-small ${shareFlash === profile.id ? "btn-flash" : ""}`}
+								onClick={() => onShare(profile.id)}
+								title="Copy share code to clipboard"
+							>
+								{shareFlash === profile.id ? "Copied!" : "Share"}
 							</button>
 							<button
 								type="button"

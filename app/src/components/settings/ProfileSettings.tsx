@@ -1,7 +1,9 @@
 import { listen } from "@tauri-apps/api/event";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { codeToProfile, profileToCode } from "../../profileCode";
 import {
 	type ProfileRole,
 	type StoredProfile,
@@ -161,6 +163,51 @@ export function ProfileSettings() {
 		await writeTextFile(path, JSON.stringify(exportData, null, 2));
 	}, []);
 
+	const [shareFlash, setShareFlash] = useState<string | null>(null);
+
+	const shareProfile = useCallback(async (id: string) => {
+		const profile = profilesRef.current.find((p) => p.id === id);
+		if (!profile) return;
+		try {
+			const code = profileToCode(profile);
+			await writeText(code);
+			setShareFlash(id);
+			setTimeout(() => setShareFlash(null), 1500);
+		} catch (e) {
+			console.error("Failed to generate share code:", e);
+		}
+	}, []);
+
+	const [importingCode, setImportingCode] = useState(false);
+	const [codeInput, setCodeInput] = useState("");
+	const [codeError, setCodeError] = useState<string | null>(null);
+
+	const importFromCode = useCallback(() => {
+		const trimmed = codeInput.trim();
+		if (!trimmed) return;
+		try {
+			const data = codeToProfile(trimmed);
+			const imported = mergeModWeightsIntoScoring({
+				id: String(Date.now()),
+				name: data.name,
+				role: "off",
+				watchColor: WATCH_COLORS[0],
+				evalProfile: data.evalProfile as StoredProfile["evalProfile"],
+				modWeights: data.modWeights as StoredProfile["modWeights"],
+				display: (data.display as StoredProfile["display"]) ?? { ...defaultDisplay },
+				mapDanger: data.mapDanger as StoredProfile["mapDanger"],
+			});
+			const next = [...profilesRef.current, imported];
+			persist(next);
+			syncActiveProfile(next);
+			setImportingCode(false);
+			setCodeInput("");
+			setCodeError(null);
+		} catch (e) {
+			setCodeError(e instanceof Error ? e.message : "Invalid share code");
+		}
+	}, [codeInput, persist]);
+
 	const saveProfile = useCallback(
 		(id: string, patch: Partial<StoredProfile>) => {
 			const next = profilesRef.current.map((p) => (p.id === id ? { ...p, ...patch } : p));
@@ -193,9 +240,21 @@ export function ProfileSettings() {
 			onEdit={(id) => setEditing(id)}
 			onDuplicate={duplicateProfile}
 			onExport={exportProfile}
+			onShare={shareProfile}
+			shareFlash={shareFlash}
 			onDelete={deleteProfile}
 			onAdd={addProfile}
 			onImport={importProfile}
+			importingCode={importingCode}
+			onToggleImportCode={() => {
+				setImportingCode(!importingCode);
+				setCodeInput("");
+				setCodeError(null);
+			}}
+			codeInput={codeInput}
+			onCodeInputChange={setCodeInput}
+			codeError={codeError}
+			onImportFromCode={importFromCode}
 		/>
 	);
 }
