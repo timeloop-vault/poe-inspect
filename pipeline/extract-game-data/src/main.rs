@@ -1,12 +1,12 @@
-/// Extract datc64 tables and unique item art from a PoE GGPK install.
+/// Extract datc64 tables and unique item art from a `PoE` GGPK install.
 ///
-/// Usage: extract-game-data -p <poe_install_dir> [-o <output_dir>] [--all]
+/// Usage: extract-game-data -p <`poe_install_dir`> [-o <`output_dir`>] [--all]
 ///
 /// By default extracts only the tables needed by poe-data.
 /// With --all, extracts ALL ~911 datc64 tables (for research/reference).
 ///
 /// Also extracts unique item 2D art (DDS → PNG) and generates an enriched
-/// unique_items.json with art paths when --art-dir is specified.
+/// `unique_items.json` with art paths when --art-dir is specified.
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -43,7 +43,7 @@ const CORE_TABLES: &[&str] = &[
 #[command(name = "extract-game-data")]
 #[command(about = "Extract datc64 tables from PoE GGPK for poe-inspect")]
 struct Args {
-    /// Path to PoE installation directory (contains Content.ggpk)
+    /// Path to `PoE` installation directory (contains Content.ggpk)
     #[arg(short, long, value_name = "INSTALL_DIR")]
     path: PathBuf,
 
@@ -59,6 +59,11 @@ struct Args {
     /// When set, extracts DDS art from GGPK, converts to PNG, and writes here.
     #[arg(long, value_name = "ART_DIR")]
     art_dir: Option<PathBuf>,
+
+    /// Output path for `unique_items.json`.
+    /// Fetches the trade API, cross-references with GGPK art, writes enriched JSON.
+    #[arg(long, value_name = "UNIQUE_ITEMS_JSON")]
+    unique_items: Option<PathBuf>,
 }
 
 fn main() {
@@ -100,11 +105,19 @@ fn main() {
     }
 
     // Extract unique item art if --art-dir is specified
-    if let Some(ref art_dir) = args.art_dir {
+    let art_map = if let Some(ref art_dir) = args.art_dir {
         std::fs::create_dir_all(art_dir).expect("failed to create art output directory");
         println!("\n--- Unique item art extraction ---");
         println!("Art dir: {}\n", art_dir.display());
-        extract_unique_art(&bundles, &output_dir, art_dir);
+        extract_unique_art(&bundles, &output_dir, art_dir)
+    } else {
+        HashMap::new()
+    };
+
+    // Generate unique_items.json if --unique-items is specified
+    if let Some(ref unique_items_path) = args.unique_items {
+        println!("\n--- Generating unique_items.json ---");
+        generate_unique_items(unique_items_path, &art_map);
     }
 
     println!("\nDone.");
@@ -144,20 +157,24 @@ fn load_dat(dir: &Path, name: &str) -> Option<DatFile> {
 
 /// Extract unique item 2D art from the GGPK and convert DDS → PNG.
 ///
-/// Reads UniqueStashLayout → Words (name) + ItemVisualIdentity (DDS path),
+/// Reads `UniqueStashLayout` → Words (name) + `ItemVisualIdentity` (DDS path),
 /// extracts each DDS file from the GGPK, decodes to RGBA, writes as PNG.
-fn extract_unique_art(bundles: &BundleReader, dat_dir: &Path, art_dir: &Path) {
+fn extract_unique_art(
+    bundles: &BundleReader,
+    dat_dir: &Path,
+    art_dir: &Path,
+) -> HashMap<String, String> {
     let Some(layout) = load_dat(dat_dir, "uniquestashlayout") else {
         eprintln!("  ERROR: uniquestashlayout.datc64 not found in output dir");
-        return;
+        return HashMap::new();
     };
     let Some(words) = load_dat(dat_dir, "words") else {
         eprintln!("  ERROR: words.datc64 not found in output dir");
-        return;
+        return HashMap::new();
     };
     let Some(vis) = load_dat(dat_dir, "itemvisualidentity") else {
         eprintln!("  ERROR: itemvisualidentity.datc64 not found in output dir");
-        return;
+        return HashMap::new();
     };
 
     let layout_rows = tables::extract_unique_stash_layout(&layout);
@@ -188,10 +205,12 @@ fn extract_unique_art(bundles: &BundleReader, dat_dir: &Path, art_dir: &Path) {
             continue;
         };
 
+        #[allow(clippy::cast_possible_truncation)] // Row indices well within usize range
         let name = match words_rows.get(words_idx as usize) {
             Some(w) => &w.text,
             None => continue,
         };
+        #[allow(clippy::cast_possible_truncation)]
         let dds_path = match vis_rows.get(vis_idx as usize) {
             Some(v) => &v.dds_file,
             None => continue,
@@ -249,14 +268,106 @@ fn extract_unique_art(bundles: &BundleReader, dat_dir: &Path, art_dir: &Path) {
         "\n  Art extracted: {extracted}, Skipped (alt art): {skipped}, Errors: {errors}"
     );
 
-    // Write the name → art filename mapping as JSON (for enriching unique_items.json)
-    let map_path = art_dir.join("_art_map.json");
-    let json = serde_json::to_string_pretty(&name_to_art).expect("failed to serialize art map");
-    std::fs::write(&map_path, json).expect("failed to write art map");
-    println!("  Art map written to: {}", map_path.display());
+    name_to_art
+}
+
+// ── Trade API types ────────────────────────────────────────────────────────
+
+#[derive(serde::Deserialize)]
+struct TradeItemsResponse {
+    result: Vec<TradeItemCategory>,
+}
+
+#[derive(serde::Deserialize)]
+struct TradeItemCategory {
+    entries: Vec<TradeItemEntry>,
+}
+
+#[derive(serde::Deserialize)]
+struct TradeItemEntry {
+    #[serde(rename = "type")]
+    base_type: String,
+    name: Option<String>,
+    flags: Option<TradeItemFlags>,
+    /// Variant discriminator (e.g., "legacy"). Skip these.
+    disc: Option<String>,
+}
+
+#[derive(serde::Deserialize)]
+struct TradeItemFlags {
+    #[serde(default)]
+    unique: bool,
+}
+
+// ── Output JSON type ───────────────────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+struct UniqueItemJson {
+    name: String,
+    base_type: String,
+    art: String,
+}
+
+/// Fetch the trade API items endpoint and generate `unique_items.json`,
+/// merging art filenames from the GGPK extraction.
+fn generate_unique_items(output_path: &Path, art_map: &HashMap<String, String>) {
+    println!("  Fetching trade API /data/items...");
+
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("poe-inspect-2/0.1 (contact: github.com/timeloop-vault/poe-inspect)")
+        .build()
+        .expect("failed to build HTTP client");
+
+    let response: TradeItemsResponse = client
+        .get("https://www.pathofexile.com/api/trade/data/items")
+        .send()
+        .expect("failed to fetch trade API items")
+        .json()
+        .expect("failed to parse trade API response");
+
+    let mut uniques: Vec<UniqueItemJson> = Vec::new();
+    let mut with_art = 0u32;
+
+    for cat in &response.result {
+        for entry in &cat.entries {
+            let is_unique = entry.flags.as_ref().is_some_and(|f| f.unique);
+            if !is_unique || entry.name.is_none() || entry.disc.is_some() {
+                continue;
+            }
+            let name = entry.name.as_deref().unwrap();
+            let art = art_map.get(name).cloned().unwrap_or_default();
+            if !art.is_empty() {
+                with_art += 1;
+            }
+            uniques.push(UniqueItemJson {
+                name: name.to_string(),
+                base_type: entry.base_type.clone(),
+                art,
+            });
+        }
+    }
+
+    uniques.sort_by(|a, b| {
+        a.base_type
+            .cmp(&b.base_type)
+            .then_with(|| a.name.cmp(&b.name))
+    });
+
+    let json = serde_json::to_string_pretty(&uniques).expect("failed to serialize unique items");
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent).ok();
+    }
+    std::fs::write(output_path, format!("{json}\n")).expect("failed to write unique_items.json");
+
+    println!(
+        "  Wrote {} unique items ({with_art} with art) to {}",
+        uniques.len(),
+        output_path.display()
+    );
 }
 
 /// Decode a DDS file and write it as PNG.
+#[allow(clippy::cast_possible_truncation)] // Pixel math always in u8 range
 fn dds_to_png(dds_bytes: &[u8], out_path: &Path) -> Result<(), String> {
     let dds = ddsfile::Dds::read(std::io::Cursor::new(dds_bytes))
         .map_err(|e| format!("DDS parse: {e}"))?;
@@ -324,6 +435,7 @@ fn dds_to_png(dds_bytes: &[u8], out_path: &Path) -> Result<(), String> {
 // ── Block compression decoders ─────────────────────────────────────────────
 // Minimal BC1/BC3/BC7 decoders for 2D item art.
 
+#[allow(clippy::cast_possible_truncation)]
 fn decode_bc1(data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, String> {
     let mut rgba = vec![0u8; (width * height * 4) as usize];
     let blocks_x = width.div_ceil(4);
@@ -343,6 +455,7 @@ fn decode_bc1(data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, String> {
     Ok(rgba)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn decode_bc1_block(block: &[u8], rgba: &mut [u8], bx: u32, by: u32, width: u32, height: u32) {
     let c0 = u16::from_le_bytes([block[0], block[1]]);
     let c1 = u16::from_le_bytes([block[2], block[3]]);
@@ -375,6 +488,7 @@ fn decode_bc1_block(block: &[u8], rgba: &mut [u8], bx: u32, by: u32, width: u32,
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn decode_bc3(data: &[u8], width: u32, height: u32) -> Result<Vec<u8>, String> {
     let mut rgba = vec![0u8; (width * height * 4) as usize];
     let blocks_x = width.div_ceil(4);
@@ -458,6 +572,7 @@ fn rgb565_to_rgba(c: u16) -> [u8; 4] {
     ]
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn lerp_color(a: [u8; 4], b: [u8; 4], t: u16, total: u16) -> [u8; 4] {
     [
         ((u16::from(a[0]) * (total - t) + u16::from(b[0]) * t) / total) as u8,

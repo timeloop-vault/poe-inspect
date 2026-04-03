@@ -53,8 +53,9 @@ echo "Output dir: $DATA_DIR"
 echo ""
 
 ART_DIR="$REPO_ROOT/app/src/assets/uniques"
+UNIQUE_ITEMS="$DATA_DIR/unique_items.json"
 
-"$EXTRACT_BIN" -p "$POE_PATH" -o "$DATA_DIR" --art-dir "$ART_DIR"
+"$EXTRACT_BIN" -p "$POE_PATH" -o "$DATA_DIR" --art-dir "$ART_DIR" --unique-items "$UNIQUE_ITEMS"
 
 echo ""
 echo "Next steps:"
