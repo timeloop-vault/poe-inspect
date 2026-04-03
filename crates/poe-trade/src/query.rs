@@ -46,6 +46,9 @@ pub struct QueryBuildResult {
     /// Item quality percentage (e.g., 20 for `"+20%"`).
     /// `None` if the item has no quality property.
     pub quality: Option<u32>,
+    /// Whether the item is an unidentified unique that needs user disambiguation
+    /// before a meaningful trade search can be performed.
+    pub needs_disambiguation: bool,
 }
 
 // ── Trade search body ───────────────────────────────────────────────────────
@@ -438,11 +441,18 @@ pub fn build_query(
                 })
             },
             name: match item.header.rarity {
-                Rarity::Unique => item
-                    .header
-                    .name
-                    .as_deref()
-                    .map(|n| poe_data::domain::strip_league_prefix(n).to_string()),
+                Rarity::Unique => {
+                    // For unidentified uniques, use the user's disambiguation selection.
+                    let override_name = filter_config
+                        .and_then(|fc| fc.unique_name_override.as_deref())
+                        .filter(|s| !s.is_empty());
+                    override_name.map(str::to_string).or_else(|| {
+                        item.header
+                            .name
+                            .as_deref()
+                            .map(|n| poe_data::domain::strip_league_prefix(n).to_string())
+                    })
+                }
                 _ => None,
             },
             base_type: match type_scope {
@@ -459,6 +469,14 @@ pub fn build_query(
         },
     };
 
+    // Disambiguation is needed when an unidentified unique has candidates
+    // but no name was selected by the user.
+    let has_override = filter_config
+        .and_then(|fc| fc.unique_name_override.as_deref())
+        .is_some_and(|s| !s.is_empty());
+    let needs_disambiguation =
+        !item.unique_candidates.is_empty() && item.is_unidentified && !has_override;
+
     QueryBuildResult {
         body,
         stats_mapped,
@@ -467,6 +485,7 @@ pub fn build_query(
         mapped_stats,
         socket_info: socket_info.cloned(),
         quality,
+        needs_disambiguation,
     }
 }
 
@@ -1195,6 +1214,7 @@ mod tests {
             experience: None,
             note: None,
             pseudo_mods: vec![],
+            unique_candidates: vec![],
             unclassified_sections: vec![],
         }
     }

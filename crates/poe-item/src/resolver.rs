@@ -195,6 +195,17 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     // Compute DPS pseudos from weapon properties (Physical/Elemental/Chaos/Total DPS).
     pseudo_mods.extend(compute_dps_pseudos(&properties, game_data));
 
+    // For unidentified uniques, populate possible unique names from game data.
+    let unique_candidates = if is_unidentified && header.rarity == Rarity::Unique {
+        game_data
+            .uniques_for_base_type(&header.base_type)
+            .iter()
+            .map(|u| u.name.clone())
+            .collect()
+    } else {
+        Vec::new()
+    };
+
     ResolvedItem {
         header,
         item_level,
@@ -219,6 +230,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
         flavor_text: classified.flavor_text,
         gem_data,
         pseudo_mods,
+        unique_candidates,
         unclassified_sections: classified.unclassified,
     }
 }

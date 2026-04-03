@@ -16,6 +16,18 @@ use poe_dat::tables::{
 
 use crate::domain::{self, LOCAL_STAT_NONLOCAL_FALLBACKS};
 
+// ── Unique items ───────────────────────────────────────────────────────────
+
+/// A unique item entry from the static `unique_items.json` data file.
+///
+/// Sourced from the trade API `/data/items` endpoint (the only known source
+/// for unique name → base type mapping — GGPK datc64 tables don't have this FK).
+#[derive(Debug, Clone)]
+pub struct UniqueItemEntry {
+    pub name: String,
+    pub base_type: String,
+}
+
 // ── GameData ────────────────────────────────────────────────────────────────
 
 /// All game data tables with pre-built indexes.
@@ -78,6 +90,10 @@ pub struct GameData {
     armour_by_base: HashMap<String, ArmourTypeRow>,
     weapon_by_base: HashMap<String, WeaponTypeRow>,
     shield_by_base: HashMap<String, ShieldTypeRow>,
+
+    // Unique items: base type name → list of unique item names.
+    // Loaded from static data/unique_items.json (trade API sourced).
+    uniques_by_base_type: HashMap<String, Vec<UniqueItemEntry>>,
 }
 
 impl GameData {
@@ -171,6 +187,7 @@ impl GameData {
             armour_by_base: HashMap::new(),
             weapon_by_base: HashMap::new(),
             shield_by_base: HashMap::new(),
+            uniques_by_base_type: HashMap::new(),
         }
     }
 
@@ -182,6 +199,51 @@ impl GameData {
     pub fn set_client_strings(&mut self, strings: Vec<ClientStringRow>) {
         self.client_string_by_id = index_by(&strings, |s| s.id.clone());
         self.client_strings = strings;
+    }
+
+    /// Load the unique items index from the embedded JSON data file.
+    ///
+    /// Builds the `base_type → [UniqueItemEntry]` lookup used by poe-item
+    /// to populate `unique_candidates` on unidentified unique items.
+    pub fn load_unique_items(&mut self) {
+        let json = include_str!("../data/unique_items.json");
+        let raw: Vec<serde_json::Value> = match serde_json::from_str(json) {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::warn!("Failed to parse unique_items.json: {e}");
+                return;
+            }
+        };
+        let mut by_base: HashMap<String, Vec<UniqueItemEntry>> = HashMap::new();
+        let mut count = 0usize;
+        for obj in &raw {
+            if let (Some(name), Some(base_type)) = (
+                obj.get("name").and_then(serde_json::Value::as_str),
+                obj.get("base_type").and_then(serde_json::Value::as_str),
+            ) {
+                by_base
+                    .entry(base_type.to_string())
+                    .or_default()
+                    .push(UniqueItemEntry {
+                        name: name.to_string(),
+                        base_type: base_type.to_string(),
+                    });
+                count += 1;
+            }
+        }
+        self.uniques_by_base_type = by_base;
+        tracing::info!(count, "Unique items index loaded");
+    }
+
+    /// Get all unique items that share the given base type.
+    ///
+    /// Returns an empty slice if no uniques exist for this base type
+    /// or if the unique items index hasn't been loaded.
+    #[must_use]
+    pub fn uniques_for_base_type(&self, base_type: &str) -> &[UniqueItemEntry] {
+        self.uniques_by_base_type
+            .get(base_type)
+            .map_or(&[], Vec::as_slice)
     }
 
     /// Look up a client string by its internal ID.
@@ -877,6 +939,9 @@ pub fn load(dat_dir: &Path) -> Result<GameData, LoadError> {
         );
         gd.set_base_type_tables(armour_types, weapon_types, shield_types);
     }
+
+    // Load unique items index (static JSON, always available).
+    gd.load_unique_items();
 
     // Load client strings if available (optional — enables data-driven text validation)
     match load_table(dat_dir, "clientstrings", tables::extract_client_strings) {

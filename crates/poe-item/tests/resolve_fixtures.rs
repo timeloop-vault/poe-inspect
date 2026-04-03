@@ -587,7 +587,8 @@ fn unidentified_flag() {
 
 #[test]
 fn unidentified_unique_header() {
-    let gd = test_game_data(&[]);
+    let mut gd = test_game_data(&[]);
+    gd.load_unique_items();
     let item = resolve_fixture("unique-belt-unidentified.txt", &gd);
     assert!(item.is_unidentified);
     assert_eq!(item.header.rarity, Rarity::Unique);
@@ -603,6 +604,16 @@ fn unidentified_unique_header() {
     );
     // Implicit should still be parsed.
     assert_eq!(item.implicits.len(), 1);
+    // Unique candidates should be populated from game data.
+    assert!(
+        item.unique_candidates.len() >= 10,
+        "expected >=10 unique Leather Belt candidates, got {}",
+        item.unique_candidates.len()
+    );
+    assert!(
+        item.unique_candidates.contains(&"Headhunter".to_string()),
+        "candidates should include Headhunter"
+    );
 }
 
 // ─── Divination card ─────────────────────────────────────────────────────────

@@ -394,6 +394,10 @@ pub struct ResolvedItem {
     /// These are synthetic `ResolvedMod` entries with `display_type: Pseudo`.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
     pub pseudo_mods: Vec<ResolvedMod>,
+    /// For unidentified unique items: possible unique names sharing this base type.
+    /// Empty for identified items or non-uniques.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
+    pub unique_candidates: Vec<String>,
     /// Remaining unclassified generic sections.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty"))]
     pub unclassified_sections: Vec<Vec<String>>,

@@ -433,6 +433,25 @@ fn base_type_tables_loaded() {
     }
 }
 
+/// Unique items index: loaded from static JSON, maps base type → unique names.
+#[test]
+fn unique_items_loaded() {
+    let Some(gd) = load_test_data() else { return };
+
+    let belts = gd.uniques_for_base_type("Leather Belt");
+    assert!(
+        belts.len() >= 10,
+        "expected >=10 unique Leather Belts, got {}",
+        belts.len()
+    );
+    let names: Vec<&str> = belts.iter().map(|u| u.name.as_str()).collect();
+    assert!(names.contains(&"Headhunter"), "missing Headhunter");
+    assert!(names.contains(&"Wurm's Molt"), "missing Wurm's Molt");
+
+    // Unknown base type returns empty slice.
+    assert!(gd.uniques_for_base_type("Nonexistent Item").is_empty());
+}
+
 /// Validate poe-item's status/influence parsing against `ClientStrings`.
 ///
 /// This test catches when GGG adds new item statuses or influences that

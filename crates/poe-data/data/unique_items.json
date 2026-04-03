@@ -1,0 +1,5642 @@
+[
+  {
+    "name": "Ngamahu's Flame",
+    "base_type": "Abyssal Axe"
+  },
+  {
+    "name": "Starcaller",
+    "base_type": "Abyssal Axe"
+  },
+  {
+    "name": "Eternal Damnation",
+    "base_type": "Agate Amulet"
+  },
+  {
+    "name": "Extractor Mentis",
+    "base_type": "Agate Amulet"
+  },
+  {
+    "name": "Shaper's Seed",
+    "base_type": "Agate Amulet"
+  },
+  {
+    "name": "The Aylardex",
+    "base_type": "Agate Amulet"
+  },
+  {
+    "name": "Voll's Devotion",
+    "base_type": "Agate Amulet"
+  },
+  {
+    "name": "Blood of Corruption",
+    "base_type": "Amber Amulet"
+  },
+  {
+    "name": "Bloodsoaked Medallion",
+    "base_type": "Amber Amulet"
+  },
+  {
+    "name": "The Anvil",
+    "base_type": "Amber Amulet"
+  },
+  {
+    "name": "Xoph's Blood",
+    "base_type": "Amber Amulet"
+  },
+  {
+    "name": "Xoph's Heart",
+    "base_type": "Amber Amulet"
+  },
+  {
+    "name": "Abhorrent Interrogation",
+    "base_type": "Ambush Mitts"
+  },
+  {
+    "name": "Architect's Hand",
+    "base_type": "Ambush Mitts"
+  },
+  {
+    "name": "Slavedriver's Hand",
+    "base_type": "Ambush Mitts"
+  },
+  {
+    "name": "Stormseeker",
+    "base_type": "Ambush Mitts"
+  },
+  {
+    "name": "Goblinedge",
+    "base_type": "Ambusher"
+  },
+  {
+    "name": "Taproot",
+    "base_type": "Ambusher"
+  },
+  {
+    "name": "The Hidden Blade",
+    "base_type": "Ambusher"
+  },
+  {
+    "name": "Atziri's Promise",
+    "base_type": "Amethyst Flask"
+  },
+  {
+    "name": "Progenesis",
+    "base_type": "Amethyst Flask"
+  },
+  {
+    "name": "Blackflame",
+    "base_type": "Amethyst Ring"
+  },
+  {
+    "name": "Circle of Nostalgia",
+    "base_type": "Amethyst Ring"
+  },
+  {
+    "name": "Coiling Whisper",
+    "base_type": "Amethyst Ring"
+  },
+  {
+    "name": "Death Rush",
+    "base_type": "Amethyst Ring"
+  },
+  {
+    "name": "Ming's Heart",
+    "base_type": "Amethyst Ring"
+  },
+  {
+    "name": "Original Sin",
+    "base_type": "Amethyst Ring"
+  },
+  {
+    "name": "Hateforge",
+    "base_type": "Ancient Gauntlets"
+  },
+  {
+    "name": "Winds of Change",
+    "base_type": "Ancient Gauntlets"
+  },
+  {
+    "name": "Kahuturoa's Certainty",
+    "base_type": "Ancient Greaves"
+  },
+  {
+    "name": "Redblade Tramplers",
+    "base_type": "Ancient Greaves"
+  },
+  {
+    "name": "Kongming's Stratagem",
+    "base_type": "Ancient Spirit Shield"
+  },
+  {
+    "name": "Admiral's Arrogance",
+    "base_type": "Antique Gauntlets"
+  },
+  {
+    "name": "The Caged Mammoth",
+    "base_type": "Antique Gauntlets"
+  },
+  {
+    "name": "Torchoak Step",
+    "base_type": "Antique Greaves"
+  },
+  {
+    "name": "Ewar's Mirage",
+    "base_type": "Antique Rapier"
+  },
+  {
+    "name": "Grip of the Council",
+    "base_type": "Arcanist Gloves"
+  },
+  {
+    "name": "Replica Grip of the Council",
+    "base_type": "Arcanist Gloves"
+  },
+  {
+    "name": "Inya's Epiphany",
+    "base_type": "Arcanist Slippers"
+  },
+  {
+    "name": "Replica Inya's Epiphany",
+    "base_type": "Arcanist Slippers"
+  },
+  {
+    "name": "Broken Faith",
+    "base_type": "Archon Kite Shield"
+  },
+  {
+    "name": "Invictus Solaris",
+    "base_type": "Archon Kite Shield"
+  },
+  {
+    "name": "Prism Guardian",
+    "base_type": "Archon Kite Shield"
+  },
+  {
+    "name": "The Immortal Will",
+    "base_type": "Archon Kite Shield"
+  },
+  {
+    "name": "The Unshattered Will",
+    "base_type": "Archon Kite Shield"
+  },
+  {
+    "name": "Unyielding Flame",
+    "base_type": "Archon Kite Shield"
+  },
+  {
+    "name": "First Piece of Focus",
+    "base_type": "Archon Kite Shield Piece"
+  },
+  {
+    "name": "Fourth Piece of Focus",
+    "base_type": "Archon Kite Shield Piece"
+  },
+  {
+    "name": "Second Piece of Focus",
+    "base_type": "Archon Kite Shield Piece"
+  },
+  {
+    "name": "Third Piece of Focus",
+    "base_type": "Archon Kite Shield Piece"
+  },
+  {
+    "name": "Wildfire Phloem",
+    "base_type": "Ashbark Tincture"
+  },
+  {
+    "name": "Arborix",
+    "base_type": "Assassin Bow"
+  },
+  {
+    "name": "Chin Sol",
+    "base_type": "Assassin Bow"
+  },
+  {
+    "name": "Darkscorn",
+    "base_type": "Assassin Bow"
+  },
+  {
+    "name": "Fenumus' Spinnerets",
+    "base_type": "Assassin's Boots"
+  },
+  {
+    "name": "Replica Stampede",
+    "base_type": "Assassin's Boots"
+  },
+  {
+    "name": "The Stampede",
+    "base_type": "Assassin's Boots"
+  },
+  {
+    "name": "Cospri's Will",
+    "base_type": "Assassin's Garb"
+  },
+  {
+    "name": "Blasphemer's Grasp",
+    "base_type": "Assassin's Mitts"
+  },
+  {
+    "name": "Entropic Devastation",
+    "base_type": "Assassin's Mitts"
+  },
+  {
+    "name": "Snakebite",
+    "base_type": "Assassin's Mitts"
+  },
+  {
+    "name": "Storm's Gift",
+    "base_type": "Assassin's Mitts"
+  },
+  {
+    "name": "Blunderbore",
+    "base_type": "Astral Plate"
+  },
+  {
+    "name": "Death's Oath",
+    "base_type": "Astral Plate"
+  },
+  {
+    "name": "Venarius' Astrolabe",
+    "base_type": "Astrolabe Amulet"
+  },
+  {
+    "name": "Callinellus Malleus",
+    "base_type": "Auric Mace"
+  },
+  {
+    "name": "Mindspiral",
+    "base_type": "Aventail Helmet"
+  },
+  {
+    "name": "Wildslash",
+    "base_type": "Awl"
+  },
+  {
+    "name": "Thrillsteel",
+    "base_type": "Barbute Helmet"
+  },
+  {
+    "name": "Daresso's Courage",
+    "base_type": "Baroque Round Shield"
+  },
+  {
+    "name": "Aurumvorax",
+    "base_type": "Basket Rapier"
+  },
+  {
+    "name": "Shiversting",
+    "base_type": "Bastard Sword"
+  },
+  {
+    "name": "Oriath's End",
+    "base_type": "Bismuth Flask"
+  },
+  {
+    "name": "The Wise Oak",
+    "base_type": "Bismuth Flask"
+  },
+  {
+    "name": "Night's Hold",
+    "base_type": "Black Maw Talisman"
+  },
+  {
+    "name": "Replica Twyzel",
+    "base_type": "Blasting Wand"
+  },
+  {
+    "name": "Twyzel",
+    "base_type": "Blasting Wand"
+  },
+  {
+    "name": "Blackgleam",
+    "base_type": "Blazing Arrow Quiver"
+  },
+  {
+    "name": "The Signal Fire",
+    "base_type": "Blazing Arrow Quiver"
+  },
+  {
+    "name": "Replica Eternity Shroud",
+    "base_type": "Blood Raiment"
+  },
+  {
+    "name": "Saqawal's Nest",
+    "base_type": "Blood Raiment"
+  },
+  {
+    "name": "The Eternity Shroud",
+    "base_type": "Blood Raiment"
+  },
+  {
+    "name": "Cerberus Limb",
+    "base_type": "Blood Sceptre"
+  },
+  {
+    "name": "Gloomfang",
+    "base_type": "Blue Pearl Amulet"
+  },
+  {
+    "name": "Rearguard",
+    "base_type": "Blunt Arrow Quiver"
+  },
+  {
+    "name": "The Fracturing Spinner",
+    "base_type": "Blunt Arrow Quiver"
+  },
+  {
+    "name": "The Shattered Divinity",
+    "base_type": "Blunt Arrow Quiver"
+  },
+  {
+    "name": "First Piece of Directions",
+    "base_type": "Blunt Arrow Quiver Piece"
+  },
+  {
+    "name": "Second Piece of Directions",
+    "base_type": "Blunt Arrow Quiver Piece"
+  },
+  {
+    "name": "Third Piece of Directions",
+    "base_type": "Blunt Arrow Quiver Piece"
+  },
+  {
+    "name": "Bloodbond",
+    "base_type": "Bone Armour"
+  },
+  {
+    "name": "Plume of Pursuit",
+    "base_type": "Bone Circlet"
+  },
+  {
+    "name": "Wraithlord",
+    "base_type": "Bone Circlet"
+  },
+  {
+    "name": "Ancient Skull",
+    "base_type": "Bone Helmet"
+  },
+  {
+    "name": "Maw of Mischief",
+    "base_type": "Bone Helmet"
+  },
+  {
+    "name": "Widowmaker",
+    "base_type": "Boot Blade"
+  },
+  {
+    "name": "Replica Ungil's Gauche",
+    "base_type": "Boot Knife"
+  },
+  {
+    "name": "Ungil's Gauche",
+    "base_type": "Boot Knife"
+  },
+  {
+    "name": "Saffell's Frame",
+    "base_type": "Branded Kite Shield"
+  },
+  {
+    "name": "Geofri's Baptism",
+    "base_type": "Brass Maul"
+  },
+  {
+    "name": "Geofri's Devotion",
+    "base_type": "Brass Maul"
+  },
+  {
+    "name": "Sentari's Answer",
+    "base_type": "Brass Spirit Shield"
+  },
+  {
+    "name": "Steelworm",
+    "base_type": "Broadhead Arrow Quiver"
+  },
+  {
+    "name": "Giantsbane",
+    "base_type": "Bronze Gauntlets"
+  },
+  {
+    "name": "Axiom Perpetuum",
+    "base_type": "Bronze Sceptre"
+  },
+  {
+    "name": "Lioneye's Paws",
+    "base_type": "Bronzescale Boots"
+  },
+  {
+    "name": "Replica Lioneye's Paws",
+    "base_type": "Bronzescale Boots"
+  },
+  {
+    "name": "Slitherpinch",
+    "base_type": "Bronzescale Gauntlets"
+  },
+  {
+    "name": "Vaal Caress",
+    "base_type": "Bronzescale Gauntlets"
+  },
+  {
+    "name": "Ashrend",
+    "base_type": "Buckskin Tunic"
+  },
+  {
+    "name": "Glitterdisc",
+    "base_type": "Burnished Spiked Shield"
+  },
+  {
+    "name": "Actum",
+    "base_type": "Butcher Axe"
+  },
+  {
+    "name": "The Apostate",
+    "base_type": "Cabalist Regalia"
+  },
+  {
+    "name": "Midnight Bargain",
+    "base_type": "Calling Wand"
+  },
+  {
+    "name": "Replica Midnight Bargain",
+    "base_type": "Calling Wand"
+  },
+  {
+    "name": "Eye of Malice",
+    "base_type": "Callous Mask"
+  },
+  {
+    "name": "The Tempest's Binding",
+    "base_type": "Callous Mask"
+  },
+  {
+    "name": "The Tempest's Liberation",
+    "base_type": "Callous Mask"
+  },
+  {
+    "name": "First Piece of Storms",
+    "base_type": "Callous Mask Piece"
+  },
+  {
+    "name": "Second Piece of Storms",
+    "base_type": "Callous Mask Piece"
+  },
+  {
+    "name": "Third Piece of Storms",
+    "base_type": "Callous Mask Piece"
+  },
+  {
+    "name": "The Second Sacrament",
+    "base_type": "Candlestick Relic"
+  },
+  {
+    "name": "Vix Lunaris",
+    "base_type": "Cardinal Round Shield"
+  },
+  {
+    "name": "Replica Restless Ward",
+    "base_type": "Carnal Armour"
+  },
+  {
+    "name": "Replica Shroud of the Lightless",
+    "base_type": "Carnal Armour"
+  },
+  {
+    "name": "Shroud of the Lightless",
+    "base_type": "Carnal Armour"
+  },
+  {
+    "name": "Stasis Prison",
+    "base_type": "Carnal Armour"
+  },
+  {
+    "name": "The Restless Ward",
+    "base_type": "Carnal Armour"
+  },
+  {
+    "name": "Corpsewalker",
+    "base_type": "Carnal Boots"
+  },
+  {
+    "name": "Dance of the Offered",
+    "base_type": "Carnal Boots"
+  },
+  {
+    "name": "Omeyocan",
+    "base_type": "Carnal Boots"
+  },
+  {
+    "name": "Algor Mortis",
+    "base_type": "Carnal Mitts"
+  },
+  {
+    "name": "Fenumus' Weave",
+    "base_type": "Carnal Mitts"
+  },
+  {
+    "name": "Hand of the Lords",
+    "base_type": "Carnal Mitts"
+  },
+  {
+    "name": "Soul Ascension",
+    "base_type": "Carnal Mitts"
+  },
+  {
+    "name": "The Embalmer",
+    "base_type": "Carnal Mitts"
+  },
+  {
+    "name": "Breath of the Council",
+    "base_type": "Carnal Sceptre"
+  },
+  {
+    "name": "Trolltimber Spire",
+    "base_type": "Cedar Tower Shield"
+  },
+  {
+    "name": "The Blood of Innocence",
+    "base_type": "Censer Relic"
+  },
+  {
+    "name": "The Hour of Divinity",
+    "base_type": "Censer Relic"
+  },
+  {
+    "name": "Ascent From Flesh",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Bated Breath",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Chain of Endurance",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Chains of Emancipation",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Coward's Chains",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Coward's Legacy",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Maligaro's Restraint",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Replica Bated Breath",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Saresh's Darkness",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Solerai's Radiance",
+    "base_type": "Chain Belt"
+  },
+  {
+    "name": "Shackles of the Wretched",
+    "base_type": "Chain Gloves"
+  },
+  {
+    "name": "Aegis Aurora",
+    "base_type": "Champion Kite Shield"
+  },
+  {
+    "name": "Oni-Goroshi",
+    "base_type": "Charan's Sword"
+  },
+  {
+    "name": "The Eternal Apple",
+    "base_type": "Chiming Spirit Shield"
+  },
+  {
+    "name": "The Scales of Justice",
+    "base_type": "Chiming Spirit Shield"
+  },
+  {
+    "name": "The Gluttonous Tide",
+    "base_type": "Citadel Bow"
+  },
+  {
+    "name": "Xoph's Inception",
+    "base_type": "Citadel Bow"
+  },
+  {
+    "name": "Xoph's Nurture",
+    "base_type": "Citadel Bow"
+  },
+  {
+    "name": "Daresso's Salute",
+    "base_type": "Citrine Amulet"
+  },
+  {
+    "name": "Eye of Innocence",
+    "base_type": "Citrine Amulet"
+  },
+  {
+    "name": "Retaliation Charm",
+    "base_type": "Citrine Amulet"
+  },
+  {
+    "name": "The Felbog Fang",
+    "base_type": "Citrine Amulet"
+  },
+  {
+    "name": "The Jinxed Juju",
+    "base_type": "Citrine Amulet"
+  },
+  {
+    "name": "Sundance",
+    "base_type": "Clasped Boots"
+  },
+  {
+    "name": "Sunspite",
+    "base_type": "Clasped Boots"
+  },
+  {
+    "name": "Aukuna's Will",
+    "base_type": "Clasped Mitts"
+  },
+  {
+    "name": "Shadows and Dust",
+    "base_type": "Clasped Mitts"
+  },
+  {
+    "name": "Dreadarc",
+    "base_type": "Cleaver"
+  },
+  {
+    "name": "Dreadsurge",
+    "base_type": "Cleaver"
+  },
+  {
+    "name": "The Baron",
+    "base_type": "Close Helmet"
+  },
+  {
+    "name": "Arn's Anguish",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Bound Fate",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Ceinture of Benevolence",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Graven's Secret",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Nevalius Inheritance",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Olesya's Delight",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Perandus Blazon",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Replica Soul Tether",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Soul Tether",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Soulthirst",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "Sunblast",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "The Arkhon's Tools",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "The Druggery",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "The Flow Untethered",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "The Torrent's Reclamation",
+    "base_type": "Cloth Belt"
+  },
+  {
+    "name": "First Piece of Time",
+    "base_type": "Cloth Belt Piece"
+  },
+  {
+    "name": "Second Piece of Time",
+    "base_type": "Cloth Belt Piece"
+  },
+  {
+    "name": "Blightwell",
+    "base_type": "Clutching Talisman"
+  },
+  {
+    "name": "Anatomical Knowledge",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Apex Mode",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Assassin's Haste",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Brittle Barrier",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Brute Force Solution",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Clear Mind",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Combat Focus",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Conqueror's Potency",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Corrupted Energy",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Dead Reckoning",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Eldritch Knowledge",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Emperor's Wit",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Endless Misery",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Energy From Within",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Fertile Mind",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Fevered Mind",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "First Snow",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Forbidden Flesh",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Fortified Legion",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Fortress Covenant",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "From Dust",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Frozen Trail",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Grand Spectrum",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Hazardous Research",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Healthy Mind",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Inevitability",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Malicious Intent",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Melding of the Flesh",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Mutated Growth",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Nadir Mode",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Powerlessness",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Primordial Harmony",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Rational Doctrine",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Reckless Defence",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Replica Powerlessness",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Replica Reckless Defence",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Replica Unstable Payload",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Rolling Flames",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Soul's Wick",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Spirited Response",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Spreading Rot",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Survival Secrets",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Tempered Mind",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "The Balance of Terror",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "The Blue Dream",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "The Blue Nightmare",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "The Long Winter",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "To Dust",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Transcendent Mind",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Unending Hunger",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Unstable Payload",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Vaal Sentencing",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Violent Dead",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Winter's Bounty",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "Witchbane",
+    "base_type": "Cobalt Jewel"
+  },
+  {
+    "name": "The First Crest",
+    "base_type": "Coffer Relic"
+  },
+  {
+    "name": "Xirgil's Crank",
+    "base_type": "Coiled Staff"
+  },
+  {
+    "name": "Wellwater Phylactery",
+    "base_type": "Colossal Mana Flask"
+  },
+  {
+    "name": "Ahn's Heritage",
+    "base_type": "Colossal Tower Shield"
+  },
+  {
+    "name": "Dawnbreaker",
+    "base_type": "Colossal Tower Shield"
+  },
+  {
+    "name": "Pragmatism",
+    "base_type": "Colosseum Plate"
+  },
+  {
+    "name": "Maligaro's Lens",
+    "base_type": "Compound Spiked Shield"
+  },
+  {
+    "name": "Rainbowstride",
+    "base_type": "Conjurer Boots"
+  },
+  {
+    "name": "Voidbringer",
+    "base_type": "Conjurer Gloves"
+  },
+  {
+    "name": "Kingsguard",
+    "base_type": "Conquest Chainmail"
+  },
+  {
+    "name": "Solaris Lorica",
+    "base_type": "Copper Plate"
+  },
+  {
+    "name": "Araku Tiki",
+    "base_type": "Coral Amulet"
+  },
+  {
+    "name": "Ikiaho's Promise",
+    "base_type": "Coral Amulet"
+  },
+  {
+    "name": "Ngamahu Tiki",
+    "base_type": "Coral Amulet"
+  },
+  {
+    "name": "Tainted Pact",
+    "base_type": "Coral Amulet"
+  },
+  {
+    "name": "Tavukai",
+    "base_type": "Coral Amulet"
+  },
+  {
+    "name": "The Primordial Chain",
+    "base_type": "Coral Amulet"
+  },
+  {
+    "name": "Honoured Alliance",
+    "base_type": "Coral Ring"
+  },
+  {
+    "name": "Kaom's Sign",
+    "base_type": "Coral Ring"
+  },
+  {
+    "name": "Kaom's Way",
+    "base_type": "Coral Ring"
+  },
+  {
+    "name": "Sibyl's Lament",
+    "base_type": "Coral Ring"
+  },
+  {
+    "name": "Winterweave",
+    "base_type": "Coral Ring"
+  },
+  {
+    "name": "The Desecrated Chalice",
+    "base_type": "Coronal Maul"
+  },
+  {
+    "name": "The Sacred Chalice",
+    "base_type": "Coronal Maul"
+  },
+  {
+    "name": "Thunder of the Dawn",
+    "base_type": "Corroded Blade"
+  },
+  {
+    "name": "Great Old One's Ward",
+    "base_type": "Corrugated Buckler"
+  },
+  {
+    "name": "Ichimonji",
+    "base_type": "Corsair Sword"
+  },
+  {
+    "name": "Ancient Waystones",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Atziri's Reign",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Blood Sacrifice",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Bloodnotch",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Brawn",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Coated Shrapnel",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Combat Focus",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Combustibles",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Conqueror's Efficiency",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Dissolution of the Flesh",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Divine Inferno",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Efficient Training",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Emperor's Might",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Energised Armour",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Fireborn",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Firesong",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Forbidden Flame",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Fragile Bloom",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Fragility",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Grand Spectrum",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Immutable Force",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Inertia",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Inspired Learning",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Izaro's Turmoil",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Mantra of Flames",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Martial Artistry",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Might in All Forms",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Might of the Meek",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Overwhelming Odds",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Primordial Might",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Rain of Splinters",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Rapid Expansion",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Replica Blood Sacrifice",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Replica Conqueror's Efficiency",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Replica Fragile Bloom",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Replica Fragility",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Replica Primordial Might",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Shattered Chains",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Spire of Stone",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Split Personality",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Survival Skills",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Tempered Flesh",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "That Which Was Taken",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "The Adorned",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "The Red Dream",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "The Red Nightmare",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "The Vigil",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Thread of Hope",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Transcendent Flesh",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Warlord's Reach",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Warrior's Tale",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Weight of the Empire",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Wildfire",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Winter Burial",
+    "base_type": "Crimson Jewel"
+  },
+  {
+    "name": "Shattershard",
+    "base_type": "Crimson Round Shield"
+  },
+  {
+    "name": "Relic of the Cycle",
+    "base_type": "Crude Bow"
+  },
+  {
+    "name": "Silverbough",
+    "base_type": "Crude Bow"
+  },
+  {
+    "name": "Silverbranch",
+    "base_type": "Crude Bow"
+  },
+  {
+    "name": "Widowhail",
+    "base_type": "Crude Bow"
+  },
+  {
+    "name": "Death's Door",
+    "base_type": "Crusader Boots"
+  },
+  {
+    "name": "Ambu's Charge",
+    "base_type": "Crusader Chainmail"
+  },
+  {
+    "name": "Replica Ambu's Charge",
+    "base_type": "Crusader Chainmail"
+  },
+  {
+    "name": "Hands of the High Templar",
+    "base_type": "Crusader Gloves"
+  },
+  {
+    "name": "Repentance",
+    "base_type": "Crusader Gloves"
+  },
+  {
+    "name": "Shaper's Touch",
+    "base_type": "Crusader Gloves"
+  },
+  {
+    "name": "Lioneye's Vision",
+    "base_type": "Crusader Plate"
+  },
+  {
+    "name": "The Iron Fortress",
+    "base_type": "Crusader Plate"
+  },
+  {
+    "name": "The Will of Tul",
+    "base_type": "Cryonic Ring"
+  },
+  {
+    "name": "Auxium",
+    "base_type": "Crystal Belt"
+  },
+  {
+    "name": "The Burden of Truth",
+    "base_type": "Crystal Belt"
+  },
+  {
+    "name": "Nycta's Lantern",
+    "base_type": "Crystal Sceptre"
+  },
+  {
+    "name": "The Supreme Truth",
+    "base_type": "Crystal Sceptre"
+  },
+  {
+    "name": "Corona Solaris",
+    "base_type": "Crystal Wand"
+  },
+  {
+    "name": "Blackgleam",
+    "base_type": "Cured Quiver"
+  },
+  {
+    "name": "Severed in Sleep",
+    "base_type": "Cutlass"
+  },
+  {
+    "name": "United in Dream",
+    "base_type": "Cutlass"
+  },
+  {
+    "name": "Bronn's Lithe",
+    "base_type": "Cutthroat's Garb"
+  },
+  {
+    "name": "Death's Harp",
+    "base_type": "Death Bow"
+  },
+  {
+    "name": "Death's Opus",
+    "base_type": "Death Bow"
+  },
+  {
+    "name": "Iron Commander",
+    "base_type": "Death Bow"
+  },
+  {
+    "name": "Replica Iron Commander",
+    "base_type": "Death Bow"
+  },
+  {
+    "name": "Infractem",
+    "base_type": "Decimation Bow"
+  },
+  {
+    "name": "Replica Infractem",
+    "base_type": "Decimation Bow"
+  },
+  {
+    "name": "Relentless Fury",
+    "base_type": "Decorative Axe"
+  },
+  {
+    "name": "Deerstalker",
+    "base_type": "Deerskin Boots"
+  },
+  {
+    "name": "Maligaro's Virtuosity",
+    "base_type": "Deerskin Gloves"
+  },
+  {
+    "name": "Heretic's Veil",
+    "base_type": "Deicide Mask"
+  },
+  {
+    "name": "Festering Resentment",
+    "base_type": "Demon Dagger"
+  },
+  {
+    "name": "Vulconus",
+    "base_type": "Demon Dagger"
+  },
+  {
+    "name": "Lightning Coil",
+    "base_type": "Desert Brigandine"
+  },
+  {
+    "name": "Debeon's Dirge",
+    "base_type": "Despot Axe"
+  },
+  {
+    "name": "Kingmaker",
+    "base_type": "Despot Axe"
+  },
+  {
+    "name": "Queen of the Forest",
+    "base_type": "Destiny Leather"
+  },
+  {
+    "name": "The Coming Calamity",
+    "base_type": "Destroyer Regalia"
+  },
+  {
+    "name": "The Fourth Vow",
+    "base_type": "Devout Chainmail"
+  },
+  {
+    "name": "Coralito's Signature",
+    "base_type": "Diamond Flask"
+  },
+  {
+    "name": "Gifts from Above",
+    "base_type": "Diamond Ring"
+  },
+  {
+    "name": "Grattus Signet",
+    "base_type": "Diamond Ring"
+  },
+  {
+    "name": "Replica Gifts from Above",
+    "base_type": "Diamond Ring"
+  },
+  {
+    "name": "Romira's Banquet",
+    "base_type": "Diamond Ring"
+  },
+  {
+    "name": "Annihilation's Approach",
+    "base_type": "Dragonscale Boots"
+  },
+  {
+    "name": "Darkray Vectors",
+    "base_type": "Dragonscale Boots"
+  },
+  {
+    "name": "Surgebinders",
+    "base_type": "Dragonscale Gauntlets"
+  },
+  {
+    "name": "Worldcarver",
+    "base_type": "Dragonscale Gauntlets"
+  },
+  {
+    "name": "Voidhome",
+    "base_type": "Dread Maul"
+  },
+  {
+    "name": "Flesh-Eater",
+    "base_type": "Dream Mace"
+  },
+  {
+    "name": "The Monastery Bell",
+    "base_type": "Dream Mace"
+  },
+  {
+    "name": "Ashes of the Sun",
+    "base_type": "Driftwood Club"
+  },
+  {
+    "name": "Lifesprig",
+    "base_type": "Driftwood Wand"
+  },
+  {
+    "name": "Splinter of the Moon",
+    "base_type": "Driftwood Wand"
+  },
+  {
+    "name": "Ephemeral Edge",
+    "base_type": "Dusk Blade"
+  },
+  {
+    "name": "Chernobog's Pillar",
+    "base_type": "Ebony Tower Shield"
+  },
+  {
+    "name": "Replica Tukohama's Fortress",
+    "base_type": "Ebony Tower Shield"
+  },
+  {
+    "name": "Tukohama's Fortress",
+    "base_type": "Ebony Tower Shield"
+  },
+  {
+    "name": "Orbala's Stand",
+    "base_type": "Eelskin Boots"
+  },
+  {
+    "name": "Great Old One's Tentacles",
+    "base_type": "Eelskin Gloves"
+  },
+  {
+    "name": "Innsbury Edge",
+    "base_type": "Elder Sword"
+  },
+  {
+    "name": "Replica Innsbury Edge",
+    "base_type": "Elder Sword"
+  },
+  {
+    "name": "Chitus' Needle",
+    "base_type": "Elegant Foil"
+  },
+  {
+    "name": "Geofri's Sanctuary",
+    "base_type": "Elegant Ringmail"
+  },
+  {
+    "name": "Loreweave",
+    "base_type": "Elegant Ringmail"
+  },
+  {
+    "name": "Replica Loreweave",
+    "base_type": "Elegant Ringmail"
+  },
+  {
+    "name": "The Oppressor",
+    "base_type": "Elegant Round Shield"
+  },
+  {
+    "name": "The Squire",
+    "base_type": "Elegant Round Shield"
+  },
+  {
+    "name": "Lakishu's Blade",
+    "base_type": "Elegant Sword"
+  },
+  {
+    "name": "The Goddess Scorned",
+    "base_type": "Elegant Sword"
+  },
+  {
+    "name": "Vixen's Entrapment",
+    "base_type": "Embroidered Gloves"
+  },
+  {
+    "name": "Mutewind Pennant",
+    "base_type": "Enameled Buckler"
+  },
+  {
+    "name": "Rakiata's Dance",
+    "base_type": "Engraved Greatsword"
+  },
+  {
+    "name": "The Will of Xoph",
+    "base_type": "Enthalpic Ring"
+  },
+  {
+    "name": "Daresso's Passion",
+    "base_type": "Estoc"
+  },
+  {
+    "name": "Edge of Madness",
+    "base_type": "Etched Greatsword"
+  },
+  {
+    "name": "Usurper's Penance",
+    "base_type": "Eternal Burgonet"
+  },
+  {
+    "name": "Beltimber Blade",
+    "base_type": "Eternal Sword"
+  },
+  {
+    "name": "Dreamfeather",
+    "base_type": "Eternal Sword"
+  },
+  {
+    "name": "Grelwood Shank",
+    "base_type": "Eternal Sword"
+  },
+  {
+    "name": "Replica Dreamfeather",
+    "base_type": "Eternal Sword"
+  },
+  {
+    "name": "The Goddess Unleashed",
+    "base_type": "Eternal Sword"
+  },
+  {
+    "name": "Fleshrender",
+    "base_type": "Exquisite Blade"
+  },
+  {
+    "name": "Skysunder",
+    "base_type": "Exquisite Blade"
+  },
+  {
+    "name": "Kintsugi",
+    "base_type": "Exquisite Leather"
+  },
+  {
+    "name": "Yriel's Fostering",
+    "base_type": "Exquisite Leather"
+  },
+  {
+    "name": "Replica Wings of Entropy",
+    "base_type": "Ezomyte Axe"
+  },
+  {
+    "name": "Sinvicta's Mettle",
+    "base_type": "Ezomyte Axe"
+  },
+  {
+    "name": "Wings of Entropy",
+    "base_type": "Ezomyte Axe"
+  },
+  {
+    "name": "Kondo's Pride",
+    "base_type": "Ezomyte Blade"
+  },
+  {
+    "name": "The Living Blade",
+    "base_type": "Ezomyte Blade"
+  },
+  {
+    "name": "Abyssus",
+    "base_type": "Ezomyte Burgonet"
+  },
+  {
+    "name": "Cowl of the Thermophile",
+    "base_type": "Ezomyte Burgonet"
+  },
+  {
+    "name": "Howlcrack",
+    "base_type": "Ezomyte Burgonet"
+  },
+  {
+    "name": "Replica Abyssus",
+    "base_type": "Ezomyte Burgonet"
+  },
+  {
+    "name": "Cold Iron Point",
+    "base_type": "Ezomyte Dagger"
+  },
+  {
+    "name": "Replica Cold Iron Point",
+    "base_type": "Ezomyte Dagger"
+  },
+  {
+    "name": "Perepiteia",
+    "base_type": "Ezomyte Spiked Shield"
+  },
+  {
+    "name": "Cane of Unravelling",
+    "base_type": "Ezomyte Staff"
+  },
+  {
+    "name": "Soulwrest",
+    "base_type": "Ezomyte Staff"
+  },
+  {
+    "name": "The Fulcrum",
+    "base_type": "Ezomyte Staff"
+  },
+  {
+    "name": "Cowards' Wail",
+    "base_type": "Ezomyte Tower Shield"
+  },
+  {
+    "name": "The Anticipation",
+    "base_type": "Ezomyte Tower Shield"
+  },
+  {
+    "name": "The Surrender",
+    "base_type": "Ezomyte Tower Shield"
+  },
+  {
+    "name": "The Hallowed Monarch",
+    "base_type": "Faithful Helmet"
+  },
+  {
+    "name": "Contract: Heart of Glory",
+    "base_type": "Familial Contract"
+  },
+  {
+    "name": "Eclipse Solaris",
+    "base_type": "Faun's Horn"
+  },
+  {
+    "name": "Asphyxia's Wrath",
+    "base_type": "Feathered Arrow Quiver"
+  },
+  {
+    "name": "Saemus' Gift",
+    "base_type": "Feathered Arrow Quiver"
+  },
+  {
+    "name": "El'Abin's Visage",
+    "base_type": "Fencer Helm"
+  },
+  {
+    "name": "Leer Cast",
+    "base_type": "Festival Mask"
+  },
+  {
+    "name": "Replica Leer Cast",
+    "base_type": "Festival Mask"
+  },
+  {
+    "name": "Arakaali's Fang",
+    "base_type": "Fiend Dagger"
+  },
+  {
+    "name": "The Consuming Dark",
+    "base_type": "Fiend Dagger"
+  },
+  {
+    "name": "Black Zenith",
+    "base_type": "Fingerless Silk Gloves"
+  },
+  {
+    "name": "Reefbane",
+    "base_type": "Fishing Rod"
+  },
+  {
+    "name": "Song of the Sirens",
+    "base_type": "Fishing Rod"
+  },
+  {
+    "name": "Mightflay",
+    "base_type": "Flaying Knife"
+  },
+  {
+    "name": "Crest of Desire",
+    "base_type": "Fluted Bascinet"
+  },
+  {
+    "name": "Lost Unity",
+    "base_type": "Formless Ring"
+  },
+  {
+    "name": "The Broken Elegy",
+    "base_type": "Foul Staff"
+  },
+  {
+    "name": "The Winds of Fate",
+    "base_type": "Foul Staff"
+  },
+  {
+    "name": "Mortem Morsu",
+    "base_type": "Fright Claw"
+  },
+  {
+    "name": "Inextricable Fate",
+    "base_type": "Fugitive Boots"
+  },
+  {
+    "name": "The Sundered Will",
+    "base_type": "Fugitive Ring"
+  },
+  {
+    "name": "Daresso's Defiance",
+    "base_type": "Full Dragonscale"
+  },
+  {
+    "name": "Viper's Scales",
+    "base_type": "Full Scale Armour"
+  },
+  {
+    "name": "Belly of the Beast",
+    "base_type": "Full Wyrmscale"
+  },
+  {
+    "name": "Cameria's Avarice",
+    "base_type": "Gavel"
+  },
+  {
+    "name": "Cameria's Maul",
+    "base_type": "Gavel"
+  },
+  {
+    "name": "Mjölner",
+    "base_type": "Gavel"
+  },
+  {
+    "name": "Fate of the Vaal",
+    "base_type": "Gemstone Sword"
+  },
+  {
+    "name": "Story of the Vaal",
+    "base_type": "Gemstone Sword"
+  },
+  {
+    "name": "Rigwald's Hunt",
+    "base_type": "General's Brigandine"
+  },
+  {
+    "name": "Amanamu's Gaze",
+    "base_type": "Ghastly Eye Jewel"
+  },
+  {
+    "name": "Deidbell",
+    "base_type": "Gilded Sallet"
+  },
+  {
+    "name": "Deidbellow",
+    "base_type": "Gilded Sallet"
+  },
+  {
+    "name": "Svalinn",
+    "base_type": "Girded Tower Shield"
+  },
+  {
+    "name": "The Brass Dome",
+    "base_type": "Gladiator Plate"
+  },
+  {
+    "name": "Scaeva",
+    "base_type": "Gladius"
+  },
+  {
+    "name": "The Iron Mass",
+    "base_type": "Gladius"
+  },
+  {
+    "name": "The Redblade",
+    "base_type": "Gladius"
+  },
+  {
+    "name": "Fragment of Eternity",
+    "base_type": "Glass Shank"
+  },
+  {
+    "name": "Kaom's Heart",
+    "base_type": "Glorious Plate"
+  },
+  {
+    "name": "Perfidy",
+    "base_type": "Glorious Plate"
+  },
+  {
+    "name": "Replica Kaom's Heart",
+    "base_type": "Glorious Plate"
+  },
+  {
+    "name": "Fencoil",
+    "base_type": "Gnarled Branch"
+  },
+  {
+    "name": "Mirebough",
+    "base_type": "Gnarled Branch"
+  },
+  {
+    "name": "Replica Blood Thorn",
+    "base_type": "Gnarled Branch"
+  },
+  {
+    "name": "Replica Fencoil",
+    "base_type": "Gnarled Branch"
+  },
+  {
+    "name": "The Blood Thorn",
+    "base_type": "Gnarled Branch"
+  },
+  {
+    "name": "Vestige of Divinity",
+    "base_type": "Gnarled Branch"
+  },
+  {
+    "name": "Abberath's Horn",
+    "base_type": "Goat's Horn"
+  },
+  {
+    "name": "Ashcaller",
+    "base_type": "Goat's Horn"
+  },
+  {
+    "name": "Abberath's Hooves",
+    "base_type": "Goathide Boots"
+  },
+  {
+    "name": "Victario's Flight",
+    "base_type": "Goathide Boots"
+  },
+  {
+    "name": "Remnant of Empires",
+    "base_type": "Goathide Buckler"
+  },
+  {
+    "name": "Hrimburn",
+    "base_type": "Goathide Gloves"
+  },
+  {
+    "name": "Hrimsorrow",
+    "base_type": "Goathide Gloves"
+  },
+  {
+    "name": "Bisco's Collar",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "Demigod's Presence",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "Perquil's Toe",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "Replica Winterheart",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "The Ascetic",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "The Effigon",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "The Ignomon",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "The Untouched Soul",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "The Utmost",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "Winterheart",
+    "base_type": "Gold Amulet"
+  },
+  {
+    "name": "Wine of the Prophet",
+    "base_type": "Gold Flask"
+  },
+  {
+    "name": "Andvarius",
+    "base_type": "Gold Ring"
+  },
+  {
+    "name": "Ixchel's Temptation",
+    "base_type": "Gold Ring"
+  },
+  {
+    "name": "The Bandit Lord's Band",
+    "base_type": "Gold Ring"
+  },
+  {
+    "name": "The Highwayman",
+    "base_type": "Gold Ring"
+  },
+  {
+    "name": "Ventor's Gamble",
+    "base_type": "Gold Ring"
+  },
+  {
+    "name": "Demigod's Authority",
+    "base_type": "Golden Blade"
+  },
+  {
+    "name": "Demigod's Touch",
+    "base_type": "Golden Bracers"
+  },
+  {
+    "name": "Atziri's Mirror",
+    "base_type": "Golden Buckler"
+  },
+  {
+    "name": "Atziri's Reflection",
+    "base_type": "Golden Buckler"
+  },
+  {
+    "name": "Demigod's Stride",
+    "base_type": "Golden Caligae"
+  },
+  {
+    "name": "Demigod's Beacon",
+    "base_type": "Golden Flame"
+  },
+  {
+    "name": "Demigod's Eye",
+    "base_type": "Golden Hoop"
+  },
+  {
+    "name": "Demigod's Dominance",
+    "base_type": "Golden Mantle"
+  },
+  {
+    "name": "The Three Dragons",
+    "base_type": "Golden Mask"
+  },
+  {
+    "name": "Willclash",
+    "base_type": "Golden Mask"
+  },
+  {
+    "name": "Demigod's Bounty",
+    "base_type": "Golden Obi"
+  },
+  {
+    "name": "Craiceann's Carapace",
+    "base_type": "Golden Plate"
+  },
+  {
+    "name": "Greed's Embrace",
+    "base_type": "Golden Plate"
+  },
+  {
+    "name": "Demigod's Immortality",
+    "base_type": "Golden Visage"
+  },
+  {
+    "name": "Demigod's Triumph",
+    "base_type": "Golden Wreath"
+  },
+  {
+    "name": "Empire's Grasp",
+    "base_type": "Goliath Gauntlets"
+  },
+  {
+    "name": "The Celestial Brace",
+    "base_type": "Goliath Gauntlets"
+  },
+  {
+    "name": "Craiceann's Tracks",
+    "base_type": "Goliath Greaves"
+  },
+  {
+    "name": "The Tempest Rising",
+    "base_type": "Goliath Greaves"
+  },
+  {
+    "name": "Nametaker",
+    "base_type": "Graceful Sword"
+  },
+  {
+    "name": "Zerphi's Last Breath",
+    "base_type": "Grand Mana Flask"
+  },
+  {
+    "name": "Lion's Roar",
+    "base_type": "Granite Flask"
+  },
+  {
+    "name": "Replica Rumi's Concoction",
+    "base_type": "Granite Flask"
+  },
+  {
+    "name": "Rumi's Concoction",
+    "base_type": "Granite Flask"
+  },
+  {
+    "name": "Forbidden Shako",
+    "base_type": "Great Crown"
+  },
+  {
+    "name": "Geofri's Crest",
+    "base_type": "Great Crown"
+  },
+  {
+    "name": "Geofri's Legacy",
+    "base_type": "Great Crown"
+  },
+  {
+    "name": "Lightpoacher",
+    "base_type": "Great Crown"
+  },
+  {
+    "name": "Replica Forbidden Shako",
+    "base_type": "Great Crown"
+  },
+  {
+    "name": "Replica Veil of the Night",
+    "base_type": "Great Helmet"
+  },
+  {
+    "name": "Veil of the Night",
+    "base_type": "Great Helmet"
+  },
+  {
+    "name": "Chaber Cairn",
+    "base_type": "Great Mallet"
+  },
+  {
+    "name": "Chober Chaber",
+    "base_type": "Great Mallet"
+  },
+  {
+    "name": "Replica Trypanon",
+    "base_type": "Great Mallet"
+  },
+  {
+    "name": "Trypanon",
+    "base_type": "Great Mallet"
+  },
+  {
+    "name": "Doedre's Elixir",
+    "base_type": "Greater Mana Flask"
+  },
+  {
+    "name": "Eyes of the Greatwolf",
+    "base_type": "Greatwolf Talisman"
+  },
+  {
+    "name": "Earendel's Embrace",
+    "base_type": "Grinning Fetish"
+  },
+  {
+    "name": "Replica Earendel's Embrace",
+    "base_type": "Grinning Fetish"
+  },
+  {
+    "name": "Advancing Fortress",
+    "base_type": "Gut Ripper"
+  },
+  {
+    "name": "Ornament of the East",
+    "base_type": "Gut Ripper"
+  },
+  {
+    "name": "Replica Advancing Fortress",
+    "base_type": "Gut Ripper"
+  },
+  {
+    "name": "The Writhing Jar",
+    "base_type": "Hallowed Hybrid Flask"
+  },
+  {
+    "name": "Nuro's Harp",
+    "base_type": "Harbinger Bow"
+  },
+  {
+    "name": "Slivertongue",
+    "base_type": "Harbinger Bow"
+  },
+  {
+    "name": "Farrul's Bite",
+    "base_type": "Harlequin Mask"
+  },
+  {
+    "name": "Mind of the Council",
+    "base_type": "Harlequin Mask"
+  },
+  {
+    "name": "Malachai's Loop",
+    "base_type": "Harmonic Spirit Shield"
+  },
+  {
+    "name": "The Blood Reaper",
+    "base_type": "Headsman Axe"
+  },
+  {
+    "name": "Scorpion's Call",
+    "base_type": "Heavy Arrow Quiver"
+  },
+  {
+    "name": "Belt of the Deceiver",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Bisco's Leash",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Doryani's Invitation",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Dyadian Dawn",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Kaom's Binding",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Mageblood",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Meginord's Girdle",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Mother's Embrace",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Replica Siegebreaker",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Siegebreaker",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "String of Servitude",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Survivor's Guilt",
+    "base_type": "Heavy Belt"
+  },
+  {
+    "name": "Broadstroke",
+    "base_type": "Heavy Quiver"
+  },
+  {
+    "name": "Bloodseeker",
+    "base_type": "Hellion's Paw"
+  },
+  {
+    "name": "Law of the Wilds",
+    "base_type": "Hellion's Paw"
+  },
+  {
+    "name": "Martyr of Innocence",
+    "base_type": "Highborn Staff"
+  },
+  {
+    "name": "The Geomantic Gyre",
+    "base_type": "Highborn Staff"
+  },
+  {
+    "name": "Witchhunter's Judgment",
+    "base_type": "Highborn Staff"
+  },
+  {
+    "name": "Rigwald's Charge",
+    "base_type": "Highland Blade"
+  },
+  {
+    "name": "Voll's Protector",
+    "base_type": "Holy Chainmail"
+  },
+  {
+    "name": "Crown of Eyes",
+    "base_type": "Hubris Circlet"
+  },
+  {
+    "name": "Eber's Unification",
+    "base_type": "Hubris Circlet"
+  },
+  {
+    "name": "Indigon",
+    "base_type": "Hubris Circlet"
+  },
+  {
+    "name": "Ylfeban's Trickery",
+    "base_type": "Hubris Circlet"
+  },
+  {
+    "name": "Gamblesprint",
+    "base_type": "Hydrascale Boots"
+  },
+  {
+    "name": "Saqawal's Talons",
+    "base_type": "Hydrascale Boots"
+  },
+  {
+    "name": "Breathstealer",
+    "base_type": "Hydrascale Gauntlets"
+  },
+  {
+    "name": "Farrul's Pounce",
+    "base_type": "Hydrascale Gauntlets"
+  },
+  {
+    "name": "Gravebind",
+    "base_type": "Hydrascale Gauntlets"
+  },
+  {
+    "name": "Kurgal's Gaze",
+    "base_type": "Hypnotic Eye Jewel"
+  },
+  {
+    "name": "Lioneye's Glare",
+    "base_type": "Imperial Bow"
+  },
+  {
+    "name": "Replica Windripper",
+    "base_type": "Imperial Bow"
+  },
+  {
+    "name": "Windripper",
+    "base_type": "Imperial Bow"
+  },
+  {
+    "name": "Wing of the Wyvern",
+    "base_type": "Imperial Bow"
+  },
+  {
+    "name": "Hand of Thought and Motion",
+    "base_type": "Imperial Claw"
+  },
+  {
+    "name": "Hand of Wisdom and Action",
+    "base_type": "Imperial Claw"
+  },
+  {
+    "name": "Izaro's Dilemma",
+    "base_type": "Imperial Claw"
+  },
+  {
+    "name": "Touch of Anguish",
+    "base_type": "Imperial Claw"
+  },
+  {
+    "name": "Tidebreaker",
+    "base_type": "Imperial Maul"
+  },
+  {
+    "name": "Divinarius",
+    "base_type": "Imperial Skean"
+  },
+  {
+    "name": "White Wind",
+    "base_type": "Imperial Skean"
+  },
+  {
+    "name": "Agnerod East",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "Agnerod North",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "Agnerod South",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "Agnerod West",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "Jiquani's Potential",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "The Enmity Divine",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "The Yielding Mortality",
+    "base_type": "Imperial Staff"
+  },
+  {
+    "name": "First Piece of Brutality",
+    "base_type": "Imperial Staff Piece"
+  },
+  {
+    "name": "Second Piece of Brutality",
+    "base_type": "Imperial Staff Piece"
+  },
+  {
+    "name": "Third Piece of Brutality",
+    "base_type": "Imperial Staff Piece"
+  },
+  {
+    "name": "Dyadus",
+    "base_type": "Infernal Axe"
+  },
+  {
+    "name": "Echoforge",
+    "base_type": "Infernal Sword"
+  },
+  {
+    "name": "Oro's Sacrifice",
+    "base_type": "Infernal Sword"
+  },
+  {
+    "name": "Replica Oro's Sacrifice",
+    "base_type": "Infernal Sword"
+  },
+  {
+    "name": "Starforge",
+    "base_type": "Infernal Sword"
+  },
+  {
+    "name": "Voidforge",
+    "base_type": "Infernal Sword"
+  },
+  {
+    "name": "Asenath's Chant",
+    "base_type": "Iron Circlet"
+  },
+  {
+    "name": "Asenath's Mark",
+    "base_type": "Iron Circlet"
+  },
+  {
+    "name": "Wreath of Phrecia",
+    "base_type": "Iron Circlet"
+  },
+  {
+    "name": "Elixir of the Unbroken Circle",
+    "base_type": "Iron Flask"
+  },
+  {
+    "name": "Olroth's Resolve",
+    "base_type": "Iron Flask"
+  },
+  {
+    "name": "Starlight Chalice",
+    "base_type": "Iron Flask"
+  },
+  {
+    "name": "Vorana's Preparation",
+    "base_type": "Iron Flask"
+  },
+  {
+    "name": "Lochtonial Caress",
+    "base_type": "Iron Gauntlets"
+  },
+  {
+    "name": "Ezomyte Hold",
+    "base_type": "Iron Hat"
+  },
+  {
+    "name": "Ezomyte Peak",
+    "base_type": "Iron Hat"
+  },
+  {
+    "name": "Malachai's Awakening",
+    "base_type": "Iron Mask"
+  },
+  {
+    "name": "Malachai's Simula",
+    "base_type": "Iron Mask"
+  },
+  {
+    "name": "Blackheart",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Circle of Guilt",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Icefang Orbit",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Le Heup of All",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Prospero's Protection",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "The Warden's Brand",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Venopuncture",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Voidheart",
+    "base_type": "Iron Ring"
+  },
+  {
+    "name": "Spine of the First Claimant",
+    "base_type": "Iron Sceptre"
+  },
+  {
+    "name": "Dying Breath",
+    "base_type": "Iron Staff"
+  },
+  {
+    "name": "Pillar of the Caged God",
+    "base_type": "Iron Staff"
+  },
+  {
+    "name": "Realm Ender",
+    "base_type": "Iron Staff"
+  },
+  {
+    "name": "Realmshaper",
+    "base_type": "Iron Staff"
+  },
+  {
+    "name": "Duskblight",
+    "base_type": "Ironscale Boots"
+  },
+  {
+    "name": "Dusktoe",
+    "base_type": "Ironscale Boots"
+  },
+  {
+    "name": "Flesh and Spirit",
+    "base_type": "Ironscale Gauntlets"
+  },
+  {
+    "name": "Kiloava's Bluster",
+    "base_type": "Ironwood Buckler"
+  },
+  {
+    "name": "Mightblood Ire",
+    "base_type": "Ironwood Tincture"
+  },
+  {
+    "name": "Hyrri's Truth",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "Karui Charge",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "Karui Ward",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "Rashkaldor's Patience",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "Replica Hyrri's Truth",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "Replica Karui Ward",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "The Halcyon",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "The Pandemonius",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "Willowgift",
+    "base_type": "Jade Amulet"
+  },
+  {
+    "name": "The Gryphon",
+    "base_type": "Jade Hatchet"
+  },
+  {
+    "name": "The Screaming Eagle",
+    "base_type": "Jade Hatchet"
+  },
+  {
+    "name": "Fidelitas' Spike",
+    "base_type": "Jagged Foil"
+  },
+  {
+    "name": "Panquetzaliztli",
+    "base_type": "Jagged Maul"
+  },
+  {
+    "name": "Quecholli",
+    "base_type": "Jagged Maul"
+  },
+  {
+    "name": "Replica Harvest",
+    "base_type": "Jasper Chopper"
+  },
+  {
+    "name": "The Harvest",
+    "base_type": "Jasper Chopper"
+  },
+  {
+    "name": "Talisman of the Victor",
+    "base_type": "Jet Amulet"
+  },
+  {
+    "name": "Cospri's Malice",
+    "base_type": "Jewelled Foil"
+  },
+  {
+    "name": "Light of Lunaris",
+    "base_type": "Jingling Spirit Shield"
+  },
+  {
+    "name": "Atziri's Rule",
+    "base_type": "Judgement Staff"
+  },
+  {
+    "name": "Hegemony's Era",
+    "base_type": "Judgement Staff"
+  },
+  {
+    "name": "Legacy of the Rose",
+    "base_type": "Judgement Staff"
+  },
+  {
+    "name": "Pledge of Hands",
+    "base_type": "Judgement Staff"
+  },
+  {
+    "name": "The Grey Spire",
+    "base_type": "Judgement Staff"
+  },
+  {
+    "name": "Kaom's Primacy",
+    "base_type": "Karui Chopper"
+  },
+  {
+    "name": "Marohi Erqi",
+    "base_type": "Karui Maul"
+  },
+  {
+    "name": "Death's Hand",
+    "base_type": "Karui Sceptre"
+  },
+  {
+    "name": "Maata's Teaching",
+    "base_type": "Karui Sceptre"
+  },
+  {
+    "name": "Moonsorrow",
+    "base_type": "Kinetic Wand"
+  },
+  {
+    "name": "Piscator's Vigil",
+    "base_type": "Kinetic Wand"
+  },
+  {
+    "name": "Manastorm",
+    "base_type": "Lacewood Spirit Shield"
+  },
+  {
+    "name": "Azadi Crest",
+    "base_type": "Lacquered Buckler"
+  },
+  {
+    "name": "Mistwall",
+    "base_type": "Lacquered Buckler"
+  },
+  {
+    "name": "Replica Mistwall",
+    "base_type": "Lacquered Buckler"
+  },
+  {
+    "name": "Cloak of Defiance",
+    "base_type": "Lacquered Garb"
+  },
+  {
+    "name": "Victario's Influence",
+    "base_type": "Lacquered Garb"
+  },
+  {
+    "name": "Black Sun Crest",
+    "base_type": "Lacquered Helmet"
+  },
+  {
+    "name": "The Fledgling",
+    "base_type": "Lacquered Helmet"
+  },
+  {
+    "name": "Replica Victario's Charity",
+    "base_type": "Laminated Kite Shield"
+  },
+  {
+    "name": "Victario's Charity",
+    "base_type": "Laminated Kite Shield"
+  },
+  {
+    "name": "Choir of the Storm",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Doedre's Tongue",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Khatal's Geyser",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Khatal's Weeping",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Marylene's Fallacy",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Stone of Lazhwar",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Tear of Purity",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "The Ephemeral Bond",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Voice of the Storm",
+    "base_type": "Lapis Amulet"
+  },
+  {
+    "name": "Voices",
+    "base_type": "Large Cluster Jewel"
+  },
+  {
+    "name": "Divination Distillate",
+    "base_type": "Large Hybrid Flask"
+  },
+  {
+    "name": "The Searing Touch",
+    "base_type": "Lathi"
+  },
+  {
+    "name": "Crystal Vault",
+    "base_type": "Latticed Ringmail"
+  },
+  {
+    "name": "Icetomb",
+    "base_type": "Latticed Ringmail"
+  },
+  {
+    "name": "Bear's Girdle",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Cyclopean Coil",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Gluttony",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Headhunter",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Hyperboreus",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Immortal Flesh",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Leash of Oblation",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Pyroshock Clasp",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Replica Headhunter",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Screams of the Desiccated",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Umbilicus Immortalis",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Wurm's Molt",
+    "base_type": "Leather Belt"
+  },
+  {
+    "name": "Goldrim",
+    "base_type": "Leather Cap"
+  },
+  {
+    "name": "Frostferno",
+    "base_type": "Leather Hood"
+  },
+  {
+    "name": "Heatshiver",
+    "base_type": "Leather Hood"
+  },
+  {
+    "name": "Replica Heatshiver",
+    "base_type": "Leather Hood"
+  },
+  {
+    "name": "Gang's Momentum",
+    "base_type": "Legion Boots"
+  },
+  {
+    "name": "March of the Legion",
+    "base_type": "Legion Boots"
+  },
+  {
+    "name": "Null and Void",
+    "base_type": "Legion Gloves"
+  },
+  {
+    "name": "Offering to the Serpent",
+    "base_type": "Legion Gloves"
+  },
+  {
+    "name": "Hyaon's Fury",
+    "base_type": "Legion Sword"
+  },
+  {
+    "name": "The Rippling Thoughts",
+    "base_type": "Legion Sword"
+  },
+  {
+    "name": "The Saviour",
+    "base_type": "Legion Sword"
+  },
+  {
+    "name": "The Surging Thoughts",
+    "base_type": "Legion Sword"
+  },
+  {
+    "name": "First Piece of the Arcane",
+    "base_type": "Legion Sword Piece"
+  },
+  {
+    "name": "Second Piece of the Arcane",
+    "base_type": "Legion Sword Piece"
+  },
+  {
+    "name": "Third Piece of the Arcane",
+    "base_type": "Legion Sword Piece"
+  },
+  {
+    "name": "The Dark Monarch",
+    "base_type": "Lich's Circlet"
+  },
+  {
+    "name": "Obscurantis",
+    "base_type": "Lion Pelt"
+  },
+  {
+    "name": "Doomsower",
+    "base_type": "Lion Sword"
+  },
+  {
+    "name": "The Golden Charlatan",
+    "base_type": "Lion Sword"
+  },
+  {
+    "name": "Storm Cloud",
+    "base_type": "Long Bow"
+  },
+  {
+    "name": "The Tempest",
+    "base_type": "Long Bow"
+  },
+  {
+    "name": "Rotting Legion",
+    "base_type": "Loricated Ringmail"
+  },
+  {
+    "name": "Doedre's Scorn",
+    "base_type": "Lunaris Circlet"
+  },
+  {
+    "name": "Disintegrator",
+    "base_type": "Maelström Staff"
+  },
+  {
+    "name": "Duskdawn",
+    "base_type": "Maelström Staff"
+  },
+  {
+    "name": "Replica Duskdawn",
+    "base_type": "Maelström Staff"
+  },
+  {
+    "name": "Taryn's Shiver",
+    "base_type": "Maelström Staff"
+  },
+  {
+    "name": "Craiceann's Chitin",
+    "base_type": "Magistrate Crown"
+  },
+  {
+    "name": "Crown of the Tyrant",
+    "base_type": "Magistrate Crown"
+  },
+  {
+    "name": "Mask of the Spirit Drinker",
+    "base_type": "Magistrate Crown"
+  },
+  {
+    "name": "Mask of the Stitched Demon",
+    "base_type": "Magistrate Crown"
+  },
+  {
+    "name": "Mask of the Tribunal",
+    "base_type": "Magistrate Crown"
+  },
+  {
+    "name": "Utula's Hunger",
+    "base_type": "Majestic Plate"
+  },
+  {
+    "name": "The Flawed Refuge",
+    "base_type": "Maple Round Shield"
+  },
+  {
+    "name": "The Bane of Hope",
+    "base_type": "Maraketh Bow"
+  },
+  {
+    "name": "The Flame of Hope",
+    "base_type": "Maraketh Bow"
+  },
+  {
+    "name": "Bloodgrip",
+    "base_type": "Marble Amulet"
+  },
+  {
+    "name": "Bonemeld",
+    "base_type": "Marble Amulet"
+  },
+  {
+    "name": "Hand of Heresy",
+    "base_type": "Martyr Gloves"
+  },
+  {
+    "name": "Brain Rattler",
+    "base_type": "Meatgrinder"
+  },
+  {
+    "name": "Megalomaniac",
+    "base_type": "Medium Cluster Jewel"
+  },
+  {
+    "name": "Wake of Destruction",
+    "base_type": "Mesh Boots"
+  },
+  {
+    "name": "The Hand of Phrecia",
+    "base_type": "Mesh Gloves"
+  },
+  {
+    "name": "Triad Grip",
+    "base_type": "Mesh Gloves"
+  },
+  {
+    "name": "Ahn's Might",
+    "base_type": "Midnight Blade"
+  },
+  {
+    "name": "Razor of the Seventh Sun",
+    "base_type": "Midnight Blade"
+  },
+  {
+    "name": "Rigwald's Command",
+    "base_type": "Midnight Blade"
+  },
+  {
+    "name": "Tremor Rod",
+    "base_type": "Military Staff"
+  },
+  {
+    "name": "Hale Negator",
+    "base_type": "Mind Cage"
+  },
+  {
+    "name": "Rime Gaze",
+    "base_type": "Mind Cage"
+  },
+  {
+    "name": "Scold's Bridle",
+    "base_type": "Mind Cage"
+  },
+  {
+    "name": "Arbitrary Tenets",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Black Thumb",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Bold Undertakings",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Cassia's Pride",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Crop Rotation",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Crystallised Power",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Dance of Destruction",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Destructive Play",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Dimensional Barrier",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Eldritch Gaze",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Endless Tide",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Extreme Archaeology",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Fungal Remission",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Gruelling Gauntlet",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Immutable Dogma",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Loved by the Sun",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Lucid Dreams",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Meticulous Appraiser",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Ominous Silence",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Perceived Greatness",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Refiner's Bargain",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Ruinous Wager",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Sealed Domain",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Secular Focus",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Servant of Order",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Shadow Shaping",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Singular Focus",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Smash and Grab",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Speaker of the Dead",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Straight and Narrow",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Thorough Exploration",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Timeless Conflict",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Trade Embargo",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Twist of Fate",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Twisted Wish",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Unending Nightmare",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Well Supplied",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Wellspring of Creation",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Wrath of the Cosmos",
+    "base_type": "Minor Idol"
+  },
+  {
+    "name": "Font of Thunder",
+    "base_type": "Mirrored Spiked Shield"
+  },
+  {
+    "name": "Leper's Alms",
+    "base_type": "Mirrored Spiked Shield"
+  },
+  {
+    "name": "Anathema",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Heartbound Loop",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Shavronne's Revelation",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Tawhanuku's Timing",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Timeclasp",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Timetwist",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Valyrium",
+    "base_type": "Moonstone Ring"
+  },
+  {
+    "name": "Rise of the Phoenix",
+    "base_type": "Mosaic Kite Shield"
+  },
+  {
+    "name": "Bubonic Trail",
+    "base_type": "Murder Boots"
+  },
+  {
+    "name": "Replica Voidwalker",
+    "base_type": "Murder Boots"
+  },
+  {
+    "name": "Voidwalker",
+    "base_type": "Murder Boots"
+  },
+  {
+    "name": "Machina Mitts",
+    "base_type": "Murder Mitts"
+  },
+  {
+    "name": "Malachai's Mark",
+    "base_type": "Murder Mitts"
+  },
+  {
+    "name": "Thunderfist",
+    "base_type": "Murder Mitts"
+  },
+  {
+    "name": "Tecrod's Gaze",
+    "base_type": "Murderous Eye Jewel"
+  },
+  {
+    "name": "Last Resort",
+    "base_type": "Nailed Fist"
+  },
+  {
+    "name": "Replica Last Resort",
+    "base_type": "Nailed Fist"
+  },
+  {
+    "name": "Scar of Fate",
+    "base_type": "Nailed Fist"
+  },
+  {
+    "name": "The Hateful Accuser",
+    "base_type": "Nameless Ring"
+  },
+  {
+    "name": "The Queller of Minds",
+    "base_type": "Nameless Ring"
+  },
+  {
+    "name": "The Selfish Shepherd",
+    "base_type": "Nameless Ring"
+  },
+  {
+    "name": "Contract: Death to Darnaw",
+    "base_type": "Naval Contract"
+  },
+  {
+    "name": "Chitus' Apex",
+    "base_type": "Necromancer Circlet"
+  },
+  {
+    "name": "Fenumus' Toxins",
+    "base_type": "Necromancer Circlet"
+  },
+  {
+    "name": "Sandstorm Visage",
+    "base_type": "Necromancer Circlet"
+  },
+  {
+    "name": "The Devouring Diadem",
+    "base_type": "Necromancer Circlet"
+  },
+  {
+    "name": "Fleshcrafter",
+    "base_type": "Necromancer Silks"
+  },
+  {
+    "name": "Vis Mortis",
+    "base_type": "Necromancer Silks"
+  },
+  {
+    "name": "Devoto's Devotion",
+    "base_type": "Nightmare Bascinet"
+  },
+  {
+    "name": "The Bringer of Rain",
+    "base_type": "Nightmare Bascinet"
+  },
+  {
+    "name": "Nebuloch",
+    "base_type": "Nightmare Mace"
+  },
+  {
+    "name": "Goldwyrm",
+    "base_type": "Nubuck Boots"
+  },
+  {
+    "name": "Oskarm",
+    "base_type": "Nubuck Gloves"
+  },
+  {
+    "name": "The Battle Within",
+    "base_type": "Oakbranch Tincture"
+  },
+  {
+    "name": "Shavronne's Wrappings",
+    "base_type": "Occultist's Vestment"
+  },
+  {
+    "name": "Apep's Rage",
+    "base_type": "Omen Wand"
+  },
+  {
+    "name": "Obliteration",
+    "base_type": "Omen Wand"
+  },
+  {
+    "name": "Ashes of the Stars",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Astramentis",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Aul's Uprising",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Carnage Heart",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Crystallised Omniscience",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Eye of Chayula",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Hinekora's Sight",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Impresence",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Leadership's Price",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Presence of Chayula",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Replica Dragonfang's Flight",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Replica Hinekora's Sight",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Solstice Vigil",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Stranglegasp",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "The Eternal Struggle",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Yoke of Suffering",
+    "base_type": "Onyx Amulet"
+  },
+  {
+    "name": "Mark of the Shaper",
+    "base_type": "Opal Ring"
+  },
+  {
+    "name": "Polaric Devastation",
+    "base_type": "Opal Ring"
+  },
+  {
+    "name": "Stormfire",
+    "base_type": "Opal Ring"
+  },
+  {
+    "name": "The Unseen Hue",
+    "base_type": "Opal Ring"
+  },
+  {
+    "name": "Balefire",
+    "base_type": "Opal Sceptre"
+  },
+  {
+    "name": "Replica Tulfall",
+    "base_type": "Opal Wand"
+  },
+  {
+    "name": "Tulborn",
+    "base_type": "Opal Wand"
+  },
+  {
+    "name": "Tulfall",
+    "base_type": "Opal Wand"
+  },
+  {
+    "name": "The Will of Uul-Netol",
+    "base_type": "Organic Ring"
+  },
+  {
+    "name": "Frostbreath",
+    "base_type": "Ornate Mace"
+  },
+  {
+    "name": "Replica Frostbreath",
+    "base_type": "Ornate Mace"
+  },
+  {
+    "name": "Maloney's Mechanism",
+    "base_type": "Ornate Quiver"
+  },
+  {
+    "name": "Replica Maloney's Mechanism",
+    "base_type": "Ornate Quiver"
+  },
+  {
+    "name": "Lightbane Raiment",
+    "base_type": "Ornate Ringmail"
+  },
+  {
+    "name": "Queen's Decree",
+    "base_type": "Ornate Sword"
+  },
+  {
+    "name": "Queen's Escape",
+    "base_type": "Ornate Sword"
+  },
+  {
+    "name": "Mystic Refractor",
+    "base_type": "Pagan Wand"
+  },
+  {
+    "name": "Kaltenhalt",
+    "base_type": "Painted Buckler"
+  },
+  {
+    "name": "Kaltensoul",
+    "base_type": "Painted Buckler"
+  },
+  {
+    "name": "Redblade Banner",
+    "base_type": "Painted Tower Shield"
+  },
+  {
+    "name": "Refuge in Isolation",
+    "base_type": "Paladin Crown"
+  },
+  {
+    "name": "The Original Scripture",
+    "base_type": "Papyrus Relic"
+  },
+  {
+    "name": "Atziri's Foible",
+    "base_type": "Paua Amulet"
+  },
+  {
+    "name": "Defiance of Destiny",
+    "base_type": "Paua Amulet"
+  },
+  {
+    "name": "Replica Atziri's Foible",
+    "base_type": "Paua Amulet"
+  },
+  {
+    "name": "Sacrificial Heart",
+    "base_type": "Paua Amulet"
+  },
+  {
+    "name": "Sidhebreath",
+    "base_type": "Paua Amulet"
+  },
+  {
+    "name": "Zerphi's Heart",
+    "base_type": "Paua Amulet"
+  },
+  {
+    "name": "Doedre's Damning",
+    "base_type": "Paua Ring"
+  },
+  {
+    "name": "Fated End",
+    "base_type": "Paua Ring"
+  },
+  {
+    "name": "Perandus Signet",
+    "base_type": "Paua Ring"
+  },
+  {
+    "name": "Praxis",
+    "base_type": "Paua Ring"
+  },
+  {
+    "name": "Replica Doedre's Damning",
+    "base_type": "Paua Ring"
+  },
+  {
+    "name": "Soulbound",
+    "base_type": "Paua Ring"
+  },
+  {
+    "name": "Drillneck",
+    "base_type": "Penetrating Arrow Quiver"
+  },
+  {
+    "name": "Serle's Masterwork",
+    "base_type": "Phantom Mace"
+  },
+  {
+    "name": "The Devourer of Minds",
+    "base_type": "Pig-Faced Bascinet"
+  },
+  {
+    "name": "Tawhoa's Felling",
+    "base_type": "Piledriver"
+  },
+  {
+    "name": "Crest of Perandus",
+    "base_type": "Pine Buckler"
+  },
+  {
+    "name": "Lioneye's Remorse",
+    "base_type": "Pinnacle Tower Shield"
+  },
+  {
+    "name": "Magna Eclipsis",
+    "base_type": "Pinnacle Tower Shield"
+  },
+  {
+    "name": "Curtain Call",
+    "base_type": "Plague Mask"
+  },
+  {
+    "name": "Springleaf",
+    "base_type": "Plank Kite Shield"
+  },
+  {
+    "name": "The Oak",
+    "base_type": "Plank Kite Shield"
+  },
+  {
+    "name": "Bramblejack",
+    "base_type": "Plate Vest"
+  },
+  {
+    "name": "Wall of Brambles",
+    "base_type": "Plate Vest"
+  },
+  {
+    "name": "Stormcharger",
+    "base_type": "Plated Greaves"
+  },
+  {
+    "name": "Mark of the Doubting Knight",
+    "base_type": "Platinum Kris"
+  },
+  {
+    "name": "Cadigan's Authority",
+    "base_type": "Platinum Sceptre"
+  },
+  {
+    "name": "Singularity",
+    "base_type": "Platinum Sceptre"
+  },
+  {
+    "name": "Wideswing",
+    "base_type": "Poleaxe"
+  },
+  {
+    "name": "Zeel's Amplifier",
+    "base_type": "Polished Spiked Shield"
+  },
+  {
+    "name": "Ahn's Contempt",
+    "base_type": "Praetor Crown"
+  },
+  {
+    "name": "Malachai's Vision",
+    "base_type": "Praetor Crown"
+  },
+  {
+    "name": "Memory Vault",
+    "base_type": "Praetor Crown"
+  },
+  {
+    "name": "Viridi's Veil",
+    "base_type": "Praetor Crown"
+  },
+  {
+    "name": "Voll's Vision",
+    "base_type": "Praetor Crown"
+  },
+  {
+    "name": "Contract: Breaking the Unbreakable",
+    "base_type": "Preventative Contract"
+  },
+  {
+    "name": "The Poised Prism",
+    "base_type": "Primal Arrow Quiver"
+  },
+  {
+    "name": "Voidfletcher",
+    "base_type": "Primal Arrow Quiver"
+  },
+  {
+    "name": "Curio of Absorption",
+    "base_type": "Primordial Fragment"
+  },
+  {
+    "name": "Curio of Consumption",
+    "base_type": "Primordial Fragment"
+  },
+  {
+    "name": "Curio of Decay",
+    "base_type": "Primordial Fragment"
+  },
+  {
+    "name": "Curio of Potential",
+    "base_type": "Primordial Fragment"
+  },
+  {
+    "name": "Femurs of the Saints",
+    "base_type": "Primordial Staff"
+  },
+  {
+    "name": "The Burden of Shadows",
+    "base_type": "Primordial Staff"
+  },
+  {
+    "name": "Bound By Destiny",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "Emperor's Mastery",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "Sublime Vision",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "The Anima Stone",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "The Light of Meaning",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "The Perandus Pact",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "Watcher's Eye",
+    "base_type": "Prismatic Jewel"
+  },
+  {
+    "name": "Circle of Ambition",
+    "base_type": "Prismatic Ring"
+  },
+  {
+    "name": "Lori's Lantern",
+    "base_type": "Prismatic Ring"
+  },
+  {
+    "name": "Precursor's Emblem",
+    "base_type": "Prismatic Ring"
+  },
+  {
+    "name": "The Taming",
+    "base_type": "Prismatic Ring"
+  },
+  {
+    "name": "Thief's Torment",
+    "base_type": "Prismatic Ring"
+  },
+  {
+    "name": "Sap of the Seasons",
+    "base_type": "Prismatic Tincture"
+  },
+  {
+    "name": "The Chains of Castigation",
+    "base_type": "Processional Relic"
+  },
+  {
+    "name": "The Gilded Chalice",
+    "base_type": "Processional Relic"
+  },
+  {
+    "name": "Grace of the Goddess",
+    "base_type": "Prophecy Wand"
+  },
+  {
+    "name": "Void Battery",
+    "base_type": "Prophecy Wand"
+  },
+  {
+    "name": "Crown of the Inward Eye",
+    "base_type": "Prophet Crown"
+  },
+  {
+    "name": "Speaker's Wreath",
+    "base_type": "Prophet Crown"
+  },
+  {
+    "name": "The Brine Crown",
+    "base_type": "Prophet Crown"
+  },
+  {
+    "name": "The Broken Crown",
+    "base_type": "Prophet Crown"
+  },
+  {
+    "name": "The Annihilating Light",
+    "base_type": "Quarterstaff"
+  },
+  {
+    "name": "Forbidden Taste",
+    "base_type": "Quartz Flask"
+  },
+  {
+    "name": "Soul Catcher",
+    "base_type": "Quartz Flask"
+  },
+  {
+    "name": "Soul Ripper",
+    "base_type": "Quartz Flask"
+  },
+  {
+    "name": "Rotgut",
+    "base_type": "Quicksilver Flask"
+  },
+  {
+    "name": "Hopeshredder",
+    "base_type": "Ranger Bow"
+  },
+  {
+    "name": "Null's Inclination",
+    "base_type": "Ranger Bow"
+  },
+  {
+    "name": "The Gull",
+    "base_type": "Raven Mask"
+  },
+  {
+    "name": "Seven-League Step",
+    "base_type": "Rawhide Boots"
+  },
+  {
+    "name": "Lycosidae",
+    "base_type": "Rawhide Tower Shield"
+  },
+  {
+    "name": "Blood Price",
+    "base_type": "Reaver Helmet"
+  },
+  {
+    "name": "Hiltless",
+    "base_type": "Reaver Sword"
+  },
+  {
+    "name": "The Dancing Dervish",
+    "base_type": "Reaver Sword"
+  },
+  {
+    "name": "The Dancing Duo",
+    "base_type": "Reaver Sword"
+  },
+  {
+    "name": "Roth's Reach",
+    "base_type": "Recurve Bow"
+  },
+  {
+    "name": "Akoya's Gaze",
+    "base_type": "Regicide Mask"
+  },
+  {
+    "name": "Crown of the Pale King",
+    "base_type": "Regicide Mask"
+  },
+  {
+    "name": "Gorgon's Gaze",
+    "base_type": "Regicide Mask"
+  },
+  {
+    "name": "Windscream",
+    "base_type": "Reinforced Greaves"
+  },
+  {
+    "name": "Windshriek",
+    "base_type": "Reinforced Greaves"
+  },
+  {
+    "name": "Titucius' Span",
+    "base_type": "Reinforced Tower Shield"
+  },
+  {
+    "name": "Kalandra's Touch",
+    "base_type": "Ring"
+  },
+  {
+    "name": "Brutus' Lead Sprinkler",
+    "base_type": "Ritual Sceptre"
+  },
+  {
+    "name": "Ralakesh's Impatience",
+    "base_type": "Riveted Boots"
+  },
+  {
+    "name": "Command of the Pit",
+    "base_type": "Riveted Gloves"
+  },
+  {
+    "name": "Clayshaper",
+    "base_type": "Rock Breaker"
+  },
+  {
+    "name": "Natural Hierarchy",
+    "base_type": "Rotfeather Talisman"
+  },
+  {
+    "name": "Wheel of the Stormsail",
+    "base_type": "Rotted Round Shield"
+  },
+  {
+    "name": "Rigwald's Savagery",
+    "base_type": "Royal Axe"
+  },
+  {
+    "name": "Doomfletch",
+    "base_type": "Royal Bow"
+  },
+  {
+    "name": "Doomfletch's Prism",
+    "base_type": "Royal Bow"
+  },
+  {
+    "name": "Echoes of Creation",
+    "base_type": "Royal Burgonet"
+  },
+  {
+    "name": "The Formless Flame",
+    "base_type": "Royal Burgonet"
+  },
+  {
+    "name": "The Formless Inferno",
+    "base_type": "Royal Burgonet"
+  },
+  {
+    "name": "The Black Cane",
+    "base_type": "Royal Sceptre"
+  },
+  {
+    "name": "Heartbreaker",
+    "base_type": "Royal Skean"
+  },
+  {
+    "name": "Replica Heartbreaker",
+    "base_type": "Royal Skean"
+  },
+  {
+    "name": "The Stormheart",
+    "base_type": "Royal Staff"
+  },
+  {
+    "name": "The Stormwall",
+    "base_type": "Royal Staff"
+  },
+  {
+    "name": "Star of Wraeclast",
+    "base_type": "Ruby Amulet"
+  },
+  {
+    "name": "Coruscating Elixir",
+    "base_type": "Ruby Flask"
+  },
+  {
+    "name": "Dying Sun",
+    "base_type": "Ruby Flask"
+  },
+  {
+    "name": "Ahkeli's Meadow",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Ahkeli's Mountain",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Ahkeli's Valley",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Circle of Anguish",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Emberwake",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Mokou's Embrace",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Ngamahu's Sign",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Precursor's Emblem",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Replica Emberwake",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Warrior's Legacy",
+    "base_type": "Ruby Ring"
+  },
+  {
+    "name": "Cadigan's Crown",
+    "base_type": "Runic Crown"
+  },
+  {
+    "name": "Nightgrip",
+    "base_type": "Runic Gages"
+  },
+  {
+    "name": "Medved's Challenge",
+    "base_type": "Runic Gauntlets"
+  },
+  {
+    "name": "Faithguard",
+    "base_type": "Runic Helm"
+  },
+  {
+    "name": "Vorana's March",
+    "base_type": "Runic Sabatons"
+  },
+  {
+    "name": "Olroth's Charge",
+    "base_type": "Runic Sollerets"
+  },
+  {
+    "name": "Rust of Winter",
+    "base_type": "Rusted Hatchet"
+  },
+  {
+    "name": "Blood of Summer",
+    "base_type": "Rusted Sword"
+  },
+  {
+    "name": "Dreadbeak",
+    "base_type": "Rusted Sword"
+  },
+  {
+    "name": "Redbeak",
+    "base_type": "Rusted Sword"
+  },
+  {
+    "name": "Faminebind",
+    "base_type": "Rustic Sash"
+  },
+  {
+    "name": "Feastbind",
+    "base_type": "Rustic Sash"
+  },
+  {
+    "name": "Prismweave",
+    "base_type": "Rustic Sash"
+  },
+  {
+    "name": "Replica Prismweave",
+    "base_type": "Rustic Sash"
+  },
+  {
+    "name": "The Retch",
+    "base_type": "Rustic Sash"
+  },
+  {
+    "name": "The Princess",
+    "base_type": "Sabre"
+  },
+  {
+    "name": "Atziri's Splendour",
+    "base_type": "Sacrificial Garb"
+  },
+  {
+    "name": "Shadowstitch",
+    "base_type": "Sacrificial Garb"
+  },
+  {
+    "name": "Doppelgänger Guise",
+    "base_type": "Sadist Garb"
+  },
+  {
+    "name": "Inpulsa's Broken Heart",
+    "base_type": "Sadist Garb"
+  },
+  {
+    "name": "Tinkerskin",
+    "base_type": "Sadist Garb"
+  },
+  {
+    "name": "Relic of the Pact",
+    "base_type": "Sage Wand"
+  },
+  {
+    "name": "Shade of Solaris",
+    "base_type": "Sage Wand"
+  },
+  {
+    "name": "Unlight Extant",
+    "base_type": "Sage Wand"
+  },
+  {
+    "name": "Dialla's Malefaction",
+    "base_type": "Sage's Robe"
+  },
+  {
+    "name": "Zahndethus' Cassock",
+    "base_type": "Sage's Robe"
+  },
+  {
+    "name": "Doryani's Prototype",
+    "base_type": "Saint's Hauberk"
+  },
+  {
+    "name": "Sporeguard",
+    "base_type": "Saint's Hauberk"
+  },
+  {
+    "name": "The Ivory Tower",
+    "base_type": "Saint's Hauberk"
+  },
+  {
+    "name": "Chains of Command",
+    "base_type": "Saintly Chainmail"
+  },
+  {
+    "name": "Incandescent Heart",
+    "base_type": "Saintly Chainmail"
+  },
+  {
+    "name": "Kalisa's Grace",
+    "base_type": "Samite Gloves"
+  },
+  {
+    "name": "Replica Kalisa's Grace",
+    "base_type": "Samite Gloves"
+  },
+  {
+    "name": "Hrimnor's Resolve",
+    "base_type": "Samnite Helmet"
+  },
+  {
+    "name": "Blood of the Karui",
+    "base_type": "Sanctified Life Flask"
+  },
+  {
+    "name": "Lavianga's Spirit",
+    "base_type": "Sanctified Mana Flask"
+  },
+  {
+    "name": "Replica Lavianga's Spirit",
+    "base_type": "Sanctified Mana Flask"
+  },
+  {
+    "name": "Taste of Hate",
+    "base_type": "Sapphire Flask"
+  },
+  {
+    "name": "Call of the Void",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Circle of Fear",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Dream Fragments",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Precursor's Emblem",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Pyre",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Replica Tasalio's Sign",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Snakepit",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Tasalio's Sign",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Uzaza's Meadow",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Uzaza's Mountain",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Uzaza's Valley",
+    "base_type": "Sapphire Ring"
+  },
+  {
+    "name": "Allelopathy",
+    "base_type": "Satin Gloves"
+  },
+  {
+    "name": "Demon Stitcher",
+    "base_type": "Satin Gloves"
+  },
+  {
+    "name": "Replica Allelopathy",
+    "base_type": "Satin Gloves"
+  },
+  {
+    "name": "Scornflux",
+    "base_type": "Satin Slippers"
+  },
+  {
+    "name": "Cloak of Tawm'r Isley",
+    "base_type": "Savant's Robe"
+  },
+  {
+    "name": "Garb of the Ephemeral",
+    "base_type": "Savant's Robe"
+  },
+  {
+    "name": "Shavronne's Gambit",
+    "base_type": "Scholar Boots"
+  },
+  {
+    "name": "Shavronne's Pace",
+    "base_type": "Scholar Boots"
+  },
+  {
+    "name": "Cloak of Flame",
+    "base_type": "Scholar's Robe"
+  },
+  {
+    "name": "Whispers of Infinity",
+    "base_type": "Seaglass Amulet"
+  },
+  {
+    "name": "Ulaman's Gaze",
+    "base_type": "Searching Eye Jewel"
+  },
+  {
+    "name": "Skullhead",
+    "base_type": "Secutor Helm"
+  },
+  {
+    "name": "Dendrobate",
+    "base_type": "Sentinel Jacket"
+  },
+  {
+    "name": "Expedition's End",
+    "base_type": "Sentinel Jacket"
+  },
+  {
+    "name": "Cane of Kulemak",
+    "base_type": "Serpentine Staff"
+  },
+  {
+    "name": "Sire of Shards",
+    "base_type": "Serpentine Staff"
+  },
+  {
+    "name": "Mutewind Whispersteps",
+    "base_type": "Serpentscale Boots"
+  },
+  {
+    "name": "Haemophilia",
+    "base_type": "Serpentscale Gauntlets"
+  },
+  {
+    "name": "Cragfall",
+    "base_type": "Serrated Arrow Quiver"
+  },
+  {
+    "name": "Craghead",
+    "base_type": "Serrated Arrow Quiver"
+  },
+  {
+    "name": "Slivers of Providence",
+    "base_type": "Serrated Arrow Quiver"
+  },
+  {
+    "name": "Veruso's Ambition",
+    "base_type": "Shackled Boots"
+  },
+  {
+    "name": "Reaper's Pursuit",
+    "base_type": "Shadow Axe"
+  },
+  {
+    "name": "Bitterdream",
+    "base_type": "Shadow Sceptre"
+  },
+  {
+    "name": "Replica Bitterdream",
+    "base_type": "Shadow Sceptre"
+  },
+  {
+    "name": "The Dark Seer",
+    "base_type": "Shadow Sceptre"
+  },
+  {
+    "name": "Replica Three-step Assault",
+    "base_type": "Shagreen Boots"
+  },
+  {
+    "name": "Temptation Step",
+    "base_type": "Shagreen Boots"
+  },
+  {
+    "name": "Three-step Assault",
+    "base_type": "Shagreen Boots"
+  },
+  {
+    "name": "Painseeker",
+    "base_type": "Shagreen Gloves"
+  },
+  {
+    "name": "The Blood Dance",
+    "base_type": "Sharkskin Boots"
+  },
+  {
+    "name": "The Rat Cage",
+    "base_type": "Sharkskin Tunic"
+  },
+  {
+    "name": "Ahuana's Bite",
+    "base_type": "Sharktooth Arrow Quiver"
+  },
+  {
+    "name": "Hyrri's Bite",
+    "base_type": "Sharktooth Arrow Quiver"
+  },
+  {
+    "name": "Hyrri's Demise",
+    "base_type": "Sharktooth Arrow Quiver"
+  },
+  {
+    "name": "Quill Rain",
+    "base_type": "Short Bow"
+  },
+  {
+    "name": "Replica Quill Rain",
+    "base_type": "Short Bow"
+  },
+  {
+    "name": "Replica Soul Taker",
+    "base_type": "Siege Axe"
+  },
+  {
+    "name": "Soul Taker",
+    "base_type": "Siege Axe"
+  },
+  {
+    "name": "Kaom's Command",
+    "base_type": "Siege Helmet"
+  },
+  {
+    "name": "Asenath's Gentle Touch",
+    "base_type": "Silk Gloves"
+  },
+  {
+    "name": "Bones of Ullr",
+    "base_type": "Silk Slippers"
+  },
+  {
+    "name": "Replica Bones of Ullr",
+    "base_type": "Silk Slippers"
+  },
+  {
+    "name": "Cowl of the Cryophile",
+    "base_type": "Silken Hood"
+  },
+  {
+    "name": "Saqawal's Flock",
+    "base_type": "Silken Hood"
+  },
+  {
+    "name": "Starkonja's Head",
+    "base_type": "Silken Hood"
+  },
+  {
+    "name": "Ghostwrithe",
+    "base_type": "Silken Vest"
+  },
+  {
+    "name": "Cinderswallow Urn",
+    "base_type": "Silver Flask"
+  },
+  {
+    "name": "Kiara's Determination",
+    "base_type": "Silver Flask"
+  },
+  {
+    "name": "Skin of the Lords",
+    "base_type": "Simple Robe"
+  },
+  {
+    "name": "Skin of the Loyal",
+    "base_type": "Simple Robe"
+  },
+  {
+    "name": "Tabula Rasa",
+    "base_type": "Simple Robe"
+  },
+  {
+    "name": "Thousand Ribbons",
+    "base_type": "Simple Robe"
+  },
+  {
+    "name": "Alpha's Howl",
+    "base_type": "Sinner Tricorne"
+  },
+  {
+    "name": "Assailum",
+    "base_type": "Sinner Tricorne"
+  },
+  {
+    "name": "Replica Alpha's Howl",
+    "base_type": "Sinner Tricorne"
+  },
+  {
+    "name": "Goredrill",
+    "base_type": "Skinning Knife"
+  },
+  {
+    "name": "Sanguine Gambol",
+    "base_type": "Skinning Knife"
+  },
+  {
+    "name": "Bino's Kitchen Knife",
+    "base_type": "Slaughter Knife"
+  },
+  {
+    "name": "Hrimnor's Dirge",
+    "base_type": "Sledgehammer"
+  },
+  {
+    "name": "Hrimnor's Hymn",
+    "base_type": "Sledgehammer"
+  },
+  {
+    "name": "Atziri's Step",
+    "base_type": "Slink Boots"
+  },
+  {
+    "name": "Doryani's Delusion",
+    "base_type": "Slink Boots"
+  },
+  {
+    "name": "Farrul's Chase",
+    "base_type": "Slink Boots"
+  },
+  {
+    "name": "Mercenary's Lot",
+    "base_type": "Slink Gloves"
+  },
+  {
+    "name": "Calamitous Visions",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "Kitava's Teachings",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "Natural Affinity",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "One With Nothing",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "The Front Line",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "The Interrogation",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "The Siege",
+    "base_type": "Small Cluster Jewel"
+  },
+  {
+    "name": "Cowl of the Ceraunophile",
+    "base_type": "Solaris Circlet"
+  },
+  {
+    "name": "Flamesight",
+    "base_type": "Solaris Circlet"
+  },
+  {
+    "name": "Galesight",
+    "base_type": "Solaris Circlet"
+  },
+  {
+    "name": "Thundersight",
+    "base_type": "Solaris Circlet"
+  },
+  {
+    "name": "Wilma's Requital",
+    "base_type": "Solaris Circlet"
+  },
+  {
+    "name": "Alberon's Warpath",
+    "base_type": "Soldier Boots"
+  },
+  {
+    "name": "Replica Alberon's Warpath",
+    "base_type": "Soldier Boots"
+  },
+  {
+    "name": "Saqawal's Winds",
+    "base_type": "Soldier Gloves"
+  },
+  {
+    "name": "Southbound",
+    "base_type": "Soldier Gloves"
+  },
+  {
+    "name": "Honourhome",
+    "base_type": "Soldier Helmet"
+  },
+  {
+    "name": "The Poet's Pen",
+    "base_type": "Somatic Wand"
+  },
+  {
+    "name": "Doryani's Delusion",
+    "base_type": "Sorcerer Boots"
+  },
+  {
+    "name": "Skyforth",
+    "base_type": "Sorcerer Boots"
+  },
+  {
+    "name": "Steppan Eard",
+    "base_type": "Sorcerer Boots"
+  },
+  {
+    "name": "Qotra's Regulator",
+    "base_type": "Sovereign Spiked Shield"
+  },
+  {
+    "name": "The Grey Wind",
+    "base_type": "Spectral Axe"
+  },
+  {
+    "name": "Replica Covenant",
+    "base_type": "Spidersilk Robe"
+  },
+  {
+    "name": "Soul Mantle",
+    "base_type": "Spidersilk Robe"
+  },
+  {
+    "name": "The Covenant",
+    "base_type": "Spidersilk Robe"
+  },
+  {
+    "name": "Replica Soul Strike",
+    "base_type": "Spike-Point Arrow Quiver"
+  },
+  {
+    "name": "Soul Strike",
+    "base_type": "Spike-Point Arrow Quiver"
+  },
+  {
+    "name": "Gorebreaker",
+    "base_type": "Spiked Club"
+  },
+  {
+    "name": "Ceaseless Feast",
+    "base_type": "Spiked Gloves"
+  },
+  {
+    "name": "Reach of the Council",
+    "base_type": "Spine Bow"
+  },
+  {
+    "name": "Voltaxic Rift",
+    "base_type": "Spine Bow"
+  },
+  {
+    "name": "Bitter Instinct",
+    "base_type": "Spiny Round Shield"
+  },
+  {
+    "name": "Amplification Rod",
+    "base_type": "Spiraled Wand"
+  },
+  {
+    "name": "Reverberation Rod",
+    "base_type": "Spiraled Wand"
+  },
+  {
+    "name": "Storm Prison",
+    "base_type": "Spiraled Wand"
+  },
+  {
+    "name": "Grasping Nightshade",
+    "base_type": "Sporebloom Tincture"
+  },
+  {
+    "name": "Garukhan's Flight",
+    "base_type": "Stealth Boots"
+  },
+  {
+    "name": "Sin Trek",
+    "base_type": "Stealth Boots"
+  },
+  {
+    "name": "Maw of Conquest",
+    "base_type": "Steel Circlet"
+  },
+  {
+    "name": "Sudden Dawn",
+    "base_type": "Steel Circlet"
+  },
+  {
+    "name": "Meginord's Vise",
+    "base_type": "Steel Gauntlets"
+  },
+  {
+    "name": "Emperor's Vigilance",
+    "base_type": "Steel Kite Shield"
+  },
+  {
+    "name": "Mahuxotl's Machination",
+    "base_type": "Steel Kite Shield"
+  },
+  {
+    "name": "Betrayal's Sting",
+    "base_type": "Steel Ring"
+  },
+  {
+    "name": "Mark of the Elder",
+    "base_type": "Steel Ring"
+  },
+  {
+    "name": "Woespike",
+    "base_type": "Steel Ring"
+  },
+  {
+    "name": "Jorrhast's Blacksteel",
+    "base_type": "Steelhead"
+  },
+  {
+    "name": "Aurseize",
+    "base_type": "Steelscale Gauntlets"
+  },
+  {
+    "name": "Tombfist",
+    "base_type": "Steelscale Gauntlets"
+  },
+  {
+    "name": "The Crimson Storm",
+    "base_type": "Steelwood Bow"
+  },
+  {
+    "name": "Replica Witchfire Brew",
+    "base_type": "Stibnite Flask"
+  },
+  {
+    "name": "Sin's Rebirth",
+    "base_type": "Stibnite Flask"
+  },
+  {
+    "name": "Witchfire Brew",
+    "base_type": "Stibnite Flask"
+  },
+  {
+    "name": "Bloodplay",
+    "base_type": "Stiletto"
+  },
+  {
+    "name": "Replica Bloodplay",
+    "base_type": "Stiletto"
+  },
+  {
+    "name": "Nomic's Storm",
+    "base_type": "Strapped Boots"
+  },
+  {
+    "name": "Wildwrap",
+    "base_type": "Strapped Leather"
+  },
+  {
+    "name": "Facebreaker",
+    "base_type": "Strapped Mitts"
+  },
+  {
+    "name": "Ryslatha's Coil",
+    "base_type": "Studded Belt"
+  },
+  {
+    "name": "The Magnate",
+    "base_type": "Studded Belt"
+  },
+  {
+    "name": "The Nomad",
+    "base_type": "Studded Belt"
+  },
+  {
+    "name": "The Tactician",
+    "base_type": "Studded Belt"
+  },
+  {
+    "name": "Ynda's Stand",
+    "base_type": "Studded Belt"
+  },
+  {
+    "name": "The Deep One's Hide",
+    "base_type": "Studded Round Shield"
+  },
+  {
+    "name": "Darkness Enthroned",
+    "base_type": "Stygian Vise"
+  },
+  {
+    "name": "Bottled Faith",
+    "base_type": "Sulphur Flask"
+  },
+  {
+    "name": "Replica Sorrow of the Divine",
+    "base_type": "Sulphur Flask"
+  },
+  {
+    "name": "The Overflowing Chalice",
+    "base_type": "Sulphur Flask"
+  },
+  {
+    "name": "The Sorrow of the Divine",
+    "base_type": "Sulphur Flask"
+  },
+  {
+    "name": "Briskwrap",
+    "base_type": "Sun Leather"
+  },
+  {
+    "name": "Jaws of Agony",
+    "base_type": "Supreme Spiked Shield"
+  },
+  {
+    "name": "The Will of Esh",
+    "base_type": "Synaptic Ring"
+  },
+  {
+    "name": "Brinerot Flag",
+    "base_type": "Tarnished Spirit Shield"
+  },
+  {
+    "name": "Matua Tupuna",
+    "base_type": "Tarnished Spirit Shield"
+  },
+  {
+    "name": "Whakatutuki o Matua",
+    "base_type": "Tarnished Spirit Shield"
+  },
+  {
+    "name": "The Ghastly Theatre",
+    "base_type": "Teak Round Shield"
+  },
+  {
+    "name": "Rive",
+    "base_type": "Terror Claw"
+  },
+  {
+    "name": "The Scourge",
+    "base_type": "Terror Claw"
+  },
+  {
+    "name": "Kongor's Undying Rage",
+    "base_type": "Terror Maul"
+  },
+  {
+    "name": "Replica Kongor's Undying Rage",
+    "base_type": "Terror Maul"
+  },
+  {
+    "name": "Cybil's Paw",
+    "base_type": "Thresher Claw"
+  },
+  {
+    "name": "The Wasp Nest",
+    "base_type": "Throat Stabber"
+  },
+  {
+    "name": "Terminus Est",
+    "base_type": "Tiger Sword"
+  },
+  {
+    "name": "Brutal Restraint",
+    "base_type": "Timeless Jewel"
+  },
+  {
+    "name": "Elegant Hubris",
+    "base_type": "Timeless Jewel"
+  },
+  {
+    "name": "Glorious Vanity",
+    "base_type": "Timeless Jewel"
+  },
+  {
+    "name": "Heroic Tragedy",
+    "base_type": "Timeless Jewel"
+  },
+  {
+    "name": "Lethal Pride",
+    "base_type": "Timeless Jewel"
+  },
+  {
+    "name": "Militant Faith",
+    "base_type": "Timeless Jewel"
+  },
+  {
+    "name": "Al Dhih",
+    "base_type": "Timeworn Claw"
+  },
+  {
+    "name": "Craiceann's Pincers",
+    "base_type": "Titan Gauntlets"
+  },
+  {
+    "name": "Kaom's Spirit",
+    "base_type": "Titan Gauntlets"
+  },
+  {
+    "name": "Veruso's Battering Rams",
+    "base_type": "Titan Gauntlets"
+  },
+  {
+    "name": "Doryani's Delusion",
+    "base_type": "Titan Greaves"
+  },
+  {
+    "name": "Kaom's Roots",
+    "base_type": "Titan Greaves"
+  },
+  {
+    "name": "Replica Red Trail",
+    "base_type": "Titan Greaves"
+  },
+  {
+    "name": "The Infinite Pursuit",
+    "base_type": "Titan Greaves"
+  },
+  {
+    "name": "The Red Trail",
+    "base_type": "Titan Greaves"
+  },
+  {
+    "name": "Bitterbind Point",
+    "base_type": "Titanium Spirit Shield"
+  },
+  {
+    "name": "Rathpith Globe",
+    "base_type": "Titanium Spirit Shield"
+  },
+  {
+    "name": "Moonbender's Wing",
+    "base_type": "Tomahawk"
+  },
+  {
+    "name": "The Broken Censer",
+    "base_type": "Tome Relic"
+  },
+  {
+    "name": "The Power and the Promise",
+    "base_type": "Tome Relic"
+  },
+  {
+    "name": "Vessel of Vinktar",
+    "base_type": "Topaz Flask"
+  },
+  {
+    "name": "Astral Projector",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Circle of Regret",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Kikazaru",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Nimis",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Precursor's Emblem",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Putembo's Meadow",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Putembo's Mountain",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Putembo's Valley",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Storm Secret",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Valako's Sign",
+    "base_type": "Topaz Ring"
+  },
+  {
+    "name": "Shimmeron",
+    "base_type": "Tornado Wand"
+  },
+  {
+    "name": "Servant of Decay",
+    "base_type": "Torturer Garb"
+  },
+  {
+    "name": "Brinerot Whalers",
+    "base_type": "Trapper Boots"
+  },
+  {
+    "name": "Mark of the Red Covenant",
+    "base_type": "Tribal Circlet"
+  },
+  {
+    "name": "Fairgraves' Tricorne",
+    "base_type": "Tricorne"
+  },
+  {
+    "name": "Cherrubim's Maleficence",
+    "base_type": "Triumphant Lamellar"
+  },
+  {
+    "name": "Farrul's Fur",
+    "base_type": "Triumphant Lamellar"
+  },
+  {
+    "name": "Replica Farrul's Fur",
+    "base_type": "Triumphant Lamellar"
+  },
+  {
+    "name": "Badge of the Brotherhood",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Fury Valve",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Haunting Memories",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Maligaro's Cruelty",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Replica Badge of the Brotherhood",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Ungil's Harmony",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Victario's Acuity",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Warped Timepiece",
+    "base_type": "Turquoise Amulet"
+  },
+  {
+    "name": "Prismatic Eclipse",
+    "base_type": "Twilight Blade"
+  },
+  {
+    "name": "Rigwald's Quills",
+    "base_type": "Two-Point Arrow Quiver"
+  },
+  {
+    "name": "Skirmish",
+    "base_type": "Two-Point Arrow Quiver"
+  },
+  {
+    "name": "Berek's Grip",
+    "base_type": "Two-Stone Ring"
+  },
+  {
+    "name": "Berek's Pass",
+    "base_type": "Two-Stone Ring"
+  },
+  {
+    "name": "Berek's Respite",
+    "base_type": "Two-Stone Ring"
+  },
+  {
+    "name": "Call of the Brotherhood",
+    "base_type": "Two-Stone Ring"
+  },
+  {
+    "name": "Precursor's Emblem",
+    "base_type": "Two-Stone Ring"
+  },
+  {
+    "name": "Rigwald's Crest",
+    "base_type": "Two-Stone Ring"
+  },
+  {
+    "name": "Beacon of Madness",
+    "base_type": "Two-Toned Boots"
+  },
+  {
+    "name": "Sign of the Sin Eater",
+    "base_type": "Tyrant's Sekhem"
+  },
+  {
+    "name": "The Sands of Time",
+    "base_type": "Tyrant's Sekhem"
+  },
+  {
+    "name": "Uul-Netol's Vow",
+    "base_type": "Unset Amulet"
+  },
+  {
+    "name": "Angler's Plait",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Brinerot Mark",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Essence Worm",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Malachai's Artifice",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Mark of Submission",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Mutewind Seal",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Profane Proxy",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Redblade Band",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Replica Malachai's Artifice",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Replica Voideye",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Rotblood Promise",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Squirming Terror",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "The Hungry Loop",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "The Pariah",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Triumvirate Authority",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Vivinsect",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "Voideye",
+    "base_type": "Unset Ring"
+  },
+  {
+    "name": "The Night Lamp",
+    "base_type": "Urn Relic"
+  },
+  {
+    "name": "Rat's Nest",
+    "base_type": "Ursine Pelt"
+  },
+  {
+    "name": "Ambition",
+    "base_type": "Vaal Aspect"
+  },
+  {
+    "name": "Beauty",
+    "base_type": "Vaal Aspect"
+  },
+  {
+    "name": "Cooperation",
+    "base_type": "Vaal Aspect"
+  },
+  {
+    "name": "Curiosity",
+    "base_type": "Vaal Aspect"
+  },
+  {
+    "name": "Atziri's Disfavour",
+    "base_type": "Vaal Axe"
+  },
+  {
+    "name": "Hezmana's Bloodlust",
+    "base_type": "Vaal Axe"
+  },
+  {
+    "name": "Uul-Netol's Embrace",
+    "base_type": "Vaal Axe"
+  },
+  {
+    "name": "Uul-Netol's Kiss",
+    "base_type": "Vaal Axe"
+  },
+  {
+    "name": "Rebuke of the Vaal",
+    "base_type": "Vaal Blade"
+  },
+  {
+    "name": "Varunastra",
+    "base_type": "Vaal Blade"
+  },
+  {
+    "name": "Thousand Teeth Temu",
+    "base_type": "Vaal Buckler"
+  },
+  {
+    "name": "Allure",
+    "base_type": "Vaal Claw"
+  },
+  {
+    "name": "Essentia Sanguis",
+    "base_type": "Vaal Claw"
+  },
+  {
+    "name": "Replica Allure",
+    "base_type": "Vaal Claw"
+  },
+  {
+    "name": "Atziri's Acuity",
+    "base_type": "Vaal Gauntlets"
+  },
+  {
+    "name": "Doryani's Fist",
+    "base_type": "Vaal Gauntlets"
+  },
+  {
+    "name": "Replica Atziri's Acuity",
+    "base_type": "Vaal Gauntlets"
+  },
+  {
+    "name": "Dawnstrider",
+    "base_type": "Vaal Greaves"
+  },
+  {
+    "name": "Jack, the Axe",
+    "base_type": "Vaal Hatchet"
+  },
+  {
+    "name": "Fractal Thoughts",
+    "base_type": "Vaal Mask"
+  },
+  {
+    "name": "Glimpse of Chaos",
+    "base_type": "Vaal Mask"
+  },
+  {
+    "name": "The Vertex",
+    "base_type": "Vaal Mask"
+  },
+  {
+    "name": "Paradoxica",
+    "base_type": "Vaal Rapier"
+  },
+  {
+    "name": "Replica Paradoxica",
+    "base_type": "Vaal Rapier"
+  },
+  {
+    "name": "The Beast Fur Shawl",
+    "base_type": "Vaal Regalia"
+  },
+  {
+    "name": "The Queen's Hunger",
+    "base_type": "Vaal Regalia"
+  },
+  {
+    "name": "Doon Cuebiyari",
+    "base_type": "Vaal Sceptre"
+  },
+  {
+    "name": "Doryani's Catalyst",
+    "base_type": "Vaal Sceptre"
+  },
+  {
+    "name": "Yaomac's Accord",
+    "base_type": "Vaal Sceptre"
+  },
+  {
+    "name": "Apep's Slumber",
+    "base_type": "Vaal Spirit Shield"
+  },
+  {
+    "name": "Apep's Supremacy",
+    "base_type": "Vaal Spirit Shield"
+  },
+  {
+    "name": "Esh's Mirror",
+    "base_type": "Vaal Spirit Shield"
+  },
+  {
+    "name": "Esh's Visage",
+    "base_type": "Vaal Spirit Shield"
+  },
+  {
+    "name": "The Perandus Manor",
+    "base_type": "Valdo Map"
+  },
+  {
+    "name": "Binds of Bloody Vengeance",
+    "base_type": "Vanguard Belt"
+  },
+  {
+    "name": "Perseverance",
+    "base_type": "Vanguard Belt"
+  },
+  {
+    "name": "The Tides of Time",
+    "base_type": "Vanguard Belt"
+  },
+  {
+    "name": "Carcass Jack",
+    "base_type": "Varnished Coat"
+  },
+  {
+    "name": "The Admiral",
+    "base_type": "Varnished Coat"
+  },
+  {
+    "name": "Doedre's Malevolence",
+    "base_type": "Velvet Gloves"
+  },
+  {
+    "name": "Doedre's Tenure",
+    "base_type": "Velvet Gloves"
+  },
+  {
+    "name": "Greedtrap",
+    "base_type": "Velvet Slippers"
+  },
+  {
+    "name": "Wondertrap",
+    "base_type": "Velvet Slippers"
+  },
+  {
+    "name": "Contract: The Twins",
+    "base_type": "Vengeful Contract"
+  },
+  {
+    "name": "Enmity's Embrace",
+    "base_type": "Vermillion Ring"
+  },
+  {
+    "name": "Contract: The Slaver King",
+    "base_type": "Vigilante Contract"
+  },
+  {
+    "name": "Maloney's Nightfall",
+    "base_type": "Vile Arrow Quiver"
+  },
+  {
+    "name": "Spinehail",
+    "base_type": "Vile Arrow Quiver"
+  },
+  {
+    "name": "The Whispering Ice",
+    "base_type": "Vile Staff"
+  },
+  {
+    "name": "Crown of Thorns",
+    "base_type": "Vine Circlet"
+  },
+  {
+    "name": "Martyr's Crown",
+    "base_type": "Vine Circlet"
+  },
+  {
+    "name": "Ancestral Vision",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Apparitions",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Careful Planning",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Cheap Construction",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Chill of Corruption",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Cold Steel",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Collateral Damage",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Combat Focus",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Conqueror's Longevity",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Emperor's Cunning",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Fight for Survival",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Fluid Motion",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Grand Spectrum",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Growing Agony",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Hair Trigger",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Hidden Potential",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Hotheaded",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Hungry Abyss",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Impossible Escape",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Intuitive Leap",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Lioneye's Fall",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Lord of Steel",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Might and Influence",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Omen on the Winds",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Pacifism",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Pitch Darkness",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Poacher's Aim",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Primordial Eminence",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Pugilist",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Pure Talent",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Quickening Covenant",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Replica Cheap Construction",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Replica Hotheaded",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Replica Pacifism",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Replica Pure Talent",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Ring of Blades",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Sacrificial Harvest",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Seething Fury",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Self-Flagellation",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Spirit Guards",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Static Electricity",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Steel Spirit",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Stormshroud",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Sudden Ignition",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Survival Instincts",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Tempered Spirit",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "The Golden Rule",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "The Green Dream",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "The Green Nightmare",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Transcendent Spirit",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Unnatural Instinct",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Volley Fire",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "Weight of Sin",
+    "base_type": "Viridian Jewel"
+  },
+  {
+    "name": "The Peregrine",
+    "base_type": "Visored Sallet"
+  },
+  {
+    "name": "The Trickster's Smile",
+    "base_type": "Visored Sallet"
+  },
+  {
+    "name": "Kitava's Feast",
+    "base_type": "Void Axe"
+  },
+  {
+    "name": "Augyre",
+    "base_type": "Void Sceptre"
+  },
+  {
+    "name": "Mon'tregul's Grasp",
+    "base_type": "Void Sceptre"
+  },
+  {
+    "name": "Nebulis",
+    "base_type": "Void Sceptre"
+  },
+  {
+    "name": "Replica Nebulis",
+    "base_type": "Void Sceptre"
+  },
+  {
+    "name": "Chalice of Horrors",
+    "base_type": "War Buckler"
+  },
+  {
+    "name": "Thirst for Horrors",
+    "base_type": "War Buckler"
+  },
+  {
+    "name": "Brightbeak",
+    "base_type": "War Hammer"
+  },
+  {
+    "name": "Lavianga's Wisdom",
+    "base_type": "War Hammer"
+  },
+  {
+    "name": "Replica Tempestuous Steel",
+    "base_type": "War Sword"
+  },
+  {
+    "name": "The Tempestuous Steel",
+    "base_type": "War Sword"
+  },
+  {
+    "name": "Seven Teachings",
+    "base_type": "Waxed Garb"
+  },
+  {
+    "name": "Rigwald's Curse",
+    "base_type": "Wereclaw Talisman"
+  },
+  {
+    "name": "The Goddess Bound",
+    "base_type": "Whalebone Rapier"
+  },
+  {
+    "name": "Doedre's Skin",
+    "base_type": "Widowsilk Robe"
+  },
+  {
+    "name": "Fenumus' Shroud",
+    "base_type": "Widowsilk Robe"
+  },
+  {
+    "name": "Infernal Mantle",
+    "base_type": "Widowsilk Robe"
+  },
+  {
+    "name": "Fox's Fortune",
+    "base_type": "Wild Leather"
+  },
+  {
+    "name": "Foxshade",
+    "base_type": "Wild Leather"
+  },
+  {
+    "name": "Elevore",
+    "base_type": "Wolf Pelt"
+  },
+  {
+    "name": "Limbsplit",
+    "base_type": "Woodsplitter"
+  },
+  {
+    "name": "The Cauteriser",
+    "base_type": "Woodsplitter"
+  },
+  {
+    "name": "Sadima's Touch",
+    "base_type": "Wool Gloves"
+  },
+  {
+    "name": "Wanderlust",
+    "base_type": "Wool Shoes"
+  },
+  {
+    "name": "Ondar's Clasp",
+    "base_type": "Wrapped Mitts"
+  },
+  {
+    "name": "Legacy of Fury",
+    "base_type": "Wyrmscale Boots"
+  },
+  {
+    "name": "Gruthkul's Pelt",
+    "base_type": "Wyrmscale Doublet"
+  },
+  {
+    "name": "Tanu Ahi",
+    "base_type": "Wyrmscale Gauntlets"
+  },
+  {
+    "name": "Wyrmsign",
+    "base_type": "Wyrmscale Gauntlets"
+  },
+  {
+    "name": "Hand of the Fervent",
+    "base_type": "Zealot Gloves"
+  },
+  {
+    "name": "Replica Volkuur's Guidance",
+    "base_type": "Zealot Gloves"
+  },
+  {
+    "name": "Volkuur's Guidance",
+    "base_type": "Zealot Gloves"
+  },
+  {
+    "name": "Kitava's Thirst",
+    "base_type": "Zealot Helmet"
+  },
+  {
+    "name": "Ravenous Passion",
+    "base_type": "Zealot Helmet"
+  },
+  {
+    "name": "Hyrri's Ire",
+    "base_type": "Zodiac Leather"
+  },
+  {
+    "name": "Replica Hyrri's Ire",
+    "base_type": "Zodiac Leather"
+  },
+  {
+    "name": "Replica Perfect Form",
+    "base_type": "Zodiac Leather"
+  },
+  {
+    "name": "The Perfect Form",
+    "base_type": "Zodiac Leather"
+  },
+  {
+    "name": "The Snowblind Grace",
+    "base_type": "Zodiac Leather"
+  }
+]

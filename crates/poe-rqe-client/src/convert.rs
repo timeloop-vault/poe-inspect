@@ -291,6 +291,7 @@ mod tests {
             flavor_text: None,
             gem_data: None,
             pseudo_mods: vec![],
+            unique_candidates: vec![],
             unclassified_sections: vec![],
         }
     }

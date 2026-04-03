@@ -314,6 +314,10 @@ pub struct TradeFilterConfig {
     /// `Some(false)` = omit. `Some(true)` = force on.
     #[serde(default)]
     pub fractured_override: Option<bool>,
+    /// Selected unique name for unidentified unique disambiguation.
+    /// When non-empty, overrides the `query.name` field in the trade query.
+    #[serde(default)]
+    pub unique_name_override: Option<String>,
 }
 
 /// How specific the type filter should be in a trade search.
