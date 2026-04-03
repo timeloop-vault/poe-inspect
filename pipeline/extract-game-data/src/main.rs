@@ -26,6 +26,11 @@ const CORE_TABLES: &[&str] = &[
     "shieldtypes",
     // Display text (data-driven validation, property names, status/influence text)
     "clientstrings",
+    // Unique item data (disambiguation picker, art extraction)
+    "uniquestashlayout",
+    "uniquestashtypes",
+    "words",
+    "itemvisualidentity",
 ];
 
 #[derive(clap::Parser)]

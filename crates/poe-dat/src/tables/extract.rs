@@ -6,7 +6,8 @@
 
 use super::types::{
     ArmourTypeRow, BaseItemTypeRow, ClientStringRow, ItemClassCategoryRow, ItemClassRow,
-    ModFamilyRow, ModRow, ModTypeRow, RarityRow, ShieldTypeRow, StatRow, TagRow, WeaponTypeRow,
+    ItemVisualIdentityRow, ModFamilyRow, ModRow, ModTypeRow, RarityRow, ShieldTypeRow, StatRow,
+    TagRow, UniqueStashLayoutRow, UniqueStashTypeRow, WeaponTypeRow, WordRow,
 };
 use crate::dat_reader::DatFile;
 
@@ -454,6 +455,107 @@ pub fn extract_mods(dat: &DatFile) -> Vec<ModRow> {
                     .read_bool(row, mods_offsets::IS_ESSENCE_ONLY)
                     .unwrap_or(false),
                 max_level: dat.read_i32(row, mods_offsets::MAX_LEVEL).unwrap_or(0),
+            })
+        })
+        .collect()
+}
+
+// ── UniqueStashLayout ──────────────────────────────────────────────────────
+// type UniqueStashLayout { WordsKey: Words, ItemVisualIdentityKey: ItemVisualIdentity,
+//   UniqueStashTypesKey: UniqueStashTypes, _: i32, _: i32,
+//   OverrideWidth: i32, OverrideHeight: i32,
+//   ShowIfEmptyChallengeLeague: bool, ShowIfEmptyStandard: bool,
+//   RenamedVersion: UniqueStashLayout(u64), BaseVersion: UniqueStashLayout(u64),
+//   IsAlternateArt: bool }
+// Row size: 83 bytes. Self-references are u64 (8 bytes), not full FK (16 bytes).
+mod unique_stash_offsets {
+    pub const WORDS_KEY: usize = 0; // FK (16)
+    pub const VISUAL_IDENTITY_KEY: usize = 16; // FK (16)
+    pub const STASH_TYPE_KEY: usize = 32; // FK (16)
+    // _: i32 @ 48, _: i32 @ 52
+    // OverrideWidth: i32 @ 56, OverrideHeight: i32 @ 60
+    // ShowIfEmptyChallengeLeague: bool @ 64, ShowIfEmptyStandard: bool @ 65
+    // RenamedVersion: u64 @ 66, BaseVersion: u64 @ 74
+    pub const IS_ALTERNATE_ART: usize = 82; // bool (1)
+}
+
+/// Extract all rows from `UniqueStashLayout.datc64`.
+pub fn extract_unique_stash_layout(dat: &DatFile) -> Vec<UniqueStashLayoutRow> {
+    (0..dat.row_count)
+        .map(|row| UniqueStashLayoutRow {
+            words_key: dat.read_fk(row, unique_stash_offsets::WORDS_KEY),
+            visual_identity_key: dat.read_fk(row, unique_stash_offsets::VISUAL_IDENTITY_KEY),
+            stash_type_key: dat.read_fk(row, unique_stash_offsets::STASH_TYPE_KEY),
+            is_alternate_art: dat
+                .read_bool(row, unique_stash_offsets::IS_ALTERNATE_ART)
+                .unwrap_or(false),
+        })
+        .collect()
+}
+
+// ── Words ──────────────────────────────────────────────────────────────────
+// type Words { Wordlist: Wordlists(enum/u32), Text: string, SpawnWeight_Tags: [Tags],
+//   SpawnWeight_Values: [i32], _: i32, Text2: string, Inflection: string }
+// Row size: 64 bytes.
+mod words_offsets {
+    // Wordlist: enum/u32 @ 0 (4 bytes)
+    pub const TEXT: usize = 4; // ref|string (8)
+}
+
+/// Extract all rows from `Words.datc64`.
+pub fn extract_words(dat: &DatFile) -> Vec<WordRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(WordRow {
+                text: dat.read_string(row, words_offsets::TEXT)?,
+            })
+        })
+        .collect()
+}
+
+// ── ItemVisualIdentity ─────────────────────────────────────────────────────
+// type ItemVisualIdentity { Id: string, DDSFile: string, ... }
+// Row size: 604 bytes. We only need Id and DDSFile.
+mod visual_identity_offsets {
+    pub const ID: usize = 0; // ref|string (8)
+    pub const DDS_FILE: usize = 8; // ref|string (8)
+}
+
+/// Extract all rows from `ItemVisualIdentity.datc64`.
+pub fn extract_item_visual_identity(dat: &DatFile) -> Vec<ItemVisualIdentityRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(ItemVisualIdentityRow {
+                id: dat.read_string(row, visual_identity_offsets::ID)?,
+                dds_file: dat
+                    .read_string(row, visual_identity_offsets::DDS_FILE)
+                    .unwrap_or_default(),
+            })
+        })
+        .collect()
+}
+
+// ── UniqueStashTypes ───────────────────────────────────────────────────────
+// type UniqueStashTypes { Id: string, Order: i32, Width: i32, Height: i32,
+//   TotalCount: i32, _: i32, Name: string @localized, StandardCount: i32,
+//   Image: string, ChallengeLeagueCount: i32, IsDisabled: bool }
+// Row size: 53 bytes.
+mod unique_stash_type_offsets {
+    pub const ID: usize = 0; // ref|string (8)
+    // Order: i32 @ 8, Width: i32 @ 12, Height: i32 @ 16
+    // TotalCount: i32 @ 20, _: i32 @ 24
+    pub const NAME: usize = 28; // ref|string (8) @localized
+}
+
+/// Extract all rows from `UniqueStashTypes.datc64`.
+pub fn extract_unique_stash_types(dat: &DatFile) -> Vec<UniqueStashTypeRow> {
+    (0..dat.row_count)
+        .filter_map(|row| {
+            Some(UniqueStashTypeRow {
+                id: dat.read_string(row, unique_stash_type_offsets::ID)?,
+                name: dat
+                    .read_string(row, unique_stash_type_offsets::NAME)
+                    .unwrap_or_default(),
             })
         })
         .collect()

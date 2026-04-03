@@ -209,3 +209,43 @@ pub struct ModRow {
     /// Maximum level (0 if no max).
     pub max_level: i32,
 }
+
+// ── Unique item tables ─────────────────────────────────────────────────────
+
+/// A unique item entry from `UniqueStashLayout.datc64`.
+#[derive(Debug, Clone)]
+pub struct UniqueStashLayoutRow {
+    /// FK to Words table (unique item name).
+    pub words_key: Option<u64>,
+    /// FK to `ItemVisualIdentity` table (art).
+    pub visual_identity_key: Option<u64>,
+    /// FK to `UniqueStashTypes` table (category).
+    pub stash_type_key: Option<u64>,
+    /// Whether this is an alternate art variant.
+    pub is_alternate_art: bool,
+}
+
+/// A word entry from `Words.datc64`.
+#[derive(Debug, Clone)]
+pub struct WordRow {
+    /// The display text (unique item name).
+    pub text: String,
+}
+
+/// A visual identity entry from `ItemVisualIdentity.datc64`.
+#[derive(Debug, Clone)]
+pub struct ItemVisualIdentityRow {
+    /// Internal ID (e.g., `"UniqueOneHandSword1"`).
+    pub id: String,
+    /// Path to the 2D art DDS file (e.g., `"Art/2DItems/Weapons/..."`)
+    pub dds_file: String,
+}
+
+/// A unique stash tab category from `UniqueStashTypes.datc64`.
+#[derive(Debug, Clone)]
+pub struct UniqueStashTypeRow {
+    /// Category ID (e.g., `"Amulet"`, `"Belt"`).
+    pub id: String,
+    /// Display name.
+    pub name: String,
+}

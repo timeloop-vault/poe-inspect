@@ -547,3 +547,61 @@ fn inventory_shield_types() {
         println!("  {name:<30} block={block}");
     }
 }
+
+// ── UniqueStashLayout: probe unique item data ───────────────────────────────
+
+#[test]
+#[ignore = "requires GGPK_DATA_DIR with extracted datc64 tables"]
+fn probe_unique_stash_layout() {
+    let Some(dat) = load_dat("uniquestashlayout") else {
+        eprintln!("Skipping: uniquestashlayout not found");
+        return;
+    };
+    let Some(words) = load_dat("words") else {
+        eprintln!("Skipping: words not found");
+        return;
+    };
+    let Some(vis) = load_dat("itemvisualidentity") else {
+        eprintln!("Skipping: itemvisualidentity not found");
+        return;
+    };
+
+    println!("=== UniqueStashLayout ===");
+    println!("Rows: {}, Row size: {}\n", dat.row_count, dat.row_size);
+
+    // Expected layout (83 bytes/row):
+    // 0:  WordsKey FK (16)
+    // 16: ItemVisualIdentityKey FK (16)
+    // 32: UniqueStashTypesKey FK (16)
+    // 48: _ i32 (4)
+    // 52: _ i32 (4)
+    // 56: OverrideWidth i32 (4)
+    // 60: OverrideHeight i32 (4)
+    // 64: ShowIfEmptyChallengeLeague bool (1)
+    // 65: ShowIfEmptyStandard bool (1)
+    // 66: RenamedVersion u64 row index (8) — self-reference, no hash
+    // 74: BaseVersion u64 row index (8) — self-reference, no hash
+    // 82: IsAlternateArt bool (1)
+
+    println!(
+        "{:<35} {:<30} {:>5} {:>5} {:>5}",
+        "Name", "DDSFile", "W", "H", "AltArt"
+    );
+
+    for i in 0..dat.row_count.min(30) {
+        let words_idx = dat.read_fk(i, 0).unwrap_or(u64::MAX);
+        let vis_idx = dat.read_fk(i, 16).unwrap_or(u64::MAX);
+        let is_alt = dat.read_bool(i, 82).unwrap_or(false);
+
+        // Words.Text is at offset 4 (after Wordlist enum u32)
+        let name = words.read_string(words_idx as u32, 4).unwrap_or_default();
+        // ItemVisualIdentity.DDSFile is at offset 8 (after Id string ref)
+        let dds = vis.read_string(vis_idx as u32, 8).unwrap_or_default();
+
+        println!(
+            "  {name:<35} {dds:<30} {:>5} {:>5} {is_alt:>5}",
+            dat.read_i32(i, 56).unwrap_or(0),
+            dat.read_i32(i, 60).unwrap_or(0),
+        );
+    }
+}
