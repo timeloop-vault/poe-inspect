@@ -62,4 +62,9 @@ corruptedOverride: boolean | null,
  * `None` = default (include if item is fractured).
  * `Some(false)` = omit. `Some(true)` = force on.
  */
-fracturedOverride: boolean | null, };
+fracturedOverride: boolean | null, 
+/**
+ * Selected unique name for unidentified unique disambiguation.
+ * When non-empty, overrides the `query.name` field in the trade query.
+ */
+uniqueNameOverride: string | null, };

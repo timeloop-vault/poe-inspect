@@ -2,4 +2,4 @@
 import type { FilterValue } from "./FilterValue";
 import type { OptionFilter } from "./OptionFilter";
 
-export type MiscFilterValues = { ilvl: FilterValue | null, corrupted: OptionFilter | null, identified: OptionFilter | null, fractured_item: OptionFilter | null, quality: FilterValue | null, };
+export type MiscFilterValues = { ilvl: FilterValue | null, corrupted: OptionFilter | null, identified: OptionFilter | null, fractured_item: OptionFilter | null, quality: FilterValue | null, mutated: OptionFilter | null, };

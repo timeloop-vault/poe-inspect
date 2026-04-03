@@ -76,6 +76,11 @@ gemData: GemData | null,
  */
 pseudoMods: Array<ResolvedMod>, 
 /**
+ * For unidentified unique items: possible unique names sharing this base type.
+ * Empty for identified items or non-uniques.
+ */
+uniqueCandidates: Array<string>, 
+/**
  * Remaining unclassified generic sections.
  */
 unclassifiedSections: Array<Array<string>>, };

@@ -53,6 +53,14 @@ export interface TradeFilters {
 	filterMap: Map<string, EditFilter>;
 	/** Rarity filter from the schema (if applicable). */
 	rarityFilter: EditFilter | null;
+	/** Whether an unidentified unique needs the user to pick which unique it is. */
+	needsDisambiguation: boolean;
+	/** Possible unique names for this base type (empty when not applicable). */
+	uniqueCandidates: string[];
+	/** The user's selected unique name (null = not yet selected). */
+	selectedUniqueName: string | null;
+	/** Set the selected unique name for disambiguation. */
+	setSelectedUniqueName: (name: string | null) => void;
 }
 
 /**
@@ -66,6 +74,7 @@ export function useTradeFilters(
 	itemText: string,
 	config: TradeQueryConfig,
 	autoEdit?: boolean,
+	itemUniqueCandidates?: string[],
 ): TradeFilters {
 	const [editMode, setEditMode] = useState(false);
 	const [mappedStats, setMappedStats] = useState<MappedStat[]>([]);
@@ -74,6 +83,8 @@ export function useTradeFilters(
 	const [socketInfo, setSocketInfo] = useState<SocketInfo | null>(null);
 	const [quality, setQuality] = useState<number | null>(null);
 	const [pendingAutoEdit, setPendingAutoEdit] = useState(false);
+	const [uniqueCandidates, setUniqueCandidates] = useState<string[]>([]);
+	const [selectedUniqueName, setSelectedUniqueName] = useState<string | null>(null);
 
 	// Schema-driven filter state (moved from TradePanel)
 	const [editSchema, setEditSchema] = useState<TradeEditSchema | null>(null);
@@ -90,6 +101,8 @@ export function useTradeFilters(
 		setQuality(null);
 		setEditSchema(null);
 		setFilterOverrides(new Map());
+		setUniqueCandidates(itemUniqueCandidates ?? []);
+		setSelectedUniqueName(null);
 		if (autoEdit && itemText) {
 			setPendingAutoEdit(true);
 		}
@@ -272,8 +285,10 @@ export function useTradeFilters(
 
 	// Translate state into TradeFilterConfig for Rust
 	const filterConfig: TradeFilterConfig | null = editMode
-		? buildFilterConfig(typeScope, statOverrides, filterOverrides, filterMap)
+		? buildFilterConfig(typeScope, statOverrides, filterOverrides, filterMap, selectedUniqueName)
 		: null;
+
+	const needsDisambiguation = uniqueCandidates.length > 0 && selectedUniqueName === null;
 
 	return {
 		editMode,
@@ -295,6 +310,10 @@ export function useTradeFilters(
 		onFilterOverride,
 		filterMap,
 		rarityFilter,
+		needsDisambiguation,
+		uniqueCandidates,
+		selectedUniqueName,
+		setSelectedUniqueName,
 	};
 }
 
@@ -307,6 +326,7 @@ function buildFilterConfig(
 	statOverrides: Map<number, StatFilterOverride>,
 	schemaOverrides: Map<string, FilterOverride>,
 	filterMap: Map<string, EditFilter>,
+	selectedUniqueName: string | null,
 ): TradeFilterConfig {
 	// Links (socket-type filter — use socketMin)
 	const linksOv = schemaOverrides.get("links");
@@ -388,5 +408,6 @@ function buildFilterConfig(
 		ilvlMin: ilvlMin != null ? Math.round(ilvlMin) : null,
 		corruptedOverride,
 		fracturedOverride,
+		uniqueNameOverride: selectedUniqueName,
 	};
 }

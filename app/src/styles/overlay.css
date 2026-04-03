@@ -952,6 +952,54 @@ body,
 	}
 }
 
+/* Unique disambiguation picker */
+
+.unique-picker {
+	margin-bottom: 4px;
+}
+
+.unique-picker-header {
+	font-size: 11px;
+	color: var(--poe-text-dim);
+	padding: 2px 0 4px;
+}
+
+.unique-picker-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+	max-height: 180px;
+	overflow-y: auto;
+}
+
+.unique-picker-item {
+	padding: 3px 8px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid var(--poe-border);
+	border-radius: 3px;
+	color: var(--poe-unique);
+	font-family: inherit;
+	font-size: 11px;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.unique-picker-item:hover {
+	background: rgba(175, 96, 37, 0.15);
+	border-color: var(--poe-accent);
+}
+
+.unique-picker-selected {
+	background: rgba(175, 96, 37, 0.25);
+	border-color: var(--poe-accent);
+	color: var(--poe-header);
+}
+
+.unique-picker-any {
+	color: var(--poe-text-dim);
+	font-style: italic;
+}
+
 /* Trade results */
 
 .trade-results {

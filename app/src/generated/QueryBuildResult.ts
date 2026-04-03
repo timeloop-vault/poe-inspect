@@ -41,4 +41,9 @@ socketInfo: SocketInfo | null,
  * Item quality percentage (e.g., 20 for `"+20%"`).
  * `None` if the item has no quality property.
  */
-quality: number | null, };
+quality: number | null, 
+/**
+ * Whether the item is an unidentified unique that needs user disambiguation
+ * before a meaningful trade search can be performed.
+ */
+needsDisambiguation: boolean, };

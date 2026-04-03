@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { TradeFilters } from "../hooks/useTradeFilters";
 import type { PriceCheckResult, TradeQueryConfig } from "../types";
+import { UniqueDisambiguationPicker } from "./UniqueDisambiguationPicker";
 
 interface TradePanelProps {
 	/** Raw item text from clipboard (Ctrl+Alt+C). */
@@ -33,7 +34,7 @@ export function TradePanel({ itemText, config, filters, autoSearch }: TradePanel
 	const pendingAutoSearch = useRef(false);
 
 	const hasLeague = config.league.length > 0;
-	const disabled = !hasLeague || busy || cooldown;
+	const disabled = !hasLeague || busy || cooldown || filters.needsDisambiguation;
 
 	// Clear cooldown timer on unmount.
 	useEffect(() => {
@@ -92,12 +93,13 @@ export function TradePanel({ itemText, config, filters, autoSearch }: TradePanel
 		}
 	}, [itemText, config, filters.filterConfig, disabled, startCooldown]);
 
-	// Fire queued auto-search when cooldown/busy clears.
+	// Fire queued auto-search when cooldown/busy clears and disambiguation is resolved.
 	useEffect(() => {
-		if (!pendingAutoSearch.current || busy || cooldown || !hasLeague) return;
+		if (!pendingAutoSearch.current || busy || cooldown || !hasLeague || filters.needsDisambiguation)
+			return;
 		pendingAutoSearch.current = false;
 		priceCheck();
-	}, [busy, cooldown, hasLeague, priceCheck]);
+	}, [busy, cooldown, hasLeague, priceCheck, filters.needsDisambiguation]);
 
 	const openTrade = useCallback(async () => {
 		if (disabled) return;
@@ -122,6 +124,13 @@ export function TradePanel({ itemText, config, filters, autoSearch }: TradePanel
 
 	return (
 		<div class="trade-panel">
+			{filters.uniqueCandidates.length > 0 && (
+				<UniqueDisambiguationPicker
+					candidates={filters.uniqueCandidates}
+					selected={filters.selectedUniqueName}
+					onSelect={filters.setSelectedUniqueName}
+				/>
+			)}
 			<div class="trade-actions">
 				<button
 					type="button"

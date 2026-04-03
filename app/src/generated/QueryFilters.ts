@@ -2,5 +2,6 @@
 import type { MiscFilters } from "./MiscFilters";
 import type { SocketFilters } from "./SocketFilters";
 import type { TypeFilters } from "./TypeFilters";
+import type { WeaponFilters } from "./WeaponFilters";
 
-export type QueryFilters = { type_filters: TypeFilters | null, misc_filters: MiscFilters | null, socket_filters: SocketFilters | null, };
+export type QueryFilters = { type_filters: TypeFilters | null, misc_filters: MiscFilters | null, socket_filters: SocketFilters | null, weapon_filters: WeaponFilters | null, };

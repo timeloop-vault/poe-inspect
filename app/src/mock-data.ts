@@ -242,6 +242,7 @@ export const rareBoots: ItemPayload = {
 		socketInfo: null,
 		quality: null,
 		pseudoMods: [],
+		uniqueCandidates: [],
 		unclassifiedSections: [],
 	},
 	eval: {
@@ -476,6 +477,7 @@ export const rareBodyArmour: ItemPayload = {
 		socketInfo: null,
 		quality: null,
 		pseudoMods: [],
+		uniqueCandidates: [],
 		unclassifiedSections: [],
 	},
 	eval: {
@@ -699,6 +701,7 @@ export const uniqueRing: ItemPayload = {
 		socketInfo: null,
 		quality: null,
 		pseudoMods: [],
+		uniqueCandidates: [],
 		unclassifiedSections: [],
 	},
 	eval: {

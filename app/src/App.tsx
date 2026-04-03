@@ -464,6 +464,7 @@ export function App() {
 		evaluatedItem?.rawText ?? "",
 		tradeConfig,
 		inspectMode === "tradeEdit",
+		evaluatedItem?.item?.uniqueCandidates,
 	);
 
 	// Trade panel goes on the opposite side from the screen edge:
