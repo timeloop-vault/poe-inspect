@@ -58,6 +58,7 @@ export interface HotkeySettings {
 	inspectItem: string;
 	compactInspect: string;
 	tradeInspect: string;
+	tradeEditInspect: string;
 	dismissOverlay: string;
 	openSettings: string;
 	cycleProfile: string;
@@ -207,6 +208,7 @@ export const defaultHotkeys: HotkeySettings = {
 	inspectItem: "Ctrl+I",
 	compactInspect: "Ctrl+Shift+I",
 	tradeInspect: "Ctrl+T",
+	tradeEditInspect: "Ctrl+Shift+T",
 	dismissOverlay: "Escape",
 	openSettings: "Ctrl+Shift+S",
 	cycleProfile: "Ctrl+Shift+P",

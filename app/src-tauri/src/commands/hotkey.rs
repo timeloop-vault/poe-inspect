@@ -19,6 +19,7 @@ pub(crate) struct HotkeyConfig {
     pub inspect_item: String,
     pub compact_inspect: String,
     pub trade_inspect: String,
+    pub trade_edit_inspect: String,
     pub open_settings: String,
     pub cycle_profile: String,
 }
@@ -29,6 +30,7 @@ impl Default for HotkeyConfig {
             inspect_item: "ctrl+i".into(),
             compact_inspect: "ctrl+shift+i".into(),
             trade_inspect: "ctrl+t".into(),
+            trade_edit_inspect: "ctrl+shift+t".into(),
             open_settings: "ctrl+shift+s".into(),
             cycle_profile: "ctrl+shift+p".into(),
         }
@@ -66,6 +68,11 @@ pub(crate) fn load_hotkey_config(app: &tauri::AppHandle) -> HotkeyConfig {
             .and_then(|v| v.as_str())
             .map(|s| s.to_lowercase())
             .unwrap_or(defaults.trade_inspect),
+        trade_edit_inspect: hotkeys_val
+            .get("tradeEditInspect")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_lowercase())
+            .unwrap_or(defaults.trade_edit_inspect),
         open_settings: hotkeys_val
             .get("openSettings")
             .and_then(|v| v.as_str())
@@ -156,7 +163,7 @@ pub(crate) fn dispatch_hotkey_action(app: &tauri::AppHandle, action: &str) {
                     .and_then(|w| w.is_visible().ok())
                     .unwrap_or(false);
                 if overlay_visible {
-                    let _ = app.emit("inspect-mode", "full");
+                    let _ = app.emit("inspect-mode", "inspect");
                     if let Some(w) = app.get_webview_window("overlay") {
                         let _ = w.set_ignore_cursor_events(false);
                         let _ = w.set_focus();
@@ -182,6 +189,15 @@ pub(crate) fn dispatch_hotkey_action(app: &tauri::AppHandle, action: &str) {
                 .unwrap_or(false);
             if !settings_focused {
                 handle_inspect_with_mode(app, "trade");
+            }
+        }
+        "trade_edit_inspect" => {
+            let settings_focused = app
+                .get_webview_window("settings")
+                .and_then(|w| w.is_focused().ok())
+                .unwrap_or(false);
+            if !settings_focused {
+                handle_inspect_with_mode(app, "tradeEdit");
             }
         }
         "settings" => show_settings(app),
@@ -222,6 +238,7 @@ pub(crate) fn register_hotkeys(
         (&config.inspect_item, "inspect".into()),
         (&config.compact_inspect, "compact_inspect".into()),
         (&config.trade_inspect, "trade_inspect".into()),
+        (&config.trade_edit_inspect, "trade_edit_inspect".into()),
         (&config.cycle_profile, "cycle_profile".into()),
     ];
 
@@ -281,11 +298,13 @@ pub(crate) fn register_hotkeys(
 /// dismiss_overlay is accepted but not registered globally — it's handled
 /// at the overlay window level via a keydown listener.
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn update_hotkeys(
     app: tauri::AppHandle,
     inspect_item: String,
     compact_inspect: String,
     trade_inspect: String,
+    trade_edit_inspect: String,
     #[allow(unused_variables)] dismiss_overlay: String,
     open_settings: String,
     cycle_profile: String,
@@ -294,6 +313,7 @@ pub(crate) fn update_hotkeys(
         inspect_item,
         compact_inspect,
         trade_inspect,
+        trade_edit_inspect,
         open_settings,
         cycle_profile,
     };

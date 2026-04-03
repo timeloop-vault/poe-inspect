@@ -22,7 +22,7 @@ pub struct ItemPayload {
 
 /// Send Ctrl+Alt+C to PoE and read the resulting clipboard text.
 pub(crate) fn handle_inspect(app: &tauri::AppHandle) {
-    handle_inspect_with_mode(app, "full");
+    handle_inspect_with_mode(app, "inspect");
 }
 
 pub(crate) fn handle_inspect_with_mode(app: &tauri::AppHandle, mode: &str) {

@@ -139,7 +139,9 @@ export function App() {
 	const [tradeSettings, setTradeSettings] = useState<TradeSettings>(defaultTrade);
 	const [mapDanger, setMapDanger] = useState<MapDangerConfig>({});
 	const [profileSummaries, setProfileSummaries] = useState<ProfileSummary[]>([]);
-	const [inspectMode, setInspectMode] = useState<"full" | "compact" | "trade" | null>(null);
+	const [inspectMode, setInspectMode] = useState<
+		"inspect" | "compact" | "trade" | "tradeEdit" | null
+	>(null);
 	const [compactFading, setCompactFading] = useState(false);
 	const [demandResult, setDemandResult] = useState<{
 		count: number;
@@ -263,7 +265,7 @@ export function App() {
 		});
 
 		const unlistenInspectMode = listen<string>("inspect-mode", (event) => {
-			const mode = event.payload as "full" | "compact" | "trade";
+			const mode = event.payload as "inspect" | "compact" | "trade" | "tradeEdit";
 			setCompactFading(false);
 			// Clear any existing compact auto-dismiss timer
 			if (compactTimerRef.current) {
@@ -457,10 +459,11 @@ export function App() {
 		searchDefaults: tradeSettings.searchDefaults,
 	};
 
+	const showTrade = inspectMode === "trade" || inspectMode === "tradeEdit";
 	const tradeFilters = useTradeFilters(
 		evaluatedItem?.rawText ?? "",
 		tradeConfig,
-		inspectMode === "trade",
+		inspectMode === "tradeEdit",
 	);
 
 	// Trade panel goes on the opposite side from the screen edge:
@@ -547,26 +550,35 @@ export function App() {
 					})()}
 			</div>
 		);
-		const tradeCol = (
-			<div class="overlay-trade-col">
-				<TradePanel itemText={evaluatedItem.rawText} config={tradeConfig} filters={tradeFilters} />
-			</div>
-		);
-		content = (
-			<div class="overlay-columns">
-				{tradeSide === "left" ? (
-					<>
-						{tradeCol}
-						{itemCard}
-					</>
-				) : (
-					<>
-						{itemCard}
-						{tradeCol}
-					</>
-				)}
-			</div>
-		);
+		if (showTrade) {
+			const tradeCol = (
+				<div class="overlay-trade-col">
+					<TradePanel
+						itemText={evaluatedItem.rawText}
+						config={tradeConfig}
+						filters={tradeFilters}
+						autoSearch={inspectMode === "trade"}
+					/>
+				</div>
+			);
+			content = (
+				<div class="overlay-columns">
+					{tradeSide === "left" ? (
+						<>
+							{tradeCol}
+							{itemCard}
+						</>
+					) : (
+						<>
+							{itemCard}
+							{tradeCol}
+						</>
+					)}
+				</div>
+			);
+		} else {
+			content = itemCard;
+		}
 	} else if (parseError && !showMock && inspectMode === "compact") {
 		// Compact mode: show N/A pill for parse errors
 		showDismiss = false;

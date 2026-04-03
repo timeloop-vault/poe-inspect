@@ -13,6 +13,7 @@ async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 		inspectItem: settings.inspectItem.toLowerCase().replace(/\+/g, "+"),
 		compactInspect: settings.compactInspect.toLowerCase().replace(/\+/g, "+"),
 		tradeInspect: settings.tradeInspect.toLowerCase().replace(/\+/g, "+"),
+		tradeEditInspect: settings.tradeEditInspect.toLowerCase().replace(/\+/g, "+"),
 		dismissOverlay: settings.dismissOverlay.toLowerCase().replace(/\+/g, "+"),
 		openSettings: settings.openSettings.toLowerCase().replace(/\+/g, "+"),
 		cycleProfile: settings.cycleProfile.toLowerCase().replace(/\+/g, "+"),
@@ -22,7 +23,8 @@ async function syncHotkeysToBackend(settings: HotkeySettingsType) {
 const hotkeyFields: { label: string; key: keyof HotkeySettingsType }[] = [
 	{ label: "Inspect Item", key: "inspectItem" },
 	{ label: "Compact Inspect", key: "compactInspect" },
-	{ label: "Trade Inspect", key: "tradeInspect" },
+	{ label: "Trade (Auto Search)", key: "tradeInspect" },
+	{ label: "Trade (Edit Filters)", key: "tradeEditInspect" },
 	{ label: "Dismiss Overlay", key: "dismissOverlay" },
 	{ label: "Open Settings", key: "openSettings" },
 	{ label: "Cycle Profile", key: "cycleProfile" },

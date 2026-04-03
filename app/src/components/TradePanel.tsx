@@ -10,6 +10,8 @@ interface TradePanelProps {
 	config: TradeQueryConfig;
 	/** Trade filter state from useTradeFilters hook. */
 	filters: TradeFilters;
+	/** Auto-fire price check on new item (trade mode). */
+	autoSearch?: boolean;
 }
 
 type TradeState =
@@ -23,11 +25,12 @@ type TradeState =
 /** Minimum cooldown (ms) between trade API operations. */
 const COOLDOWN_MS = 2000;
 
-export function TradePanel({ itemText, config, filters }: TradePanelProps) {
+export function TradePanel({ itemText, config, filters, autoSearch }: TradePanelProps) {
 	const [state, setState] = useState<TradeState>({ status: "idle" });
 	const [busy, setBusy] = useState(false);
 	const [cooldown, setCooldown] = useState(false);
 	const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const pendingAutoSearch = useRef(false);
 
 	const hasLeague = config.league.length > 0;
 	const disabled = !hasLeague || busy || cooldown;
@@ -38,6 +41,16 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 			if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
 		};
 	}, []);
+
+	// Auto-search: mark pending when a new item arrives in trade mode.
+	// Fire when not busy/cooldown. If another item arrives while queued,
+	// it supersedes the previous (pendingAutoSearch is just a boolean flag,
+	// and itemText is always the latest).
+	useEffect(() => {
+		if (autoSearch && itemText) {
+			pendingAutoSearch.current = true;
+		}
+	}, [autoSearch, itemText]);
 
 	/** Start a cooldown period after any trade operation. */
 	const startCooldown = useCallback((ms: number) => {
@@ -78,6 +91,13 @@ export function TradePanel({ itemText, config, filters }: TradePanelProps) {
 			setBusy(false);
 		}
 	}, [itemText, config, filters.filterConfig, disabled, startCooldown]);
+
+	// Fire queued auto-search when cooldown/busy clears.
+	useEffect(() => {
+		if (!pendingAutoSearch.current || busy || cooldown || !hasLeague) return;
+		pendingAutoSearch.current = false;
+		priceCheck();
+	}, [busy, cooldown, hasLeague, priceCheck]);
 
 	const openTrade = useCallback(async () => {
 		if (disabled) return;
