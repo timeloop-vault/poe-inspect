@@ -23,7 +23,6 @@ pub struct Header {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum Rarity {
     Normal,
     Magic,
@@ -71,7 +70,6 @@ pub enum Section {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct Requirement {
     #[cfg_attr(feature = "serde", serde(rename = "name"))]
     pub key: String,
@@ -96,7 +94,6 @@ pub struct ModGroup {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModHeader {
     pub source: ModSource,
     pub slot: ModSlot,
@@ -113,7 +110,6 @@ pub struct ModHeader {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSource {
     Regular,
     MasterCrafted,
@@ -126,7 +122,6 @@ pub enum ModSource {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSlot {
     Implicit,
     Prefix,
@@ -143,7 +138,6 @@ pub enum ModSlot {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModTierKind {
     Tier(u32),
     Rank(u32),
@@ -202,7 +196,6 @@ pub enum TierDisplayKind {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ItemProperty {
     pub name: String,
     pub value: String,
@@ -217,7 +210,6 @@ pub struct ItemProperty {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum InfluenceKind {
     Shaper,
     Elder,
@@ -291,7 +283,6 @@ impl InfluenceKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum StatusKind {
     Corrupted,
     Mirrored,
@@ -341,7 +332,6 @@ impl StatusKind {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedItem {
     pub header: ResolvedHeader,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -408,7 +398,6 @@ pub struct ResolvedItem {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct UniqueCandidate {
     /// Unique item name (e.g., `"Headhunter"`).
     pub name: String,
@@ -421,7 +410,6 @@ pub struct UniqueCandidate {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct GemData {
     /// Gem tags (e.g., `["Spell", "AoE", "Cold", "Nova"]`).
     pub tags: Vec<String>,
@@ -440,7 +428,6 @@ pub struct GemData {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct VaalGemData {
     /// Vaal skill name (e.g., "Vaal Ice Nova").
     pub name: String,
@@ -470,7 +457,6 @@ impl ResolvedItem {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct SocketInfo {
     /// Total number of sockets.
     pub total: u32,
@@ -491,7 +477,6 @@ pub struct SocketInfo {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedHeader {
     pub item_class: String,
     pub rarity: Rarity,
@@ -507,7 +492,6 @@ pub struct ResolvedHeader {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedMod {
     pub header: ModHeader,
     pub stat_lines: Vec<ResolvedStatLine>,
@@ -544,7 +528,6 @@ impl ResolvedMod {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ResolvedStatLine {
     /// Original text from Ctrl+Alt+C output.
     pub raw_text: String,
@@ -568,7 +551,6 @@ pub struct ResolvedStatLine {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ValueRange {
     /// The actual rolled value on this item.
     #[cfg_attr(feature = "ts", ts(type = "number"))]

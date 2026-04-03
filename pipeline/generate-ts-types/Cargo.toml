@@ -1,0 +1,21 @@
+[package]
+name = "generate-ts-types"
+version = "0.1.0"
+edition = "2021"
+description = "Generate TypeScript type definitions from Rust types via ts-rs"
+
+[[bin]]
+name = "generate-ts-types"
+path = "src/main.rs"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+
+[dependencies]
+# Workspace crates with ts feature for TypeScript type generation
+poe-item = { path = "../../crates/poe-item", features = ["ts"] }
+poe-eval = { path = "../../crates/poe-eval", features = ["ts"] }
+poe-trade = { path = "../../crates/poe-trade", features = ["ts"] }
+poe-data = { path = "../../crates/poe-data", features = ["ts"] }
+ts-rs = "12"
+clap = { version = "4.0", features = ["derive"] }

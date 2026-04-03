@@ -11,7 +11,6 @@ use crate::rule::Rule;
 /// A named scoring profile with weighted rules.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct Profile {
     /// Human-readable profile name (e.g., "RF Juggernaut Belt").
     pub name: String,
@@ -29,7 +28,6 @@ pub struct Profile {
 /// A rule with a numeric weight. Matching adds `weight` to the item's score.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ScoringRule {
     /// Human-readable label for this scoring criterion.
     pub label: String,

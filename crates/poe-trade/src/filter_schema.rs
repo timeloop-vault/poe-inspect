@@ -161,7 +161,6 @@ impl FilterIndex {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeEditSchema {
     /// Type scope options (base type / item class / any).
     pub type_scope: TypeScopeSchema,
@@ -175,7 +174,6 @@ pub struct TradeEditSchema {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TypeScopeSchema {
     pub current: TypeSearchScope,
     pub options: Vec<TypeScopeOption>,
@@ -184,7 +182,6 @@ pub struct TypeScopeSchema {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TypeScopeOption {
     pub scope: TypeSearchScope,
     pub label: String,
@@ -194,7 +191,6 @@ pub struct TypeScopeOption {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct EditFilterGroup {
     pub id: String,
     pub title: String,
@@ -205,7 +201,6 @@ pub struct EditFilterGroup {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct EditFilter {
     /// Filter ID (e.g., "ilvl", "corrupted"). Matches the trade API query path.
     pub id: String,
@@ -229,7 +224,6 @@ pub struct EditFilter {
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum EditFilterKind {
     /// Numeric range (min/max inputs).
     Range,
@@ -243,7 +237,6 @@ pub enum EditFilterKind {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct EditFilterOption {
     /// Value to send (null = "Any" / no filter).
     pub id: Option<String>,
@@ -255,7 +248,6 @@ pub struct EditFilterOption {
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum EditFilterValue {
     /// For range filters: a numeric value.
     #[serde(rename_all = "camelCase")]
@@ -290,7 +282,6 @@ pub enum EditFilterValue {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeStatSchema {
     /// Flat index into the item's non-reminder stat lines.
     pub stat_index: u32,

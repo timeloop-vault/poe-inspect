@@ -28,7 +28,6 @@ pub struct WatchingProfileInput {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ItemEvaluation {
     /// Per-mod tier analysis, ordered to match `ResolvedItem::all_mods()`.
     pub mod_tiers: Vec<ModTierResult>,
@@ -46,7 +45,6 @@ pub struct ItemEvaluation {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModTierResult {
     /// Tier/rank number (from Ctrl+Alt+C header).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -66,7 +64,6 @@ pub struct ModTierResult {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct AffixInfo {
     pub open_prefixes: u32,
     pub open_suffixes: u32,
@@ -79,7 +76,6 @@ pub struct AffixInfo {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct WatchingScoreInfo {
     pub profile_name: String,
     pub color: String,
@@ -90,7 +86,6 @@ pub struct WatchingScoreInfo {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ScoreInfo {
     /// Total score (sum of matched rule weights).
     pub total: f64,
@@ -109,7 +104,6 @@ pub struct ScoreInfo {
 /// A matched or unmatched scoring rule.
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct RuleMatch {
     pub label: String,
     pub weight: f64,

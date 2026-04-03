@@ -998,7 +998,6 @@ fn index_by<T, F: Fn(&T) -> String>(items: &[T], key_fn: F) -> HashMap<String, u
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct StatSuggestion {
     /// The display template that matched the query (e.g., `"+# to maximum Life"`).
     pub template: String,
@@ -1013,7 +1012,6 @@ pub struct StatSuggestion {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum StatSuggestionKind {
     /// A single stat template (the current behavior).
     Single,

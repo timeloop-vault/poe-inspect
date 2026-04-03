@@ -104,13 +104,11 @@ poe-eval  poe-trade (trade API client)
 - **Always fix biome errors** — even if unrelated to your changes. Run `npx biome check --write --unsafe .` from `app/` and fix any remaining issues before committing.
 
 ### TypeScript type generation (ts-rs)
-Rust types with `#[derive(ts_rs::TS)]` + `#[ts(export)]` auto-generate TypeScript interfaces in `app/src/generated/`. To regenerate after changing Rust types:
+Rust types with `#[derive(ts_rs::TS)]` generate TypeScript interfaces in `app/src/generated/`. To regenerate after changing Rust types:
 ```sh
-# Must use absolute path for TS_RS_EXPORT_DIR and clean the crate to force recompilation
-cargo clean -p <crate>
-TS_RS_EXPORT_DIR="D:/gaming_pc_d/git/poe-inspect-2/app/src/generated" cargo test -p <crate> --features ts --lib -- export_bindings
+cargo run --manifest-path pipeline/generate-ts-types/Cargo.toml -- -o app/src/generated
 ```
-Relevant crates with ts-rs exports: `poe-trade` (features: `ts`), `poe-item` (features: `ts`), `poe-eval` (features: `ts`).
+This is a standalone binary (not test-based). Root types in `poe-item`, `poe-eval`, `poe-trade`, `poe-data` are exported with all transitive dependencies.
 
 ### Pre-commit checklist (MANDATORY before every commit)
 Run all of these and fix any errors before committing. A pre-commit hook enforces this automatically.

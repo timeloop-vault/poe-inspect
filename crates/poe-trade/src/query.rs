@@ -23,7 +23,6 @@ use crate::types::{
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct QueryBuildResult {
     /// Serializable POST body for `/api/trade/search/{league}`.
     pub body: TradeSearchBody,
@@ -56,7 +55,6 @@ pub struct QueryBuildResult {
 /// POST body for `/api/trade/search/{league}`.
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeSearchBody {
     pub query: TradeQuery,
     pub sort: TradeSort,
@@ -64,7 +62,6 @@ pub struct TradeSearchBody {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<StatusFilter>,
@@ -79,14 +76,12 @@ pub struct TradeQuery {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct StatusFilter {
     pub option: String,
 }
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct StatGroup {
     #[serde(rename = "type")]
     pub group_type: StatGroupType,
@@ -98,7 +93,6 @@ pub struct StatGroup {
 /// How stat filters within a group are combined.
 #[derive(Debug, Clone, Copy, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 #[serde(rename_all = "lowercase")]
 pub enum StatGroupType {
     And,
@@ -108,7 +102,6 @@ pub enum StatGroupType {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct StatFilter {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -119,7 +112,6 @@ pub struct StatFilter {
 
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct FilterValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min: Option<f64>,
@@ -129,7 +121,6 @@ pub struct FilterValue {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeSort {
     pub price: String,
 }
@@ -138,7 +129,6 @@ pub struct TradeSort {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct QueryFilters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub type_filters: Option<TypeFilters>,
@@ -152,14 +142,12 @@ pub struct QueryFilters {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct SocketFilters {
     pub filters: SocketFilterValues,
 }
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct SocketFilterValues {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<IntFilterValue>,
@@ -167,14 +155,12 @@ pub struct SocketFilterValues {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct WeaponFilters {
     pub filters: WeaponFilterValues,
 }
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct WeaponFilterValues {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pdps: Option<FilterValue>,
@@ -187,7 +173,6 @@ pub struct WeaponFilterValues {
 /// Integer-valued filter range (trade API requires integers for links/sockets).
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct IntFilterValue {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min: Option<u32>,
@@ -197,14 +182,12 @@ pub struct IntFilterValue {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TypeFilters {
     pub filters: TypeFilterValues,
 }
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TypeFilterValues {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<OptionFilter>,
@@ -214,21 +197,18 @@ pub struct TypeFilterValues {
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct OptionFilter {
     pub option: String,
 }
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct MiscFilters {
     pub filters: MiscFilterValues,
 }
 
 #[derive(Debug, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct MiscFilterValues {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ilvl: Option<FilterValue>,

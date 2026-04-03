@@ -12,7 +12,6 @@ use crate::predicate::Cmp;
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct PredicateSchema {
     /// Predicate type name (matches serde `"type"` tag in `Predicate`).
     pub type_name: String,
@@ -30,7 +29,6 @@ pub struct PredicateSchema {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct PredicateField {
     /// JSON key name (matches serde field name in `Predicate`).
     pub name: String,
@@ -47,7 +45,6 @@ pub struct PredicateField {
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum FieldKind {
     /// Comparison operator dropdown.
     /// `allowed_ops` restricts which operators are valid.
@@ -81,7 +78,6 @@ pub enum FieldKind {
 /// A selectable option in an enum/ordered-enum field.
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct EnumOption {
     /// Serialized value (matches serde representation).
     pub value: String,

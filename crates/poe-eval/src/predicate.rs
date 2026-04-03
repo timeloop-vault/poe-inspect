@@ -10,7 +10,6 @@ use poe_item::types::{InfluenceKind, Rarity, StatusKind};
 /// A comparison operator for numeric and string fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum Cmp {
     Eq,
     Ne,
@@ -42,7 +41,6 @@ impl Cmp {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum Predicate {
     // ── Header predicates ────────────────────────────────────────────
     /// Rarity comparison (e.g., `rarity == Rare`, `rarity >= Magic`).
@@ -159,7 +157,6 @@ pub enum Predicate {
 /// so the condition matches items regardless of item slot context.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct StatCondition {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -174,7 +171,6 @@ pub struct StatCondition {
 /// Mod slot kind for counting and open-mod queries.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSlotKind {
     Prefix,
     Suffix,
@@ -186,7 +182,6 @@ pub enum ModSlotKind {
 /// Mod source filter for predicates that can filter by how a mod was acquired.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum ModSourceKind {
     /// Only regular (dropped) mods.
     Regular,
@@ -199,7 +194,6 @@ pub enum ModSourceKind {
 /// Whether to match Tier mods, Rank mods, or either.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum TierKindFilter {
     /// Only match mods with `Tier(n)`.
     Tier,
@@ -212,7 +206,6 @@ pub enum TierKindFilter {
 /// Serializable rarity value (maps to `poe_item::types::Rarity`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum RarityValue {
     Normal = 0,
     Magic = 1,
@@ -241,7 +234,6 @@ impl RarityValue {
 /// Serializable influence kind (maps to `poe_item::types::InfluenceKind`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum InfluenceValue {
     Shaper,
     Elder,
@@ -277,7 +269,6 @@ impl InfluenceValue {
 /// Serializable status kind (maps to `poe_item::types::StatusKind`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum StatusValue {
     Corrupted,
     Mirrored,

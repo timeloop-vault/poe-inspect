@@ -82,7 +82,6 @@ pub struct SearchResult {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct Price {
     pub amount: f64,
     pub currency: String,
@@ -92,7 +91,6 @@ pub struct Price {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct PriceCheckResult {
     /// Search ID for constructing trade URL.
     pub search_id: String,
@@ -110,7 +108,6 @@ pub struct PriceCheckResult {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct League {
     /// League ID used in trade API paths (e.g., `"Mirage"`, `"Standard"`).
     pub id: String,
@@ -122,7 +119,6 @@ pub struct League {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct LeagueList {
     /// Public leagues (challenge, standard, hardcore, etc.).
     pub leagues: Vec<League>,
@@ -151,7 +147,6 @@ pub(crate) struct ApiLeagueRule {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ListingStatus {
     /// API value sent in the query body (e.g., `"available"`).
     pub id: String,
@@ -192,7 +187,6 @@ pub fn listing_statuses() -> Vec<ListingStatus> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeQueryConfig {
     /// League name (e.g., `"Mirage"`). Required — set by app from user config.
     pub league: String,
@@ -234,7 +228,6 @@ impl TradeQueryConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeSearchDefaults {
     /// Maximum number of stat filters to auto-include. Default: 5.
     #[cfg_attr(feature = "ts", ts(type = "number"))]
@@ -271,7 +264,6 @@ impl Default for TradeSearchDefaults {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct TradeFilterConfig {
     /// How specific the type filter should be (base type / item class / any).
     pub type_scope: TypeSearchScope,
@@ -327,7 +319,6 @@ pub struct TradeFilterConfig {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum TypeSearchScope {
     /// Filter by exact base item type (GGPK `BaseItemTypes`, e.g., "Demon's Horn").
     /// Sets `query.type` to the base type string.
@@ -344,7 +335,6 @@ pub enum TypeSearchScope {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct StatFilterOverride {
     /// Flat index into the item's non-reminder stat lines.
     #[cfg_attr(feature = "ts", ts(type = "number"))]
@@ -367,7 +357,6 @@ pub struct StatFilterOverride {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct MappedStat {
     /// Flat index (position in enchants → implicits → explicits, skipping reminders).
     #[cfg_attr(feature = "ts", ts(type = "number"))]

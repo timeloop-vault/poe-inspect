@@ -13,7 +13,6 @@ use crate::GameData;
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct SearchResult {
     /// Display name (e.g., "Vaal Regalia").
     pub name: String,
@@ -32,7 +31,6 @@ pub struct SearchResult {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub enum SearchResultKind {
     Equipment,
     Jewel,
@@ -51,7 +49,6 @@ pub enum SearchResultKind {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct BaseTypeDetail {
     pub name: String,
     pub item_class_id: String,
@@ -79,7 +76,6 @@ pub struct BaseTypeDetail {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct BaseDefences {
     pub armour_min: i32,
     pub armour_max: i32,
@@ -95,7 +91,6 @@ pub struct BaseDefences {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct BaseWeapon {
     /// Critical strike chance in hundredths (e.g., 500 = 5.00%).
     pub critical: i32,
@@ -112,7 +107,6 @@ pub struct BaseWeapon {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModPoolQuery {
     /// Base type name (e.g., "Vaal Regalia").
     pub base_type: String,
@@ -133,7 +127,6 @@ pub struct ModPoolQuery {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModPoolResult {
     /// Mod families grouped by generation type.
     pub prefixes: Vec<ModFamily>,
@@ -148,7 +141,6 @@ pub struct ModPoolResult {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModFamily {
     /// Family ID from GGPK (e.g., "`IncreasedLife`").
     pub family_id: String,
@@ -163,7 +155,6 @@ pub struct ModFamily {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModTier {
     /// Internal mod ID (e.g., "`IncreasedLife8`").
     pub mod_id: String,
@@ -188,7 +179,6 @@ pub struct ModTier {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
-#[cfg_attr(feature = "ts", ts(export))]
 pub struct ModTierStat {
     /// Stat ID (e.g., `base_maximum_life`).
     pub stat_id: String,
