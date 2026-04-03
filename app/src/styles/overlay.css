@@ -974,6 +974,8 @@ body,
 	gap: 3px;
 	max-height: 220px;
 	overflow-y: auto;
+	padding-right: 6px;
+	margin-bottom: 4px;
 }
 
 .unique-picker-item {
