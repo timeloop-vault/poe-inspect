@@ -2,232 +2,232 @@
   {
     "name": "Ngamahu's Flame",
     "base_type": "Abyssal Axe",
-    "art": "ngamahu_s_flame.png"
+    "art": "ngamahu_s_flame.webp"
   },
   {
     "name": "Starcaller",
     "base_type": "Abyssal Axe",
-    "art": "starcaller.png"
+    "art": "starcaller.webp"
   },
   {
     "name": "Eternal Damnation",
     "base_type": "Agate Amulet",
-    "art": "eternal_damnation.png"
+    "art": "eternal_damnation.webp"
   },
   {
     "name": "Extractor Mentis",
     "base_type": "Agate Amulet",
-    "art": "extractor_mentis.png"
+    "art": "extractor_mentis.webp"
   },
   {
     "name": "Shaper's Seed",
     "base_type": "Agate Amulet",
-    "art": "shaper_s_seed.png"
+    "art": "shaper_s_seed.webp"
   },
   {
     "name": "The Aylardex",
     "base_type": "Agate Amulet",
-    "art": "the_aylardex.png"
+    "art": "the_aylardex.webp"
   },
   {
     "name": "Voll's Devotion",
     "base_type": "Agate Amulet",
-    "art": "voll_s_devotion.png"
+    "art": "voll_s_devotion.webp"
   },
   {
     "name": "Blood of Corruption",
     "base_type": "Amber Amulet",
-    "art": "blood_of_corruption.png"
+    "art": "blood_of_corruption.webp"
   },
   {
     "name": "Bloodsoaked Medallion",
     "base_type": "Amber Amulet",
-    "art": "bloodsoaked_medallion.png"
+    "art": "bloodsoaked_medallion.webp"
   },
   {
     "name": "The Anvil",
     "base_type": "Amber Amulet",
-    "art": "the_anvil.png"
+    "art": "the_anvil.webp"
   },
   {
     "name": "Xoph's Blood",
     "base_type": "Amber Amulet",
-    "art": "xoph_s_blood.png"
+    "art": "xoph_s_blood.webp"
   },
   {
     "name": "Xoph's Heart",
     "base_type": "Amber Amulet",
-    "art": "xoph_s_heart.png"
+    "art": "xoph_s_heart.webp"
   },
   {
     "name": "Abhorrent Interrogation",
     "base_type": "Ambush Mitts",
-    "art": "abhorrent_interrogation.png"
+    "art": "abhorrent_interrogation.webp"
   },
   {
     "name": "Architect's Hand",
     "base_type": "Ambush Mitts",
-    "art": "architect_s_hand.png"
+    "art": "architect_s_hand.webp"
   },
   {
     "name": "Slavedriver's Hand",
     "base_type": "Ambush Mitts",
-    "art": "slavedriver_s_hand.png"
+    "art": "slavedriver_s_hand.webp"
   },
   {
     "name": "Stormseeker",
     "base_type": "Ambush Mitts",
-    "art": "stormseeker.png"
+    "art": "stormseeker.webp"
   },
   {
     "name": "Goblinedge",
     "base_type": "Ambusher",
-    "art": "goblinedge.png"
+    "art": "goblinedge.webp"
   },
   {
     "name": "Taproot",
     "base_type": "Ambusher",
-    "art": "taproot.png"
+    "art": "taproot.webp"
   },
   {
     "name": "The Hidden Blade",
     "base_type": "Ambusher",
-    "art": "the_hidden_blade.png"
+    "art": "the_hidden_blade.webp"
   },
   {
     "name": "Atziri's Promise",
     "base_type": "Amethyst Flask",
-    "art": "atziri_s_promise.png"
+    "art": "atziri_s_promise.webp"
   },
   {
     "name": "Progenesis",
     "base_type": "Amethyst Flask",
-    "art": "progenesis.png"
+    "art": "progenesis.webp"
   },
   {
     "name": "Blackflame",
     "base_type": "Amethyst Ring",
-    "art": "blackflame.png"
+    "art": "blackflame.webp"
   },
   {
     "name": "Circle of Nostalgia",
     "base_type": "Amethyst Ring",
-    "art": "circle_of_nostalgia.png"
+    "art": "circle_of_nostalgia.webp"
   },
   {
     "name": "Coiling Whisper",
     "base_type": "Amethyst Ring",
-    "art": "coiling_whisper.png"
+    "art": "coiling_whisper.webp"
   },
   {
     "name": "Death Rush",
     "base_type": "Amethyst Ring",
-    "art": "death_rush.png"
+    "art": "death_rush.webp"
   },
   {
     "name": "Ming's Heart",
     "base_type": "Amethyst Ring",
-    "art": "ming_s_heart.png"
+    "art": "ming_s_heart.webp"
   },
   {
     "name": "Original Sin",
     "base_type": "Amethyst Ring",
-    "art": "original_sin.png"
+    "art": "original_sin.webp"
   },
   {
     "name": "Hateforge",
     "base_type": "Ancient Gauntlets",
-    "art": "hateforge.png"
+    "art": "hateforge.webp"
   },
   {
     "name": "Winds of Change",
     "base_type": "Ancient Gauntlets",
-    "art": "winds_of_change.png"
+    "art": "winds_of_change.webp"
   },
   {
     "name": "Kahuturoa's Certainty",
     "base_type": "Ancient Greaves",
-    "art": "kahuturoa_s_certainty.png"
+    "art": "kahuturoa_s_certainty.webp"
   },
   {
     "name": "Redblade Tramplers",
     "base_type": "Ancient Greaves",
-    "art": "redblade_tramplers.png"
+    "art": "redblade_tramplers.webp"
   },
   {
     "name": "Kongming's Stratagem",
     "base_type": "Ancient Spirit Shield",
-    "art": "kongming_s_stratagem.png"
+    "art": "kongming_s_stratagem.webp"
   },
   {
     "name": "Admiral's Arrogance",
     "base_type": "Antique Gauntlets",
-    "art": "admiral_s_arrogance.png"
+    "art": "admiral_s_arrogance.webp"
   },
   {
     "name": "The Caged Mammoth",
     "base_type": "Antique Gauntlets",
-    "art": "the_caged_mammoth.png"
+    "art": "the_caged_mammoth.webp"
   },
   {
     "name": "Torchoak Step",
     "base_type": "Antique Greaves",
-    "art": "torchoak_step.png"
+    "art": "torchoak_step.webp"
   },
   {
     "name": "Ewar's Mirage",
     "base_type": "Antique Rapier",
-    "art": "ewar_s_mirage.png"
+    "art": "ewar_s_mirage.webp"
   },
   {
     "name": "Grip of the Council",
     "base_type": "Arcanist Gloves",
-    "art": "grip_of_the_council.png"
+    "art": "grip_of_the_council.webp"
   },
   {
     "name": "Replica Grip of the Council",
     "base_type": "Arcanist Gloves",
-    "art": "replica_grip_of_the_council.png"
+    "art": "replica_grip_of_the_council.webp"
   },
   {
     "name": "Inya's Epiphany",
     "base_type": "Arcanist Slippers",
-    "art": "inya_s_epiphany.png"
+    "art": "inya_s_epiphany.webp"
   },
   {
     "name": "Replica Inya's Epiphany",
     "base_type": "Arcanist Slippers",
-    "art": "replica_inya_s_epiphany.png"
+    "art": "replica_inya_s_epiphany.webp"
   },
   {
     "name": "Broken Faith",
     "base_type": "Archon Kite Shield",
-    "art": "broken_faith.png"
+    "art": "broken_faith.webp"
   },
   {
     "name": "Invictus Solaris",
     "base_type": "Archon Kite Shield",
-    "art": "invictus_solaris.png"
+    "art": "invictus_solaris.webp"
   },
   {
     "name": "Prism Guardian",
     "base_type": "Archon Kite Shield",
-    "art": "prism_guardian.png"
+    "art": "prism_guardian.webp"
   },
   {
     "name": "The Immortal Will",
     "base_type": "Archon Kite Shield",
-    "art": "the_immortal_will.png"
+    "art": "the_immortal_will.webp"
   },
   {
     "name": "The Unshattered Will",
     "base_type": "Archon Kite Shield",
-    "art": "the_unshattered_will.png"
+    "art": "the_unshattered_will.webp"
   },
   {
     "name": "Unyielding Flame",
     "base_type": "Archon Kite Shield",
-    "art": "unyielding_flame.png"
+    "art": "unyielding_flame.webp"
   },
   {
     "name": "First Piece of Focus",
@@ -252,187 +252,187 @@
   {
     "name": "Wildfire Phloem",
     "base_type": "Ashbark Tincture",
-    "art": "wildfire_phloem.png"
+    "art": "wildfire_phloem.webp"
   },
   {
     "name": "Arborix",
     "base_type": "Assassin Bow",
-    "art": "arborix.png"
+    "art": "arborix.webp"
   },
   {
     "name": "Chin Sol",
     "base_type": "Assassin Bow",
-    "art": "chin_sol.png"
+    "art": "chin_sol.webp"
   },
   {
     "name": "Darkscorn",
     "base_type": "Assassin Bow",
-    "art": "darkscorn.png"
+    "art": "darkscorn.webp"
   },
   {
     "name": "Fenumus' Spinnerets",
     "base_type": "Assassin's Boots",
-    "art": "fenumus__spinnerets.png"
+    "art": "fenumus__spinnerets.webp"
   },
   {
     "name": "Replica Stampede",
     "base_type": "Assassin's Boots",
-    "art": "replica_stampede.png"
+    "art": "replica_stampede.webp"
   },
   {
     "name": "The Stampede",
     "base_type": "Assassin's Boots",
-    "art": "the_stampede.png"
+    "art": "the_stampede.webp"
   },
   {
     "name": "Cospri's Will",
     "base_type": "Assassin's Garb",
-    "art": "cospri_s_will.png"
+    "art": "cospri_s_will.webp"
   },
   {
     "name": "Blasphemer's Grasp",
     "base_type": "Assassin's Mitts",
-    "art": "blasphemer_s_grasp.png"
+    "art": "blasphemer_s_grasp.webp"
   },
   {
     "name": "Entropic Devastation",
     "base_type": "Assassin's Mitts",
-    "art": "entropic_devastation.png"
+    "art": "entropic_devastation.webp"
   },
   {
     "name": "Snakebite",
     "base_type": "Assassin's Mitts",
-    "art": "snakebite.png"
+    "art": "snakebite.webp"
   },
   {
     "name": "Storm's Gift",
     "base_type": "Assassin's Mitts",
-    "art": "storm_s_gift.png"
+    "art": "storm_s_gift.webp"
   },
   {
     "name": "Blunderbore",
     "base_type": "Astral Plate",
-    "art": "blunderbore.png"
+    "art": "blunderbore.webp"
   },
   {
     "name": "Death's Oath",
     "base_type": "Astral Plate",
-    "art": "death_s_oath.png"
+    "art": "death_s_oath.webp"
   },
   {
     "name": "Venarius' Astrolabe",
     "base_type": "Astrolabe Amulet",
-    "art": "venarius__astrolabe.png"
+    "art": "venarius__astrolabe.webp"
   },
   {
     "name": "Callinellus Malleus",
     "base_type": "Auric Mace",
-    "art": "callinellus_malleus.png"
+    "art": "callinellus_malleus.webp"
   },
   {
     "name": "Mindspiral",
     "base_type": "Aventail Helmet",
-    "art": "mindspiral.png"
+    "art": "mindspiral.webp"
   },
   {
     "name": "Wildslash",
     "base_type": "Awl",
-    "art": "wildslash.png"
+    "art": "wildslash.webp"
   },
   {
     "name": "Thrillsteel",
     "base_type": "Barbute Helmet",
-    "art": "thrillsteel.png"
+    "art": "thrillsteel.webp"
   },
   {
     "name": "Daresso's Courage",
     "base_type": "Baroque Round Shield",
-    "art": "daresso_s_courage.png"
+    "art": "daresso_s_courage.webp"
   },
   {
     "name": "Aurumvorax",
     "base_type": "Basket Rapier",
-    "art": "aurumvorax.png"
+    "art": "aurumvorax.webp"
   },
   {
     "name": "Shiversting",
     "base_type": "Bastard Sword",
-    "art": "shiversting.png"
+    "art": "shiversting.webp"
   },
   {
     "name": "Oriath's End",
     "base_type": "Bismuth Flask",
-    "art": "oriath_s_end.png"
+    "art": "oriath_s_end.webp"
   },
   {
     "name": "The Wise Oak",
     "base_type": "Bismuth Flask",
-    "art": "the_wise_oak.png"
+    "art": "the_wise_oak.webp"
   },
   {
     "name": "Night's Hold",
     "base_type": "Black Maw Talisman",
-    "art": "night_s_hold.png"
+    "art": "night_s_hold.webp"
   },
   {
     "name": "Replica Twyzel",
     "base_type": "Blasting Wand",
-    "art": "replica_twyzel.png"
+    "art": "replica_twyzel.webp"
   },
   {
     "name": "Twyzel",
     "base_type": "Blasting Wand",
-    "art": "twyzel.png"
+    "art": "twyzel.webp"
   },
   {
     "name": "Blackgleam",
     "base_type": "Blazing Arrow Quiver",
-    "art": "blackgleam.png"
+    "art": "blackgleam.webp"
   },
   {
     "name": "The Signal Fire",
     "base_type": "Blazing Arrow Quiver",
-    "art": "the_signal_fire.png"
+    "art": "the_signal_fire.webp"
   },
   {
     "name": "Replica Eternity Shroud",
     "base_type": "Blood Raiment",
-    "art": "replica_eternity_shroud.png"
+    "art": "replica_eternity_shroud.webp"
   },
   {
     "name": "Saqawal's Nest",
     "base_type": "Blood Raiment",
-    "art": "saqawal_s_nest.png"
+    "art": "saqawal_s_nest.webp"
   },
   {
     "name": "The Eternity Shroud",
     "base_type": "Blood Raiment",
-    "art": "the_eternity_shroud.png"
+    "art": "the_eternity_shroud.webp"
   },
   {
     "name": "Cerberus Limb",
     "base_type": "Blood Sceptre",
-    "art": "cerberus_limb.png"
+    "art": "cerberus_limb.webp"
   },
   {
     "name": "Gloomfang",
     "base_type": "Blue Pearl Amulet",
-    "art": "gloomfang.png"
+    "art": "gloomfang.webp"
   },
   {
     "name": "Rearguard",
     "base_type": "Blunt Arrow Quiver",
-    "art": "rearguard.png"
+    "art": "rearguard.webp"
   },
   {
     "name": "The Fracturing Spinner",
     "base_type": "Blunt Arrow Quiver",
-    "art": "the_fracturing_spinner.png"
+    "art": "the_fracturing_spinner.webp"
   },
   {
     "name": "The Shattered Divinity",
     "base_type": "Blunt Arrow Quiver",
-    "art": "the_shattered_divinity.png"
+    "art": "the_shattered_divinity.webp"
   },
   {
     "name": "First Piece of Directions",
@@ -452,142 +452,142 @@
   {
     "name": "Bloodbond",
     "base_type": "Bone Armour",
-    "art": "bloodbond.png"
+    "art": "bloodbond.webp"
   },
   {
     "name": "Plume of Pursuit",
     "base_type": "Bone Circlet",
-    "art": "plume_of_pursuit.png"
+    "art": "plume_of_pursuit.webp"
   },
   {
     "name": "Wraithlord",
     "base_type": "Bone Circlet",
-    "art": "wraithlord.png"
+    "art": "wraithlord.webp"
   },
   {
     "name": "Ancient Skull",
     "base_type": "Bone Helmet",
-    "art": "ancient_skull.png"
+    "art": "ancient_skull.webp"
   },
   {
     "name": "Maw of Mischief",
     "base_type": "Bone Helmet",
-    "art": "maw_of_mischief.png"
+    "art": "maw_of_mischief.webp"
   },
   {
     "name": "Widowmaker",
     "base_type": "Boot Blade",
-    "art": "widowmaker.png"
+    "art": "widowmaker.webp"
   },
   {
     "name": "Replica Ungil's Gauche",
     "base_type": "Boot Knife",
-    "art": "replica_ungil_s_gauche.png"
+    "art": "replica_ungil_s_gauche.webp"
   },
   {
     "name": "Ungil's Gauche",
     "base_type": "Boot Knife",
-    "art": "ungil_s_gauche.png"
+    "art": "ungil_s_gauche.webp"
   },
   {
     "name": "Saffell's Frame",
     "base_type": "Branded Kite Shield",
-    "art": "saffell_s_frame.png"
+    "art": "saffell_s_frame.webp"
   },
   {
     "name": "Geofri's Baptism",
     "base_type": "Brass Maul",
-    "art": "geofri_s_baptism.png"
+    "art": "geofri_s_baptism.webp"
   },
   {
     "name": "Geofri's Devotion",
     "base_type": "Brass Maul",
-    "art": "geofri_s_devotion.png"
+    "art": "geofri_s_devotion.webp"
   },
   {
     "name": "Sentari's Answer",
     "base_type": "Brass Spirit Shield",
-    "art": "sentari_s_answer.png"
+    "art": "sentari_s_answer.webp"
   },
   {
     "name": "Steelworm",
     "base_type": "Broadhead Arrow Quiver",
-    "art": "steelworm.png"
+    "art": "steelworm.webp"
   },
   {
     "name": "Giantsbane",
     "base_type": "Bronze Gauntlets",
-    "art": "giantsbane.png"
+    "art": "giantsbane.webp"
   },
   {
     "name": "Axiom Perpetuum",
     "base_type": "Bronze Sceptre",
-    "art": "axiom_perpetuum.png"
+    "art": "axiom_perpetuum.webp"
   },
   {
     "name": "Lioneye's Paws",
     "base_type": "Bronzescale Boots",
-    "art": "lioneye_s_paws.png"
+    "art": "lioneye_s_paws.webp"
   },
   {
     "name": "Replica Lioneye's Paws",
     "base_type": "Bronzescale Boots",
-    "art": "replica_lioneye_s_paws.png"
+    "art": "replica_lioneye_s_paws.webp"
   },
   {
     "name": "Slitherpinch",
     "base_type": "Bronzescale Gauntlets",
-    "art": "slitherpinch.png"
+    "art": "slitherpinch.webp"
   },
   {
     "name": "Vaal Caress",
     "base_type": "Bronzescale Gauntlets",
-    "art": "vaal_caress.png"
+    "art": "vaal_caress.webp"
   },
   {
     "name": "Ashrend",
     "base_type": "Buckskin Tunic",
-    "art": "ashrend.png"
+    "art": "ashrend.webp"
   },
   {
     "name": "Glitterdisc",
     "base_type": "Burnished Spiked Shield",
-    "art": "glitterdisc.png"
+    "art": "glitterdisc.webp"
   },
   {
     "name": "Actum",
     "base_type": "Butcher Axe",
-    "art": "actum.png"
+    "art": "actum.webp"
   },
   {
     "name": "The Apostate",
     "base_type": "Cabalist Regalia",
-    "art": "the_apostate.png"
+    "art": "the_apostate.webp"
   },
   {
     "name": "Midnight Bargain",
     "base_type": "Calling Wand",
-    "art": "midnight_bargain.png"
+    "art": "midnight_bargain.webp"
   },
   {
     "name": "Replica Midnight Bargain",
     "base_type": "Calling Wand",
-    "art": "replica_midnight_bargain.png"
+    "art": "replica_midnight_bargain.webp"
   },
   {
     "name": "Eye of Malice",
     "base_type": "Callous Mask",
-    "art": "eye_of_malice.png"
+    "art": "eye_of_malice.webp"
   },
   {
     "name": "The Tempest's Binding",
     "base_type": "Callous Mask",
-    "art": "the_tempest_s_binding.png"
+    "art": "the_tempest_s_binding.webp"
   },
   {
     "name": "The Tempest's Liberation",
     "base_type": "Callous Mask",
-    "art": "the_tempest_s_liberation.png"
+    "art": "the_tempest_s_liberation.webp"
   },
   {
     "name": "First Piece of Storms",
@@ -612,82 +612,82 @@
   {
     "name": "Vix Lunaris",
     "base_type": "Cardinal Round Shield",
-    "art": "vix_lunaris.png"
+    "art": "vix_lunaris.webp"
   },
   {
     "name": "Replica Restless Ward",
     "base_type": "Carnal Armour",
-    "art": "replica_restless_ward.png"
+    "art": "replica_restless_ward.webp"
   },
   {
     "name": "Replica Shroud of the Lightless",
     "base_type": "Carnal Armour",
-    "art": "replica_shroud_of_the_lightless.png"
+    "art": "replica_shroud_of_the_lightless.webp"
   },
   {
     "name": "Shroud of the Lightless",
     "base_type": "Carnal Armour",
-    "art": "shroud_of_the_lightless.png"
+    "art": "shroud_of_the_lightless.webp"
   },
   {
     "name": "Stasis Prison",
     "base_type": "Carnal Armour",
-    "art": "stasis_prison.png"
+    "art": "stasis_prison.webp"
   },
   {
     "name": "The Restless Ward",
     "base_type": "Carnal Armour",
-    "art": "the_restless_ward.png"
+    "art": "the_restless_ward.webp"
   },
   {
     "name": "Corpsewalker",
     "base_type": "Carnal Boots",
-    "art": "corpsewalker.png"
+    "art": "corpsewalker.webp"
   },
   {
     "name": "Dance of the Offered",
     "base_type": "Carnal Boots",
-    "art": "dance_of_the_offered.png"
+    "art": "dance_of_the_offered.webp"
   },
   {
     "name": "Omeyocan",
     "base_type": "Carnal Boots",
-    "art": "omeyocan.png"
+    "art": "omeyocan.webp"
   },
   {
     "name": "Algor Mortis",
     "base_type": "Carnal Mitts",
-    "art": "algor_mortis.png"
+    "art": "algor_mortis.webp"
   },
   {
     "name": "Fenumus' Weave",
     "base_type": "Carnal Mitts",
-    "art": "fenumus__weave.png"
+    "art": "fenumus__weave.webp"
   },
   {
     "name": "Hand of the Lords",
     "base_type": "Carnal Mitts",
-    "art": "hand_of_the_lords.png"
+    "art": "hand_of_the_lords.webp"
   },
   {
     "name": "Soul Ascension",
     "base_type": "Carnal Mitts",
-    "art": "soul_ascension.png"
+    "art": "soul_ascension.webp"
   },
   {
     "name": "The Embalmer",
     "base_type": "Carnal Mitts",
-    "art": "the_embalmer.png"
+    "art": "the_embalmer.webp"
   },
   {
     "name": "Breath of the Council",
     "base_type": "Carnal Sceptre",
-    "art": "breath_of_the_council.png"
+    "art": "breath_of_the_council.webp"
   },
   {
     "name": "Trolltimber Spire",
     "base_type": "Cedar Tower Shield",
-    "art": "trolltimber_spire.png"
+    "art": "trolltimber_spire.webp"
   },
   {
     "name": "The Blood of Innocence",
@@ -702,227 +702,227 @@
   {
     "name": "Ascent From Flesh",
     "base_type": "Chain Belt",
-    "art": "ascent_from_flesh.png"
+    "art": "ascent_from_flesh.webp"
   },
   {
     "name": "Bated Breath",
     "base_type": "Chain Belt",
-    "art": "bated_breath.png"
+    "art": "bated_breath.webp"
   },
   {
     "name": "Chain of Endurance",
     "base_type": "Chain Belt",
-    "art": "chain_of_endurance.png"
+    "art": "chain_of_endurance.webp"
   },
   {
     "name": "Chains of Emancipation",
     "base_type": "Chain Belt",
-    "art": "chains_of_emancipation.png"
+    "art": "chains_of_emancipation.webp"
   },
   {
     "name": "Coward's Chains",
     "base_type": "Chain Belt",
-    "art": "coward_s_chains.png"
+    "art": "coward_s_chains.webp"
   },
   {
     "name": "Coward's Legacy",
     "base_type": "Chain Belt",
-    "art": "coward_s_legacy.png"
+    "art": "coward_s_legacy.webp"
   },
   {
     "name": "Maligaro's Restraint",
     "base_type": "Chain Belt",
-    "art": "maligaro_s_restraint.png"
+    "art": "maligaro_s_restraint.webp"
   },
   {
     "name": "Replica Bated Breath",
     "base_type": "Chain Belt",
-    "art": "replica_bated_breath.png"
+    "art": "replica_bated_breath.webp"
   },
   {
     "name": "Saresh's Darkness",
     "base_type": "Chain Belt",
-    "art": "saresh_s_darkness.png"
+    "art": "saresh_s_darkness.webp"
   },
   {
     "name": "Solerai's Radiance",
     "base_type": "Chain Belt",
-    "art": "solerai_s_radiance.png"
+    "art": "solerai_s_radiance.webp"
   },
   {
     "name": "Shackles of the Wretched",
     "base_type": "Chain Gloves",
-    "art": "shackles_of_the_wretched.png"
+    "art": "shackles_of_the_wretched.webp"
   },
   {
     "name": "Aegis Aurora",
     "base_type": "Champion Kite Shield",
-    "art": "aegis_aurora.png"
+    "art": "aegis_aurora.webp"
   },
   {
     "name": "Oni-Goroshi",
     "base_type": "Charan's Sword",
-    "art": "oni_goroshi.png"
+    "art": "oni_goroshi.webp"
   },
   {
     "name": "The Eternal Apple",
     "base_type": "Chiming Spirit Shield",
-    "art": "the_eternal_apple.png"
+    "art": "the_eternal_apple.webp"
   },
   {
     "name": "The Scales of Justice",
     "base_type": "Chiming Spirit Shield",
-    "art": "the_scales_of_justice.png"
+    "art": "the_scales_of_justice.webp"
   },
   {
     "name": "The Gluttonous Tide",
     "base_type": "Citadel Bow",
-    "art": "the_gluttonous_tide.png"
+    "art": "the_gluttonous_tide.webp"
   },
   {
     "name": "Xoph's Inception",
     "base_type": "Citadel Bow",
-    "art": "xoph_s_inception.png"
+    "art": "xoph_s_inception.webp"
   },
   {
     "name": "Xoph's Nurture",
     "base_type": "Citadel Bow",
-    "art": "xoph_s_nurture.png"
+    "art": "xoph_s_nurture.webp"
   },
   {
     "name": "Daresso's Salute",
     "base_type": "Citrine Amulet",
-    "art": "daresso_s_salute.png"
+    "art": "daresso_s_salute.webp"
   },
   {
     "name": "Eye of Innocence",
     "base_type": "Citrine Amulet",
-    "art": "eye_of_innocence.png"
+    "art": "eye_of_innocence.webp"
   },
   {
     "name": "Retaliation Charm",
     "base_type": "Citrine Amulet",
-    "art": "retaliation_charm.png"
+    "art": "retaliation_charm.webp"
   },
   {
     "name": "The Felbog Fang",
     "base_type": "Citrine Amulet",
-    "art": "the_felbog_fang.png"
+    "art": "the_felbog_fang.webp"
   },
   {
     "name": "The Jinxed Juju",
     "base_type": "Citrine Amulet",
-    "art": "the_jinxed_juju.png"
+    "art": "the_jinxed_juju.webp"
   },
   {
     "name": "Sundance",
     "base_type": "Clasped Boots",
-    "art": "sundance.png"
+    "art": "sundance.webp"
   },
   {
     "name": "Sunspite",
     "base_type": "Clasped Boots",
-    "art": "sunspite.png"
+    "art": "sunspite.webp"
   },
   {
     "name": "Aukuna's Will",
     "base_type": "Clasped Mitts",
-    "art": "aukuna_s_will.png"
+    "art": "aukuna_s_will.webp"
   },
   {
     "name": "Shadows and Dust",
     "base_type": "Clasped Mitts",
-    "art": "shadows_and_dust.png"
+    "art": "shadows_and_dust.webp"
   },
   {
     "name": "Dreadarc",
     "base_type": "Cleaver",
-    "art": "dreadarc.png"
+    "art": "dreadarc.webp"
   },
   {
     "name": "Dreadsurge",
     "base_type": "Cleaver",
-    "art": "dreadsurge.png"
+    "art": "dreadsurge.webp"
   },
   {
     "name": "The Baron",
     "base_type": "Close Helmet",
-    "art": "the_baron.png"
+    "art": "the_baron.webp"
   },
   {
     "name": "Arn's Anguish",
     "base_type": "Cloth Belt",
-    "art": "arn_s_anguish.png"
+    "art": "arn_s_anguish.webp"
   },
   {
     "name": "Bound Fate",
     "base_type": "Cloth Belt",
-    "art": "bound_fate.png"
+    "art": "bound_fate.webp"
   },
   {
     "name": "Ceinture of Benevolence",
     "base_type": "Cloth Belt",
-    "art": "ceinture_of_benevolence.png"
+    "art": "ceinture_of_benevolence.webp"
   },
   {
     "name": "Graven's Secret",
     "base_type": "Cloth Belt",
-    "art": "graven_s_secret.png"
+    "art": "graven_s_secret.webp"
   },
   {
     "name": "Nevalius Inheritance",
     "base_type": "Cloth Belt",
-    "art": "nevalius_inheritance.png"
+    "art": "nevalius_inheritance.webp"
   },
   {
     "name": "Olesya's Delight",
     "base_type": "Cloth Belt",
-    "art": "olesya_s_delight.png"
+    "art": "olesya_s_delight.webp"
   },
   {
     "name": "Perandus Blazon",
     "base_type": "Cloth Belt",
-    "art": "perandus_blazon.png"
+    "art": "perandus_blazon.webp"
   },
   {
     "name": "Replica Soul Tether",
     "base_type": "Cloth Belt",
-    "art": "replica_soul_tether.png"
+    "art": "replica_soul_tether.webp"
   },
   {
     "name": "Soul Tether",
     "base_type": "Cloth Belt",
-    "art": "soul_tether.png"
+    "art": "soul_tether.webp"
   },
   {
     "name": "Soulthirst",
     "base_type": "Cloth Belt",
-    "art": "soulthirst.png"
+    "art": "soulthirst.webp"
   },
   {
     "name": "Sunblast",
     "base_type": "Cloth Belt",
-    "art": "sunblast.png"
+    "art": "sunblast.webp"
   },
   {
     "name": "The Arkhon's Tools",
     "base_type": "Cloth Belt",
-    "art": "the_arkhon_s_tools.png"
+    "art": "the_arkhon_s_tools.webp"
   },
   {
     "name": "The Druggery",
     "base_type": "Cloth Belt",
-    "art": "the_druggery.png"
+    "art": "the_druggery.webp"
   },
   {
     "name": "The Flow Untethered",
     "base_type": "Cloth Belt",
-    "art": "the_flow_untethered.png"
+    "art": "the_flow_untethered.webp"
   },
   {
     "name": "The Torrent's Reclamation",
     "base_type": "Cloth Belt",
-    "art": "the_torrent_s_reclamation.png"
+    "art": "the_torrent_s_reclamation.webp"
   },
   {
     "name": "First Piece of Time",
@@ -937,97 +937,97 @@
   {
     "name": "Blightwell",
     "base_type": "Clutching Talisman",
-    "art": "blightwell.png"
+    "art": "blightwell.webp"
   },
   {
     "name": "Anatomical Knowledge",
     "base_type": "Cobalt Jewel",
-    "art": "anatomical_knowledge.png"
+    "art": "anatomical_knowledge.webp"
   },
   {
     "name": "Apex Mode",
     "base_type": "Cobalt Jewel",
-    "art": "apex_mode.png"
+    "art": "apex_mode.webp"
   },
   {
     "name": "Assassin's Haste",
     "base_type": "Cobalt Jewel",
-    "art": "assassin_s_haste.png"
+    "art": "assassin_s_haste.webp"
   },
   {
     "name": "Brittle Barrier",
     "base_type": "Cobalt Jewel",
-    "art": "brittle_barrier.png"
+    "art": "brittle_barrier.webp"
   },
   {
     "name": "Brute Force Solution",
     "base_type": "Cobalt Jewel",
-    "art": "brute_force_solution.png"
+    "art": "brute_force_solution.webp"
   },
   {
     "name": "Clear Mind",
     "base_type": "Cobalt Jewel",
-    "art": "clear_mind.png"
+    "art": "clear_mind.webp"
   },
   {
     "name": "Combat Focus",
     "base_type": "Cobalt Jewel",
-    "art": "combat_focus.png"
+    "art": "combat_focus.webp"
   },
   {
     "name": "Conqueror's Potency",
     "base_type": "Cobalt Jewel",
-    "art": "conqueror_s_potency.png"
+    "art": "conqueror_s_potency.webp"
   },
   {
     "name": "Corrupted Energy",
     "base_type": "Cobalt Jewel",
-    "art": "corrupted_energy.png"
+    "art": "corrupted_energy.webp"
   },
   {
     "name": "Dead Reckoning",
     "base_type": "Cobalt Jewel",
-    "art": "dead_reckoning.png"
+    "art": "dead_reckoning.webp"
   },
   {
     "name": "Eldritch Knowledge",
     "base_type": "Cobalt Jewel",
-    "art": "eldritch_knowledge.png"
+    "art": "eldritch_knowledge.webp"
   },
   {
     "name": "Emperor's Wit",
     "base_type": "Cobalt Jewel",
-    "art": "emperor_s_wit.png"
+    "art": "emperor_s_wit.webp"
   },
   {
     "name": "Endless Misery",
     "base_type": "Cobalt Jewel",
-    "art": "endless_misery.png"
+    "art": "endless_misery.webp"
   },
   {
     "name": "Energy From Within",
     "base_type": "Cobalt Jewel",
-    "art": "energy_from_within.png"
+    "art": "energy_from_within.webp"
   },
   {
     "name": "Fertile Mind",
     "base_type": "Cobalt Jewel",
-    "art": "fertile_mind.png"
+    "art": "fertile_mind.webp"
   },
   {
     "name": "Fevered Mind",
     "base_type": "Cobalt Jewel",
-    "art": "fevered_mind.png"
+    "art": "fevered_mind.webp"
   },
   {
     "name": "First Snow",
     "base_type": "Cobalt Jewel",
-    "art": "first_snow.png"
+    "art": "first_snow.webp"
   },
   {
     "name": "Forbidden Flesh",
     "base_type": "Cobalt Jewel",
-    "art": "forbidden_flesh.png"
+    "art": "forbidden_flesh.webp"
   },
   {
     "name": "Fortified Legion",
@@ -1037,182 +1037,182 @@
   {
     "name": "Fortress Covenant",
     "base_type": "Cobalt Jewel",
-    "art": "fortress_covenant.png"
+    "art": "fortress_covenant.webp"
   },
   {
     "name": "From Dust",
     "base_type": "Cobalt Jewel",
-    "art": "from_dust.png"
+    "art": "from_dust.webp"
   },
   {
     "name": "Frozen Trail",
     "base_type": "Cobalt Jewel",
-    "art": "frozen_trail.png"
+    "art": "frozen_trail.webp"
   },
   {
     "name": "Grand Spectrum",
     "base_type": "Cobalt Jewel",
-    "art": "grand_spectrum.png"
+    "art": "grand_spectrum.webp"
   },
   {
     "name": "Hazardous Research",
     "base_type": "Cobalt Jewel",
-    "art": "hazardous_research.png"
+    "art": "hazardous_research.webp"
   },
   {
     "name": "Healthy Mind",
     "base_type": "Cobalt Jewel",
-    "art": "healthy_mind.png"
+    "art": "healthy_mind.webp"
   },
   {
     "name": "Inevitability",
     "base_type": "Cobalt Jewel",
-    "art": "inevitability.png"
+    "art": "inevitability.webp"
   },
   {
     "name": "Malicious Intent",
     "base_type": "Cobalt Jewel",
-    "art": "malicious_intent.png"
+    "art": "malicious_intent.webp"
   },
   {
     "name": "Melding of the Flesh",
     "base_type": "Cobalt Jewel",
-    "art": "melding_of_the_flesh.png"
+    "art": "melding_of_the_flesh.webp"
   },
   {
     "name": "Mutated Growth",
     "base_type": "Cobalt Jewel",
-    "art": "mutated_growth.png"
+    "art": "mutated_growth.webp"
   },
   {
     "name": "Nadir Mode",
     "base_type": "Cobalt Jewel",
-    "art": "nadir_mode.png"
+    "art": "nadir_mode.webp"
   },
   {
     "name": "Powerlessness",
     "base_type": "Cobalt Jewel",
-    "art": "powerlessness.png"
+    "art": "powerlessness.webp"
   },
   {
     "name": "Primordial Harmony",
     "base_type": "Cobalt Jewel",
-    "art": "primordial_harmony.png"
+    "art": "primordial_harmony.webp"
   },
   {
     "name": "Rational Doctrine",
     "base_type": "Cobalt Jewel",
-    "art": "rational_doctrine.png"
+    "art": "rational_doctrine.webp"
   },
   {
     "name": "Reckless Defence",
     "base_type": "Cobalt Jewel",
-    "art": "reckless_defence.png"
+    "art": "reckless_defence.webp"
   },
   {
     "name": "Replica Powerlessness",
     "base_type": "Cobalt Jewel",
-    "art": "replica_powerlessness.png"
+    "art": "replica_powerlessness.webp"
   },
   {
     "name": "Replica Reckless Defence",
     "base_type": "Cobalt Jewel",
-    "art": "replica_reckless_defence.png"
+    "art": "replica_reckless_defence.webp"
   },
   {
     "name": "Replica Unstable Payload",
     "base_type": "Cobalt Jewel",
-    "art": "replica_unstable_payload.png"
+    "art": "replica_unstable_payload.webp"
   },
   {
     "name": "Rolling Flames",
     "base_type": "Cobalt Jewel",
-    "art": "rolling_flames.png"
+    "art": "rolling_flames.webp"
   },
   {
     "name": "Soul's Wick",
     "base_type": "Cobalt Jewel",
-    "art": "soul_s_wick.png"
+    "art": "soul_s_wick.webp"
   },
   {
     "name": "Spirited Response",
     "base_type": "Cobalt Jewel",
-    "art": "spirited_response.png"
+    "art": "spirited_response.webp"
   },
   {
     "name": "Spreading Rot",
     "base_type": "Cobalt Jewel",
-    "art": "spreading_rot.png"
+    "art": "spreading_rot.webp"
   },
   {
     "name": "Survival Secrets",
     "base_type": "Cobalt Jewel",
-    "art": "survival_secrets.png"
+    "art": "survival_secrets.webp"
   },
   {
     "name": "Tempered Mind",
     "base_type": "Cobalt Jewel",
-    "art": "tempered_mind.png"
+    "art": "tempered_mind.webp"
   },
   {
     "name": "The Balance of Terror",
     "base_type": "Cobalt Jewel",
-    "art": "the_balance_of_terror.png"
+    "art": "the_balance_of_terror.webp"
   },
   {
     "name": "The Blue Dream",
     "base_type": "Cobalt Jewel",
-    "art": "the_blue_dream.png"
+    "art": "the_blue_dream.webp"
   },
   {
     "name": "The Blue Nightmare",
     "base_type": "Cobalt Jewel",
-    "art": "the_blue_nightmare.png"
+    "art": "the_blue_nightmare.webp"
   },
   {
     "name": "The Long Winter",
     "base_type": "Cobalt Jewel",
-    "art": "the_long_winter.png"
+    "art": "the_long_winter.webp"
   },
   {
     "name": "To Dust",
     "base_type": "Cobalt Jewel",
-    "art": "to_dust.png"
+    "art": "to_dust.webp"
   },
   {
     "name": "Transcendent Mind",
     "base_type": "Cobalt Jewel",
-    "art": "transcendent_mind.png"
+    "art": "transcendent_mind.webp"
   },
   {
     "name": "Unending Hunger",
     "base_type": "Cobalt Jewel",
-    "art": "unending_hunger.png"
+    "art": "unending_hunger.webp"
   },
   {
     "name": "Unstable Payload",
     "base_type": "Cobalt Jewel",
-    "art": "unstable_payload.png"
+    "art": "unstable_payload.webp"
   },
   {
     "name": "Vaal Sentencing",
     "base_type": "Cobalt Jewel",
-    "art": "vaal_sentencing.png"
+    "art": "vaal_sentencing.webp"
   },
   {
     "name": "Violent Dead",
     "base_type": "Cobalt Jewel",
-    "art": "violent_dead.png"
+    "art": "violent_dead.webp"
   },
   {
     "name": "Winter's Bounty",
     "base_type": "Cobalt Jewel",
-    "art": "winter_s_bounty.png"
+    "art": "winter_s_bounty.webp"
   },
   {
     "name": "Witchbane",
     "base_type": "Cobalt Jewel",
-    "art": "witchbane.png"
+    "art": "witchbane.webp"
   },
   {
     "name": "The First Crest",
@@ -1222,57 +1222,57 @@
   {
     "name": "Xirgil's Crank",
     "base_type": "Coiled Staff",
-    "art": "xirgil_s_crank.png"
+    "art": "xirgil_s_crank.webp"
   },
   {
     "name": "Wellwater Phylactery",
     "base_type": "Colossal Mana Flask",
-    "art": "wellwater_phylactery.png"
+    "art": "wellwater_phylactery.webp"
   },
   {
     "name": "Ahn's Heritage",
     "base_type": "Colossal Tower Shield",
-    "art": "ahn_s_heritage.png"
+    "art": "ahn_s_heritage.webp"
   },
   {
     "name": "Dawnbreaker",
     "base_type": "Colossal Tower Shield",
-    "art": "dawnbreaker.png"
+    "art": "dawnbreaker.webp"
   },
   {
     "name": "Pragmatism",
     "base_type": "Colosseum Plate",
-    "art": "pragmatism.png"
+    "art": "pragmatism.webp"
   },
   {
     "name": "Maligaro's Lens",
     "base_type": "Compound Spiked Shield",
-    "art": "maligaro_s_lens.png"
+    "art": "maligaro_s_lens.webp"
   },
   {
     "name": "Rainbowstride",
     "base_type": "Conjurer Boots",
-    "art": "rainbowstride.png"
+    "art": "rainbowstride.webp"
   },
   {
     "name": "Voidbringer",
     "base_type": "Conjurer Gloves",
-    "art": "voidbringer.png"
+    "art": "voidbringer.webp"
   },
   {
     "name": "Kingsguard",
     "base_type": "Conquest Chainmail",
-    "art": "kingsguard.png"
+    "art": "kingsguard.webp"
   },
   {
     "name": "Solaris Lorica",
     "base_type": "Copper Plate",
-    "art": "solaris_lorica.png"
+    "art": "solaris_lorica.webp"
   },
   {
     "name": "Araku Tiki",
     "base_type": "Coral Amulet",
-    "art": "araku_tiki.png"
+    "art": "araku_tiki.webp"
   },
   {
     "name": "Ikiaho's Promise",
@@ -1282,57 +1282,57 @@
   {
     "name": "Ngamahu Tiki",
     "base_type": "Coral Amulet",
-    "art": "ngamahu_tiki.png"
+    "art": "ngamahu_tiki.webp"
   },
   {
     "name": "Tainted Pact",
     "base_type": "Coral Amulet",
-    "art": "tainted_pact.png"
+    "art": "tainted_pact.webp"
   },
   {
     "name": "Tavukai",
     "base_type": "Coral Amulet",
-    "art": "tavukai.png"
+    "art": "tavukai.webp"
   },
   {
     "name": "The Primordial Chain",
     "base_type": "Coral Amulet",
-    "art": "the_primordial_chain.png"
+    "art": "the_primordial_chain.webp"
   },
   {
     "name": "Honoured Alliance",
     "base_type": "Coral Ring",
-    "art": "honoured_alliance.png"
+    "art": "honoured_alliance.webp"
   },
   {
     "name": "Kaom's Sign",
     "base_type": "Coral Ring",
-    "art": "kaom_s_sign.png"
+    "art": "kaom_s_sign.webp"
   },
   {
     "name": "Kaom's Way",
     "base_type": "Coral Ring",
-    "art": "kaom_s_way.png"
+    "art": "kaom_s_way.webp"
   },
   {
     "name": "Sibyl's Lament",
     "base_type": "Coral Ring",
-    "art": "sibyl_s_lament.png"
+    "art": "sibyl_s_lament.webp"
   },
   {
     "name": "Winterweave",
     "base_type": "Coral Ring",
-    "art": "winterweave.png"
+    "art": "winterweave.webp"
   },
   {
     "name": "The Desecrated Chalice",
     "base_type": "Coronal Maul",
-    "art": "the_desecrated_chalice.png"
+    "art": "the_desecrated_chalice.webp"
   },
   {
     "name": "The Sacred Chalice",
     "base_type": "Coronal Maul",
-    "art": "the_sacred_chalice.png"
+    "art": "the_sacred_chalice.webp"
   },
   {
     "name": "Thunder of the Dawn",
@@ -1342,287 +1342,287 @@
   {
     "name": "Great Old One's Ward",
     "base_type": "Corrugated Buckler",
-    "art": "great_old_one_s_ward.png"
+    "art": "great_old_one_s_ward.webp"
   },
   {
     "name": "Ichimonji",
     "base_type": "Corsair Sword",
-    "art": "ichimonji.png"
+    "art": "ichimonji.webp"
   },
   {
     "name": "Ancient Waystones",
     "base_type": "Crimson Jewel",
-    "art": "ancient_waystones.png"
+    "art": "ancient_waystones.webp"
   },
   {
     "name": "Atziri's Reign",
     "base_type": "Crimson Jewel",
-    "art": "atziri_s_reign.png"
+    "art": "atziri_s_reign.webp"
   },
   {
     "name": "Blood Sacrifice",
     "base_type": "Crimson Jewel",
-    "art": "blood_sacrifice.png"
+    "art": "blood_sacrifice.webp"
   },
   {
     "name": "Bloodnotch",
     "base_type": "Crimson Jewel",
-    "art": "bloodnotch.png"
+    "art": "bloodnotch.webp"
   },
   {
     "name": "Brawn",
     "base_type": "Crimson Jewel",
-    "art": "brawn.png"
+    "art": "brawn.webp"
   },
   {
     "name": "Coated Shrapnel",
     "base_type": "Crimson Jewel",
-    "art": "coated_shrapnel.png"
+    "art": "coated_shrapnel.webp"
   },
   {
     "name": "Combat Focus",
     "base_type": "Crimson Jewel",
-    "art": "combat_focus.png"
+    "art": "combat_focus.webp"
   },
   {
     "name": "Combustibles",
     "base_type": "Crimson Jewel",
-    "art": "combustibles.png"
+    "art": "combustibles.webp"
   },
   {
     "name": "Conqueror's Efficiency",
     "base_type": "Crimson Jewel",
-    "art": "conqueror_s_efficiency.png"
+    "art": "conqueror_s_efficiency.webp"
   },
   {
     "name": "Dissolution of the Flesh",
     "base_type": "Crimson Jewel",
-    "art": "dissolution_of_the_flesh.png"
+    "art": "dissolution_of_the_flesh.webp"
   },
   {
     "name": "Divine Inferno",
     "base_type": "Crimson Jewel",
-    "art": "divine_inferno.png"
+    "art": "divine_inferno.webp"
   },
   {
     "name": "Efficient Training",
     "base_type": "Crimson Jewel",
-    "art": "efficient_training.png"
+    "art": "efficient_training.webp"
   },
   {
     "name": "Emperor's Might",
     "base_type": "Crimson Jewel",
-    "art": "emperor_s_might.png"
+    "art": "emperor_s_might.webp"
   },
   {
     "name": "Energised Armour",
     "base_type": "Crimson Jewel",
-    "art": "energised_armour.png"
+    "art": "energised_armour.webp"
   },
   {
     "name": "Fireborn",
     "base_type": "Crimson Jewel",
-    "art": "fireborn.png"
+    "art": "fireborn.webp"
   },
   {
     "name": "Firesong",
     "base_type": "Crimson Jewel",
-    "art": "firesong.png"
+    "art": "firesong.webp"
   },
   {
     "name": "Forbidden Flame",
     "base_type": "Crimson Jewel",
-    "art": "forbidden_flame.png"
+    "art": "forbidden_flame.webp"
   },
   {
     "name": "Fragile Bloom",
     "base_type": "Crimson Jewel",
-    "art": "fragile_bloom.png"
+    "art": "fragile_bloom.webp"
   },
   {
     "name": "Fragility",
     "base_type": "Crimson Jewel",
-    "art": "fragility.png"
+    "art": "fragility.webp"
   },
   {
     "name": "Grand Spectrum",
     "base_type": "Crimson Jewel",
-    "art": "grand_spectrum.png"
+    "art": "grand_spectrum.webp"
   },
   {
     "name": "Immutable Force",
     "base_type": "Crimson Jewel",
-    "art": "immutable_force.png"
+    "art": "immutable_force.webp"
   },
   {
     "name": "Inertia",
     "base_type": "Crimson Jewel",
-    "art": "inertia.png"
+    "art": "inertia.webp"
   },
   {
     "name": "Inspired Learning",
     "base_type": "Crimson Jewel",
-    "art": "inspired_learning.png"
+    "art": "inspired_learning.webp"
   },
   {
     "name": "Izaro's Turmoil",
     "base_type": "Crimson Jewel",
-    "art": "izaro_s_turmoil.png"
+    "art": "izaro_s_turmoil.webp"
   },
   {
     "name": "Mantra of Flames",
     "base_type": "Crimson Jewel",
-    "art": "mantra_of_flames.png"
+    "art": "mantra_of_flames.webp"
   },
   {
     "name": "Martial Artistry",
     "base_type": "Crimson Jewel",
-    "art": "martial_artistry.png"
+    "art": "martial_artistry.webp"
   },
   {
     "name": "Might in All Forms",
     "base_type": "Crimson Jewel",
-    "art": "might_in_all_forms.png"
+    "art": "might_in_all_forms.webp"
   },
   {
     "name": "Might of the Meek",
     "base_type": "Crimson Jewel",
-    "art": "might_of_the_meek.png"
+    "art": "might_of_the_meek.webp"
   },
   {
     "name": "Overwhelming Odds",
     "base_type": "Crimson Jewel",
-    "art": "overwhelming_odds.png"
+    "art": "overwhelming_odds.webp"
   },
   {
     "name": "Primordial Might",
     "base_type": "Crimson Jewel",
-    "art": "primordial_might.png"
+    "art": "primordial_might.webp"
   },
   {
     "name": "Rain of Splinters",
     "base_type": "Crimson Jewel",
-    "art": "rain_of_splinters.png"
+    "art": "rain_of_splinters.webp"
   },
   {
     "name": "Rapid Expansion",
     "base_type": "Crimson Jewel",
-    "art": "rapid_expansion.png"
+    "art": "rapid_expansion.webp"
   },
   {
     "name": "Replica Blood Sacrifice",
     "base_type": "Crimson Jewel",
-    "art": "replica_blood_sacrifice.png"
+    "art": "replica_blood_sacrifice.webp"
   },
   {
     "name": "Replica Conqueror's Efficiency",
     "base_type": "Crimson Jewel",
-    "art": "replica_conqueror_s_efficiency.png"
+    "art": "replica_conqueror_s_efficiency.webp"
   },
   {
     "name": "Replica Fragile Bloom",
     "base_type": "Crimson Jewel",
-    "art": "replica_fragile_bloom.png"
+    "art": "replica_fragile_bloom.webp"
   },
   {
     "name": "Replica Fragility",
     "base_type": "Crimson Jewel",
-    "art": "replica_fragility.png"
+    "art": "replica_fragility.webp"
   },
   {
     "name": "Replica Primordial Might",
     "base_type": "Crimson Jewel",
-    "art": "replica_primordial_might.png"
+    "art": "replica_primordial_might.webp"
   },
   {
     "name": "Shattered Chains",
     "base_type": "Crimson Jewel",
-    "art": "shattered_chains.png"
+    "art": "shattered_chains.webp"
   },
   {
     "name": "Spire of Stone",
     "base_type": "Crimson Jewel",
-    "art": "spire_of_stone.png"
+    "art": "spire_of_stone.webp"
   },
   {
     "name": "Split Personality",
     "base_type": "Crimson Jewel",
-    "art": "split_personality.png"
+    "art": "split_personality.webp"
   },
   {
     "name": "Survival Skills",
     "base_type": "Crimson Jewel",
-    "art": "survival_skills.png"
+    "art": "survival_skills.webp"
   },
   {
     "name": "Tempered Flesh",
     "base_type": "Crimson Jewel",
-    "art": "tempered_flesh.png"
+    "art": "tempered_flesh.webp"
   },
   {
     "name": "That Which Was Taken",
     "base_type": "Crimson Jewel",
-    "art": "that_which_was_taken.png"
+    "art": "that_which_was_taken.webp"
   },
   {
     "name": "The Adorned",
     "base_type": "Crimson Jewel",
-    "art": "the_adorned.png"
+    "art": "the_adorned.webp"
   },
   {
     "name": "The Red Dream",
     "base_type": "Crimson Jewel",
-    "art": "the_red_dream.png"
+    "art": "the_red_dream.webp"
   },
   {
     "name": "The Red Nightmare",
     "base_type": "Crimson Jewel",
-    "art": "the_red_nightmare.png"
+    "art": "the_red_nightmare.webp"
   },
   {
     "name": "The Vigil",
     "base_type": "Crimson Jewel",
-    "art": "the_vigil.png"
+    "art": "the_vigil.webp"
   },
   {
     "name": "Thread of Hope",
     "base_type": "Crimson Jewel",
-    "art": "thread_of_hope.png"
+    "art": "thread_of_hope.webp"
   },
   {
     "name": "Transcendent Flesh",
     "base_type": "Crimson Jewel",
-    "art": "transcendent_flesh.png"
+    "art": "transcendent_flesh.webp"
   },
   {
     "name": "Warlord's Reach",
     "base_type": "Crimson Jewel",
-    "art": "warlord_s_reach.png"
+    "art": "warlord_s_reach.webp"
   },
   {
     "name": "Warrior's Tale",
     "base_type": "Crimson Jewel",
-    "art": "warrior_s_tale.png"
+    "art": "warrior_s_tale.webp"
   },
   {
     "name": "Weight of the Empire",
     "base_type": "Crimson Jewel",
-    "art": "weight_of_the_empire.png"
+    "art": "weight_of_the_empire.webp"
   },
   {
     "name": "Wildfire",
     "base_type": "Crimson Jewel",
-    "art": "wildfire.png"
+    "art": "wildfire.webp"
   },
   {
     "name": "Winter Burial",
     "base_type": "Crimson Jewel",
-    "art": "winter_burial.png"
+    "art": "winter_burial.webp"
   },
   {
     "name": "Shattershard",
     "base_type": "Crimson Round Shield",
-    "art": "shattershard.png"
+    "art": "shattershard.webp"
   },
   {
     "name": "Relic of the Cycle",
@@ -1632,257 +1632,257 @@
   {
     "name": "Silverbough",
     "base_type": "Crude Bow",
-    "art": "silverbough.png"
+    "art": "silverbough.webp"
   },
   {
     "name": "Silverbranch",
     "base_type": "Crude Bow",
-    "art": "silverbranch.png"
+    "art": "silverbranch.webp"
   },
   {
     "name": "Widowhail",
     "base_type": "Crude Bow",
-    "art": "widowhail.png"
+    "art": "widowhail.webp"
   },
   {
     "name": "Death's Door",
     "base_type": "Crusader Boots",
-    "art": "death_s_door.png"
+    "art": "death_s_door.webp"
   },
   {
     "name": "Ambu's Charge",
     "base_type": "Crusader Chainmail",
-    "art": "ambu_s_charge.png"
+    "art": "ambu_s_charge.webp"
   },
   {
     "name": "Replica Ambu's Charge",
     "base_type": "Crusader Chainmail",
-    "art": "replica_ambu_s_charge.png"
+    "art": "replica_ambu_s_charge.webp"
   },
   {
     "name": "Hands of the High Templar",
     "base_type": "Crusader Gloves",
-    "art": "hands_of_the_high_templar.png"
+    "art": "hands_of_the_high_templar.webp"
   },
   {
     "name": "Repentance",
     "base_type": "Crusader Gloves",
-    "art": "repentance.png"
+    "art": "repentance.webp"
   },
   {
     "name": "Shaper's Touch",
     "base_type": "Crusader Gloves",
-    "art": "shaper_s_touch.png"
+    "art": "shaper_s_touch.webp"
   },
   {
     "name": "Lioneye's Vision",
     "base_type": "Crusader Plate",
-    "art": "lioneye_s_vision.png"
+    "art": "lioneye_s_vision.webp"
   },
   {
     "name": "The Iron Fortress",
     "base_type": "Crusader Plate",
-    "art": "the_iron_fortress.png"
+    "art": "the_iron_fortress.webp"
   },
   {
     "name": "The Will of Tul",
     "base_type": "Cryonic Ring",
-    "art": "the_will_of_tul.png"
+    "art": "the_will_of_tul.webp"
   },
   {
     "name": "Auxium",
     "base_type": "Crystal Belt",
-    "art": "auxium.png"
+    "art": "auxium.webp"
   },
   {
     "name": "The Burden of Truth",
     "base_type": "Crystal Belt",
-    "art": "the_burden_of_truth.png"
+    "art": "the_burden_of_truth.webp"
   },
   {
     "name": "Nycta's Lantern",
     "base_type": "Crystal Sceptre",
-    "art": "nycta_s_lantern.png"
+    "art": "nycta_s_lantern.webp"
   },
   {
     "name": "The Supreme Truth",
     "base_type": "Crystal Sceptre",
-    "art": "the_supreme_truth.png"
+    "art": "the_supreme_truth.webp"
   },
   {
     "name": "Corona Solaris",
     "base_type": "Crystal Wand",
-    "art": "corona_solaris.png"
+    "art": "corona_solaris.webp"
   },
   {
     "name": "Blackgleam",
     "base_type": "Cured Quiver",
-    "art": "blackgleam.png"
+    "art": "blackgleam.webp"
   },
   {
     "name": "Severed in Sleep",
     "base_type": "Cutlass",
-    "art": "severed_in_sleep.png"
+    "art": "severed_in_sleep.webp"
   },
   {
     "name": "United in Dream",
     "base_type": "Cutlass",
-    "art": "united_in_dream.png"
+    "art": "united_in_dream.webp"
   },
   {
     "name": "Bronn's Lithe",
     "base_type": "Cutthroat's Garb",
-    "art": "bronn_s_lithe.png"
+    "art": "bronn_s_lithe.webp"
   },
   {
     "name": "Death's Harp",
     "base_type": "Death Bow",
-    "art": "death_s_harp.png"
+    "art": "death_s_harp.webp"
   },
   {
     "name": "Death's Opus",
     "base_type": "Death Bow",
-    "art": "death_s_opus.png"
+    "art": "death_s_opus.webp"
   },
   {
     "name": "Iron Commander",
     "base_type": "Death Bow",
-    "art": "iron_commander.png"
+    "art": "iron_commander.webp"
   },
   {
     "name": "Replica Iron Commander",
     "base_type": "Death Bow",
-    "art": "replica_iron_commander.png"
+    "art": "replica_iron_commander.webp"
   },
   {
     "name": "Infractem",
     "base_type": "Decimation Bow",
-    "art": "infractem.png"
+    "art": "infractem.webp"
   },
   {
     "name": "Replica Infractem",
     "base_type": "Decimation Bow",
-    "art": "replica_infractem.png"
+    "art": "replica_infractem.webp"
   },
   {
     "name": "Relentless Fury",
     "base_type": "Decorative Axe",
-    "art": "relentless_fury.png"
+    "art": "relentless_fury.webp"
   },
   {
     "name": "Deerstalker",
     "base_type": "Deerskin Boots",
-    "art": "deerstalker.png"
+    "art": "deerstalker.webp"
   },
   {
     "name": "Maligaro's Virtuosity",
     "base_type": "Deerskin Gloves",
-    "art": "maligaro_s_virtuosity.png"
+    "art": "maligaro_s_virtuosity.webp"
   },
   {
     "name": "Heretic's Veil",
     "base_type": "Deicide Mask",
-    "art": "heretic_s_veil.png"
+    "art": "heretic_s_veil.webp"
   },
   {
     "name": "Festering Resentment",
     "base_type": "Demon Dagger",
-    "art": "festering_resentment.png"
+    "art": "festering_resentment.webp"
   },
   {
     "name": "Vulconus",
     "base_type": "Demon Dagger",
-    "art": "vulconus.png"
+    "art": "vulconus.webp"
   },
   {
     "name": "Lightning Coil",
     "base_type": "Desert Brigandine",
-    "art": "lightning_coil.png"
+    "art": "lightning_coil.webp"
   },
   {
     "name": "Debeon's Dirge",
     "base_type": "Despot Axe",
-    "art": "debeon_s_dirge.png"
+    "art": "debeon_s_dirge.webp"
   },
   {
     "name": "Kingmaker",
     "base_type": "Despot Axe",
-    "art": "kingmaker.png"
+    "art": "kingmaker.webp"
   },
   {
     "name": "Queen of the Forest",
     "base_type": "Destiny Leather",
-    "art": "queen_of_the_forest.png"
+    "art": "queen_of_the_forest.webp"
   },
   {
     "name": "The Coming Calamity",
     "base_type": "Destroyer Regalia",
-    "art": "the_coming_calamity.png"
+    "art": "the_coming_calamity.webp"
   },
   {
     "name": "The Fourth Vow",
     "base_type": "Devout Chainmail",
-    "art": "the_fourth_vow.png"
+    "art": "the_fourth_vow.webp"
   },
   {
     "name": "Coralito's Signature",
     "base_type": "Diamond Flask",
-    "art": "coralito_s_signature.png"
+    "art": "coralito_s_signature.webp"
   },
   {
     "name": "Gifts from Above",
     "base_type": "Diamond Ring",
-    "art": "gifts_from_above.png"
+    "art": "gifts_from_above.webp"
   },
   {
     "name": "Grattus Signet",
     "base_type": "Diamond Ring",
-    "art": "grattus_signet.png"
+    "art": "grattus_signet.webp"
   },
   {
     "name": "Replica Gifts from Above",
     "base_type": "Diamond Ring",
-    "art": "replica_gifts_from_above.png"
+    "art": "replica_gifts_from_above.webp"
   },
   {
     "name": "Romira's Banquet",
     "base_type": "Diamond Ring",
-    "art": "romira_s_banquet.png"
+    "art": "romira_s_banquet.webp"
   },
   {
     "name": "Annihilation's Approach",
     "base_type": "Dragonscale Boots",
-    "art": "annihilation_s_approach.png"
+    "art": "annihilation_s_approach.webp"
   },
   {
     "name": "Darkray Vectors",
     "base_type": "Dragonscale Boots",
-    "art": "darkray_vectors.png"
+    "art": "darkray_vectors.webp"
   },
   {
     "name": "Surgebinders",
     "base_type": "Dragonscale Gauntlets",
-    "art": "surgebinders.png"
+    "art": "surgebinders.webp"
   },
   {
     "name": "Worldcarver",
     "base_type": "Dragonscale Gauntlets",
-    "art": "worldcarver.png"
+    "art": "worldcarver.webp"
   },
   {
     "name": "Voidhome",
     "base_type": "Dread Maul",
-    "art": "voidhome.png"
+    "art": "voidhome.webp"
   },
   {
     "name": "Flesh-Eater",
     "base_type": "Dream Mace",
-    "art": "flesh_eater.png"
+    "art": "flesh_eater.webp"
   },
   {
     "name": "The Monastery Bell",
     "base_type": "Dream Mace",
-    "art": "the_monastery_bell.png"
+    "art": "the_monastery_bell.webp"
   },
   {
     "name": "Ashes of the Sun",
@@ -1892,7 +1892,7 @@
   {
     "name": "Lifesprig",
     "base_type": "Driftwood Wand",
-    "art": "lifesprig.png"
+    "art": "lifesprig.webp"
   },
   {
     "name": "Splinter of the Moon",
@@ -1902,137 +1902,137 @@
   {
     "name": "Ephemeral Edge",
     "base_type": "Dusk Blade",
-    "art": "ephemeral_edge.png"
+    "art": "ephemeral_edge.webp"
   },
   {
     "name": "Chernobog's Pillar",
     "base_type": "Ebony Tower Shield",
-    "art": "chernobog_s_pillar.png"
+    "art": "chernobog_s_pillar.webp"
   },
   {
     "name": "Replica Tukohama's Fortress",
     "base_type": "Ebony Tower Shield",
-    "art": "replica_tukohama_s_fortress.png"
+    "art": "replica_tukohama_s_fortress.webp"
   },
   {
     "name": "Tukohama's Fortress",
     "base_type": "Ebony Tower Shield",
-    "art": "tukohama_s_fortress.png"
+    "art": "tukohama_s_fortress.webp"
   },
   {
     "name": "Orbala's Stand",
     "base_type": "Eelskin Boots",
-    "art": "orbala_s_stand.png"
+    "art": "orbala_s_stand.webp"
   },
   {
     "name": "Great Old One's Tentacles",
     "base_type": "Eelskin Gloves",
-    "art": "great_old_one_s_tentacles.png"
+    "art": "great_old_one_s_tentacles.webp"
   },
   {
     "name": "Innsbury Edge",
     "base_type": "Elder Sword",
-    "art": "innsbury_edge.png"
+    "art": "innsbury_edge.webp"
   },
   {
     "name": "Replica Innsbury Edge",
     "base_type": "Elder Sword",
-    "art": "replica_innsbury_edge.png"
+    "art": "replica_innsbury_edge.webp"
   },
   {
     "name": "Chitus' Needle",
     "base_type": "Elegant Foil",
-    "art": "chitus__needle.png"
+    "art": "chitus__needle.webp"
   },
   {
     "name": "Geofri's Sanctuary",
     "base_type": "Elegant Ringmail",
-    "art": "geofri_s_sanctuary.png"
+    "art": "geofri_s_sanctuary.webp"
   },
   {
     "name": "Loreweave",
     "base_type": "Elegant Ringmail",
-    "art": "loreweave.png"
+    "art": "loreweave.webp"
   },
   {
     "name": "Replica Loreweave",
     "base_type": "Elegant Ringmail",
-    "art": "replica_loreweave.png"
+    "art": "replica_loreweave.webp"
   },
   {
     "name": "The Oppressor",
     "base_type": "Elegant Round Shield",
-    "art": "the_oppressor.png"
+    "art": "the_oppressor.webp"
   },
   {
     "name": "The Squire",
     "base_type": "Elegant Round Shield",
-    "art": "the_squire.png"
+    "art": "the_squire.webp"
   },
   {
     "name": "Lakishu's Blade",
     "base_type": "Elegant Sword",
-    "art": "lakishu_s_blade.png"
+    "art": "lakishu_s_blade.webp"
   },
   {
     "name": "The Goddess Scorned",
     "base_type": "Elegant Sword",
-    "art": "the_goddess_scorned.png"
+    "art": "the_goddess_scorned.webp"
   },
   {
     "name": "Vixen's Entrapment",
     "base_type": "Embroidered Gloves",
-    "art": "vixen_s_entrapment.png"
+    "art": "vixen_s_entrapment.webp"
   },
   {
     "name": "Mutewind Pennant",
     "base_type": "Enameled Buckler",
-    "art": "mutewind_pennant.png"
+    "art": "mutewind_pennant.webp"
   },
   {
     "name": "Rakiata's Dance",
     "base_type": "Engraved Greatsword",
-    "art": "rakiata_s_dance.png"
+    "art": "rakiata_s_dance.webp"
   },
   {
     "name": "The Will of Xoph",
     "base_type": "Enthalpic Ring",
-    "art": "the_will_of_xoph.png"
+    "art": "the_will_of_xoph.webp"
   },
   {
     "name": "Daresso's Passion",
     "base_type": "Estoc",
-    "art": "daresso_s_passion.png"
+    "art": "daresso_s_passion.webp"
   },
   {
     "name": "Edge of Madness",
     "base_type": "Etched Greatsword",
-    "art": "edge_of_madness.png"
+    "art": "edge_of_madness.webp"
   },
   {
     "name": "Usurper's Penance",
     "base_type": "Eternal Burgonet",
-    "art": "usurper_s_penance.png"
+    "art": "usurper_s_penance.webp"
   },
   {
     "name": "Beltimber Blade",
     "base_type": "Eternal Sword",
-    "art": "beltimber_blade.png"
+    "art": "beltimber_blade.webp"
   },
   {
     "name": "Dreamfeather",
     "base_type": "Eternal Sword",
-    "art": "dreamfeather.png"
+    "art": "dreamfeather.webp"
   },
   {
     "name": "Grelwood Shank",
     "base_type": "Eternal Sword",
-    "art": "grelwood_shank.png"
+    "art": "grelwood_shank.webp"
   },
   {
     "name": "Replica Dreamfeather",
     "base_type": "Eternal Sword",
-    "art": "replica_dreamfeather.png"
+    "art": "replica_dreamfeather.webp"
   },
   {
     "name": "The Goddess Unleashed",
@@ -2042,192 +2042,192 @@
   {
     "name": "Fleshrender",
     "base_type": "Exquisite Blade",
-    "art": "fleshrender.png"
+    "art": "fleshrender.webp"
   },
   {
     "name": "Skysunder",
     "base_type": "Exquisite Blade",
-    "art": "skysunder.png"
+    "art": "skysunder.webp"
   },
   {
     "name": "Kintsugi",
     "base_type": "Exquisite Leather",
-    "art": "kintsugi.png"
+    "art": "kintsugi.webp"
   },
   {
     "name": "Yriel's Fostering",
     "base_type": "Exquisite Leather",
-    "art": "yriel_s_fostering.png"
+    "art": "yriel_s_fostering.webp"
   },
   {
     "name": "Replica Wings of Entropy",
     "base_type": "Ezomyte Axe",
-    "art": "replica_wings_of_entropy.png"
+    "art": "replica_wings_of_entropy.webp"
   },
   {
     "name": "Sinvicta's Mettle",
     "base_type": "Ezomyte Axe",
-    "art": "sinvicta_s_mettle.png"
+    "art": "sinvicta_s_mettle.webp"
   },
   {
     "name": "Wings of Entropy",
     "base_type": "Ezomyte Axe",
-    "art": "wings_of_entropy.png"
+    "art": "wings_of_entropy.webp"
   },
   {
     "name": "Kondo's Pride",
     "base_type": "Ezomyte Blade",
-    "art": "kondo_s_pride.png"
+    "art": "kondo_s_pride.webp"
   },
   {
     "name": "The Living Blade",
     "base_type": "Ezomyte Blade",
-    "art": "the_living_blade.png"
+    "art": "the_living_blade.webp"
   },
   {
     "name": "Abyssus",
     "base_type": "Ezomyte Burgonet",
-    "art": "abyssus.png"
+    "art": "abyssus.webp"
   },
   {
     "name": "Cowl of the Thermophile",
     "base_type": "Ezomyte Burgonet",
-    "art": "cowl_of_the_thermophile.png"
+    "art": "cowl_of_the_thermophile.webp"
   },
   {
     "name": "Howlcrack",
     "base_type": "Ezomyte Burgonet",
-    "art": "howlcrack.png"
+    "art": "howlcrack.webp"
   },
   {
     "name": "Replica Abyssus",
     "base_type": "Ezomyte Burgonet",
-    "art": "replica_abyssus.png"
+    "art": "replica_abyssus.webp"
   },
   {
     "name": "Cold Iron Point",
     "base_type": "Ezomyte Dagger",
-    "art": "cold_iron_point.png"
+    "art": "cold_iron_point.webp"
   },
   {
     "name": "Replica Cold Iron Point",
     "base_type": "Ezomyte Dagger",
-    "art": "replica_cold_iron_point.png"
+    "art": "replica_cold_iron_point.webp"
   },
   {
     "name": "Perepiteia",
     "base_type": "Ezomyte Spiked Shield",
-    "art": "perepiteia.png"
+    "art": "perepiteia.webp"
   },
   {
     "name": "Cane of Unravelling",
     "base_type": "Ezomyte Staff",
-    "art": "cane_of_unravelling.png"
+    "art": "cane_of_unravelling.webp"
   },
   {
     "name": "Soulwrest",
     "base_type": "Ezomyte Staff",
-    "art": "soulwrest.png"
+    "art": "soulwrest.webp"
   },
   {
     "name": "The Fulcrum",
     "base_type": "Ezomyte Staff",
-    "art": "the_fulcrum.png"
+    "art": "the_fulcrum.webp"
   },
   {
     "name": "Cowards' Wail",
     "base_type": "Ezomyte Tower Shield",
-    "art": "cowards__wail.png"
+    "art": "cowards__wail.webp"
   },
   {
     "name": "The Anticipation",
     "base_type": "Ezomyte Tower Shield",
-    "art": "the_anticipation.png"
+    "art": "the_anticipation.webp"
   },
   {
     "name": "The Surrender",
     "base_type": "Ezomyte Tower Shield",
-    "art": "the_surrender.png"
+    "art": "the_surrender.webp"
   },
   {
     "name": "The Hallowed Monarch",
     "base_type": "Faithful Helmet",
-    "art": "the_hallowed_monarch.png"
+    "art": "the_hallowed_monarch.webp"
   },
   {
     "name": "Contract: Heart of Glory",
     "base_type": "Familial Contract",
-    "art": "contract__heart_of_glory.png"
+    "art": "contract__heart_of_glory.webp"
   },
   {
     "name": "Eclipse Solaris",
     "base_type": "Faun's Horn",
-    "art": "eclipse_solaris.png"
+    "art": "eclipse_solaris.webp"
   },
   {
     "name": "Asphyxia's Wrath",
     "base_type": "Feathered Arrow Quiver",
-    "art": "asphyxia_s_wrath.png"
+    "art": "asphyxia_s_wrath.webp"
   },
   {
     "name": "Saemus' Gift",
     "base_type": "Feathered Arrow Quiver",
-    "art": "saemus__gift.png"
+    "art": "saemus__gift.webp"
   },
   {
     "name": "El'Abin's Visage",
     "base_type": "Fencer Helm",
-    "art": "el_abin_s_visage.png"
+    "art": "el_abin_s_visage.webp"
   },
   {
     "name": "Leer Cast",
     "base_type": "Festival Mask",
-    "art": "leer_cast.png"
+    "art": "leer_cast.webp"
   },
   {
     "name": "Replica Leer Cast",
     "base_type": "Festival Mask",
-    "art": "replica_leer_cast.png"
+    "art": "replica_leer_cast.webp"
   },
   {
     "name": "Arakaali's Fang",
     "base_type": "Fiend Dagger",
-    "art": "arakaali_s_fang.png"
+    "art": "arakaali_s_fang.webp"
   },
   {
     "name": "The Consuming Dark",
     "base_type": "Fiend Dagger",
-    "art": "the_consuming_dark.png"
+    "art": "the_consuming_dark.webp"
   },
   {
     "name": "Black Zenith",
     "base_type": "Fingerless Silk Gloves",
-    "art": "black_zenith.png"
+    "art": "black_zenith.webp"
   },
   {
     "name": "Reefbane",
     "base_type": "Fishing Rod",
-    "art": "reefbane.png"
+    "art": "reefbane.webp"
   },
   {
     "name": "Song of the Sirens",
     "base_type": "Fishing Rod",
-    "art": "song_of_the_sirens.png"
+    "art": "song_of_the_sirens.webp"
   },
   {
     "name": "Mightflay",
     "base_type": "Flaying Knife",
-    "art": "mightflay.png"
+    "art": "mightflay.webp"
   },
   {
     "name": "Crest of Desire",
     "base_type": "Fluted Bascinet",
-    "art": "crest_of_desire.png"
+    "art": "crest_of_desire.webp"
   },
   {
     "name": "Lost Unity",
     "base_type": "Formless Ring",
-    "art": "lost_unity.png"
+    "art": "lost_unity.webp"
   },
   {
     "name": "The Broken Elegy",
@@ -2237,107 +2237,107 @@
   {
     "name": "The Winds of Fate",
     "base_type": "Foul Staff",
-    "art": "the_winds_of_fate.png"
+    "art": "the_winds_of_fate.webp"
   },
   {
     "name": "Mortem Morsu",
     "base_type": "Fright Claw",
-    "art": "mortem_morsu.png"
+    "art": "mortem_morsu.webp"
   },
   {
     "name": "Inextricable Fate",
     "base_type": "Fugitive Boots",
-    "art": "inextricable_fate.png"
+    "art": "inextricable_fate.webp"
   },
   {
     "name": "The Sundered Will",
     "base_type": "Fugitive Ring",
-    "art": "the_sundered_will.png"
+    "art": "the_sundered_will.webp"
   },
   {
     "name": "Daresso's Defiance",
     "base_type": "Full Dragonscale",
-    "art": "daresso_s_defiance.png"
+    "art": "daresso_s_defiance.webp"
   },
   {
     "name": "Viper's Scales",
     "base_type": "Full Scale Armour",
-    "art": "viper_s_scales.png"
+    "art": "viper_s_scales.webp"
   },
   {
     "name": "Belly of the Beast",
     "base_type": "Full Wyrmscale",
-    "art": "belly_of_the_beast.png"
+    "art": "belly_of_the_beast.webp"
   },
   {
     "name": "Cameria's Avarice",
     "base_type": "Gavel",
-    "art": "cameria_s_avarice.png"
+    "art": "cameria_s_avarice.webp"
   },
   {
     "name": "Cameria's Maul",
     "base_type": "Gavel",
-    "art": "cameria_s_maul.png"
+    "art": "cameria_s_maul.webp"
   },
   {
     "name": "Mjölner",
     "base_type": "Gavel",
-    "art": "mjölner.png"
+    "art": "mjölner.webp"
   },
   {
     "name": "Fate of the Vaal",
     "base_type": "Gemstone Sword",
-    "art": "fate_of_the_vaal.png"
+    "art": "fate_of_the_vaal.webp"
   },
   {
     "name": "Story of the Vaal",
     "base_type": "Gemstone Sword",
-    "art": "story_of_the_vaal.png"
+    "art": "story_of_the_vaal.webp"
   },
   {
     "name": "Rigwald's Hunt",
     "base_type": "General's Brigandine",
-    "art": "rigwald_s_hunt.png"
+    "art": "rigwald_s_hunt.webp"
   },
   {
     "name": "Amanamu's Gaze",
     "base_type": "Ghastly Eye Jewel",
-    "art": "amanamu_s_gaze.png"
+    "art": "amanamu_s_gaze.webp"
   },
   {
     "name": "Deidbell",
     "base_type": "Gilded Sallet",
-    "art": "deidbell.png"
+    "art": "deidbell.webp"
   },
   {
     "name": "Deidbellow",
     "base_type": "Gilded Sallet",
-    "art": "deidbellow.png"
+    "art": "deidbellow.webp"
   },
   {
     "name": "Svalinn",
     "base_type": "Girded Tower Shield",
-    "art": "svalinn.png"
+    "art": "svalinn.webp"
   },
   {
     "name": "The Brass Dome",
     "base_type": "Gladiator Plate",
-    "art": "the_brass_dome.png"
+    "art": "the_brass_dome.webp"
   },
   {
     "name": "Scaeva",
     "base_type": "Gladius",
-    "art": "scaeva.png"
+    "art": "scaeva.webp"
   },
   {
     "name": "The Iron Mass",
     "base_type": "Gladius",
-    "art": "the_iron_mass.png"
+    "art": "the_iron_mass.webp"
   },
   {
     "name": "The Redblade",
     "base_type": "Gladius",
-    "art": "the_redblade.png"
+    "art": "the_redblade.webp"
   },
   {
     "name": "Fragment of Eternity",
@@ -2347,42 +2347,42 @@
   {
     "name": "Kaom's Heart",
     "base_type": "Glorious Plate",
-    "art": "kaom_s_heart.png"
+    "art": "kaom_s_heart.webp"
   },
   {
     "name": "Perfidy",
     "base_type": "Glorious Plate",
-    "art": "perfidy.png"
+    "art": "perfidy.webp"
   },
   {
     "name": "Replica Kaom's Heart",
     "base_type": "Glorious Plate",
-    "art": "replica_kaom_s_heart.png"
+    "art": "replica_kaom_s_heart.webp"
   },
   {
     "name": "Fencoil",
     "base_type": "Gnarled Branch",
-    "art": "fencoil.png"
+    "art": "fencoil.webp"
   },
   {
     "name": "Mirebough",
     "base_type": "Gnarled Branch",
-    "art": "mirebough.png"
+    "art": "mirebough.webp"
   },
   {
     "name": "Replica Blood Thorn",
     "base_type": "Gnarled Branch",
-    "art": "replica_blood_thorn.png"
+    "art": "replica_blood_thorn.webp"
   },
   {
     "name": "Replica Fencoil",
     "base_type": "Gnarled Branch",
-    "art": "replica_fencoil.png"
+    "art": "replica_fencoil.webp"
   },
   {
     "name": "The Blood Thorn",
     "base_type": "Gnarled Branch",
-    "art": "the_blood_thorn.png"
+    "art": "the_blood_thorn.webp"
   },
   {
     "name": "Vestige of Divinity",
@@ -2392,17 +2392,17 @@
   {
     "name": "Abberath's Horn",
     "base_type": "Goat's Horn",
-    "art": "abberath_s_horn.png"
+    "art": "abberath_s_horn.webp"
   },
   {
     "name": "Ashcaller",
     "base_type": "Goat's Horn",
-    "art": "ashcaller.png"
+    "art": "ashcaller.webp"
   },
   {
     "name": "Abberath's Hooves",
     "base_type": "Goathide Boots",
-    "art": "abberath_s_hooves.png"
+    "art": "abberath_s_hooves.webp"
   },
   {
     "name": "Victario's Flight",
@@ -2417,92 +2417,92 @@
   {
     "name": "Hrimburn",
     "base_type": "Goathide Gloves",
-    "art": "hrimburn.png"
+    "art": "hrimburn.webp"
   },
   {
     "name": "Hrimsorrow",
     "base_type": "Goathide Gloves",
-    "art": "hrimsorrow.png"
+    "art": "hrimsorrow.webp"
   },
   {
     "name": "Bisco's Collar",
     "base_type": "Gold Amulet",
-    "art": "bisco_s_collar.png"
+    "art": "bisco_s_collar.webp"
   },
   {
     "name": "Demigod's Presence",
     "base_type": "Gold Amulet",
-    "art": "demigod_s_presence.png"
+    "art": "demigod_s_presence.webp"
   },
   {
     "name": "Perquil's Toe",
     "base_type": "Gold Amulet",
-    "art": "perquil_s_toe.png"
+    "art": "perquil_s_toe.webp"
   },
   {
     "name": "Replica Winterheart",
     "base_type": "Gold Amulet",
-    "art": "replica_winterheart.png"
+    "art": "replica_winterheart.webp"
   },
   {
     "name": "The Ascetic",
     "base_type": "Gold Amulet",
-    "art": "the_ascetic.png"
+    "art": "the_ascetic.webp"
   },
   {
     "name": "The Effigon",
     "base_type": "Gold Amulet",
-    "art": "the_effigon.png"
+    "art": "the_effigon.webp"
   },
   {
     "name": "The Ignomon",
     "base_type": "Gold Amulet",
-    "art": "the_ignomon.png"
+    "art": "the_ignomon.webp"
   },
   {
     "name": "The Untouched Soul",
     "base_type": "Gold Amulet",
-    "art": "the_untouched_soul.png"
+    "art": "the_untouched_soul.webp"
   },
   {
     "name": "The Utmost",
     "base_type": "Gold Amulet",
-    "art": "the_utmost.png"
+    "art": "the_utmost.webp"
   },
   {
     "name": "Winterheart",
     "base_type": "Gold Amulet",
-    "art": "winterheart.png"
+    "art": "winterheart.webp"
   },
   {
     "name": "Wine of the Prophet",
     "base_type": "Gold Flask",
-    "art": "wine_of_the_prophet.png"
+    "art": "wine_of_the_prophet.webp"
   },
   {
     "name": "Andvarius",
     "base_type": "Gold Ring",
-    "art": "andvarius.png"
+    "art": "andvarius.webp"
   },
   {
     "name": "Ixchel's Temptation",
     "base_type": "Gold Ring",
-    "art": "ixchel_s_temptation.png"
+    "art": "ixchel_s_temptation.webp"
   },
   {
     "name": "The Bandit Lord's Band",
     "base_type": "Gold Ring",
-    "art": "the_bandit_lord_s_band.png"
+    "art": "the_bandit_lord_s_band.webp"
   },
   {
     "name": "The Highwayman",
     "base_type": "Gold Ring",
-    "art": "the_highwayman.png"
+    "art": "the_highwayman.webp"
   },
   {
     "name": "Ventor's Gamble",
     "base_type": "Gold Ring",
-    "art": "ventor_s_gamble.png"
+    "art": "ventor_s_gamble.webp"
   },
   {
     "name": "Demigod's Authority",
@@ -2512,62 +2512,62 @@
   {
     "name": "Demigod's Touch",
     "base_type": "Golden Bracers",
-    "art": "demigod_s_touch.png"
+    "art": "demigod_s_touch.webp"
   },
   {
     "name": "Atziri's Mirror",
     "base_type": "Golden Buckler",
-    "art": "atziri_s_mirror.png"
+    "art": "atziri_s_mirror.webp"
   },
   {
     "name": "Atziri's Reflection",
     "base_type": "Golden Buckler",
-    "art": "atziri_s_reflection.png"
+    "art": "atziri_s_reflection.webp"
   },
   {
     "name": "Demigod's Stride",
     "base_type": "Golden Caligae",
-    "art": "demigod_s_stride.png"
+    "art": "demigod_s_stride.webp"
   },
   {
     "name": "Demigod's Beacon",
     "base_type": "Golden Flame",
-    "art": "demigod_s_beacon.png"
+    "art": "demigod_s_beacon.webp"
   },
   {
     "name": "Demigod's Eye",
     "base_type": "Golden Hoop",
-    "art": "demigod_s_eye.png"
+    "art": "demigod_s_eye.webp"
   },
   {
     "name": "Demigod's Dominance",
     "base_type": "Golden Mantle",
-    "art": "demigod_s_dominance.png"
+    "art": "demigod_s_dominance.webp"
   },
   {
     "name": "The Three Dragons",
     "base_type": "Golden Mask",
-    "art": "the_three_dragons.png"
+    "art": "the_three_dragons.webp"
   },
   {
     "name": "Willclash",
     "base_type": "Golden Mask",
-    "art": "willclash.png"
+    "art": "willclash.webp"
   },
   {
     "name": "Demigod's Bounty",
     "base_type": "Golden Obi",
-    "art": "demigod_s_bounty.png"
+    "art": "demigod_s_bounty.webp"
   },
   {
     "name": "Craiceann's Carapace",
     "base_type": "Golden Plate",
-    "art": "craiceann_s_carapace.png"
+    "art": "craiceann_s_carapace.webp"
   },
   {
     "name": "Greed's Embrace",
     "base_type": "Golden Plate",
-    "art": "greed_s_embrace.png"
+    "art": "greed_s_embrace.webp"
   },
   {
     "name": "Demigod's Immortality",
@@ -2577,267 +2577,267 @@
   {
     "name": "Demigod's Triumph",
     "base_type": "Golden Wreath",
-    "art": "demigod_s_triumph.png"
+    "art": "demigod_s_triumph.webp"
   },
   {
     "name": "Empire's Grasp",
     "base_type": "Goliath Gauntlets",
-    "art": "empire_s_grasp.png"
+    "art": "empire_s_grasp.webp"
   },
   {
     "name": "The Celestial Brace",
     "base_type": "Goliath Gauntlets",
-    "art": "the_celestial_brace.png"
+    "art": "the_celestial_brace.webp"
   },
   {
     "name": "Craiceann's Tracks",
     "base_type": "Goliath Greaves",
-    "art": "craiceann_s_tracks.png"
+    "art": "craiceann_s_tracks.webp"
   },
   {
     "name": "The Tempest Rising",
     "base_type": "Goliath Greaves",
-    "art": "the_tempest_rising.png"
+    "art": "the_tempest_rising.webp"
   },
   {
     "name": "Nametaker",
     "base_type": "Graceful Sword",
-    "art": "nametaker.png"
+    "art": "nametaker.webp"
   },
   {
     "name": "Zerphi's Last Breath",
     "base_type": "Grand Mana Flask",
-    "art": "zerphi_s_last_breath.png"
+    "art": "zerphi_s_last_breath.webp"
   },
   {
     "name": "Lion's Roar",
     "base_type": "Granite Flask",
-    "art": "lion_s_roar.png"
+    "art": "lion_s_roar.webp"
   },
   {
     "name": "Replica Rumi's Concoction",
     "base_type": "Granite Flask",
-    "art": "replica_rumi_s_concoction.png"
+    "art": "replica_rumi_s_concoction.webp"
   },
   {
     "name": "Rumi's Concoction",
     "base_type": "Granite Flask",
-    "art": "rumi_s_concoction.png"
+    "art": "rumi_s_concoction.webp"
   },
   {
     "name": "Forbidden Shako",
     "base_type": "Great Crown",
-    "art": "forbidden_shako.png"
+    "art": "forbidden_shako.webp"
   },
   {
     "name": "Geofri's Crest",
     "base_type": "Great Crown",
-    "art": "geofri_s_crest.png"
+    "art": "geofri_s_crest.webp"
   },
   {
     "name": "Geofri's Legacy",
     "base_type": "Great Crown",
-    "art": "geofri_s_legacy.png"
+    "art": "geofri_s_legacy.webp"
   },
   {
     "name": "Lightpoacher",
     "base_type": "Great Crown",
-    "art": "lightpoacher.png"
+    "art": "lightpoacher.webp"
   },
   {
     "name": "Replica Forbidden Shako",
     "base_type": "Great Crown",
-    "art": "replica_forbidden_shako.png"
+    "art": "replica_forbidden_shako.webp"
   },
   {
     "name": "Replica Veil of the Night",
     "base_type": "Great Helmet",
-    "art": "replica_veil_of_the_night.png"
+    "art": "replica_veil_of_the_night.webp"
   },
   {
     "name": "Veil of the Night",
     "base_type": "Great Helmet",
-    "art": "veil_of_the_night.png"
+    "art": "veil_of_the_night.webp"
   },
   {
     "name": "Chaber Cairn",
     "base_type": "Great Mallet",
-    "art": "chaber_cairn.png"
+    "art": "chaber_cairn.webp"
   },
   {
     "name": "Chober Chaber",
     "base_type": "Great Mallet",
-    "art": "chober_chaber.png"
+    "art": "chober_chaber.webp"
   },
   {
     "name": "Replica Trypanon",
     "base_type": "Great Mallet",
-    "art": "replica_trypanon.png"
+    "art": "replica_trypanon.webp"
   },
   {
     "name": "Trypanon",
     "base_type": "Great Mallet",
-    "art": "trypanon.png"
+    "art": "trypanon.webp"
   },
   {
     "name": "Doedre's Elixir",
     "base_type": "Greater Mana Flask",
-    "art": "doedre_s_elixir.png"
+    "art": "doedre_s_elixir.webp"
   },
   {
     "name": "Eyes of the Greatwolf",
     "base_type": "Greatwolf Talisman",
-    "art": "eyes_of_the_greatwolf.png"
+    "art": "eyes_of_the_greatwolf.webp"
   },
   {
     "name": "Earendel's Embrace",
     "base_type": "Grinning Fetish",
-    "art": "earendel_s_embrace.png"
+    "art": "earendel_s_embrace.webp"
   },
   {
     "name": "Replica Earendel's Embrace",
     "base_type": "Grinning Fetish",
-    "art": "replica_earendel_s_embrace.png"
+    "art": "replica_earendel_s_embrace.webp"
   },
   {
     "name": "Advancing Fortress",
     "base_type": "Gut Ripper",
-    "art": "advancing_fortress.png"
+    "art": "advancing_fortress.webp"
   },
   {
     "name": "Ornament of the East",
     "base_type": "Gut Ripper",
-    "art": "ornament_of_the_east.png"
+    "art": "ornament_of_the_east.webp"
   },
   {
     "name": "Replica Advancing Fortress",
     "base_type": "Gut Ripper",
-    "art": "replica_advancing_fortress.png"
+    "art": "replica_advancing_fortress.webp"
   },
   {
     "name": "The Writhing Jar",
     "base_type": "Hallowed Hybrid Flask",
-    "art": "the_writhing_jar.png"
+    "art": "the_writhing_jar.webp"
   },
   {
     "name": "Nuro's Harp",
     "base_type": "Harbinger Bow",
-    "art": "nuro_s_harp.png"
+    "art": "nuro_s_harp.webp"
   },
   {
     "name": "Slivertongue",
     "base_type": "Harbinger Bow",
-    "art": "slivertongue.png"
+    "art": "slivertongue.webp"
   },
   {
     "name": "Farrul's Bite",
     "base_type": "Harlequin Mask",
-    "art": "farrul_s_bite.png"
+    "art": "farrul_s_bite.webp"
   },
   {
     "name": "Mind of the Council",
     "base_type": "Harlequin Mask",
-    "art": "mind_of_the_council.png"
+    "art": "mind_of_the_council.webp"
   },
   {
     "name": "Malachai's Loop",
     "base_type": "Harmonic Spirit Shield",
-    "art": "malachai_s_loop.png"
+    "art": "malachai_s_loop.webp"
   },
   {
     "name": "The Blood Reaper",
     "base_type": "Headsman Axe",
-    "art": "the_blood_reaper.png"
+    "art": "the_blood_reaper.webp"
   },
   {
     "name": "Scorpion's Call",
     "base_type": "Heavy Arrow Quiver",
-    "art": "scorpion_s_call.png"
+    "art": "scorpion_s_call.webp"
   },
   {
     "name": "Belt of the Deceiver",
     "base_type": "Heavy Belt",
-    "art": "belt_of_the_deceiver.png"
+    "art": "belt_of_the_deceiver.webp"
   },
   {
     "name": "Bisco's Leash",
     "base_type": "Heavy Belt",
-    "art": "bisco_s_leash.png"
+    "art": "bisco_s_leash.webp"
   },
   {
     "name": "Doryani's Invitation",
     "base_type": "Heavy Belt",
-    "art": "doryani_s_invitation.png"
+    "art": "doryani_s_invitation.webp"
   },
   {
     "name": "Dyadian Dawn",
     "base_type": "Heavy Belt",
-    "art": "dyadian_dawn.png"
+    "art": "dyadian_dawn.webp"
   },
   {
     "name": "Kaom's Binding",
     "base_type": "Heavy Belt",
-    "art": "kaom_s_binding.png"
+    "art": "kaom_s_binding.webp"
   },
   {
     "name": "Mageblood",
     "base_type": "Heavy Belt",
-    "art": "mageblood.png"
+    "art": "mageblood.webp"
   },
   {
     "name": "Meginord's Girdle",
     "base_type": "Heavy Belt",
-    "art": "meginord_s_girdle.png"
+    "art": "meginord_s_girdle.webp"
   },
   {
     "name": "Mother's Embrace",
     "base_type": "Heavy Belt",
-    "art": "mother_s_embrace.png"
+    "art": "mother_s_embrace.webp"
   },
   {
     "name": "Replica Siegebreaker",
     "base_type": "Heavy Belt",
-    "art": "replica_siegebreaker.png"
+    "art": "replica_siegebreaker.webp"
   },
   {
     "name": "Siegebreaker",
     "base_type": "Heavy Belt",
-    "art": "siegebreaker.png"
+    "art": "siegebreaker.webp"
   },
   {
     "name": "String of Servitude",
     "base_type": "Heavy Belt",
-    "art": "string_of_servitude.png"
+    "art": "string_of_servitude.webp"
   },
   {
     "name": "Survivor's Guilt",
     "base_type": "Heavy Belt",
-    "art": "survivor_s_guilt.png"
+    "art": "survivor_s_guilt.webp"
   },
   {
     "name": "Broadstroke",
     "base_type": "Heavy Quiver",
-    "art": "broadstroke.png"
+    "art": "broadstroke.webp"
   },
   {
     "name": "Bloodseeker",
     "base_type": "Hellion's Paw",
-    "art": "bloodseeker.png"
+    "art": "bloodseeker.webp"
   },
   {
     "name": "Law of the Wilds",
     "base_type": "Hellion's Paw",
-    "art": "law_of_the_wilds.png"
+    "art": "law_of_the_wilds.webp"
   },
   {
     "name": "Martyr of Innocence",
     "base_type": "Highborn Staff",
-    "art": "martyr_of_innocence.png"
+    "art": "martyr_of_innocence.webp"
   },
   {
     "name": "The Geomantic Gyre",
     "base_type": "Highborn Staff",
-    "art": "the_geomantic_gyre.png"
+    "art": "the_geomantic_gyre.webp"
   },
   {
     "name": "Witchhunter's Judgment",
@@ -2852,147 +2852,147 @@
   {
     "name": "Voll's Protector",
     "base_type": "Holy Chainmail",
-    "art": "voll_s_protector.png"
+    "art": "voll_s_protector.webp"
   },
   {
     "name": "Crown of Eyes",
     "base_type": "Hubris Circlet",
-    "art": "crown_of_eyes.png"
+    "art": "crown_of_eyes.webp"
   },
   {
     "name": "Eber's Unification",
     "base_type": "Hubris Circlet",
-    "art": "eber_s_unification.png"
+    "art": "eber_s_unification.webp"
   },
   {
     "name": "Indigon",
     "base_type": "Hubris Circlet",
-    "art": "indigon.png"
+    "art": "indigon.webp"
   },
   {
     "name": "Ylfeban's Trickery",
     "base_type": "Hubris Circlet",
-    "art": "ylfeban_s_trickery.png"
+    "art": "ylfeban_s_trickery.webp"
   },
   {
     "name": "Gamblesprint",
     "base_type": "Hydrascale Boots",
-    "art": "gamblesprint.png"
+    "art": "gamblesprint.webp"
   },
   {
     "name": "Saqawal's Talons",
     "base_type": "Hydrascale Boots",
-    "art": "saqawal_s_talons.png"
+    "art": "saqawal_s_talons.webp"
   },
   {
     "name": "Breathstealer",
     "base_type": "Hydrascale Gauntlets",
-    "art": "breathstealer.png"
+    "art": "breathstealer.webp"
   },
   {
     "name": "Farrul's Pounce",
     "base_type": "Hydrascale Gauntlets",
-    "art": "farrul_s_pounce.png"
+    "art": "farrul_s_pounce.webp"
   },
   {
     "name": "Gravebind",
     "base_type": "Hydrascale Gauntlets",
-    "art": "gravebind.png"
+    "art": "gravebind.webp"
   },
   {
     "name": "Kurgal's Gaze",
     "base_type": "Hypnotic Eye Jewel",
-    "art": "kurgal_s_gaze.png"
+    "art": "kurgal_s_gaze.webp"
   },
   {
     "name": "Lioneye's Glare",
     "base_type": "Imperial Bow",
-    "art": "lioneye_s_glare.png"
+    "art": "lioneye_s_glare.webp"
   },
   {
     "name": "Replica Windripper",
     "base_type": "Imperial Bow",
-    "art": "replica_windripper.png"
+    "art": "replica_windripper.webp"
   },
   {
     "name": "Windripper",
     "base_type": "Imperial Bow",
-    "art": "windripper.png"
+    "art": "windripper.webp"
   },
   {
     "name": "Wing of the Wyvern",
     "base_type": "Imperial Bow",
-    "art": "wing_of_the_wyvern.png"
+    "art": "wing_of_the_wyvern.webp"
   },
   {
     "name": "Hand of Thought and Motion",
     "base_type": "Imperial Claw",
-    "art": "hand_of_thought_and_motion.png"
+    "art": "hand_of_thought_and_motion.webp"
   },
   {
     "name": "Hand of Wisdom and Action",
     "base_type": "Imperial Claw",
-    "art": "hand_of_wisdom_and_action.png"
+    "art": "hand_of_wisdom_and_action.webp"
   },
   {
     "name": "Izaro's Dilemma",
     "base_type": "Imperial Claw",
-    "art": "izaro_s_dilemma.png"
+    "art": "izaro_s_dilemma.webp"
   },
   {
     "name": "Touch of Anguish",
     "base_type": "Imperial Claw",
-    "art": "touch_of_anguish.png"
+    "art": "touch_of_anguish.webp"
   },
   {
     "name": "Tidebreaker",
     "base_type": "Imperial Maul",
-    "art": "tidebreaker.png"
+    "art": "tidebreaker.webp"
   },
   {
     "name": "Divinarius",
     "base_type": "Imperial Skean",
-    "art": "divinarius.png"
+    "art": "divinarius.webp"
   },
   {
     "name": "White Wind",
     "base_type": "Imperial Skean",
-    "art": "white_wind.png"
+    "art": "white_wind.webp"
   },
   {
     "name": "Agnerod East",
     "base_type": "Imperial Staff",
-    "art": "agnerod_east.png"
+    "art": "agnerod_east.webp"
   },
   {
     "name": "Agnerod North",
     "base_type": "Imperial Staff",
-    "art": "agnerod_north.png"
+    "art": "agnerod_north.webp"
   },
   {
     "name": "Agnerod South",
     "base_type": "Imperial Staff",
-    "art": "agnerod_south.png"
+    "art": "agnerod_south.webp"
   },
   {
     "name": "Agnerod West",
     "base_type": "Imperial Staff",
-    "art": "agnerod_west.png"
+    "art": "agnerod_west.webp"
   },
   {
     "name": "Jiquani's Potential",
     "base_type": "Imperial Staff",
-    "art": "jiquani_s_potential.png"
+    "art": "jiquani_s_potential.webp"
   },
   {
     "name": "The Enmity Divine",
     "base_type": "Imperial Staff",
-    "art": "the_enmity_divine.png"
+    "art": "the_enmity_divine.webp"
   },
   {
     "name": "The Yielding Mortality",
     "base_type": "Imperial Staff",
-    "art": "the_yielding_mortality.png"
+    "art": "the_yielding_mortality.webp"
   },
   {
     "name": "First Piece of Brutality",
@@ -3012,572 +3012,572 @@
   {
     "name": "Dyadus",
     "base_type": "Infernal Axe",
-    "art": "dyadus.png"
+    "art": "dyadus.webp"
   },
   {
     "name": "Echoforge",
     "base_type": "Infernal Sword",
-    "art": "echoforge.png"
+    "art": "echoforge.webp"
   },
   {
     "name": "Oro's Sacrifice",
     "base_type": "Infernal Sword",
-    "art": "oro_s_sacrifice.png"
+    "art": "oro_s_sacrifice.webp"
   },
   {
     "name": "Replica Oro's Sacrifice",
     "base_type": "Infernal Sword",
-    "art": "replica_oro_s_sacrifice.png"
+    "art": "replica_oro_s_sacrifice.webp"
   },
   {
     "name": "Starforge",
     "base_type": "Infernal Sword",
-    "art": "starforge.png"
+    "art": "starforge.webp"
   },
   {
     "name": "Voidforge",
     "base_type": "Infernal Sword",
-    "art": "voidforge.png"
+    "art": "voidforge.webp"
   },
   {
     "name": "Asenath's Chant",
     "base_type": "Iron Circlet",
-    "art": "asenath_s_chant.png"
+    "art": "asenath_s_chant.webp"
   },
   {
     "name": "Asenath's Mark",
     "base_type": "Iron Circlet",
-    "art": "asenath_s_mark.png"
+    "art": "asenath_s_mark.webp"
   },
   {
     "name": "Wreath of Phrecia",
     "base_type": "Iron Circlet",
-    "art": "wreath_of_phrecia.png"
+    "art": "wreath_of_phrecia.webp"
   },
   {
     "name": "Elixir of the Unbroken Circle",
     "base_type": "Iron Flask",
-    "art": "elixir_of_the_unbroken_circle.png"
+    "art": "elixir_of_the_unbroken_circle.webp"
   },
   {
     "name": "Olroth's Resolve",
     "base_type": "Iron Flask",
-    "art": "olroth_s_resolve.png"
+    "art": "olroth_s_resolve.webp"
   },
   {
     "name": "Starlight Chalice",
     "base_type": "Iron Flask",
-    "art": "starlight_chalice.png"
+    "art": "starlight_chalice.webp"
   },
   {
     "name": "Vorana's Preparation",
     "base_type": "Iron Flask",
-    "art": "vorana_s_preparation.png"
+    "art": "vorana_s_preparation.webp"
   },
   {
     "name": "Lochtonial Caress",
     "base_type": "Iron Gauntlets",
-    "art": "lochtonial_caress.png"
+    "art": "lochtonial_caress.webp"
   },
   {
     "name": "Ezomyte Hold",
     "base_type": "Iron Hat",
-    "art": "ezomyte_hold.png"
+    "art": "ezomyte_hold.webp"
   },
   {
     "name": "Ezomyte Peak",
     "base_type": "Iron Hat",
-    "art": "ezomyte_peak.png"
+    "art": "ezomyte_peak.webp"
   },
   {
     "name": "Malachai's Awakening",
     "base_type": "Iron Mask",
-    "art": "malachai_s_awakening.png"
+    "art": "malachai_s_awakening.webp"
   },
   {
     "name": "Malachai's Simula",
     "base_type": "Iron Mask",
-    "art": "malachai_s_simula.png"
+    "art": "malachai_s_simula.webp"
   },
   {
     "name": "Blackheart",
     "base_type": "Iron Ring",
-    "art": "blackheart.png"
+    "art": "blackheart.webp"
   },
   {
     "name": "Circle of Guilt",
     "base_type": "Iron Ring",
-    "art": "circle_of_guilt.png"
+    "art": "circle_of_guilt.webp"
   },
   {
     "name": "Icefang Orbit",
     "base_type": "Iron Ring",
-    "art": "icefang_orbit.png"
+    "art": "icefang_orbit.webp"
   },
   {
     "name": "Le Heup of All",
     "base_type": "Iron Ring",
-    "art": "le_heup_of_all.png"
+    "art": "le_heup_of_all.webp"
   },
   {
     "name": "Prospero's Protection",
     "base_type": "Iron Ring",
-    "art": "prospero_s_protection.png"
+    "art": "prospero_s_protection.webp"
   },
   {
     "name": "The Warden's Brand",
     "base_type": "Iron Ring",
-    "art": "the_warden_s_brand.png"
+    "art": "the_warden_s_brand.webp"
   },
   {
     "name": "Venopuncture",
     "base_type": "Iron Ring",
-    "art": "venopuncture.png"
+    "art": "venopuncture.webp"
   },
   {
     "name": "Voidheart",
     "base_type": "Iron Ring",
-    "art": "voidheart.png"
+    "art": "voidheart.webp"
   },
   {
     "name": "Spine of the First Claimant",
     "base_type": "Iron Sceptre",
-    "art": "spine_of_the_first_claimant.png"
+    "art": "spine_of_the_first_claimant.webp"
   },
   {
     "name": "Dying Breath",
     "base_type": "Iron Staff",
-    "art": "dying_breath.png"
+    "art": "dying_breath.webp"
   },
   {
     "name": "Pillar of the Caged God",
     "base_type": "Iron Staff",
-    "art": "pillar_of_the_caged_god.png"
+    "art": "pillar_of_the_caged_god.webp"
   },
   {
     "name": "Realm Ender",
     "base_type": "Iron Staff",
-    "art": "realm_ender.png"
+    "art": "realm_ender.webp"
   },
   {
     "name": "Realmshaper",
     "base_type": "Iron Staff",
-    "art": "realmshaper.png"
+    "art": "realmshaper.webp"
   },
   {
     "name": "Duskblight",
     "base_type": "Ironscale Boots",
-    "art": "duskblight.png"
+    "art": "duskblight.webp"
   },
   {
     "name": "Dusktoe",
     "base_type": "Ironscale Boots",
-    "art": "dusktoe.png"
+    "art": "dusktoe.webp"
   },
   {
     "name": "Flesh and Spirit",
     "base_type": "Ironscale Gauntlets",
-    "art": "flesh_and_spirit.png"
+    "art": "flesh_and_spirit.webp"
   },
   {
     "name": "Kiloava's Bluster",
     "base_type": "Ironwood Buckler",
-    "art": "kiloava_s_bluster.png"
+    "art": "kiloava_s_bluster.webp"
   },
   {
     "name": "Mightblood Ire",
     "base_type": "Ironwood Tincture",
-    "art": "mightblood_ire.png"
+    "art": "mightblood_ire.webp"
   },
   {
     "name": "Hyrri's Truth",
     "base_type": "Jade Amulet",
-    "art": "hyrri_s_truth.png"
+    "art": "hyrri_s_truth.webp"
   },
   {
     "name": "Karui Charge",
     "base_type": "Jade Amulet",
-    "art": "karui_charge.png"
+    "art": "karui_charge.webp"
   },
   {
     "name": "Karui Ward",
     "base_type": "Jade Amulet",
-    "art": "karui_ward.png"
+    "art": "karui_ward.webp"
   },
   {
     "name": "Rashkaldor's Patience",
     "base_type": "Jade Amulet",
-    "art": "rashkaldor_s_patience.png"
+    "art": "rashkaldor_s_patience.webp"
   },
   {
     "name": "Replica Hyrri's Truth",
     "base_type": "Jade Amulet",
-    "art": "replica_hyrri_s_truth.png"
+    "art": "replica_hyrri_s_truth.webp"
   },
   {
     "name": "Replica Karui Ward",
     "base_type": "Jade Amulet",
-    "art": "replica_karui_ward.png"
+    "art": "replica_karui_ward.webp"
   },
   {
     "name": "The Halcyon",
     "base_type": "Jade Amulet",
-    "art": "the_halcyon.png"
+    "art": "the_halcyon.webp"
   },
   {
     "name": "The Pandemonius",
     "base_type": "Jade Amulet",
-    "art": "the_pandemonius.png"
+    "art": "the_pandemonius.webp"
   },
   {
     "name": "Willowgift",
     "base_type": "Jade Amulet",
-    "art": "willowgift.png"
+    "art": "willowgift.webp"
   },
   {
     "name": "The Gryphon",
     "base_type": "Jade Hatchet",
-    "art": "the_gryphon.png"
+    "art": "the_gryphon.webp"
   },
   {
     "name": "The Screaming Eagle",
     "base_type": "Jade Hatchet",
-    "art": "the_screaming_eagle.png"
+    "art": "the_screaming_eagle.webp"
   },
   {
     "name": "Fidelitas' Spike",
     "base_type": "Jagged Foil",
-    "art": "fidelitas__spike.png"
+    "art": "fidelitas__spike.webp"
   },
   {
     "name": "Panquetzaliztli",
     "base_type": "Jagged Maul",
-    "art": "panquetzaliztli.png"
+    "art": "panquetzaliztli.webp"
   },
   {
     "name": "Quecholli",
     "base_type": "Jagged Maul",
-    "art": "quecholli.png"
+    "art": "quecholli.webp"
   },
   {
     "name": "Replica Harvest",
     "base_type": "Jasper Chopper",
-    "art": "replica_harvest.png"
+    "art": "replica_harvest.webp"
   },
   {
     "name": "The Harvest",
     "base_type": "Jasper Chopper",
-    "art": "the_harvest.png"
+    "art": "the_harvest.webp"
   },
   {
     "name": "Talisman of the Victor",
     "base_type": "Jet Amulet",
-    "art": "talisman_of_the_victor.png"
+    "art": "talisman_of_the_victor.webp"
   },
   {
     "name": "Cospri's Malice",
     "base_type": "Jewelled Foil",
-    "art": "cospri_s_malice.png"
+    "art": "cospri_s_malice.webp"
   },
   {
     "name": "Light of Lunaris",
     "base_type": "Jingling Spirit Shield",
-    "art": "light_of_lunaris.png"
+    "art": "light_of_lunaris.webp"
   },
   {
     "name": "Atziri's Rule",
     "base_type": "Judgement Staff",
-    "art": "atziri_s_rule.png"
+    "art": "atziri_s_rule.webp"
   },
   {
     "name": "Hegemony's Era",
     "base_type": "Judgement Staff",
-    "art": "hegemony_s_era.png"
+    "art": "hegemony_s_era.webp"
   },
   {
     "name": "Legacy of the Rose",
     "base_type": "Judgement Staff",
-    "art": "legacy_of_the_rose.png"
+    "art": "legacy_of_the_rose.webp"
   },
   {
     "name": "Pledge of Hands",
     "base_type": "Judgement Staff",
-    "art": "pledge_of_hands.png"
+    "art": "pledge_of_hands.webp"
   },
   {
     "name": "The Grey Spire",
     "base_type": "Judgement Staff",
-    "art": "the_grey_spire.png"
+    "art": "the_grey_spire.webp"
   },
   {
     "name": "Kaom's Primacy",
     "base_type": "Karui Chopper",
-    "art": "kaom_s_primacy.png"
+    "art": "kaom_s_primacy.webp"
   },
   {
     "name": "Marohi Erqi",
     "base_type": "Karui Maul",
-    "art": "marohi_erqi.png"
+    "art": "marohi_erqi.webp"
   },
   {
     "name": "Death's Hand",
     "base_type": "Karui Sceptre",
-    "art": "death_s_hand.png"
+    "art": "death_s_hand.webp"
   },
   {
     "name": "Maata's Teaching",
     "base_type": "Karui Sceptre",
-    "art": "maata_s_teaching.png"
+    "art": "maata_s_teaching.webp"
   },
   {
     "name": "Moonsorrow",
     "base_type": "Kinetic Wand",
-    "art": "moonsorrow.png"
+    "art": "moonsorrow.webp"
   },
   {
     "name": "Piscator's Vigil",
     "base_type": "Kinetic Wand",
-    "art": "piscator_s_vigil.png"
+    "art": "piscator_s_vigil.webp"
   },
   {
     "name": "Manastorm",
     "base_type": "Lacewood Spirit Shield",
-    "art": "manastorm.png"
+    "art": "manastorm.webp"
   },
   {
     "name": "Azadi Crest",
     "base_type": "Lacquered Buckler",
-    "art": "azadi_crest.png"
+    "art": "azadi_crest.webp"
   },
   {
     "name": "Mistwall",
     "base_type": "Lacquered Buckler",
-    "art": "mistwall.png"
+    "art": "mistwall.webp"
   },
   {
     "name": "Replica Mistwall",
     "base_type": "Lacquered Buckler",
-    "art": "replica_mistwall.png"
+    "art": "replica_mistwall.webp"
   },
   {
     "name": "Cloak of Defiance",
     "base_type": "Lacquered Garb",
-    "art": "cloak_of_defiance.png"
+    "art": "cloak_of_defiance.webp"
   },
   {
     "name": "Victario's Influence",
     "base_type": "Lacquered Garb",
-    "art": "victario_s_influence.png"
+    "art": "victario_s_influence.webp"
   },
   {
     "name": "Black Sun Crest",
     "base_type": "Lacquered Helmet",
-    "art": "black_sun_crest.png"
+    "art": "black_sun_crest.webp"
   },
   {
     "name": "The Fledgling",
     "base_type": "Lacquered Helmet",
-    "art": "the_fledgling.png"
+    "art": "the_fledgling.webp"
   },
   {
     "name": "Replica Victario's Charity",
     "base_type": "Laminated Kite Shield",
-    "art": "replica_victario_s_charity.png"
+    "art": "replica_victario_s_charity.webp"
   },
   {
     "name": "Victario's Charity",
     "base_type": "Laminated Kite Shield",
-    "art": "victario_s_charity.png"
+    "art": "victario_s_charity.webp"
   },
   {
     "name": "Choir of the Storm",
     "base_type": "Lapis Amulet",
-    "art": "choir_of_the_storm.png"
+    "art": "choir_of_the_storm.webp"
   },
   {
     "name": "Doedre's Tongue",
     "base_type": "Lapis Amulet",
-    "art": "doedre_s_tongue.png"
+    "art": "doedre_s_tongue.webp"
   },
   {
     "name": "Khatal's Geyser",
     "base_type": "Lapis Amulet",
-    "art": "khatal_s_geyser.png"
+    "art": "khatal_s_geyser.webp"
   },
   {
     "name": "Khatal's Weeping",
     "base_type": "Lapis Amulet",
-    "art": "khatal_s_weeping.png"
+    "art": "khatal_s_weeping.webp"
   },
   {
     "name": "Marylene's Fallacy",
     "base_type": "Lapis Amulet",
-    "art": "marylene_s_fallacy.png"
+    "art": "marylene_s_fallacy.webp"
   },
   {
     "name": "Stone of Lazhwar",
     "base_type": "Lapis Amulet",
-    "art": "stone_of_lazhwar.png"
+    "art": "stone_of_lazhwar.webp"
   },
   {
     "name": "Tear of Purity",
     "base_type": "Lapis Amulet",
-    "art": "tear_of_purity.png"
+    "art": "tear_of_purity.webp"
   },
   {
     "name": "The Ephemeral Bond",
     "base_type": "Lapis Amulet",
-    "art": "the_ephemeral_bond.png"
+    "art": "the_ephemeral_bond.webp"
   },
   {
     "name": "Voice of the Storm",
     "base_type": "Lapis Amulet",
-    "art": "voice_of_the_storm.png"
+    "art": "voice_of_the_storm.webp"
   },
   {
     "name": "Voices",
     "base_type": "Large Cluster Jewel",
-    "art": "voices.png"
+    "art": "voices.webp"
   },
   {
     "name": "Divination Distillate",
     "base_type": "Large Hybrid Flask",
-    "art": "divination_distillate.png"
+    "art": "divination_distillate.webp"
   },
   {
     "name": "The Searing Touch",
     "base_type": "Lathi",
-    "art": "the_searing_touch.png"
+    "art": "the_searing_touch.webp"
   },
   {
     "name": "Crystal Vault",
     "base_type": "Latticed Ringmail",
-    "art": "crystal_vault.png"
+    "art": "crystal_vault.webp"
   },
   {
     "name": "Icetomb",
     "base_type": "Latticed Ringmail",
-    "art": "icetomb.png"
+    "art": "icetomb.webp"
   },
   {
     "name": "Bear's Girdle",
     "base_type": "Leather Belt",
-    "art": "bear_s_girdle.png"
+    "art": "bear_s_girdle.webp"
   },
   {
     "name": "Cyclopean Coil",
     "base_type": "Leather Belt",
-    "art": "cyclopean_coil.png"
+    "art": "cyclopean_coil.webp"
   },
   {
     "name": "Gluttony",
     "base_type": "Leather Belt",
-    "art": "gluttony.png"
+    "art": "gluttony.webp"
   },
   {
     "name": "Headhunter",
     "base_type": "Leather Belt",
-    "art": "headhunter.png"
+    "art": "headhunter.webp"
   },
   {
     "name": "Hyperboreus",
     "base_type": "Leather Belt",
-    "art": "hyperboreus.png"
+    "art": "hyperboreus.webp"
   },
   {
     "name": "Immortal Flesh",
     "base_type": "Leather Belt",
-    "art": "immortal_flesh.png"
+    "art": "immortal_flesh.webp"
   },
   {
     "name": "Leash of Oblation",
     "base_type": "Leather Belt",
-    "art": "leash_of_oblation.png"
+    "art": "leash_of_oblation.webp"
   },
   {
     "name": "Pyroshock Clasp",
     "base_type": "Leather Belt",
-    "art": "pyroshock_clasp.png"
+    "art": "pyroshock_clasp.webp"
   },
   {
     "name": "Replica Headhunter",
     "base_type": "Leather Belt",
-    "art": "replica_headhunter.png"
+    "art": "replica_headhunter.webp"
   },
   {
     "name": "Screams of the Desiccated",
     "base_type": "Leather Belt",
-    "art": "screams_of_the_desiccated.png"
+    "art": "screams_of_the_desiccated.webp"
   },
   {
     "name": "Umbilicus Immortalis",
     "base_type": "Leather Belt",
-    "art": "umbilicus_immortalis.png"
+    "art": "umbilicus_immortalis.webp"
   },
   {
     "name": "Wurm's Molt",
     "base_type": "Leather Belt",
-    "art": "wurm_s_molt.png"
+    "art": "wurm_s_molt.webp"
   },
   {
     "name": "Goldrim",
     "base_type": "Leather Cap",
-    "art": "goldrim.png"
+    "art": "goldrim.webp"
   },
   {
     "name": "Frostferno",
     "base_type": "Leather Hood",
-    "art": "frostferno.png"
+    "art": "frostferno.webp"
   },
   {
     "name": "Heatshiver",
     "base_type": "Leather Hood",
-    "art": "heatshiver.png"
+    "art": "heatshiver.webp"
   },
   {
     "name": "Replica Heatshiver",
     "base_type": "Leather Hood",
-    "art": "replica_heatshiver.png"
+    "art": "replica_heatshiver.webp"
   },
   {
     "name": "Gang's Momentum",
     "base_type": "Legion Boots",
-    "art": "gang_s_momentum.png"
+    "art": "gang_s_momentum.webp"
   },
   {
     "name": "March of the Legion",
     "base_type": "Legion Boots",
-    "art": "march_of_the_legion.png"
+    "art": "march_of_the_legion.webp"
   },
   {
     "name": "Null and Void",
     "base_type": "Legion Gloves",
-    "art": "null_and_void.png"
+    "art": "null_and_void.webp"
   },
   {
     "name": "Offering to the Serpent",
     "base_type": "Legion Gloves",
-    "art": "offering_to_the_serpent.png"
+    "art": "offering_to_the_serpent.webp"
   },
   {
     "name": "Hyaon's Fury",
     "base_type": "Legion Sword",
-    "art": "hyaon_s_fury.png"
+    "art": "hyaon_s_fury.webp"
   },
   {
     "name": "The Rippling Thoughts",
     "base_type": "Legion Sword",
-    "art": "the_rippling_thoughts.png"
+    "art": "the_rippling_thoughts.webp"
   },
   {
     "name": "The Saviour",
     "base_type": "Legion Sword",
-    "art": "the_saviour.png"
+    "art": "the_saviour.webp"
   },
   {
     "name": "The Surging Thoughts",
     "base_type": "Legion Sword",
-    "art": "the_surging_thoughts.png"
+    "art": "the_surging_thoughts.webp"
   },
   {
     "name": "First Piece of the Arcane",
@@ -3597,87 +3597,87 @@
   {
     "name": "The Dark Monarch",
     "base_type": "Lich's Circlet",
-    "art": "the_dark_monarch.png"
+    "art": "the_dark_monarch.webp"
   },
   {
     "name": "Obscurantis",
     "base_type": "Lion Pelt",
-    "art": "obscurantis.png"
+    "art": "obscurantis.webp"
   },
   {
     "name": "Doomsower",
     "base_type": "Lion Sword",
-    "art": "doomsower.png"
+    "art": "doomsower.webp"
   },
   {
     "name": "The Golden Charlatan",
     "base_type": "Lion Sword",
-    "art": "the_golden_charlatan.png"
+    "art": "the_golden_charlatan.webp"
   },
   {
     "name": "Storm Cloud",
     "base_type": "Long Bow",
-    "art": "storm_cloud.png"
+    "art": "storm_cloud.webp"
   },
   {
     "name": "The Tempest",
     "base_type": "Long Bow",
-    "art": "the_tempest.png"
+    "art": "the_tempest.webp"
   },
   {
     "name": "Rotting Legion",
     "base_type": "Loricated Ringmail",
-    "art": "rotting_legion.png"
+    "art": "rotting_legion.webp"
   },
   {
     "name": "Doedre's Scorn",
     "base_type": "Lunaris Circlet",
-    "art": "doedre_s_scorn.png"
+    "art": "doedre_s_scorn.webp"
   },
   {
     "name": "Disintegrator",
     "base_type": "Maelström Staff",
-    "art": "disintegrator.png"
+    "art": "disintegrator.webp"
   },
   {
     "name": "Duskdawn",
     "base_type": "Maelström Staff",
-    "art": "duskdawn.png"
+    "art": "duskdawn.webp"
   },
   {
     "name": "Replica Duskdawn",
     "base_type": "Maelström Staff",
-    "art": "replica_duskdawn.png"
+    "art": "replica_duskdawn.webp"
   },
   {
     "name": "Taryn's Shiver",
     "base_type": "Maelström Staff",
-    "art": "taryn_s_shiver.png"
+    "art": "taryn_s_shiver.webp"
   },
   {
     "name": "Craiceann's Chitin",
     "base_type": "Magistrate Crown",
-    "art": "craiceann_s_chitin.png"
+    "art": "craiceann_s_chitin.webp"
   },
   {
     "name": "Crown of the Tyrant",
     "base_type": "Magistrate Crown",
-    "art": "crown_of_the_tyrant.png"
+    "art": "crown_of_the_tyrant.webp"
   },
   {
     "name": "Mask of the Spirit Drinker",
     "base_type": "Magistrate Crown",
-    "art": "mask_of_the_spirit_drinker.png"
+    "art": "mask_of_the_spirit_drinker.webp"
   },
   {
     "name": "Mask of the Stitched Demon",
     "base_type": "Magistrate Crown",
-    "art": "mask_of_the_stitched_demon.png"
+    "art": "mask_of_the_stitched_demon.webp"
   },
   {
     "name": "Mask of the Tribunal",
     "base_type": "Magistrate Crown",
-    "art": "mask_of_the_tribunal.png"
+    "art": "mask_of_the_tribunal.webp"
   },
   {
     "name": "Utula's Hunger",
@@ -3687,92 +3687,92 @@
   {
     "name": "The Flawed Refuge",
     "base_type": "Maple Round Shield",
-    "art": "the_flawed_refuge.png"
+    "art": "the_flawed_refuge.webp"
   },
   {
     "name": "The Bane of Hope",
     "base_type": "Maraketh Bow",
-    "art": "the_bane_of_hope.png"
+    "art": "the_bane_of_hope.webp"
   },
   {
     "name": "The Flame of Hope",
     "base_type": "Maraketh Bow",
-    "art": "the_flame_of_hope.png"
+    "art": "the_flame_of_hope.webp"
   },
   {
     "name": "Bloodgrip",
     "base_type": "Marble Amulet",
-    "art": "bloodgrip.png"
+    "art": "bloodgrip.webp"
   },
   {
     "name": "Bonemeld",
     "base_type": "Marble Amulet",
-    "art": "bonemeld.png"
+    "art": "bonemeld.webp"
   },
   {
     "name": "Hand of Heresy",
     "base_type": "Martyr Gloves",
-    "art": "hand_of_heresy.png"
+    "art": "hand_of_heresy.webp"
   },
   {
     "name": "Brain Rattler",
     "base_type": "Meatgrinder",
-    "art": "brain_rattler.png"
+    "art": "brain_rattler.webp"
   },
   {
     "name": "Megalomaniac",
     "base_type": "Medium Cluster Jewel",
-    "art": "megalomaniac.png"
+    "art": "megalomaniac.webp"
   },
   {
     "name": "Wake of Destruction",
     "base_type": "Mesh Boots",
-    "art": "wake_of_destruction.png"
+    "art": "wake_of_destruction.webp"
   },
   {
     "name": "The Hand of Phrecia",
     "base_type": "Mesh Gloves",
-    "art": "the_hand_of_phrecia.png"
+    "art": "the_hand_of_phrecia.webp"
   },
   {
     "name": "Triad Grip",
     "base_type": "Mesh Gloves",
-    "art": "triad_grip.png"
+    "art": "triad_grip.webp"
   },
   {
     "name": "Ahn's Might",
     "base_type": "Midnight Blade",
-    "art": "ahn_s_might.png"
+    "art": "ahn_s_might.webp"
   },
   {
     "name": "Razor of the Seventh Sun",
     "base_type": "Midnight Blade",
-    "art": "razor_of_the_seventh_sun.png"
+    "art": "razor_of_the_seventh_sun.webp"
   },
   {
     "name": "Rigwald's Command",
     "base_type": "Midnight Blade",
-    "art": "rigwald_s_command.png"
+    "art": "rigwald_s_command.webp"
   },
   {
     "name": "Tremor Rod",
     "base_type": "Military Staff",
-    "art": "tremor_rod.png"
+    "art": "tremor_rod.webp"
   },
   {
     "name": "Hale Negator",
     "base_type": "Mind Cage",
-    "art": "hale_negator.png"
+    "art": "hale_negator.webp"
   },
   {
     "name": "Rime Gaze",
     "base_type": "Mind Cage",
-    "art": "rime_gaze.png"
+    "art": "rime_gaze.webp"
   },
   {
     "name": "Scold's Bridle",
     "base_type": "Mind Cage",
-    "art": "scold_s_bridle.png"
+    "art": "scold_s_bridle.webp"
   },
   {
     "name": "Arbitrary Tenets",
@@ -3972,97 +3972,97 @@
   {
     "name": "Font of Thunder",
     "base_type": "Mirrored Spiked Shield",
-    "art": "font_of_thunder.png"
+    "art": "font_of_thunder.webp"
   },
   {
     "name": "Leper's Alms",
     "base_type": "Mirrored Spiked Shield",
-    "art": "leper_s_alms.png"
+    "art": "leper_s_alms.webp"
   },
   {
     "name": "Anathema",
     "base_type": "Moonstone Ring",
-    "art": "anathema.png"
+    "art": "anathema.webp"
   },
   {
     "name": "Heartbound Loop",
     "base_type": "Moonstone Ring",
-    "art": "heartbound_loop.png"
+    "art": "heartbound_loop.webp"
   },
   {
     "name": "Shavronne's Revelation",
     "base_type": "Moonstone Ring",
-    "art": "shavronne_s_revelation.png"
+    "art": "shavronne_s_revelation.webp"
   },
   {
     "name": "Tawhanuku's Timing",
     "base_type": "Moonstone Ring",
-    "art": "tawhanuku_s_timing.png"
+    "art": "tawhanuku_s_timing.webp"
   },
   {
     "name": "Timeclasp",
     "base_type": "Moonstone Ring",
-    "art": "timeclasp.png"
+    "art": "timeclasp.webp"
   },
   {
     "name": "Timetwist",
     "base_type": "Moonstone Ring",
-    "art": "timetwist.png"
+    "art": "timetwist.webp"
   },
   {
     "name": "Valyrium",
     "base_type": "Moonstone Ring",
-    "art": "valyrium.png"
+    "art": "valyrium.webp"
   },
   {
     "name": "Rise of the Phoenix",
     "base_type": "Mosaic Kite Shield",
-    "art": "rise_of_the_phoenix.png"
+    "art": "rise_of_the_phoenix.webp"
   },
   {
     "name": "Bubonic Trail",
     "base_type": "Murder Boots",
-    "art": "bubonic_trail.png"
+    "art": "bubonic_trail.webp"
   },
   {
     "name": "Replica Voidwalker",
     "base_type": "Murder Boots",
-    "art": "replica_voidwalker.png"
+    "art": "replica_voidwalker.webp"
   },
   {
     "name": "Voidwalker",
     "base_type": "Murder Boots",
-    "art": "voidwalker.png"
+    "art": "voidwalker.webp"
   },
   {
     "name": "Machina Mitts",
     "base_type": "Murder Mitts",
-    "art": "machina_mitts.png"
+    "art": "machina_mitts.webp"
   },
   {
     "name": "Malachai's Mark",
     "base_type": "Murder Mitts",
-    "art": "malachai_s_mark.png"
+    "art": "malachai_s_mark.webp"
   },
   {
     "name": "Thunderfist",
     "base_type": "Murder Mitts",
-    "art": "thunderfist.png"
+    "art": "thunderfist.webp"
   },
   {
     "name": "Tecrod's Gaze",
     "base_type": "Murderous Eye Jewel",
-    "art": "tecrod_s_gaze.png"
+    "art": "tecrod_s_gaze.webp"
   },
   {
     "name": "Last Resort",
     "base_type": "Nailed Fist",
-    "art": "last_resort.png"
+    "art": "last_resort.webp"
   },
   {
     "name": "Replica Last Resort",
     "base_type": "Nailed Fist",
-    "art": "replica_last_resort.png"
+    "art": "replica_last_resort.webp"
   },
   {
     "name": "Scar of Fate",
@@ -4072,137 +4072,137 @@
   {
     "name": "The Hateful Accuser",
     "base_type": "Nameless Ring",
-    "art": "the_hateful_accuser.png"
+    "art": "the_hateful_accuser.webp"
   },
   {
     "name": "The Queller of Minds",
     "base_type": "Nameless Ring",
-    "art": "the_queller_of_minds.png"
+    "art": "the_queller_of_minds.webp"
   },
   {
     "name": "The Selfish Shepherd",
     "base_type": "Nameless Ring",
-    "art": "the_selfish_shepherd.png"
+    "art": "the_selfish_shepherd.webp"
   },
   {
     "name": "Contract: Death to Darnaw",
     "base_type": "Naval Contract",
-    "art": "contract__death_to_darnaw.png"
+    "art": "contract__death_to_darnaw.webp"
   },
   {
     "name": "Chitus' Apex",
     "base_type": "Necromancer Circlet",
-    "art": "chitus__apex.png"
+    "art": "chitus__apex.webp"
   },
   {
     "name": "Fenumus' Toxins",
     "base_type": "Necromancer Circlet",
-    "art": "fenumus__toxins.png"
+    "art": "fenumus__toxins.webp"
   },
   {
     "name": "Sandstorm Visage",
     "base_type": "Necromancer Circlet",
-    "art": "sandstorm_visage.png"
+    "art": "sandstorm_visage.webp"
   },
   {
     "name": "The Devouring Diadem",
     "base_type": "Necromancer Circlet",
-    "art": "the_devouring_diadem.png"
+    "art": "the_devouring_diadem.webp"
   },
   {
     "name": "Fleshcrafter",
     "base_type": "Necromancer Silks",
-    "art": "fleshcrafter.png"
+    "art": "fleshcrafter.webp"
   },
   {
     "name": "Vis Mortis",
     "base_type": "Necromancer Silks",
-    "art": "vis_mortis.png"
+    "art": "vis_mortis.webp"
   },
   {
     "name": "Devoto's Devotion",
     "base_type": "Nightmare Bascinet",
-    "art": "devoto_s_devotion.png"
+    "art": "devoto_s_devotion.webp"
   },
   {
     "name": "The Bringer of Rain",
     "base_type": "Nightmare Bascinet",
-    "art": "the_bringer_of_rain.png"
+    "art": "the_bringer_of_rain.webp"
   },
   {
     "name": "Nebuloch",
     "base_type": "Nightmare Mace",
-    "art": "nebuloch.png"
+    "art": "nebuloch.webp"
   },
   {
     "name": "Goldwyrm",
     "base_type": "Nubuck Boots",
-    "art": "goldwyrm.png"
+    "art": "goldwyrm.webp"
   },
   {
     "name": "Oskarm",
     "base_type": "Nubuck Gloves",
-    "art": "oskarm.png"
+    "art": "oskarm.webp"
   },
   {
     "name": "The Battle Within",
     "base_type": "Oakbranch Tincture",
-    "art": "the_battle_within.png"
+    "art": "the_battle_within.webp"
   },
   {
     "name": "Shavronne's Wrappings",
     "base_type": "Occultist's Vestment",
-    "art": "shavronne_s_wrappings.png"
+    "art": "shavronne_s_wrappings.webp"
   },
   {
     "name": "Apep's Rage",
     "base_type": "Omen Wand",
-    "art": "apep_s_rage.png"
+    "art": "apep_s_rage.webp"
   },
   {
     "name": "Obliteration",
     "base_type": "Omen Wand",
-    "art": "obliteration.png"
+    "art": "obliteration.webp"
   },
   {
     "name": "Ashes of the Stars",
     "base_type": "Onyx Amulet",
-    "art": "ashes_of_the_stars.png"
+    "art": "ashes_of_the_stars.webp"
   },
   {
     "name": "Astramentis",
     "base_type": "Onyx Amulet",
-    "art": "astramentis.png"
+    "art": "astramentis.webp"
   },
   {
     "name": "Aul's Uprising",
     "base_type": "Onyx Amulet",
-    "art": "aul_s_uprising.png"
+    "art": "aul_s_uprising.webp"
   },
   {
     "name": "Carnage Heart",
     "base_type": "Onyx Amulet",
-    "art": "carnage_heart.png"
+    "art": "carnage_heart.webp"
   },
   {
     "name": "Crystallised Omniscience",
     "base_type": "Onyx Amulet",
-    "art": "crystallised_omniscience.png"
+    "art": "crystallised_omniscience.webp"
   },
   {
     "name": "Eye of Chayula",
     "base_type": "Onyx Amulet",
-    "art": "eye_of_chayula.png"
+    "art": "eye_of_chayula.webp"
   },
   {
     "name": "Hinekora's Sight",
     "base_type": "Onyx Amulet",
-    "art": "hinekora_s_sight.png"
+    "art": "hinekora_s_sight.webp"
   },
   {
     "name": "Impresence",
     "base_type": "Onyx Amulet",
-    "art": "impresence.png"
+    "art": "impresence.webp"
   },
   {
     "name": "Leadership's Price",
@@ -4212,142 +4212,142 @@
   {
     "name": "Presence of Chayula",
     "base_type": "Onyx Amulet",
-    "art": "presence_of_chayula.png"
+    "art": "presence_of_chayula.webp"
   },
   {
     "name": "Replica Dragonfang's Flight",
     "base_type": "Onyx Amulet",
-    "art": "replica_dragonfang_s_flight.png"
+    "art": "replica_dragonfang_s_flight.webp"
   },
   {
     "name": "Replica Hinekora's Sight",
     "base_type": "Onyx Amulet",
-    "art": "replica_hinekora_s_sight.png"
+    "art": "replica_hinekora_s_sight.webp"
   },
   {
     "name": "Solstice Vigil",
     "base_type": "Onyx Amulet",
-    "art": "solstice_vigil.png"
+    "art": "solstice_vigil.webp"
   },
   {
     "name": "Stranglegasp",
     "base_type": "Onyx Amulet",
-    "art": "stranglegasp.png"
+    "art": "stranglegasp.webp"
   },
   {
     "name": "The Eternal Struggle",
     "base_type": "Onyx Amulet",
-    "art": "the_eternal_struggle.png"
+    "art": "the_eternal_struggle.webp"
   },
   {
     "name": "Yoke of Suffering",
     "base_type": "Onyx Amulet",
-    "art": "yoke_of_suffering.png"
+    "art": "yoke_of_suffering.webp"
   },
   {
     "name": "Mark of the Shaper",
     "base_type": "Opal Ring",
-    "art": "mark_of_the_shaper.png"
+    "art": "mark_of_the_shaper.webp"
   },
   {
     "name": "Polaric Devastation",
     "base_type": "Opal Ring",
-    "art": "polaric_devastation.png"
+    "art": "polaric_devastation.webp"
   },
   {
     "name": "Stormfire",
     "base_type": "Opal Ring",
-    "art": "stormfire.png"
+    "art": "stormfire.webp"
   },
   {
     "name": "The Unseen Hue",
     "base_type": "Opal Ring",
-    "art": "the_unseen_hue.png"
+    "art": "the_unseen_hue.webp"
   },
   {
     "name": "Balefire",
     "base_type": "Opal Sceptre",
-    "art": "balefire.png"
+    "art": "balefire.webp"
   },
   {
     "name": "Replica Tulfall",
     "base_type": "Opal Wand",
-    "art": "replica_tulfall.png"
+    "art": "replica_tulfall.webp"
   },
   {
     "name": "Tulborn",
     "base_type": "Opal Wand",
-    "art": "tulborn.png"
+    "art": "tulborn.webp"
   },
   {
     "name": "Tulfall",
     "base_type": "Opal Wand",
-    "art": "tulfall.png"
+    "art": "tulfall.webp"
   },
   {
     "name": "The Will of Uul-Netol",
     "base_type": "Organic Ring",
-    "art": "the_will_of_uul_netol.png"
+    "art": "the_will_of_uul_netol.webp"
   },
   {
     "name": "Frostbreath",
     "base_type": "Ornate Mace",
-    "art": "frostbreath.png"
+    "art": "frostbreath.webp"
   },
   {
     "name": "Replica Frostbreath",
     "base_type": "Ornate Mace",
-    "art": "replica_frostbreath.png"
+    "art": "replica_frostbreath.webp"
   },
   {
     "name": "Maloney's Mechanism",
     "base_type": "Ornate Quiver",
-    "art": "maloney_s_mechanism.png"
+    "art": "maloney_s_mechanism.webp"
   },
   {
     "name": "Replica Maloney's Mechanism",
     "base_type": "Ornate Quiver",
-    "art": "replica_maloney_s_mechanism.png"
+    "art": "replica_maloney_s_mechanism.webp"
   },
   {
     "name": "Lightbane Raiment",
     "base_type": "Ornate Ringmail",
-    "art": "lightbane_raiment.png"
+    "art": "lightbane_raiment.webp"
   },
   {
     "name": "Queen's Decree",
     "base_type": "Ornate Sword",
-    "art": "queen_s_decree.png"
+    "art": "queen_s_decree.webp"
   },
   {
     "name": "Queen's Escape",
     "base_type": "Ornate Sword",
-    "art": "queen_s_escape.png"
+    "art": "queen_s_escape.webp"
   },
   {
     "name": "Mystic Refractor",
     "base_type": "Pagan Wand",
-    "art": "mystic_refractor.png"
+    "art": "mystic_refractor.webp"
   },
   {
     "name": "Kaltenhalt",
     "base_type": "Painted Buckler",
-    "art": "kaltenhalt.png"
+    "art": "kaltenhalt.webp"
   },
   {
     "name": "Kaltensoul",
     "base_type": "Painted Buckler",
-    "art": "kaltensoul.png"
+    "art": "kaltensoul.webp"
   },
   {
     "name": "Redblade Banner",
     "base_type": "Painted Tower Shield",
-    "art": "redblade_banner.png"
+    "art": "redblade_banner.webp"
   },
   {
     "name": "Refuge in Isolation",
     "base_type": "Paladin Crown",
-    "art": "refuge_in_isolation.png"
+    "art": "refuge_in_isolation.webp"
   },
   {
     "name": "The Original Scripture",
@@ -4357,192 +4357,192 @@
   {
     "name": "Atziri's Foible",
     "base_type": "Paua Amulet",
-    "art": "atziri_s_foible.png"
+    "art": "atziri_s_foible.webp"
   },
   {
     "name": "Defiance of Destiny",
     "base_type": "Paua Amulet",
-    "art": "defiance_of_destiny.png"
+    "art": "defiance_of_destiny.webp"
   },
   {
     "name": "Replica Atziri's Foible",
     "base_type": "Paua Amulet",
-    "art": "replica_atziri_s_foible.png"
+    "art": "replica_atziri_s_foible.webp"
   },
   {
     "name": "Sacrificial Heart",
     "base_type": "Paua Amulet",
-    "art": "sacrificial_heart.png"
+    "art": "sacrificial_heart.webp"
   },
   {
     "name": "Sidhebreath",
     "base_type": "Paua Amulet",
-    "art": "sidhebreath.png"
+    "art": "sidhebreath.webp"
   },
   {
     "name": "Zerphi's Heart",
     "base_type": "Paua Amulet",
-    "art": "zerphi_s_heart.png"
+    "art": "zerphi_s_heart.webp"
   },
   {
     "name": "Doedre's Damning",
     "base_type": "Paua Ring",
-    "art": "doedre_s_damning.png"
+    "art": "doedre_s_damning.webp"
   },
   {
     "name": "Fated End",
     "base_type": "Paua Ring",
-    "art": "fated_end.png"
+    "art": "fated_end.webp"
   },
   {
     "name": "Perandus Signet",
     "base_type": "Paua Ring",
-    "art": "perandus_signet.png"
+    "art": "perandus_signet.webp"
   },
   {
     "name": "Praxis",
     "base_type": "Paua Ring",
-    "art": "praxis.png"
+    "art": "praxis.webp"
   },
   {
     "name": "Replica Doedre's Damning",
     "base_type": "Paua Ring",
-    "art": "replica_doedre_s_damning.png"
+    "art": "replica_doedre_s_damning.webp"
   },
   {
     "name": "Soulbound",
     "base_type": "Paua Ring",
-    "art": "soulbound.png"
+    "art": "soulbound.webp"
   },
   {
     "name": "Drillneck",
     "base_type": "Penetrating Arrow Quiver",
-    "art": "drillneck.png"
+    "art": "drillneck.webp"
   },
   {
     "name": "Serle's Masterwork",
     "base_type": "Phantom Mace",
-    "art": "serle_s_masterwork.png"
+    "art": "serle_s_masterwork.webp"
   },
   {
     "name": "The Devourer of Minds",
     "base_type": "Pig-Faced Bascinet",
-    "art": "the_devourer_of_minds.png"
+    "art": "the_devourer_of_minds.webp"
   },
   {
     "name": "Tawhoa's Felling",
     "base_type": "Piledriver",
-    "art": "tawhoa_s_felling.png"
+    "art": "tawhoa_s_felling.webp"
   },
   {
     "name": "Crest of Perandus",
     "base_type": "Pine Buckler",
-    "art": "crest_of_perandus.png"
+    "art": "crest_of_perandus.webp"
   },
   {
     "name": "Lioneye's Remorse",
     "base_type": "Pinnacle Tower Shield",
-    "art": "lioneye_s_remorse.png"
+    "art": "lioneye_s_remorse.webp"
   },
   {
     "name": "Magna Eclipsis",
     "base_type": "Pinnacle Tower Shield",
-    "art": "magna_eclipsis.png"
+    "art": "magna_eclipsis.webp"
   },
   {
     "name": "Curtain Call",
     "base_type": "Plague Mask",
-    "art": "curtain_call.png"
+    "art": "curtain_call.webp"
   },
   {
     "name": "Springleaf",
     "base_type": "Plank Kite Shield",
-    "art": "springleaf.png"
+    "art": "springleaf.webp"
   },
   {
     "name": "The Oak",
     "base_type": "Plank Kite Shield",
-    "art": "the_oak.png"
+    "art": "the_oak.webp"
   },
   {
     "name": "Bramblejack",
     "base_type": "Plate Vest",
-    "art": "bramblejack.png"
+    "art": "bramblejack.webp"
   },
   {
     "name": "Wall of Brambles",
     "base_type": "Plate Vest",
-    "art": "wall_of_brambles.png"
+    "art": "wall_of_brambles.webp"
   },
   {
     "name": "Stormcharger",
     "base_type": "Plated Greaves",
-    "art": "stormcharger.png"
+    "art": "stormcharger.webp"
   },
   {
     "name": "Mark of the Doubting Knight",
     "base_type": "Platinum Kris",
-    "art": "mark_of_the_doubting_knight.png"
+    "art": "mark_of_the_doubting_knight.webp"
   },
   {
     "name": "Cadigan's Authority",
     "base_type": "Platinum Sceptre",
-    "art": "cadigan_s_authority.png"
+    "art": "cadigan_s_authority.webp"
   },
   {
     "name": "Singularity",
     "base_type": "Platinum Sceptre",
-    "art": "singularity.png"
+    "art": "singularity.webp"
   },
   {
     "name": "Wideswing",
     "base_type": "Poleaxe",
-    "art": "wideswing.png"
+    "art": "wideswing.webp"
   },
   {
     "name": "Zeel's Amplifier",
     "base_type": "Polished Spiked Shield",
-    "art": "zeel_s_amplifier.png"
+    "art": "zeel_s_amplifier.webp"
   },
   {
     "name": "Ahn's Contempt",
     "base_type": "Praetor Crown",
-    "art": "ahn_s_contempt.png"
+    "art": "ahn_s_contempt.webp"
   },
   {
     "name": "Malachai's Vision",
     "base_type": "Praetor Crown",
-    "art": "malachai_s_vision.png"
+    "art": "malachai_s_vision.webp"
   },
   {
     "name": "Memory Vault",
     "base_type": "Praetor Crown",
-    "art": "memory_vault.png"
+    "art": "memory_vault.webp"
   },
   {
     "name": "Viridi's Veil",
     "base_type": "Praetor Crown",
-    "art": "viridi_s_veil.png"
+    "art": "viridi_s_veil.webp"
   },
   {
     "name": "Voll's Vision",
     "base_type": "Praetor Crown",
-    "art": "voll_s_vision.png"
+    "art": "voll_s_vision.webp"
   },
   {
     "name": "Contract: Breaking the Unbreakable",
     "base_type": "Preventative Contract",
-    "art": "contract__breaking_the_unbreakable.png"
+    "art": "contract__breaking_the_unbreakable.webp"
   },
   {
     "name": "The Poised Prism",
     "base_type": "Primal Arrow Quiver",
-    "art": "the_poised_prism.png"
+    "art": "the_poised_prism.webp"
   },
   {
     "name": "Voidfletcher",
     "base_type": "Primal Arrow Quiver",
-    "art": "voidfletcher.png"
+    "art": "voidfletcher.webp"
   },
   {
     "name": "Curio of Absorption",
@@ -4567,77 +4567,77 @@
   {
     "name": "Femurs of the Saints",
     "base_type": "Primordial Staff",
-    "art": "femurs_of_the_saints.png"
+    "art": "femurs_of_the_saints.webp"
   },
   {
     "name": "The Burden of Shadows",
     "base_type": "Primordial Staff",
-    "art": "the_burden_of_shadows.png"
+    "art": "the_burden_of_shadows.webp"
   },
   {
     "name": "Bound By Destiny",
     "base_type": "Prismatic Jewel",
-    "art": "bound_by_destiny.png"
+    "art": "bound_by_destiny.webp"
   },
   {
     "name": "Emperor's Mastery",
     "base_type": "Prismatic Jewel",
-    "art": "emperor_s_mastery.png"
+    "art": "emperor_s_mastery.webp"
   },
   {
     "name": "Sublime Vision",
     "base_type": "Prismatic Jewel",
-    "art": "sublime_vision.png"
+    "art": "sublime_vision.webp"
   },
   {
     "name": "The Anima Stone",
     "base_type": "Prismatic Jewel",
-    "art": "the_anima_stone.png"
+    "art": "the_anima_stone.webp"
   },
   {
     "name": "The Light of Meaning",
     "base_type": "Prismatic Jewel",
-    "art": "the_light_of_meaning.png"
+    "art": "the_light_of_meaning.webp"
   },
   {
     "name": "The Perandus Pact",
     "base_type": "Prismatic Jewel",
-    "art": "the_perandus_pact.png"
+    "art": "the_perandus_pact.webp"
   },
   {
     "name": "Watcher's Eye",
     "base_type": "Prismatic Jewel",
-    "art": "watcher_s_eye.png"
+    "art": "watcher_s_eye.webp"
   },
   {
     "name": "Circle of Ambition",
     "base_type": "Prismatic Ring",
-    "art": "circle_of_ambition.png"
+    "art": "circle_of_ambition.webp"
   },
   {
     "name": "Lori's Lantern",
     "base_type": "Prismatic Ring",
-    "art": "lori_s_lantern.png"
+    "art": "lori_s_lantern.webp"
   },
   {
     "name": "Precursor's Emblem",
     "base_type": "Prismatic Ring",
-    "art": "precursor_s_emblem.png"
+    "art": "precursor_s_emblem.webp"
   },
   {
     "name": "The Taming",
     "base_type": "Prismatic Ring",
-    "art": "the_taming.png"
+    "art": "the_taming.webp"
   },
   {
     "name": "Thief's Torment",
     "base_type": "Prismatic Ring",
-    "art": "thief_s_torment.png"
+    "art": "thief_s_torment.webp"
   },
   {
     "name": "Sap of the Seasons",
     "base_type": "Prismatic Tincture",
-    "art": "sap_of_the_seasons.png"
+    "art": "sap_of_the_seasons.webp"
   },
   {
     "name": "The Chains of Castigation",
@@ -4652,272 +4652,272 @@
   {
     "name": "Grace of the Goddess",
     "base_type": "Prophecy Wand",
-    "art": "grace_of_the_goddess.png"
+    "art": "grace_of_the_goddess.webp"
   },
   {
     "name": "Void Battery",
     "base_type": "Prophecy Wand",
-    "art": "void_battery.png"
+    "art": "void_battery.webp"
   },
   {
     "name": "Crown of the Inward Eye",
     "base_type": "Prophet Crown",
-    "art": "crown_of_the_inward_eye.png"
+    "art": "crown_of_the_inward_eye.webp"
   },
   {
     "name": "Speaker's Wreath",
     "base_type": "Prophet Crown",
-    "art": "speaker_s_wreath.png"
+    "art": "speaker_s_wreath.webp"
   },
   {
     "name": "The Brine Crown",
     "base_type": "Prophet Crown",
-    "art": "the_brine_crown.png"
+    "art": "the_brine_crown.webp"
   },
   {
     "name": "The Broken Crown",
     "base_type": "Prophet Crown",
-    "art": "the_broken_crown.png"
+    "art": "the_broken_crown.webp"
   },
   {
     "name": "The Annihilating Light",
     "base_type": "Quarterstaff",
-    "art": "the_annihilating_light.png"
+    "art": "the_annihilating_light.webp"
   },
   {
     "name": "Forbidden Taste",
     "base_type": "Quartz Flask",
-    "art": "forbidden_taste.png"
+    "art": "forbidden_taste.webp"
   },
   {
     "name": "Soul Catcher",
     "base_type": "Quartz Flask",
-    "art": "soul_catcher.png"
+    "art": "soul_catcher.webp"
   },
   {
     "name": "Soul Ripper",
     "base_type": "Quartz Flask",
-    "art": "soul_ripper.png"
+    "art": "soul_ripper.webp"
   },
   {
     "name": "Rotgut",
     "base_type": "Quicksilver Flask",
-    "art": "rotgut.png"
+    "art": "rotgut.webp"
   },
   {
     "name": "Hopeshredder",
     "base_type": "Ranger Bow",
-    "art": "hopeshredder.png"
+    "art": "hopeshredder.webp"
   },
   {
     "name": "Null's Inclination",
     "base_type": "Ranger Bow",
-    "art": "null_s_inclination.png"
+    "art": "null_s_inclination.webp"
   },
   {
     "name": "The Gull",
     "base_type": "Raven Mask",
-    "art": "the_gull.png"
+    "art": "the_gull.webp"
   },
   {
     "name": "Seven-League Step",
     "base_type": "Rawhide Boots",
-    "art": "seven_league_step.png"
+    "art": "seven_league_step.webp"
   },
   {
     "name": "Lycosidae",
     "base_type": "Rawhide Tower Shield",
-    "art": "lycosidae.png"
+    "art": "lycosidae.webp"
   },
   {
     "name": "Blood Price",
     "base_type": "Reaver Helmet",
-    "art": "blood_price.png"
+    "art": "blood_price.webp"
   },
   {
     "name": "Hiltless",
     "base_type": "Reaver Sword",
-    "art": "hiltless.png"
+    "art": "hiltless.webp"
   },
   {
     "name": "The Dancing Dervish",
     "base_type": "Reaver Sword",
-    "art": "the_dancing_dervish.png"
+    "art": "the_dancing_dervish.webp"
   },
   {
     "name": "The Dancing Duo",
     "base_type": "Reaver Sword",
-    "art": "the_dancing_duo.png"
+    "art": "the_dancing_duo.webp"
   },
   {
     "name": "Roth's Reach",
     "base_type": "Recurve Bow",
-    "art": "roth_s_reach.png"
+    "art": "roth_s_reach.webp"
   },
   {
     "name": "Akoya's Gaze",
     "base_type": "Regicide Mask",
-    "art": "akoya_s_gaze.png"
+    "art": "akoya_s_gaze.webp"
   },
   {
     "name": "Crown of the Pale King",
     "base_type": "Regicide Mask",
-    "art": "crown_of_the_pale_king.png"
+    "art": "crown_of_the_pale_king.webp"
   },
   {
     "name": "Gorgon's Gaze",
     "base_type": "Regicide Mask",
-    "art": "gorgon_s_gaze.png"
+    "art": "gorgon_s_gaze.webp"
   },
   {
     "name": "Windscream",
     "base_type": "Reinforced Greaves",
-    "art": "windscream.png"
+    "art": "windscream.webp"
   },
   {
     "name": "Windshriek",
     "base_type": "Reinforced Greaves",
-    "art": "windshriek.png"
+    "art": "windshriek.webp"
   },
   {
     "name": "Titucius' Span",
     "base_type": "Reinforced Tower Shield",
-    "art": "titucius__span.png"
+    "art": "titucius__span.webp"
   },
   {
     "name": "Kalandra's Touch",
     "base_type": "Ring",
-    "art": "kalandra_s_touch.png"
+    "art": "kalandra_s_touch.webp"
   },
   {
     "name": "Brutus' Lead Sprinkler",
     "base_type": "Ritual Sceptre",
-    "art": "brutus__lead_sprinkler.png"
+    "art": "brutus__lead_sprinkler.webp"
   },
   {
     "name": "Ralakesh's Impatience",
     "base_type": "Riveted Boots",
-    "art": "ralakesh_s_impatience.png"
+    "art": "ralakesh_s_impatience.webp"
   },
   {
     "name": "Command of the Pit",
     "base_type": "Riveted Gloves",
-    "art": "command_of_the_pit.png"
+    "art": "command_of_the_pit.webp"
   },
   {
     "name": "Clayshaper",
     "base_type": "Rock Breaker",
-    "art": "clayshaper.png"
+    "art": "clayshaper.webp"
   },
   {
     "name": "Natural Hierarchy",
     "base_type": "Rotfeather Talisman",
-    "art": "natural_hierarchy.png"
+    "art": "natural_hierarchy.webp"
   },
   {
     "name": "Wheel of the Stormsail",
     "base_type": "Rotted Round Shield",
-    "art": "wheel_of_the_stormsail.png"
+    "art": "wheel_of_the_stormsail.webp"
   },
   {
     "name": "Rigwald's Savagery",
     "base_type": "Royal Axe",
-    "art": "rigwald_s_savagery.png"
+    "art": "rigwald_s_savagery.webp"
   },
   {
     "name": "Doomfletch",
     "base_type": "Royal Bow",
-    "art": "doomfletch.png"
+    "art": "doomfletch.webp"
   },
   {
     "name": "Doomfletch's Prism",
     "base_type": "Royal Bow",
-    "art": "doomfletch_s_prism.png"
+    "art": "doomfletch_s_prism.webp"
   },
   {
     "name": "Echoes of Creation",
     "base_type": "Royal Burgonet",
-    "art": "echoes_of_creation.png"
+    "art": "echoes_of_creation.webp"
   },
   {
     "name": "The Formless Flame",
     "base_type": "Royal Burgonet",
-    "art": "the_formless_flame.png"
+    "art": "the_formless_flame.webp"
   },
   {
     "name": "The Formless Inferno",
     "base_type": "Royal Burgonet",
-    "art": "the_formless_inferno.png"
+    "art": "the_formless_inferno.webp"
   },
   {
     "name": "The Black Cane",
     "base_type": "Royal Sceptre",
-    "art": "the_black_cane.png"
+    "art": "the_black_cane.webp"
   },
   {
     "name": "Heartbreaker",
     "base_type": "Royal Skean",
-    "art": "heartbreaker.png"
+    "art": "heartbreaker.webp"
   },
   {
     "name": "Replica Heartbreaker",
     "base_type": "Royal Skean",
-    "art": "replica_heartbreaker.png"
+    "art": "replica_heartbreaker.webp"
   },
   {
     "name": "The Stormheart",
     "base_type": "Royal Staff",
-    "art": "the_stormheart.png"
+    "art": "the_stormheart.webp"
   },
   {
     "name": "The Stormwall",
     "base_type": "Royal Staff",
-    "art": "the_stormwall.png"
+    "art": "the_stormwall.webp"
   },
   {
     "name": "Star of Wraeclast",
     "base_type": "Ruby Amulet",
-    "art": "star_of_wraeclast.png"
+    "art": "star_of_wraeclast.webp"
   },
   {
     "name": "Coruscating Elixir",
     "base_type": "Ruby Flask",
-    "art": "coruscating_elixir.png"
+    "art": "coruscating_elixir.webp"
   },
   {
     "name": "Dying Sun",
     "base_type": "Ruby Flask",
-    "art": "dying_sun.png"
+    "art": "dying_sun.webp"
   },
   {
     "name": "Ahkeli's Meadow",
     "base_type": "Ruby Ring",
-    "art": "ahkeli_s_meadow.png"
+    "art": "ahkeli_s_meadow.webp"
   },
   {
     "name": "Ahkeli's Mountain",
     "base_type": "Ruby Ring",
-    "art": "ahkeli_s_mountain.png"
+    "art": "ahkeli_s_mountain.webp"
   },
   {
     "name": "Ahkeli's Valley",
     "base_type": "Ruby Ring",
-    "art": "ahkeli_s_valley.png"
+    "art": "ahkeli_s_valley.webp"
   },
   {
     "name": "Circle of Anguish",
     "base_type": "Ruby Ring",
-    "art": "circle_of_anguish.png"
+    "art": "circle_of_anguish.webp"
   },
   {
     "name": "Emberwake",
     "base_type": "Ruby Ring",
-    "art": "emberwake.png"
+    "art": "emberwake.webp"
   },
   {
     "name": "Mokou's Embrace",
     "base_type": "Ruby Ring",
-    "art": "mokou_s_embrace.png"
+    "art": "mokou_s_embrace.webp"
   },
   {
     "name": "Ngamahu's Sign",
@@ -4927,47 +4927,47 @@
   {
     "name": "Precursor's Emblem",
     "base_type": "Ruby Ring",
-    "art": "precursor_s_emblem.png"
+    "art": "precursor_s_emblem.webp"
   },
   {
     "name": "Replica Emberwake",
     "base_type": "Ruby Ring",
-    "art": "replica_emberwake.png"
+    "art": "replica_emberwake.webp"
   },
   {
     "name": "Warrior's Legacy",
     "base_type": "Ruby Ring",
-    "art": "warrior_s_legacy.png"
+    "art": "warrior_s_legacy.webp"
   },
   {
     "name": "Cadigan's Crown",
     "base_type": "Runic Crown",
-    "art": "cadigan_s_crown.png"
+    "art": "cadigan_s_crown.webp"
   },
   {
     "name": "Nightgrip",
     "base_type": "Runic Gages",
-    "art": "nightgrip.png"
+    "art": "nightgrip.webp"
   },
   {
     "name": "Medved's Challenge",
     "base_type": "Runic Gauntlets",
-    "art": "medved_s_challenge.png"
+    "art": "medved_s_challenge.webp"
   },
   {
     "name": "Faithguard",
     "base_type": "Runic Helm",
-    "art": "faithguard.png"
+    "art": "faithguard.webp"
   },
   {
     "name": "Vorana's March",
     "base_type": "Runic Sabatons",
-    "art": "vorana_s_march.png"
+    "art": "vorana_s_march.webp"
   },
   {
     "name": "Olroth's Charge",
     "base_type": "Runic Sollerets",
-    "art": "olroth_s_charge.png"
+    "art": "olroth_s_charge.webp"
   },
   {
     "name": "Rust of Winter",
@@ -4982,177 +4982,177 @@
   {
     "name": "Dreadbeak",
     "base_type": "Rusted Sword",
-    "art": "dreadbeak.png"
+    "art": "dreadbeak.webp"
   },
   {
     "name": "Redbeak",
     "base_type": "Rusted Sword",
-    "art": "redbeak.png"
+    "art": "redbeak.webp"
   },
   {
     "name": "Faminebind",
     "base_type": "Rustic Sash",
-    "art": "faminebind.png"
+    "art": "faminebind.webp"
   },
   {
     "name": "Feastbind",
     "base_type": "Rustic Sash",
-    "art": "feastbind.png"
+    "art": "feastbind.webp"
   },
   {
     "name": "Prismweave",
     "base_type": "Rustic Sash",
-    "art": "prismweave.png"
+    "art": "prismweave.webp"
   },
   {
     "name": "Replica Prismweave",
     "base_type": "Rustic Sash",
-    "art": "replica_prismweave.png"
+    "art": "replica_prismweave.webp"
   },
   {
     "name": "The Retch",
     "base_type": "Rustic Sash",
-    "art": "the_retch.png"
+    "art": "the_retch.webp"
   },
   {
     "name": "The Princess",
     "base_type": "Sabre",
-    "art": "the_princess.png"
+    "art": "the_princess.webp"
   },
   {
     "name": "Atziri's Splendour",
     "base_type": "Sacrificial Garb",
-    "art": "atziri_s_splendour.png"
+    "art": "atziri_s_splendour.webp"
   },
   {
     "name": "Shadowstitch",
     "base_type": "Sacrificial Garb",
-    "art": "shadowstitch.png"
+    "art": "shadowstitch.webp"
   },
   {
     "name": "Doppelgänger Guise",
     "base_type": "Sadist Garb",
-    "art": "doppelgänger_guise.png"
+    "art": "doppelgänger_guise.webp"
   },
   {
     "name": "Inpulsa's Broken Heart",
     "base_type": "Sadist Garb",
-    "art": "inpulsa_s_broken_heart.png"
+    "art": "inpulsa_s_broken_heart.webp"
   },
   {
     "name": "Tinkerskin",
     "base_type": "Sadist Garb",
-    "art": "tinkerskin.png"
+    "art": "tinkerskin.webp"
   },
   {
     "name": "Relic of the Pact",
     "base_type": "Sage Wand",
-    "art": "relic_of_the_pact.png"
+    "art": "relic_of_the_pact.webp"
   },
   {
     "name": "Shade of Solaris",
     "base_type": "Sage Wand",
-    "art": "shade_of_solaris.png"
+    "art": "shade_of_solaris.webp"
   },
   {
     "name": "Unlight Extant",
     "base_type": "Sage Wand",
-    "art": "unlight_extant.png"
+    "art": "unlight_extant.webp"
   },
   {
     "name": "Dialla's Malefaction",
     "base_type": "Sage's Robe",
-    "art": "dialla_s_malefaction.png"
+    "art": "dialla_s_malefaction.webp"
   },
   {
     "name": "Zahndethus' Cassock",
     "base_type": "Sage's Robe",
-    "art": "zahndethus__cassock.png"
+    "art": "zahndethus__cassock.webp"
   },
   {
     "name": "Doryani's Prototype",
     "base_type": "Saint's Hauberk",
-    "art": "doryani_s_prototype.png"
+    "art": "doryani_s_prototype.webp"
   },
   {
     "name": "Sporeguard",
     "base_type": "Saint's Hauberk",
-    "art": "sporeguard.png"
+    "art": "sporeguard.webp"
   },
   {
     "name": "The Ivory Tower",
     "base_type": "Saint's Hauberk",
-    "art": "the_ivory_tower.png"
+    "art": "the_ivory_tower.webp"
   },
   {
     "name": "Chains of Command",
     "base_type": "Saintly Chainmail",
-    "art": "chains_of_command.png"
+    "art": "chains_of_command.webp"
   },
   {
     "name": "Incandescent Heart",
     "base_type": "Saintly Chainmail",
-    "art": "incandescent_heart.png"
+    "art": "incandescent_heart.webp"
   },
   {
     "name": "Kalisa's Grace",
     "base_type": "Samite Gloves",
-    "art": "kalisa_s_grace.png"
+    "art": "kalisa_s_grace.webp"
   },
   {
     "name": "Replica Kalisa's Grace",
     "base_type": "Samite Gloves",
-    "art": "replica_kalisa_s_grace.png"
+    "art": "replica_kalisa_s_grace.webp"
   },
   {
     "name": "Hrimnor's Resolve",
     "base_type": "Samnite Helmet",
-    "art": "hrimnor_s_resolve.png"
+    "art": "hrimnor_s_resolve.webp"
   },
   {
     "name": "Blood of the Karui",
     "base_type": "Sanctified Life Flask",
-    "art": "blood_of_the_karui.png"
+    "art": "blood_of_the_karui.webp"
   },
   {
     "name": "Lavianga's Spirit",
     "base_type": "Sanctified Mana Flask",
-    "art": "lavianga_s_spirit.png"
+    "art": "lavianga_s_spirit.webp"
   },
   {
     "name": "Replica Lavianga's Spirit",
     "base_type": "Sanctified Mana Flask",
-    "art": "replica_lavianga_s_spirit.png"
+    "art": "replica_lavianga_s_spirit.webp"
   },
   {
     "name": "Taste of Hate",
     "base_type": "Sapphire Flask",
-    "art": "taste_of_hate.png"
+    "art": "taste_of_hate.webp"
   },
   {
     "name": "Call of the Void",
     "base_type": "Sapphire Ring",
-    "art": "call_of_the_void.png"
+    "art": "call_of_the_void.webp"
   },
   {
     "name": "Circle of Fear",
     "base_type": "Sapphire Ring",
-    "art": "circle_of_fear.png"
+    "art": "circle_of_fear.webp"
   },
   {
     "name": "Dream Fragments",
     "base_type": "Sapphire Ring",
-    "art": "dream_fragments.png"
+    "art": "dream_fragments.webp"
   },
   {
     "name": "Precursor's Emblem",
     "base_type": "Sapphire Ring",
-    "art": "precursor_s_emblem.png"
+    "art": "precursor_s_emblem.webp"
   },
   {
     "name": "Pyre",
     "base_type": "Sapphire Ring",
-    "art": "pyre.png"
+    "art": "pyre.webp"
   },
   {
     "name": "Replica Tasalio's Sign",
@@ -5162,7 +5162,7 @@
   {
     "name": "Snakepit",
     "base_type": "Sapphire Ring",
-    "art": "snakepit.png"
+    "art": "snakepit.webp"
   },
   {
     "name": "Tasalio's Sign",
@@ -5172,117 +5172,117 @@
   {
     "name": "Uzaza's Meadow",
     "base_type": "Sapphire Ring",
-    "art": "uzaza_s_meadow.png"
+    "art": "uzaza_s_meadow.webp"
   },
   {
     "name": "Uzaza's Mountain",
     "base_type": "Sapphire Ring",
-    "art": "uzaza_s_mountain.png"
+    "art": "uzaza_s_mountain.webp"
   },
   {
     "name": "Uzaza's Valley",
     "base_type": "Sapphire Ring",
-    "art": "uzaza_s_valley.png"
+    "art": "uzaza_s_valley.webp"
   },
   {
     "name": "Allelopathy",
     "base_type": "Satin Gloves",
-    "art": "allelopathy.png"
+    "art": "allelopathy.webp"
   },
   {
     "name": "Demon Stitcher",
     "base_type": "Satin Gloves",
-    "art": "demon_stitcher.png"
+    "art": "demon_stitcher.webp"
   },
   {
     "name": "Replica Allelopathy",
     "base_type": "Satin Gloves",
-    "art": "replica_allelopathy.png"
+    "art": "replica_allelopathy.webp"
   },
   {
     "name": "Scornflux",
     "base_type": "Satin Slippers",
-    "art": "scornflux.png"
+    "art": "scornflux.webp"
   },
   {
     "name": "Cloak of Tawm'r Isley",
     "base_type": "Savant's Robe",
-    "art": "cloak_of_tawm_r_isley.png"
+    "art": "cloak_of_tawm_r_isley.webp"
   },
   {
     "name": "Garb of the Ephemeral",
     "base_type": "Savant's Robe",
-    "art": "garb_of_the_ephemeral.png"
+    "art": "garb_of_the_ephemeral.webp"
   },
   {
     "name": "Shavronne's Gambit",
     "base_type": "Scholar Boots",
-    "art": "shavronne_s_gambit.png"
+    "art": "shavronne_s_gambit.webp"
   },
   {
     "name": "Shavronne's Pace",
     "base_type": "Scholar Boots",
-    "art": "shavronne_s_pace.png"
+    "art": "shavronne_s_pace.webp"
   },
   {
     "name": "Cloak of Flame",
     "base_type": "Scholar's Robe",
-    "art": "cloak_of_flame.png"
+    "art": "cloak_of_flame.webp"
   },
   {
     "name": "Whispers of Infinity",
     "base_type": "Seaglass Amulet",
-    "art": "whispers_of_infinity.png"
+    "art": "whispers_of_infinity.webp"
   },
   {
     "name": "Ulaman's Gaze",
     "base_type": "Searching Eye Jewel",
-    "art": "ulaman_s_gaze.png"
+    "art": "ulaman_s_gaze.webp"
   },
   {
     "name": "Skullhead",
     "base_type": "Secutor Helm",
-    "art": "skullhead.png"
+    "art": "skullhead.webp"
   },
   {
     "name": "Dendrobate",
     "base_type": "Sentinel Jacket",
-    "art": "dendrobate.png"
+    "art": "dendrobate.webp"
   },
   {
     "name": "Expedition's End",
     "base_type": "Sentinel Jacket",
-    "art": "expedition_s_end.png"
+    "art": "expedition_s_end.webp"
   },
   {
     "name": "Cane of Kulemak",
     "base_type": "Serpentine Staff",
-    "art": "cane_of_kulemak.png"
+    "art": "cane_of_kulemak.webp"
   },
   {
     "name": "Sire of Shards",
     "base_type": "Serpentine Staff",
-    "art": "sire_of_shards.png"
+    "art": "sire_of_shards.webp"
   },
   {
     "name": "Mutewind Whispersteps",
     "base_type": "Serpentscale Boots",
-    "art": "mutewind_whispersteps.png"
+    "art": "mutewind_whispersteps.webp"
   },
   {
     "name": "Haemophilia",
     "base_type": "Serpentscale Gauntlets",
-    "art": "haemophilia.png"
+    "art": "haemophilia.webp"
   },
   {
     "name": "Cragfall",
     "base_type": "Serrated Arrow Quiver",
-    "art": "cragfall.png"
+    "art": "cragfall.webp"
   },
   {
     "name": "Craghead",
     "base_type": "Serrated Arrow Quiver",
-    "art": "craghead.png"
+    "art": "craghead.webp"
   },
   {
     "name": "Slivers of Providence",
@@ -5292,217 +5292,217 @@
   {
     "name": "Veruso's Ambition",
     "base_type": "Shackled Boots",
-    "art": "veruso_s_ambition.png"
+    "art": "veruso_s_ambition.webp"
   },
   {
     "name": "Reaper's Pursuit",
     "base_type": "Shadow Axe",
-    "art": "reaper_s_pursuit.png"
+    "art": "reaper_s_pursuit.webp"
   },
   {
     "name": "Bitterdream",
     "base_type": "Shadow Sceptre",
-    "art": "bitterdream.png"
+    "art": "bitterdream.webp"
   },
   {
     "name": "Replica Bitterdream",
     "base_type": "Shadow Sceptre",
-    "art": "replica_bitterdream.png"
+    "art": "replica_bitterdream.webp"
   },
   {
     "name": "The Dark Seer",
     "base_type": "Shadow Sceptre",
-    "art": "the_dark_seer.png"
+    "art": "the_dark_seer.webp"
   },
   {
     "name": "Replica Three-step Assault",
     "base_type": "Shagreen Boots",
-    "art": "replica_three_step_assault.png"
+    "art": "replica_three_step_assault.webp"
   },
   {
     "name": "Temptation Step",
     "base_type": "Shagreen Boots",
-    "art": "temptation_step.png"
+    "art": "temptation_step.webp"
   },
   {
     "name": "Three-step Assault",
     "base_type": "Shagreen Boots",
-    "art": "three_step_assault.png"
+    "art": "three_step_assault.webp"
   },
   {
     "name": "Painseeker",
     "base_type": "Shagreen Gloves",
-    "art": "painseeker.png"
+    "art": "painseeker.webp"
   },
   {
     "name": "The Blood Dance",
     "base_type": "Sharkskin Boots",
-    "art": "the_blood_dance.png"
+    "art": "the_blood_dance.webp"
   },
   {
     "name": "The Rat Cage",
     "base_type": "Sharkskin Tunic",
-    "art": "the_rat_cage.png"
+    "art": "the_rat_cage.webp"
   },
   {
     "name": "Ahuana's Bite",
     "base_type": "Sharktooth Arrow Quiver",
-    "art": "ahuana_s_bite.png"
+    "art": "ahuana_s_bite.webp"
   },
   {
     "name": "Hyrri's Bite",
     "base_type": "Sharktooth Arrow Quiver",
-    "art": "hyrri_s_bite.png"
+    "art": "hyrri_s_bite.webp"
   },
   {
     "name": "Hyrri's Demise",
     "base_type": "Sharktooth Arrow Quiver",
-    "art": "hyrri_s_demise.png"
+    "art": "hyrri_s_demise.webp"
   },
   {
     "name": "Quill Rain",
     "base_type": "Short Bow",
-    "art": "quill_rain.png"
+    "art": "quill_rain.webp"
   },
   {
     "name": "Replica Quill Rain",
     "base_type": "Short Bow",
-    "art": "replica_quill_rain.png"
+    "art": "replica_quill_rain.webp"
   },
   {
     "name": "Replica Soul Taker",
     "base_type": "Siege Axe",
-    "art": "replica_soul_taker.png"
+    "art": "replica_soul_taker.webp"
   },
   {
     "name": "Soul Taker",
     "base_type": "Siege Axe",
-    "art": "soul_taker.png"
+    "art": "soul_taker.webp"
   },
   {
     "name": "Kaom's Command",
     "base_type": "Siege Helmet",
-    "art": "kaom_s_command.png"
+    "art": "kaom_s_command.webp"
   },
   {
     "name": "Asenath's Gentle Touch",
     "base_type": "Silk Gloves",
-    "art": "asenath_s_gentle_touch.png"
+    "art": "asenath_s_gentle_touch.webp"
   },
   {
     "name": "Bones of Ullr",
     "base_type": "Silk Slippers",
-    "art": "bones_of_ullr.png"
+    "art": "bones_of_ullr.webp"
   },
   {
     "name": "Replica Bones of Ullr",
     "base_type": "Silk Slippers",
-    "art": "replica_bones_of_ullr.png"
+    "art": "replica_bones_of_ullr.webp"
   },
   {
     "name": "Cowl of the Cryophile",
     "base_type": "Silken Hood",
-    "art": "cowl_of_the_cryophile.png"
+    "art": "cowl_of_the_cryophile.webp"
   },
   {
     "name": "Saqawal's Flock",
     "base_type": "Silken Hood",
-    "art": "saqawal_s_flock.png"
+    "art": "saqawal_s_flock.webp"
   },
   {
     "name": "Starkonja's Head",
     "base_type": "Silken Hood",
-    "art": "starkonja_s_head.png"
+    "art": "starkonja_s_head.webp"
   },
   {
     "name": "Ghostwrithe",
     "base_type": "Silken Vest",
-    "art": "ghostwrithe.png"
+    "art": "ghostwrithe.webp"
   },
   {
     "name": "Cinderswallow Urn",
     "base_type": "Silver Flask",
-    "art": "cinderswallow_urn.png"
+    "art": "cinderswallow_urn.webp"
   },
   {
     "name": "Kiara's Determination",
     "base_type": "Silver Flask",
-    "art": "kiara_s_determination.png"
+    "art": "kiara_s_determination.webp"
   },
   {
     "name": "Skin of the Lords",
     "base_type": "Simple Robe",
-    "art": "skin_of_the_lords.png"
+    "art": "skin_of_the_lords.webp"
   },
   {
     "name": "Skin of the Loyal",
     "base_type": "Simple Robe",
-    "art": "skin_of_the_loyal.png"
+    "art": "skin_of_the_loyal.webp"
   },
   {
     "name": "Tabula Rasa",
     "base_type": "Simple Robe",
-    "art": "tabula_rasa.png"
+    "art": "tabula_rasa.webp"
   },
   {
     "name": "Thousand Ribbons",
     "base_type": "Simple Robe",
-    "art": "thousand_ribbons.png"
+    "art": "thousand_ribbons.webp"
   },
   {
     "name": "Alpha's Howl",
     "base_type": "Sinner Tricorne",
-    "art": "alpha_s_howl.png"
+    "art": "alpha_s_howl.webp"
   },
   {
     "name": "Assailum",
     "base_type": "Sinner Tricorne",
-    "art": "assailum.png"
+    "art": "assailum.webp"
   },
   {
     "name": "Replica Alpha's Howl",
     "base_type": "Sinner Tricorne",
-    "art": "replica_alpha_s_howl.png"
+    "art": "replica_alpha_s_howl.webp"
   },
   {
     "name": "Goredrill",
     "base_type": "Skinning Knife",
-    "art": "goredrill.png"
+    "art": "goredrill.webp"
   },
   {
     "name": "Sanguine Gambol",
     "base_type": "Skinning Knife",
-    "art": "sanguine_gambol.png"
+    "art": "sanguine_gambol.webp"
   },
   {
     "name": "Bino's Kitchen Knife",
     "base_type": "Slaughter Knife",
-    "art": "bino_s_kitchen_knife.png"
+    "art": "bino_s_kitchen_knife.webp"
   },
   {
     "name": "Hrimnor's Dirge",
     "base_type": "Sledgehammer",
-    "art": "hrimnor_s_dirge.png"
+    "art": "hrimnor_s_dirge.webp"
   },
   {
     "name": "Hrimnor's Hymn",
     "base_type": "Sledgehammer",
-    "art": "hrimnor_s_hymn.png"
+    "art": "hrimnor_s_hymn.webp"
   },
   {
     "name": "Atziri's Step",
     "base_type": "Slink Boots",
-    "art": "atziri_s_step.png"
+    "art": "atziri_s_step.webp"
   },
   {
     "name": "Doryani's Delusion",
     "base_type": "Slink Boots",
-    "art": "doryani_s_delusion.png"
+    "art": "doryani_s_delusion.webp"
   },
   {
     "name": "Farrul's Chase",
     "base_type": "Slink Boots",
-    "art": "farrul_s_chase.png"
+    "art": "farrul_s_chase.webp"
   },
   {
     "name": "Mercenary's Lot",
@@ -5512,212 +5512,212 @@
   {
     "name": "Calamitous Visions",
     "base_type": "Small Cluster Jewel",
-    "art": "calamitous_visions.png"
+    "art": "calamitous_visions.webp"
   },
   {
     "name": "Kitava's Teachings",
     "base_type": "Small Cluster Jewel",
-    "art": "kitava_s_teachings.png"
+    "art": "kitava_s_teachings.webp"
   },
   {
     "name": "Natural Affinity",
     "base_type": "Small Cluster Jewel",
-    "art": "natural_affinity.png"
+    "art": "natural_affinity.webp"
   },
   {
     "name": "One With Nothing",
     "base_type": "Small Cluster Jewel",
-    "art": "one_with_nothing.png"
+    "art": "one_with_nothing.webp"
   },
   {
     "name": "The Front Line",
     "base_type": "Small Cluster Jewel",
-    "art": "the_front_line.png"
+    "art": "the_front_line.webp"
   },
   {
     "name": "The Interrogation",
     "base_type": "Small Cluster Jewel",
-    "art": "the_interrogation.png"
+    "art": "the_interrogation.webp"
   },
   {
     "name": "The Siege",
     "base_type": "Small Cluster Jewel",
-    "art": "the_siege.png"
+    "art": "the_siege.webp"
   },
   {
     "name": "Cowl of the Ceraunophile",
     "base_type": "Solaris Circlet",
-    "art": "cowl_of_the_ceraunophile.png"
+    "art": "cowl_of_the_ceraunophile.webp"
   },
   {
     "name": "Flamesight",
     "base_type": "Solaris Circlet",
-    "art": "flamesight.png"
+    "art": "flamesight.webp"
   },
   {
     "name": "Galesight",
     "base_type": "Solaris Circlet",
-    "art": "galesight.png"
+    "art": "galesight.webp"
   },
   {
     "name": "Thundersight",
     "base_type": "Solaris Circlet",
-    "art": "thundersight.png"
+    "art": "thundersight.webp"
   },
   {
     "name": "Wilma's Requital",
     "base_type": "Solaris Circlet",
-    "art": "wilma_s_requital.png"
+    "art": "wilma_s_requital.webp"
   },
   {
     "name": "Alberon's Warpath",
     "base_type": "Soldier Boots",
-    "art": "alberon_s_warpath.png"
+    "art": "alberon_s_warpath.webp"
   },
   {
     "name": "Replica Alberon's Warpath",
     "base_type": "Soldier Boots",
-    "art": "replica_alberon_s_warpath.png"
+    "art": "replica_alberon_s_warpath.webp"
   },
   {
     "name": "Saqawal's Winds",
     "base_type": "Soldier Gloves",
-    "art": "saqawal_s_winds.png"
+    "art": "saqawal_s_winds.webp"
   },
   {
     "name": "Southbound",
     "base_type": "Soldier Gloves",
-    "art": "southbound.png"
+    "art": "southbound.webp"
   },
   {
     "name": "Honourhome",
     "base_type": "Soldier Helmet",
-    "art": "honourhome.png"
+    "art": "honourhome.webp"
   },
   {
     "name": "The Poet's Pen",
     "base_type": "Somatic Wand",
-    "art": "the_poet_s_pen.png"
+    "art": "the_poet_s_pen.webp"
   },
   {
     "name": "Doryani's Delusion",
     "base_type": "Sorcerer Boots",
-    "art": "doryani_s_delusion.png"
+    "art": "doryani_s_delusion.webp"
   },
   {
     "name": "Skyforth",
     "base_type": "Sorcerer Boots",
-    "art": "skyforth.png"
+    "art": "skyforth.webp"
   },
   {
     "name": "Steppan Eard",
     "base_type": "Sorcerer Boots",
-    "art": "steppan_eard.png"
+    "art": "steppan_eard.webp"
   },
   {
     "name": "Qotra's Regulator",
     "base_type": "Sovereign Spiked Shield",
-    "art": "qotra_s_regulator.png"
+    "art": "qotra_s_regulator.webp"
   },
   {
     "name": "The Grey Wind",
     "base_type": "Spectral Axe",
-    "art": "the_grey_wind.png"
+    "art": "the_grey_wind.webp"
   },
   {
     "name": "Replica Covenant",
     "base_type": "Spidersilk Robe",
-    "art": "replica_covenant.png"
+    "art": "replica_covenant.webp"
   },
   {
     "name": "Soul Mantle",
     "base_type": "Spidersilk Robe",
-    "art": "soul_mantle.png"
+    "art": "soul_mantle.webp"
   },
   {
     "name": "The Covenant",
     "base_type": "Spidersilk Robe",
-    "art": "the_covenant.png"
+    "art": "the_covenant.webp"
   },
   {
     "name": "Replica Soul Strike",
     "base_type": "Spike-Point Arrow Quiver",
-    "art": "replica_soul_strike.png"
+    "art": "replica_soul_strike.webp"
   },
   {
     "name": "Soul Strike",
     "base_type": "Spike-Point Arrow Quiver",
-    "art": "soul_strike.png"
+    "art": "soul_strike.webp"
   },
   {
     "name": "Gorebreaker",
     "base_type": "Spiked Club",
-    "art": "gorebreaker.png"
+    "art": "gorebreaker.webp"
   },
   {
     "name": "Ceaseless Feast",
     "base_type": "Spiked Gloves",
-    "art": "ceaseless_feast.png"
+    "art": "ceaseless_feast.webp"
   },
   {
     "name": "Reach of the Council",
     "base_type": "Spine Bow",
-    "art": "reach_of_the_council.png"
+    "art": "reach_of_the_council.webp"
   },
   {
     "name": "Voltaxic Rift",
     "base_type": "Spine Bow",
-    "art": "voltaxic_rift.png"
+    "art": "voltaxic_rift.webp"
   },
   {
     "name": "Bitter Instinct",
     "base_type": "Spiny Round Shield",
-    "art": "bitter_instinct.png"
+    "art": "bitter_instinct.webp"
   },
   {
     "name": "Amplification Rod",
     "base_type": "Spiraled Wand",
-    "art": "amplification_rod.png"
+    "art": "amplification_rod.webp"
   },
   {
     "name": "Reverberation Rod",
     "base_type": "Spiraled Wand",
-    "art": "reverberation_rod.png"
+    "art": "reverberation_rod.webp"
   },
   {
     "name": "Storm Prison",
     "base_type": "Spiraled Wand",
-    "art": "storm_prison.png"
+    "art": "storm_prison.webp"
   },
   {
     "name": "Grasping Nightshade",
     "base_type": "Sporebloom Tincture",
-    "art": "grasping_nightshade.png"
+    "art": "grasping_nightshade.webp"
   },
   {
     "name": "Garukhan's Flight",
     "base_type": "Stealth Boots",
-    "art": "garukhan_s_flight.png"
+    "art": "garukhan_s_flight.webp"
   },
   {
     "name": "Sin Trek",
     "base_type": "Stealth Boots",
-    "art": "sin_trek.png"
+    "art": "sin_trek.webp"
   },
   {
     "name": "Maw of Conquest",
     "base_type": "Steel Circlet",
-    "art": "maw_of_conquest.png"
+    "art": "maw_of_conquest.webp"
   },
   {
     "name": "Sudden Dawn",
     "base_type": "Steel Circlet",
-    "art": "sudden_dawn.png"
+    "art": "sudden_dawn.webp"
   },
   {
     "name": "Meginord's Vise",
     "base_type": "Steel Gauntlets",
-    "art": "meginord_s_vise.png"
+    "art": "meginord_s_vise.webp"
   },
   {
     "name": "Emperor's Vigilance",
@@ -5727,252 +5727,252 @@
   {
     "name": "Mahuxotl's Machination",
     "base_type": "Steel Kite Shield",
-    "art": "mahuxotl_s_machination.png"
+    "art": "mahuxotl_s_machination.webp"
   },
   {
     "name": "Betrayal's Sting",
     "base_type": "Steel Ring",
-    "art": "betrayal_s_sting.png"
+    "art": "betrayal_s_sting.webp"
   },
   {
     "name": "Mark of the Elder",
     "base_type": "Steel Ring",
-    "art": "mark_of_the_elder.png"
+    "art": "mark_of_the_elder.webp"
   },
   {
     "name": "Woespike",
     "base_type": "Steel Ring",
-    "art": "woespike.png"
+    "art": "woespike.webp"
   },
   {
     "name": "Jorrhast's Blacksteel",
     "base_type": "Steelhead",
-    "art": "jorrhast_s_blacksteel.png"
+    "art": "jorrhast_s_blacksteel.webp"
   },
   {
     "name": "Aurseize",
     "base_type": "Steelscale Gauntlets",
-    "art": "aurseize.png"
+    "art": "aurseize.webp"
   },
   {
     "name": "Tombfist",
     "base_type": "Steelscale Gauntlets",
-    "art": "tombfist.png"
+    "art": "tombfist.webp"
   },
   {
     "name": "The Crimson Storm",
     "base_type": "Steelwood Bow",
-    "art": "the_crimson_storm.png"
+    "art": "the_crimson_storm.webp"
   },
   {
     "name": "Replica Witchfire Brew",
     "base_type": "Stibnite Flask",
-    "art": "replica_witchfire_brew.png"
+    "art": "replica_witchfire_brew.webp"
   },
   {
     "name": "Sin's Rebirth",
     "base_type": "Stibnite Flask",
-    "art": "sin_s_rebirth.png"
+    "art": "sin_s_rebirth.webp"
   },
   {
     "name": "Witchfire Brew",
     "base_type": "Stibnite Flask",
-    "art": "witchfire_brew.png"
+    "art": "witchfire_brew.webp"
   },
   {
     "name": "Bloodplay",
     "base_type": "Stiletto",
-    "art": "bloodplay.png"
+    "art": "bloodplay.webp"
   },
   {
     "name": "Replica Bloodplay",
     "base_type": "Stiletto",
-    "art": "replica_bloodplay.png"
+    "art": "replica_bloodplay.webp"
   },
   {
     "name": "Nomic's Storm",
     "base_type": "Strapped Boots",
-    "art": "nomic_s_storm.png"
+    "art": "nomic_s_storm.webp"
   },
   {
     "name": "Wildwrap",
     "base_type": "Strapped Leather",
-    "art": "wildwrap.png"
+    "art": "wildwrap.webp"
   },
   {
     "name": "Facebreaker",
     "base_type": "Strapped Mitts",
-    "art": "facebreaker.png"
+    "art": "facebreaker.webp"
   },
   {
     "name": "Ryslatha's Coil",
     "base_type": "Studded Belt",
-    "art": "ryslatha_s_coil.png"
+    "art": "ryslatha_s_coil.webp"
   },
   {
     "name": "The Magnate",
     "base_type": "Studded Belt",
-    "art": "the_magnate.png"
+    "art": "the_magnate.webp"
   },
   {
     "name": "The Nomad",
     "base_type": "Studded Belt",
-    "art": "the_nomad.png"
+    "art": "the_nomad.webp"
   },
   {
     "name": "The Tactician",
     "base_type": "Studded Belt",
-    "art": "the_tactician.png"
+    "art": "the_tactician.webp"
   },
   {
     "name": "Ynda's Stand",
     "base_type": "Studded Belt",
-    "art": "ynda_s_stand.png"
+    "art": "ynda_s_stand.webp"
   },
   {
     "name": "The Deep One's Hide",
     "base_type": "Studded Round Shield",
-    "art": "the_deep_one_s_hide.png"
+    "art": "the_deep_one_s_hide.webp"
   },
   {
     "name": "Darkness Enthroned",
     "base_type": "Stygian Vise",
-    "art": "darkness_enthroned.png"
+    "art": "darkness_enthroned.webp"
   },
   {
     "name": "Bottled Faith",
     "base_type": "Sulphur Flask",
-    "art": "bottled_faith.png"
+    "art": "bottled_faith.webp"
   },
   {
     "name": "Replica Sorrow of the Divine",
     "base_type": "Sulphur Flask",
-    "art": "replica_sorrow_of_the_divine.png"
+    "art": "replica_sorrow_of_the_divine.webp"
   },
   {
     "name": "The Overflowing Chalice",
     "base_type": "Sulphur Flask",
-    "art": "the_overflowing_chalice.png"
+    "art": "the_overflowing_chalice.webp"
   },
   {
     "name": "The Sorrow of the Divine",
     "base_type": "Sulphur Flask",
-    "art": "the_sorrow_of_the_divine.png"
+    "art": "the_sorrow_of_the_divine.webp"
   },
   {
     "name": "Briskwrap",
     "base_type": "Sun Leather",
-    "art": "briskwrap.png"
+    "art": "briskwrap.webp"
   },
   {
     "name": "Jaws of Agony",
     "base_type": "Supreme Spiked Shield",
-    "art": "jaws_of_agony.png"
+    "art": "jaws_of_agony.webp"
   },
   {
     "name": "The Will of Esh",
     "base_type": "Synaptic Ring",
-    "art": "the_will_of_esh.png"
+    "art": "the_will_of_esh.webp"
   },
   {
     "name": "Brinerot Flag",
     "base_type": "Tarnished Spirit Shield",
-    "art": "brinerot_flag.png"
+    "art": "brinerot_flag.webp"
   },
   {
     "name": "Matua Tupuna",
     "base_type": "Tarnished Spirit Shield",
-    "art": "matua_tupuna.png"
+    "art": "matua_tupuna.webp"
   },
   {
     "name": "Whakatutuki o Matua",
     "base_type": "Tarnished Spirit Shield",
-    "art": "whakatutuki_o_matua.png"
+    "art": "whakatutuki_o_matua.webp"
   },
   {
     "name": "The Ghastly Theatre",
     "base_type": "Teak Round Shield",
-    "art": "the_ghastly_theatre.png"
+    "art": "the_ghastly_theatre.webp"
   },
   {
     "name": "Rive",
     "base_type": "Terror Claw",
-    "art": "rive.png"
+    "art": "rive.webp"
   },
   {
     "name": "The Scourge",
     "base_type": "Terror Claw",
-    "art": "the_scourge.png"
+    "art": "the_scourge.webp"
   },
   {
     "name": "Kongor's Undying Rage",
     "base_type": "Terror Maul",
-    "art": "kongor_s_undying_rage.png"
+    "art": "kongor_s_undying_rage.webp"
   },
   {
     "name": "Replica Kongor's Undying Rage",
     "base_type": "Terror Maul",
-    "art": "replica_kongor_s_undying_rage.png"
+    "art": "replica_kongor_s_undying_rage.webp"
   },
   {
     "name": "Cybil's Paw",
     "base_type": "Thresher Claw",
-    "art": "cybil_s_paw.png"
+    "art": "cybil_s_paw.webp"
   },
   {
     "name": "The Wasp Nest",
     "base_type": "Throat Stabber",
-    "art": "the_wasp_nest.png"
+    "art": "the_wasp_nest.webp"
   },
   {
     "name": "Terminus Est",
     "base_type": "Tiger Sword",
-    "art": "terminus_est.png"
+    "art": "terminus_est.webp"
   },
   {
     "name": "Brutal Restraint",
     "base_type": "Timeless Jewel",
-    "art": "brutal_restraint.png"
+    "art": "brutal_restraint.webp"
   },
   {
     "name": "Elegant Hubris",
     "base_type": "Timeless Jewel",
-    "art": "elegant_hubris.png"
+    "art": "elegant_hubris.webp"
   },
   {
     "name": "Glorious Vanity",
     "base_type": "Timeless Jewel",
-    "art": "glorious_vanity.png"
+    "art": "glorious_vanity.webp"
   },
   {
     "name": "Heroic Tragedy",
     "base_type": "Timeless Jewel",
-    "art": "heroic_tragedy.png"
+    "art": "heroic_tragedy.webp"
   },
   {
     "name": "Lethal Pride",
     "base_type": "Timeless Jewel",
-    "art": "lethal_pride.png"
+    "art": "lethal_pride.webp"
   },
   {
     "name": "Militant Faith",
     "base_type": "Timeless Jewel",
-    "art": "militant_faith.png"
+    "art": "militant_faith.webp"
   },
   {
     "name": "Al Dhih",
     "base_type": "Timeworn Claw",
-    "art": "al_dhih.png"
+    "art": "al_dhih.webp"
   },
   {
     "name": "Craiceann's Pincers",
     "base_type": "Titan Gauntlets",
-    "art": "craiceann_s_pincers.png"
+    "art": "craiceann_s_pincers.webp"
   },
   {
     "name": "Kaom's Spirit",
     "base_type": "Titan Gauntlets",
-    "art": "kaom_s_spirit.png"
+    "art": "kaom_s_spirit.webp"
   },
   {
     "name": "Veruso's Battering Rams",
@@ -5982,42 +5982,42 @@
   {
     "name": "Doryani's Delusion",
     "base_type": "Titan Greaves",
-    "art": "doryani_s_delusion.png"
+    "art": "doryani_s_delusion.webp"
   },
   {
     "name": "Kaom's Roots",
     "base_type": "Titan Greaves",
-    "art": "kaom_s_roots.png"
+    "art": "kaom_s_roots.webp"
   },
   {
     "name": "Replica Red Trail",
     "base_type": "Titan Greaves",
-    "art": "replica_red_trail.png"
+    "art": "replica_red_trail.webp"
   },
   {
     "name": "The Infinite Pursuit",
     "base_type": "Titan Greaves",
-    "art": "the_infinite_pursuit.png"
+    "art": "the_infinite_pursuit.webp"
   },
   {
     "name": "The Red Trail",
     "base_type": "Titan Greaves",
-    "art": "the_red_trail.png"
+    "art": "the_red_trail.webp"
   },
   {
     "name": "Bitterbind Point",
     "base_type": "Titanium Spirit Shield",
-    "art": "bitterbind_point.png"
+    "art": "bitterbind_point.webp"
   },
   {
     "name": "Rathpith Globe",
     "base_type": "Titanium Spirit Shield",
-    "art": "rathpith_globe.png"
+    "art": "rathpith_globe.webp"
   },
   {
     "name": "Moonbender's Wing",
     "base_type": "Tomahawk",
-    "art": "moonbender_s_wing.png"
+    "art": "moonbender_s_wing.webp"
   },
   {
     "name": "The Broken Censer",
@@ -6032,287 +6032,287 @@
   {
     "name": "Vessel of Vinktar",
     "base_type": "Topaz Flask",
-    "art": "vessel_of_vinktar.png"
+    "art": "vessel_of_vinktar.webp"
   },
   {
     "name": "Astral Projector",
     "base_type": "Topaz Ring",
-    "art": "astral_projector.png"
+    "art": "astral_projector.webp"
   },
   {
     "name": "Circle of Regret",
     "base_type": "Topaz Ring",
-    "art": "circle_of_regret.png"
+    "art": "circle_of_regret.webp"
   },
   {
     "name": "Kikazaru",
     "base_type": "Topaz Ring",
-    "art": "kikazaru.png"
+    "art": "kikazaru.webp"
   },
   {
     "name": "Nimis",
     "base_type": "Topaz Ring",
-    "art": "nimis.png"
+    "art": "nimis.webp"
   },
   {
     "name": "Precursor's Emblem",
     "base_type": "Topaz Ring",
-    "art": "precursor_s_emblem.png"
+    "art": "precursor_s_emblem.webp"
   },
   {
     "name": "Putembo's Meadow",
     "base_type": "Topaz Ring",
-    "art": "putembo_s_meadow.png"
+    "art": "putembo_s_meadow.webp"
   },
   {
     "name": "Putembo's Mountain",
     "base_type": "Topaz Ring",
-    "art": "putembo_s_mountain.png"
+    "art": "putembo_s_mountain.webp"
   },
   {
     "name": "Putembo's Valley",
     "base_type": "Topaz Ring",
-    "art": "putembo_s_valley.png"
+    "art": "putembo_s_valley.webp"
   },
   {
     "name": "Storm Secret",
     "base_type": "Topaz Ring",
-    "art": "storm_secret.png"
+    "art": "storm_secret.webp"
   },
   {
     "name": "Valako's Sign",
     "base_type": "Topaz Ring",
-    "art": "valako_s_sign.png"
+    "art": "valako_s_sign.webp"
   },
   {
     "name": "Shimmeron",
     "base_type": "Tornado Wand",
-    "art": "shimmeron.png"
+    "art": "shimmeron.webp"
   },
   {
     "name": "Servant of Decay",
     "base_type": "Torturer Garb",
-    "art": "servant_of_decay.png"
+    "art": "servant_of_decay.webp"
   },
   {
     "name": "Brinerot Whalers",
     "base_type": "Trapper Boots",
-    "art": "brinerot_whalers.png"
+    "art": "brinerot_whalers.webp"
   },
   {
     "name": "Mark of the Red Covenant",
     "base_type": "Tribal Circlet",
-    "art": "mark_of_the_red_covenant.png"
+    "art": "mark_of_the_red_covenant.webp"
   },
   {
     "name": "Fairgraves' Tricorne",
     "base_type": "Tricorne",
-    "art": "fairgraves__tricorne.png"
+    "art": "fairgraves__tricorne.webp"
   },
   {
     "name": "Cherrubim's Maleficence",
     "base_type": "Triumphant Lamellar",
-    "art": "cherrubim_s_maleficence.png"
+    "art": "cherrubim_s_maleficence.webp"
   },
   {
     "name": "Farrul's Fur",
     "base_type": "Triumphant Lamellar",
-    "art": "farrul_s_fur.png"
+    "art": "farrul_s_fur.webp"
   },
   {
     "name": "Replica Farrul's Fur",
     "base_type": "Triumphant Lamellar",
-    "art": "replica_farrul_s_fur.png"
+    "art": "replica_farrul_s_fur.webp"
   },
   {
     "name": "Badge of the Brotherhood",
     "base_type": "Turquoise Amulet",
-    "art": "badge_of_the_brotherhood.png"
+    "art": "badge_of_the_brotherhood.webp"
   },
   {
     "name": "Fury Valve",
     "base_type": "Turquoise Amulet",
-    "art": "fury_valve.png"
+    "art": "fury_valve.webp"
   },
   {
     "name": "Haunting Memories",
     "base_type": "Turquoise Amulet",
-    "art": "haunting_memories.png"
+    "art": "haunting_memories.webp"
   },
   {
     "name": "Maligaro's Cruelty",
     "base_type": "Turquoise Amulet",
-    "art": "maligaro_s_cruelty.png"
+    "art": "maligaro_s_cruelty.webp"
   },
   {
     "name": "Replica Badge of the Brotherhood",
     "base_type": "Turquoise Amulet",
-    "art": "replica_badge_of_the_brotherhood.png"
+    "art": "replica_badge_of_the_brotherhood.webp"
   },
   {
     "name": "Ungil's Harmony",
     "base_type": "Turquoise Amulet",
-    "art": "ungil_s_harmony.png"
+    "art": "ungil_s_harmony.webp"
   },
   {
     "name": "Victario's Acuity",
     "base_type": "Turquoise Amulet",
-    "art": "victario_s_acuity.png"
+    "art": "victario_s_acuity.webp"
   },
   {
     "name": "Warped Timepiece",
     "base_type": "Turquoise Amulet",
-    "art": "warped_timepiece.png"
+    "art": "warped_timepiece.webp"
   },
   {
     "name": "Prismatic Eclipse",
     "base_type": "Twilight Blade",
-    "art": "prismatic_eclipse.png"
+    "art": "prismatic_eclipse.webp"
   },
   {
     "name": "Rigwald's Quills",
     "base_type": "Two-Point Arrow Quiver",
-    "art": "rigwald_s_quills.png"
+    "art": "rigwald_s_quills.webp"
   },
   {
     "name": "Skirmish",
     "base_type": "Two-Point Arrow Quiver",
-    "art": "skirmish.png"
+    "art": "skirmish.webp"
   },
   {
     "name": "Berek's Grip",
     "base_type": "Two-Stone Ring",
-    "art": "berek_s_grip.png"
+    "art": "berek_s_grip.webp"
   },
   {
     "name": "Berek's Pass",
     "base_type": "Two-Stone Ring",
-    "art": "berek_s_pass.png"
+    "art": "berek_s_pass.webp"
   },
   {
     "name": "Berek's Respite",
     "base_type": "Two-Stone Ring",
-    "art": "berek_s_respite.png"
+    "art": "berek_s_respite.webp"
   },
   {
     "name": "Call of the Brotherhood",
     "base_type": "Two-Stone Ring",
-    "art": "call_of_the_brotherhood.png"
+    "art": "call_of_the_brotherhood.webp"
   },
   {
     "name": "Precursor's Emblem",
     "base_type": "Two-Stone Ring",
-    "art": "precursor_s_emblem.png"
+    "art": "precursor_s_emblem.webp"
   },
   {
     "name": "Rigwald's Crest",
     "base_type": "Two-Stone Ring",
-    "art": "rigwald_s_crest.png"
+    "art": "rigwald_s_crest.webp"
   },
   {
     "name": "Beacon of Madness",
     "base_type": "Two-Toned Boots",
-    "art": "beacon_of_madness.png"
+    "art": "beacon_of_madness.webp"
   },
   {
     "name": "Sign of the Sin Eater",
     "base_type": "Tyrant's Sekhem",
-    "art": "sign_of_the_sin_eater.png"
+    "art": "sign_of_the_sin_eater.webp"
   },
   {
     "name": "The Sands of Time",
     "base_type": "Tyrant's Sekhem",
-    "art": "the_sands_of_time.png"
+    "art": "the_sands_of_time.webp"
   },
   {
     "name": "Uul-Netol's Vow",
     "base_type": "Unset Amulet",
-    "art": "uul_netol_s_vow.png"
+    "art": "uul_netol_s_vow.webp"
   },
   {
     "name": "Angler's Plait",
     "base_type": "Unset Ring",
-    "art": "angler_s_plait.png"
+    "art": "angler_s_plait.webp"
   },
   {
     "name": "Brinerot Mark",
     "base_type": "Unset Ring",
-    "art": "brinerot_mark.png"
+    "art": "brinerot_mark.webp"
   },
   {
     "name": "Essence Worm",
     "base_type": "Unset Ring",
-    "art": "essence_worm.png"
+    "art": "essence_worm.webp"
   },
   {
     "name": "Malachai's Artifice",
     "base_type": "Unset Ring",
-    "art": "malachai_s_artifice.png"
+    "art": "malachai_s_artifice.webp"
   },
   {
     "name": "Mark of Submission",
     "base_type": "Unset Ring",
-    "art": "mark_of_submission.png"
+    "art": "mark_of_submission.webp"
   },
   {
     "name": "Mutewind Seal",
     "base_type": "Unset Ring",
-    "art": "mutewind_seal.png"
+    "art": "mutewind_seal.webp"
   },
   {
     "name": "Profane Proxy",
     "base_type": "Unset Ring",
-    "art": "profane_proxy.png"
+    "art": "profane_proxy.webp"
   },
   {
     "name": "Redblade Band",
     "base_type": "Unset Ring",
-    "art": "redblade_band.png"
+    "art": "redblade_band.webp"
   },
   {
     "name": "Replica Malachai's Artifice",
     "base_type": "Unset Ring",
-    "art": "replica_malachai_s_artifice.png"
+    "art": "replica_malachai_s_artifice.webp"
   },
   {
     "name": "Replica Voideye",
     "base_type": "Unset Ring",
-    "art": "replica_voideye.png"
+    "art": "replica_voideye.webp"
   },
   {
     "name": "Rotblood Promise",
     "base_type": "Unset Ring",
-    "art": "rotblood_promise.png"
+    "art": "rotblood_promise.webp"
   },
   {
     "name": "Squirming Terror",
     "base_type": "Unset Ring",
-    "art": "squirming_terror.png"
+    "art": "squirming_terror.webp"
   },
   {
     "name": "The Hungry Loop",
     "base_type": "Unset Ring",
-    "art": "the_hungry_loop.png"
+    "art": "the_hungry_loop.webp"
   },
   {
     "name": "The Pariah",
     "base_type": "Unset Ring",
-    "art": "the_pariah.png"
+    "art": "the_pariah.webp"
   },
   {
     "name": "Triumvirate Authority",
     "base_type": "Unset Ring",
-    "art": "triumvirate_authority.png"
+    "art": "triumvirate_authority.webp"
   },
   {
     "name": "Vivinsect",
     "base_type": "Unset Ring",
-    "art": "vivinsect.png"
+    "art": "vivinsect.webp"
   },
   {
     "name": "Voideye",
     "base_type": "Unset Ring",
-    "art": "voideye.png"
+    "art": "voideye.webp"
   },
   {
     "name": "The Night Lamp",
@@ -6322,7 +6322,7 @@
   {
     "name": "Rat's Nest",
     "base_type": "Ursine Pelt",
-    "art": "rat_s_nest.png"
+    "art": "rat_s_nest.webp"
   },
   {
     "name": "Ambition",
@@ -6347,72 +6347,72 @@
   {
     "name": "Atziri's Disfavour",
     "base_type": "Vaal Axe",
-    "art": "atziri_s_disfavour.png"
+    "art": "atziri_s_disfavour.webp"
   },
   {
     "name": "Hezmana's Bloodlust",
     "base_type": "Vaal Axe",
-    "art": "hezmana_s_bloodlust.png"
+    "art": "hezmana_s_bloodlust.webp"
   },
   {
     "name": "Uul-Netol's Embrace",
     "base_type": "Vaal Axe",
-    "art": "uul_netol_s_embrace.png"
+    "art": "uul_netol_s_embrace.webp"
   },
   {
     "name": "Uul-Netol's Kiss",
     "base_type": "Vaal Axe",
-    "art": "uul_netol_s_kiss.png"
+    "art": "uul_netol_s_kiss.webp"
   },
   {
     "name": "Rebuke of the Vaal",
     "base_type": "Vaal Blade",
-    "art": "rebuke_of_the_vaal.png"
+    "art": "rebuke_of_the_vaal.webp"
   },
   {
     "name": "Varunastra",
     "base_type": "Vaal Blade",
-    "art": "varunastra.png"
+    "art": "varunastra.webp"
   },
   {
     "name": "Thousand Teeth Temu",
     "base_type": "Vaal Buckler",
-    "art": "thousand_teeth_temu.png"
+    "art": "thousand_teeth_temu.webp"
   },
   {
     "name": "Allure",
     "base_type": "Vaal Claw",
-    "art": "allure.png"
+    "art": "allure.webp"
   },
   {
     "name": "Essentia Sanguis",
     "base_type": "Vaal Claw",
-    "art": "essentia_sanguis.png"
+    "art": "essentia_sanguis.webp"
   },
   {
     "name": "Replica Allure",
     "base_type": "Vaal Claw",
-    "art": "replica_allure.png"
+    "art": "replica_allure.webp"
   },
   {
     "name": "Atziri's Acuity",
     "base_type": "Vaal Gauntlets",
-    "art": "atziri_s_acuity.png"
+    "art": "atziri_s_acuity.webp"
   },
   {
     "name": "Doryani's Fist",
     "base_type": "Vaal Gauntlets",
-    "art": "doryani_s_fist.png"
+    "art": "doryani_s_fist.webp"
   },
   {
     "name": "Replica Atziri's Acuity",
     "base_type": "Vaal Gauntlets",
-    "art": "replica_atziri_s_acuity.png"
+    "art": "replica_atziri_s_acuity.webp"
   },
   {
     "name": "Dawnstrider",
     "base_type": "Vaal Greaves",
-    "art": "dawnstrider.png"
+    "art": "dawnstrider.webp"
   },
   {
     "name": "Jack, the Axe",
@@ -6422,77 +6422,77 @@
   {
     "name": "Fractal Thoughts",
     "base_type": "Vaal Mask",
-    "art": "fractal_thoughts.png"
+    "art": "fractal_thoughts.webp"
   },
   {
     "name": "Glimpse of Chaos",
     "base_type": "Vaal Mask",
-    "art": "glimpse_of_chaos.png"
+    "art": "glimpse_of_chaos.webp"
   },
   {
     "name": "The Vertex",
     "base_type": "Vaal Mask",
-    "art": "the_vertex.png"
+    "art": "the_vertex.webp"
   },
   {
     "name": "Paradoxica",
     "base_type": "Vaal Rapier",
-    "art": "paradoxica.png"
+    "art": "paradoxica.webp"
   },
   {
     "name": "Replica Paradoxica",
     "base_type": "Vaal Rapier",
-    "art": "replica_paradoxica.png"
+    "art": "replica_paradoxica.webp"
   },
   {
     "name": "The Beast Fur Shawl",
     "base_type": "Vaal Regalia",
-    "art": "the_beast_fur_shawl.png"
+    "art": "the_beast_fur_shawl.webp"
   },
   {
     "name": "The Queen's Hunger",
     "base_type": "Vaal Regalia",
-    "art": "the_queen_s_hunger.png"
+    "art": "the_queen_s_hunger.webp"
   },
   {
     "name": "Doon Cuebiyari",
     "base_type": "Vaal Sceptre",
-    "art": "doon_cuebiyari.png"
+    "art": "doon_cuebiyari.webp"
   },
   {
     "name": "Doryani's Catalyst",
     "base_type": "Vaal Sceptre",
-    "art": "doryani_s_catalyst.png"
+    "art": "doryani_s_catalyst.webp"
   },
   {
     "name": "Yaomac's Accord",
     "base_type": "Vaal Sceptre",
-    "art": "yaomac_s_accord.png"
+    "art": "yaomac_s_accord.webp"
   },
   {
     "name": "Apep's Slumber",
     "base_type": "Vaal Spirit Shield",
-    "art": "apep_s_slumber.png"
+    "art": "apep_s_slumber.webp"
   },
   {
     "name": "Apep's Supremacy",
     "base_type": "Vaal Spirit Shield",
-    "art": "apep_s_supremacy.png"
+    "art": "apep_s_supremacy.webp"
   },
   {
     "name": "Esh's Mirror",
     "base_type": "Vaal Spirit Shield",
-    "art": "esh_s_mirror.png"
+    "art": "esh_s_mirror.webp"
   },
   {
     "name": "Esh's Visage",
     "base_type": "Vaal Spirit Shield",
-    "art": "esh_s_visage.png"
+    "art": "esh_s_visage.webp"
   },
   {
     "name": "The Perandus Manor",
     "base_type": "Valdo Map",
-    "art": "the_perandus_manor.png"
+    "art": "the_perandus_manor.webp"
   },
   {
     "name": "Binds of Bloody Vengeance",
@@ -6502,162 +6502,162 @@
   {
     "name": "Perseverance",
     "base_type": "Vanguard Belt",
-    "art": "perseverance.png"
+    "art": "perseverance.webp"
   },
   {
     "name": "The Tides of Time",
     "base_type": "Vanguard Belt",
-    "art": "the_tides_of_time.png"
+    "art": "the_tides_of_time.webp"
   },
   {
     "name": "Carcass Jack",
     "base_type": "Varnished Coat",
-    "art": "carcass_jack.png"
+    "art": "carcass_jack.webp"
   },
   {
     "name": "The Admiral",
     "base_type": "Varnished Coat",
-    "art": "the_admiral.png"
+    "art": "the_admiral.webp"
   },
   {
     "name": "Doedre's Malevolence",
     "base_type": "Velvet Gloves",
-    "art": "doedre_s_malevolence.png"
+    "art": "doedre_s_malevolence.webp"
   },
   {
     "name": "Doedre's Tenure",
     "base_type": "Velvet Gloves",
-    "art": "doedre_s_tenure.png"
+    "art": "doedre_s_tenure.webp"
   },
   {
     "name": "Greedtrap",
     "base_type": "Velvet Slippers",
-    "art": "greedtrap.png"
+    "art": "greedtrap.webp"
   },
   {
     "name": "Wondertrap",
     "base_type": "Velvet Slippers",
-    "art": "wondertrap.png"
+    "art": "wondertrap.webp"
   },
   {
     "name": "Contract: The Twins",
     "base_type": "Vengeful Contract",
-    "art": "contract__the_twins.png"
+    "art": "contract__the_twins.webp"
   },
   {
     "name": "Enmity's Embrace",
     "base_type": "Vermillion Ring",
-    "art": "enmity_s_embrace.png"
+    "art": "enmity_s_embrace.webp"
   },
   {
     "name": "Contract: The Slaver King",
     "base_type": "Vigilante Contract",
-    "art": "contract__the_slaver_king.png"
+    "art": "contract__the_slaver_king.webp"
   },
   {
     "name": "Maloney's Nightfall",
     "base_type": "Vile Arrow Quiver",
-    "art": "maloney_s_nightfall.png"
+    "art": "maloney_s_nightfall.webp"
   },
   {
     "name": "Spinehail",
     "base_type": "Vile Arrow Quiver",
-    "art": "spinehail.png"
+    "art": "spinehail.webp"
   },
   {
     "name": "The Whispering Ice",
     "base_type": "Vile Staff",
-    "art": "the_whispering_ice.png"
+    "art": "the_whispering_ice.webp"
   },
   {
     "name": "Crown of Thorns",
     "base_type": "Vine Circlet",
-    "art": "crown_of_thorns.png"
+    "art": "crown_of_thorns.webp"
   },
   {
     "name": "Martyr's Crown",
     "base_type": "Vine Circlet",
-    "art": "martyr_s_crown.png"
+    "art": "martyr_s_crown.webp"
   },
   {
     "name": "Ancestral Vision",
     "base_type": "Viridian Jewel",
-    "art": "ancestral_vision.png"
+    "art": "ancestral_vision.webp"
   },
   {
     "name": "Apparitions",
     "base_type": "Viridian Jewel",
-    "art": "apparitions.png"
+    "art": "apparitions.webp"
   },
   {
     "name": "Careful Planning",
     "base_type": "Viridian Jewel",
-    "art": "careful_planning.png"
+    "art": "careful_planning.webp"
   },
   {
     "name": "Cheap Construction",
     "base_type": "Viridian Jewel",
-    "art": "cheap_construction.png"
+    "art": "cheap_construction.webp"
   },
   {
     "name": "Chill of Corruption",
     "base_type": "Viridian Jewel",
-    "art": "chill_of_corruption.png"
+    "art": "chill_of_corruption.webp"
   },
   {
     "name": "Cold Steel",
     "base_type": "Viridian Jewel",
-    "art": "cold_steel.png"
+    "art": "cold_steel.webp"
   },
   {
     "name": "Collateral Damage",
     "base_type": "Viridian Jewel",
-    "art": "collateral_damage.png"
+    "art": "collateral_damage.webp"
   },
   {
     "name": "Combat Focus",
     "base_type": "Viridian Jewel",
-    "art": "combat_focus.png"
+    "art": "combat_focus.webp"
   },
   {
     "name": "Conqueror's Longevity",
     "base_type": "Viridian Jewel",
-    "art": "conqueror_s_longevity.png"
+    "art": "conqueror_s_longevity.webp"
   },
   {
     "name": "Emperor's Cunning",
     "base_type": "Viridian Jewel",
-    "art": "emperor_s_cunning.png"
+    "art": "emperor_s_cunning.webp"
   },
   {
     "name": "Fight for Survival",
     "base_type": "Viridian Jewel",
-    "art": "fight_for_survival.png"
+    "art": "fight_for_survival.webp"
   },
   {
     "name": "Fluid Motion",
     "base_type": "Viridian Jewel",
-    "art": "fluid_motion.png"
+    "art": "fluid_motion.webp"
   },
   {
     "name": "Grand Spectrum",
     "base_type": "Viridian Jewel",
-    "art": "grand_spectrum.png"
+    "art": "grand_spectrum.webp"
   },
   {
     "name": "Growing Agony",
     "base_type": "Viridian Jewel",
-    "art": "growing_agony.png"
+    "art": "growing_agony.webp"
   },
   {
     "name": "Hair Trigger",
     "base_type": "Viridian Jewel",
-    "art": "hair_trigger.png"
+    "art": "hair_trigger.webp"
   },
   {
     "name": "Hidden Potential",
     "base_type": "Viridian Jewel",
-    "art": "hidden_potential.png"
+    "art": "hidden_potential.webp"
   },
   {
     "name": "Hotheaded",
@@ -6667,102 +6667,102 @@
   {
     "name": "Hungry Abyss",
     "base_type": "Viridian Jewel",
-    "art": "hungry_abyss.png"
+    "art": "hungry_abyss.webp"
   },
   {
     "name": "Impossible Escape",
     "base_type": "Viridian Jewel",
-    "art": "impossible_escape.png"
+    "art": "impossible_escape.webp"
   },
   {
     "name": "Intuitive Leap",
     "base_type": "Viridian Jewel",
-    "art": "intuitive_leap.png"
+    "art": "intuitive_leap.webp"
   },
   {
     "name": "Lioneye's Fall",
     "base_type": "Viridian Jewel",
-    "art": "lioneye_s_fall.png"
+    "art": "lioneye_s_fall.webp"
   },
   {
     "name": "Lord of Steel",
     "base_type": "Viridian Jewel",
-    "art": "lord_of_steel.png"
+    "art": "lord_of_steel.webp"
   },
   {
     "name": "Might and Influence",
     "base_type": "Viridian Jewel",
-    "art": "might_and_influence.png"
+    "art": "might_and_influence.webp"
   },
   {
     "name": "Omen on the Winds",
     "base_type": "Viridian Jewel",
-    "art": "omen_on_the_winds.png"
+    "art": "omen_on_the_winds.webp"
   },
   {
     "name": "Pacifism",
     "base_type": "Viridian Jewel",
-    "art": "pacifism.png"
+    "art": "pacifism.webp"
   },
   {
     "name": "Pitch Darkness",
     "base_type": "Viridian Jewel",
-    "art": "pitch_darkness.png"
+    "art": "pitch_darkness.webp"
   },
   {
     "name": "Poacher's Aim",
     "base_type": "Viridian Jewel",
-    "art": "poacher_s_aim.png"
+    "art": "poacher_s_aim.webp"
   },
   {
     "name": "Primordial Eminence",
     "base_type": "Viridian Jewel",
-    "art": "primordial_eminence.png"
+    "art": "primordial_eminence.webp"
   },
   {
     "name": "Pugilist",
     "base_type": "Viridian Jewel",
-    "art": "pugilist.png"
+    "art": "pugilist.webp"
   },
   {
     "name": "Pure Talent",
     "base_type": "Viridian Jewel",
-    "art": "pure_talent.png"
+    "art": "pure_talent.webp"
   },
   {
     "name": "Quickening Covenant",
     "base_type": "Viridian Jewel",
-    "art": "quickening_covenant.png"
+    "art": "quickening_covenant.webp"
   },
   {
     "name": "Replica Cheap Construction",
     "base_type": "Viridian Jewel",
-    "art": "replica_cheap_construction.png"
+    "art": "replica_cheap_construction.webp"
   },
   {
     "name": "Replica Hotheaded",
     "base_type": "Viridian Jewel",
-    "art": "replica_hotheaded.png"
+    "art": "replica_hotheaded.webp"
   },
   {
     "name": "Replica Pacifism",
     "base_type": "Viridian Jewel",
-    "art": "replica_pacifism.png"
+    "art": "replica_pacifism.webp"
   },
   {
     "name": "Replica Pure Talent",
     "base_type": "Viridian Jewel",
-    "art": "replica_pure_talent.png"
+    "art": "replica_pure_talent.webp"
   },
   {
     "name": "Ring of Blades",
     "base_type": "Viridian Jewel",
-    "art": "ring_of_blades.png"
+    "art": "ring_of_blades.webp"
   },
   {
     "name": "Sacrificial Harvest",
     "base_type": "Viridian Jewel",
-    "art": "sacrificial_harvest.png"
+    "art": "sacrificial_harvest.webp"
   },
   {
     "name": "Seething Fury",
@@ -6772,281 +6772,281 @@
   {
     "name": "Self-Flagellation",
     "base_type": "Viridian Jewel",
-    "art": "self_flagellation.png"
+    "art": "self_flagellation.webp"
   },
   {
     "name": "Spirit Guards",
     "base_type": "Viridian Jewel",
-    "art": "spirit_guards.png"
+    "art": "spirit_guards.webp"
   },
   {
     "name": "Static Electricity",
     "base_type": "Viridian Jewel",
-    "art": "static_electricity.png"
+    "art": "static_electricity.webp"
   },
   {
     "name": "Steel Spirit",
     "base_type": "Viridian Jewel",
-    "art": "steel_spirit.png"
+    "art": "steel_spirit.webp"
   },
   {
     "name": "Stormshroud",
     "base_type": "Viridian Jewel",
-    "art": "stormshroud.png"
+    "art": "stormshroud.webp"
   },
   {
     "name": "Sudden Ignition",
     "base_type": "Viridian Jewel",
-    "art": "sudden_ignition.png"
+    "art": "sudden_ignition.webp"
   },
   {
     "name": "Survival Instincts",
     "base_type": "Viridian Jewel",
-    "art": "survival_instincts.png"
+    "art": "survival_instincts.webp"
   },
   {
     "name": "Tempered Spirit",
     "base_type": "Viridian Jewel",
-    "art": "tempered_spirit.png"
+    "art": "tempered_spirit.webp"
   },
   {
     "name": "The Golden Rule",
     "base_type": "Viridian Jewel",
-    "art": "the_golden_rule.png"
+    "art": "the_golden_rule.webp"
   },
   {
     "name": "The Green Dream",
     "base_type": "Viridian Jewel",
-    "art": "the_green_dream.png"
+    "art": "the_green_dream.webp"
   },
   {
     "name": "The Green Nightmare",
     "base_type": "Viridian Jewel",
-    "art": "the_green_nightmare.png"
+    "art": "the_green_nightmare.webp"
   },
   {
     "name": "Transcendent Spirit",
     "base_type": "Viridian Jewel",
-    "art": "transcendent_spirit.png"
+    "art": "transcendent_spirit.webp"
   },
   {
     "name": "Unnatural Instinct",
     "base_type": "Viridian Jewel",
-    "art": "unnatural_instinct.png"
+    "art": "unnatural_instinct.webp"
   },
   {
     "name": "Volley Fire",
     "base_type": "Viridian Jewel",
-    "art": "volley_fire.png"
+    "art": "volley_fire.webp"
   },
   {
     "name": "Weight of Sin",
     "base_type": "Viridian Jewel",
-    "art": "weight_of_sin.png"
+    "art": "weight_of_sin.webp"
   },
   {
     "name": "The Peregrine",
     "base_type": "Visored Sallet",
-    "art": "the_peregrine.png"
+    "art": "the_peregrine.webp"
   },
   {
     "name": "The Trickster's Smile",
     "base_type": "Visored Sallet",
-    "art": "the_trickster_s_smile.png"
+    "art": "the_trickster_s_smile.webp"
   },
   {
     "name": "Kitava's Feast",
     "base_type": "Void Axe",
-    "art": "kitava_s_feast.png"
+    "art": "kitava_s_feast.webp"
   },
   {
     "name": "Augyre",
     "base_type": "Void Sceptre",
-    "art": "augyre.png"
+    "art": "augyre.webp"
   },
   {
     "name": "Mon'tregul's Grasp",
     "base_type": "Void Sceptre",
-    "art": "mon_tregul_s_grasp.png"
+    "art": "mon_tregul_s_grasp.webp"
   },
   {
     "name": "Nebulis",
     "base_type": "Void Sceptre",
-    "art": "nebulis.png"
+    "art": "nebulis.webp"
   },
   {
     "name": "Replica Nebulis",
     "base_type": "Void Sceptre",
-    "art": "replica_nebulis.png"
+    "art": "replica_nebulis.webp"
   },
   {
     "name": "Chalice of Horrors",
     "base_type": "War Buckler",
-    "art": "chalice_of_horrors.png"
+    "art": "chalice_of_horrors.webp"
   },
   {
     "name": "Thirst for Horrors",
     "base_type": "War Buckler",
-    "art": "thirst_for_horrors.png"
+    "art": "thirst_for_horrors.webp"
   },
   {
     "name": "Brightbeak",
     "base_type": "War Hammer",
-    "art": "brightbeak.png"
+    "art": "brightbeak.webp"
   },
   {
     "name": "Lavianga's Wisdom",
     "base_type": "War Hammer",
-    "art": "lavianga_s_wisdom.png"
+    "art": "lavianga_s_wisdom.webp"
   },
   {
     "name": "Replica Tempestuous Steel",
     "base_type": "War Sword",
-    "art": "replica_tempestuous_steel.png"
+    "art": "replica_tempestuous_steel.webp"
   },
   {
     "name": "The Tempestuous Steel",
     "base_type": "War Sword",
-    "art": "the_tempestuous_steel.png"
+    "art": "the_tempestuous_steel.webp"
   },
   {
     "name": "Seven Teachings",
     "base_type": "Waxed Garb",
-    "art": "seven_teachings.png"
+    "art": "seven_teachings.webp"
   },
   {
     "name": "Rigwald's Curse",
     "base_type": "Wereclaw Talisman",
-    "art": "rigwald_s_curse.png"
+    "art": "rigwald_s_curse.webp"
   },
   {
     "name": "The Goddess Bound",
     "base_type": "Whalebone Rapier",
-    "art": "the_goddess_bound.png"
+    "art": "the_goddess_bound.webp"
   },
   {
     "name": "Doedre's Skin",
     "base_type": "Widowsilk Robe",
-    "art": "doedre_s_skin.png"
+    "art": "doedre_s_skin.webp"
   },
   {
     "name": "Fenumus' Shroud",
     "base_type": "Widowsilk Robe",
-    "art": "fenumus__shroud.png"
+    "art": "fenumus__shroud.webp"
   },
   {
     "name": "Infernal Mantle",
     "base_type": "Widowsilk Robe",
-    "art": "infernal_mantle.png"
+    "art": "infernal_mantle.webp"
   },
   {
     "name": "Fox's Fortune",
     "base_type": "Wild Leather",
-    "art": "fox_s_fortune.png"
+    "art": "fox_s_fortune.webp"
   },
   {
     "name": "Foxshade",
     "base_type": "Wild Leather",
-    "art": "foxshade.png"
+    "art": "foxshade.webp"
   },
   {
     "name": "Elevore",
     "base_type": "Wolf Pelt",
-    "art": "elevore.png"
+    "art": "elevore.webp"
   },
   {
     "name": "Limbsplit",
     "base_type": "Woodsplitter",
-    "art": "limbsplit.png"
+    "art": "limbsplit.webp"
   },
   {
     "name": "The Cauteriser",
     "base_type": "Woodsplitter",
-    "art": "the_cauteriser.png"
+    "art": "the_cauteriser.webp"
   },
   {
     "name": "Sadima's Touch",
     "base_type": "Wool Gloves",
-    "art": "sadima_s_touch.png"
+    "art": "sadima_s_touch.webp"
   },
   {
     "name": "Wanderlust",
     "base_type": "Wool Shoes",
-    "art": "wanderlust.png"
+    "art": "wanderlust.webp"
   },
   {
     "name": "Ondar's Clasp",
     "base_type": "Wrapped Mitts",
-    "art": "ondar_s_clasp.png"
+    "art": "ondar_s_clasp.webp"
   },
   {
     "name": "Legacy of Fury",
     "base_type": "Wyrmscale Boots",
-    "art": "legacy_of_fury.png"
+    "art": "legacy_of_fury.webp"
   },
   {
     "name": "Gruthkul's Pelt",
     "base_type": "Wyrmscale Doublet",
-    "art": "gruthkul_s_pelt.png"
+    "art": "gruthkul_s_pelt.webp"
   },
   {
     "name": "Tanu Ahi",
     "base_type": "Wyrmscale Gauntlets",
-    "art": "tanu_ahi.png"
+    "art": "tanu_ahi.webp"
   },
   {
     "name": "Wyrmsign",
     "base_type": "Wyrmscale Gauntlets",
-    "art": "wyrmsign.png"
+    "art": "wyrmsign.webp"
   },
   {
     "name": "Hand of the Fervent",
     "base_type": "Zealot Gloves",
-    "art": "hand_of_the_fervent.png"
+    "art": "hand_of_the_fervent.webp"
   },
   {
     "name": "Replica Volkuur's Guidance",
     "base_type": "Zealot Gloves",
-    "art": "replica_volkuur_s_guidance.png"
+    "art": "replica_volkuur_s_guidance.webp"
   },
   {
     "name": "Volkuur's Guidance",
     "base_type": "Zealot Gloves",
-    "art": "volkuur_s_guidance.png"
+    "art": "volkuur_s_guidance.webp"
   },
   {
     "name": "Kitava's Thirst",
     "base_type": "Zealot Helmet",
-    "art": "kitava_s_thirst.png"
+    "art": "kitava_s_thirst.webp"
   },
   {
     "name": "Ravenous Passion",
     "base_type": "Zealot Helmet",
-    "art": "ravenous_passion.png"
+    "art": "ravenous_passion.webp"
   },
   {
     "name": "Hyrri's Ire",
     "base_type": "Zodiac Leather",
-    "art": "hyrri_s_ire.png"
+    "art": "hyrri_s_ire.webp"
   },
   {
     "name": "Replica Hyrri's Ire",
     "base_type": "Zodiac Leather",
-    "art": "replica_hyrri_s_ire.png"
+    "art": "replica_hyrri_s_ire.webp"
   },
   {
     "name": "Replica Perfect Form",
     "base_type": "Zodiac Leather",
-    "art": "replica_perfect_form.png"
+    "art": "replica_perfect_form.webp"
   },
   {
     "name": "The Perfect Form",
     "base_type": "Zodiac Leather",
-    "art": "the_perfect_form.png"
+    "art": "the_perfect_form.webp"
   },
   {
     "name": "The Snowblind Grace",
     "base_type": "Zodiac Leather",
-    "art": "the_snowblind_grace.png"
+    "art": "the_snowblind_grace.webp"
   }
 ]

@@ -74,6 +74,10 @@ struct Args {
     /// Dumps sorted mod family IDs from the Mods table.
     #[arg(long, value_name = "MOD_FAMILIES_TXT")]
     mod_families: Option<PathBuf>,
+
+    /// Maximum art width in pixels (height scaled proportionally). Default: 78.
+    #[arg(long, value_name = "PIXELS", default_value = "78")]
+    art_max_width: u32,
 }
 
 fn main() {
@@ -117,7 +121,7 @@ fn main() {
         std::fs::create_dir_all(art_dir).expect("failed to create art output directory");
         println!("\n--- Unique item art extraction ---");
         println!("Art dir: {}\n", art_dir.display());
-        extract_unique_art(&bundles, &output_dir, art_dir)
+        extract_unique_art(&bundles, &output_dir, art_dir, args.art_max_width)
     } else {
         HashMap::new()
     };
@@ -183,6 +187,7 @@ fn extract_unique_art(
     bundles: &BundleReader,
     dat_dir: &Path,
     art_dir: &Path,
+    max_width: u32,
 ) -> HashMap<String, String> {
     let Some(layout) = load_dat(dat_dir, "uniquestashlayout") else {
         eprintln!("  ERROR: uniquestashlayout.datc64 not found in output dir");
@@ -251,7 +256,7 @@ fn extract_unique_art(
                 }
             })
             .collect();
-        let png_filename = format!("{safe_name}.png");
+        let out_filename = format!("{safe_name}.webp");
 
         // Extract DDS from GGPK
         let dds_bytes = match bundles.bytes(dds_path) {
@@ -271,10 +276,10 @@ fn extract_unique_art(
             }
         };
 
-        // Convert DDS → PNG
-        match dds_to_png(&dds_bytes, &art_dir.join(&png_filename)) {
+        // Convert DDS → WebP (resized)
+        match dds_to_webp(&dds_bytes, &art_dir.join(&out_filename), max_width) {
             Ok(()) => {
-                name_to_art.insert(name.clone(), png_filename);
+                name_to_art.insert(name.clone(), out_filename);
                 extracted += 1;
             }
             Err(e) => {
@@ -495,9 +500,9 @@ fn dump_mod_families(dat_dir: &Path, output_path: &Path) {
     );
 }
 
-/// Decode a DDS file and write it as PNG.
+/// Decode a DDS file, resize to `max_width`, and write as WebP.
 #[allow(clippy::cast_possible_truncation)] // Pixel math always in u8 range
-fn dds_to_png(dds_bytes: &[u8], out_path: &Path) -> Result<(), String> {
+fn dds_to_webp(dds_bytes: &[u8], out_path: &Path, max_width: u32) -> Result<(), String> {
     let dds = ddsfile::Dds::read(std::io::Cursor::new(dds_bytes))
         .map_err(|e| format!("DDS parse: {e}"))?;
 
@@ -552,10 +557,25 @@ fn dds_to_png(dds_bytes: &[u8], out_path: &Path) -> Result<(), String> {
         }
     }?;
 
-    // Write PNG
+    // Build image and resize if needed
     let img = image::RgbaImage::from_raw(width, height, rgba)
         .ok_or_else(|| "failed to create image buffer".to_string())?;
-    img.save(out_path).map_err(|e| format!("PNG write: {e}"))?;
+
+    let img = if max_width > 0 && width > max_width {
+        let scale = f64::from(max_width) / f64::from(width);
+        #[allow(clippy::cast_sign_loss)] // scale is always positive
+        let new_height = (f64::from(height) * scale).round() as u32;
+        image::imageops::resize(
+            &img,
+            max_width,
+            new_height,
+            image::imageops::FilterType::Lanczos3,
+        )
+    } else {
+        img
+    };
+
+    img.save(out_path).map_err(|e| format!("WebP write: {e}"))?;
 
     Ok(())
 }
