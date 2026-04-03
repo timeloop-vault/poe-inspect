@@ -467,9 +467,7 @@ fn is_group_relevant(group_id: &str, item: &ResolvedItem, game_data: &poe_data::
         }
         "socket_filters" => item.socket_info.is_some(),
         "req_filters" => !item.requirements.is_empty(),
-        "map_filters" => {
-            poe_data::domain::item_class_trade_category(class_name).is_some_and(|cat| cat == "map")
-        }
+        "map_filters" => poe_data::domain::is_map_class(class_name),
         "heist_filters" => poe_data::domain::item_class_trade_category(class_name)
             .is_some_and(|cat| cat.starts_with("heist")),
         "sanctum_filters" => poe_data::domain::item_class_trade_category(class_name)

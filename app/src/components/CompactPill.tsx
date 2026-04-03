@@ -26,7 +26,8 @@ function computeMapVerdict(
 	item: ItemPayload,
 	mapDanger: MapDangerConfig,
 ): { label: string; cls: string } | null {
-	if (item.item.header.itemClass !== "Maps") return null;
+	const cls = item.item.header.itemClass;
+	if (cls !== "Maps" && cls !== "Misc Map Items") return null;
 
 	const levels: (DangerLevel | null)[] = (item.item.explicits ?? []).map((mod) => {
 		const text = mod.statLines

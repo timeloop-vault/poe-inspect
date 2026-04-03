@@ -154,7 +154,7 @@ export function ItemOverlay({
 	const name = item.header.name ?? item.header.baseType;
 	const baseType = item.header.baseType;
 	const doubleLine = rarity === "Rare" || rarity === "Unique";
-	const isMap = item.header.itemClass === "Maps";
+	const isMap = item.header.itemClass === "Maps" || item.header.itemClass === "Misc Map Items";
 	const [swapView, setSwapView] = useState<WatchingScore | null>(null);
 
 	// Split mod tiers to match enchants / implicits / explicits

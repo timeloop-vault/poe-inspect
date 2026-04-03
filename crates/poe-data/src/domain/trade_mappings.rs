@@ -83,7 +83,7 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
         "Life Flasks" | "Mana Flasks" | "Hybrid Flasks" | "Utility Flasks" => Some("flask"),
 
         // Maps
-        "Maps" => Some("map"),
+        "Maps" | "Misc Map Items" => Some("map"),
 
         // Other
         "Divination Cards" => Some("card"),
@@ -115,6 +115,14 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
 #[must_use]
 pub fn is_weapon_class(item_class: &str) -> bool {
     item_class_trade_category(item_class).is_some_and(|cat| cat.starts_with("weapon."))
+}
+
+/// Whether an item class is a map or map-like item (has map filters on trade site).
+///
+/// Includes `"Maps"` and `"Misc Map Items"` (Maven's Invitations, etc.).
+#[must_use]
+pub fn is_map_class(item_class: &str) -> bool {
+    item_class_trade_category(item_class).is_some_and(|cat| cat == "map")
 }
 
 /// Whether an item class is armour/shield/quiver (has armour filters on trade site).
@@ -327,6 +335,13 @@ mod tests {
 
         // Maps
         assert_eq!(item_class_trade_category("Maps"), Some("map"));
+        assert_eq!(item_class_trade_category("Misc Map Items"), Some("map"));
+
+        // is_map_class helper
+        assert!(is_map_class("Maps"));
+        assert!(is_map_class("Misc Map Items"));
+        assert!(!is_map_class("Body Armours"));
+        assert!(!is_map_class("Map Fragments"));
 
         // No category for currency/gems
         assert_eq!(item_class_trade_category("Stackable Currency"), None);

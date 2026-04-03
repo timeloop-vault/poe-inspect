@@ -1,0 +1,37 @@
+Item Class: Misc Map Items
+Rarity: Rare
+Eternity Summons
+Maven's Invitation: The Elderslayers
+--------
+Item Quantity: +93% (augmented)
+Item Rarity: +54% (augmented)
+The Maven must Witness:
+Baran, The Crusader,
+Veritania, The Redeemer,
+Al-Hezmin, The Hunter,
+Drox, The Warlord
+--------
+Item Level: 83
+--------
+{ Implicit Modifier }
+Modifiers to Item Quantity will affect the number of encounter rewards dropped — Unscalable Value
+--------
+{ Prefix Modifier "Armoured" (Tier: 1) — Physical }
++40% Monster Physical Damage Reduction
+{ Prefix Modifier "Burning" (Tier: 1) — Damage, Physical, Elemental, Fire }
+Monsters deal 99(90-110)% extra Physical Damage as Fire
+{ Prefix Modifier "Splitting" (Tier: 1) }
+Monsters fire 2 additional Projectiles
+{ Suffix Modifier "of Smothering" (Tier: 1) — Life, Defences, Energy Shield }
+Players have 60% less Recovery Rate of Life and Energy Shield
+{ Suffix Modifier "of Exposure" (Tier: 1) — Elemental, Resistance }
+Players have -10(-12--9)% to all maximum Resistances
+{ Suffix Modifier "of Insulation" (Tier: 1) — Elemental, Fire, Cold, Lightning, Ailment }
+Monsters have 70% chance to Avoid Elemental Ailments
+(Elemental Ailments are Ignited, Scorched, Chilled, Frozen, Brittle, Shocked, and Sapped)
+--------
+For those who must not endure it,
+there may be found a perverse joy
+in watching the struggle for survival.
+--------
+Open portals to The Maven's Crucible by using this item in a personal Map Device. While viewing your Atlas, Right-click this item to pinpoint its location.
