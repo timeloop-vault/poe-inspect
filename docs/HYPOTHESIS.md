@@ -25,7 +25,7 @@ Tools like Awakened PoE Trade exist but are limited to basic price checks. They 
 2. User presses hotkey (e.g. Ctrl+I)
 3. Tool sends Ctrl+Alt+C to PoE (advanced item copy) → item text lands on clipboard
 4. Tool reads clipboard, parses the item text into structured data
-5. Tool maps affixes to game data (tiers, ranges, mod groups) via RePoE/community data
+5. Tool maps affixes to game data (tiers, ranges, mod groups) via GGPK-extracted data
 6. Tool evaluates item against active profile(s) and rules
 7. Overlay popup appears near cursor with results:
    - Affix tier coloring (T1 = green, T5 = red, user-configurable)

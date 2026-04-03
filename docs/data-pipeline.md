@@ -24,17 +24,14 @@ GGPK file (Content.ggpk, ~35GB)
 
 ## Decision: Own the GGPK Pipeline
 
-We parse GGPK data directly via poe-bundle instead of depending on RePoE
-(repoe-fork.github.io JSON files). Reasons:
+We parse GGPK data directly via poe-bundle. Reasons:
 
-- **Avoids 1000+ lines of reshaping code** that v1 needed to transform RePoE's
-  data model into our access patterns
+- **Avoids 1000+ lines of reshaping code** that v1 needed to transform external
+  data models into our access patterns
 - **No external dependency** on a community-maintained JSON export
 - **Day-zero league support** — we can read updated tables from a patched GGPK
-  without waiting for RePoE to update
+  immediately on league launch
 - **Schema ownership** — we can reverse-engineer new fields ourselves
-
-RePoE remains a **fallback** for quick validation or fields we haven't mapped yet.
 
 ## Stat Description Pipeline (DONE)
 

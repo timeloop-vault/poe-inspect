@@ -146,14 +146,14 @@ These repos contain useful research and patterns but are NOT dependencies:
 | poe-inspect (v1) | Format analysis, architecture thinking |
 | poe-item (TS) | TypeScript item parser, type definitions |
 | poe-item-rust | Rust item struct design |
-| poe-item-filter | Data pipeline (repoe-fork), economy integration |
+| poe-item-filter | Data pipeline, economy integration |
 | poe-agents | poe.ninja API, PoB CLI, agent patterns |
 
 ## Key Data Sources
 
 - **GGPK (primary)**: 911 datc64 tables + 41 stat description files. See `docs/ggpk-data-inventory.md`
 - **dat-schema**: Community-maintained schemas at `poe-tool-dev/dat-schema` (GraphQL SDL)
-- **repoe-fork (fallback)**: `https://repoe-fork.github.io/{file}.json` — pre-processed game data
+- **Trade API**: `https://www.pathofexile.com/api/trade/data/*` — stats, items, filters (unique→base_type mapping)
 - **poe.ninja**: Economy data + builds API (rate limit: 12 req / 5 min)
 - **GGG public API**: Character data at `/character-window/get-*` (no auth needed)
 
