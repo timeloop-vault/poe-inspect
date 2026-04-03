@@ -32,5 +32,9 @@ _reference/
 # Data cache (downloaded at runtime)
 data/cache/
 
+# Generated unique item art (40MB+ PNGs, regenerate via pipeline)
+# Run: ./pipeline/update-game-data.sh <poe_install_dir>
+app/src/assets/uniques/
+
 # RQE database
 rqe.db

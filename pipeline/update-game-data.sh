@@ -52,10 +52,12 @@ echo "Extracting core tables from: $POE_PATH"
 echo "Output dir: $DATA_DIR"
 echo ""
 
-"$EXTRACT_BIN" -p "$POE_PATH" -o "$DATA_DIR"
+ART_DIR="$REPO_ROOT/app/src/assets/uniques"
+
+"$EXTRACT_BIN" -p "$POE_PATH" -o "$DATA_DIR" --art-dir "$ART_DIR"
 
 echo ""
 echo "Next steps:"
 echo "  1. Run tests:  cargo test -p poe-dat -p poe-data -p poe-item"
-echo "  2. Review:     git diff --stat crates/poe-data/data/"
-echo "  3. Commit:     git add crates/poe-data/data/ && git commit -m 'Update game data for <league>'"
+echo "  2. Review:     git diff --stat crates/poe-data/data/ app/src/assets/uniques/"
+echo "  3. Commit:     git add crates/poe-data/data/ app/src/assets/uniques/ && git commit -m 'Update game data for <league>'"
