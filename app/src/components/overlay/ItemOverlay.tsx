@@ -17,7 +17,6 @@ import {
 	countNonReminderStats,
 	influenceDisplay,
 	influenceFilterId,
-	modText,
 } from "./ItemMods";
 import {
 	InlineFilterCheckbox,
@@ -160,6 +159,7 @@ export function ItemOverlay({
 	// Split mod tiers to match enchants / implicits / explicits
 	const nEnchants = item.enchants.length;
 	const nImplicits = item.implicits.length;
+	const enchantTiers = evaluation.modTiers.slice(0, nEnchants);
 	const implicitTiers = evaluation.modTiers.slice(nEnchants, nEnchants + nImplicits);
 	const explicitTiers = evaluation.modTiers.slice(nEnchants + nImplicits);
 
@@ -324,11 +324,13 @@ export function ItemOverlay({
 			{item.enchants.length > 0 && (
 				<>
 					<div class="mod-section enchant-section">
-						{item.enchants.map((mod) => (
-							<div key={modText(mod)} class="mod-line enchant-line">
-								<div class="mod-content">{modText(mod)}</div>
-							</div>
-						))}
+						<ModSection
+							mods={item.enchants}
+							tiers={enchantTiers}
+							display={display}
+							tradeEdit={tradeEdit}
+							statOffset={0}
+						/>
 					</div>
 					<Separator rarity={rarity} />
 				</>

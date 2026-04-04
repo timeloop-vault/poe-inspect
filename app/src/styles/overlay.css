@@ -484,8 +484,15 @@ body,
 }
 
 .enchant-section .mod-line {
-	color: var(--enchant-color);
 	font-size: 12px;
+}
+
+.enchant-section .mod-line.quality-none .mod-content,
+.enchant-section .mod-line.quality-low .mod-content,
+.enchant-section .mod-line.quality-mid .mod-content,
+.enchant-section .mod-line.quality-good .mod-content,
+.enchant-section .mod-line.quality-best .mod-content {
+	color: var(--enchant-color);
 }
 
 .implicit-section .mod-line {
