@@ -1,0 +1,28 @@
+Item Class: Contracts
+Rarity: Magic
+Armoured Contract: Mansion of Congealment
+--------
+Client: Tsvet Matvei
+Heist Target: Box of Tripyxis (Moderate Value)
+Area Level: 83
+Requires Lockpicking (Level 2)
+Item Quantity: +29% (augmented)
+Item Rarity: +17% (augmented)
+Alert Level Reduction: +11% (augmented)
+Time Before Lockdown: +11% (augmented)
+Maximum Alive Reinforcements: +11% (augmented)
+--------
+Item Level: 84
+--------
+Heist Chests have a 100% chance to Duplicate their contents (enchant)
+Monsters have 100% more Life (enchant)
+--------
+{ Prefix Modifier "Armoured" (Tier: 1) — Physical }
++40% Monster Physical Damage Reduction
+{ Suffix Modifier "of Congealment" (Tier: 1) }
+Monsters cannot be Leeched from
+--------
+"Allegedly turns water to Lethe. That makes it my competition.
+I don't like competition."
+--------
+Give this Contract to Adiyah in the Rogue Harbour to embark on the Heist.

@@ -1041,3 +1041,43 @@ fn anointed_talisman_parsed() {
         .any(|s| matches!(s, Section::Status(StatusKind::Corrupted)));
     assert!(has_corrupted, "should have Corrupted status");
 }
+
+// ─── Heist items ────────────────────────────────────────────────────────────
+
+#[test]
+fn contract_magic_parses() {
+    let item = parse_fixture("contract-magic-mansion.txt");
+    assert_eq!(item.header.item_class, "Contracts");
+    assert_eq!(item.header.rarity, Rarity::Magic);
+    assert_eq!(
+        item.header.name1,
+        "Armoured Contract: Mansion of Congealment"
+    );
+
+    // Should have generic sections (properties, enchants, flavor, usage), mod section, item level
+    let generic_count = item
+        .sections
+        .iter()
+        .filter(|s| matches!(s, Section::Generic(_)))
+        .count();
+    assert!(
+        generic_count >= 3,
+        "should have at least 3 generic sections, got {generic_count}"
+    );
+}
+
+#[test]
+fn blueprint_normal_parses() {
+    let item = parse_fixture("blueprint-normal-bunker.txt");
+    assert_eq!(item.header.item_class, "Blueprints");
+    assert_eq!(item.header.rarity, Rarity::Normal);
+    assert_eq!(item.header.name1, "Blueprint: Bunker");
+}
+
+#[test]
+fn blueprint_magic_parses() {
+    let item = parse_fixture("blueprint-magic-records-office.txt");
+    assert_eq!(item.header.item_class, "Blueprints");
+    assert_eq!(item.header.rarity, Rarity::Magic);
+    assert_eq!(item.header.name1, "Hexwarded Blueprint: Records Office");
+}

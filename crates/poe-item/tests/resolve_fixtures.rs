@@ -907,3 +907,145 @@ fn weapon_flat_damage_has_distinct_min_max_stat_ids() {
         "second stat should be local maximum"
     );
 }
+
+// ─── Heist items ────────────────────────────────────────────────────────────
+
+#[test]
+fn contract_magic_properties_parsed() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("contract-magic-mansion.txt", &gd);
+
+    assert_eq!(item.header.item_class, "Contracts");
+    assert_eq!(item.header.rarity, Rarity::Magic);
+
+    let prop_names: Vec<&str> = item.properties.iter().map(|p| p.name.as_str()).collect();
+    assert!(
+        prop_names.contains(&"Client"),
+        "should have Client property, got: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Heist Target"),
+        "should have Heist Target property, got: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Area Level"),
+        "should have Area Level property, got: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Requires Lockpicking"),
+        "should have Requires Lockpicking property, got: {prop_names:?}"
+    );
+
+    // Augmented properties
+    let iq = item
+        .properties
+        .iter()
+        .find(|p| p.name == "Item Quantity")
+        .unwrap();
+    assert!(iq.augmented, "Item Quantity should be augmented");
+
+    let alr = item
+        .properties
+        .iter()
+        .find(|p| p.name == "Alert Level Reduction")
+        .unwrap();
+    assert!(alr.augmented, "Alert Level Reduction should be augmented");
+}
+
+#[test]
+fn contract_magic_mods_and_enchants() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("contract-magic-mansion.txt", &gd);
+
+    assert_eq!(item.explicits.len(), 2, "should have 2 explicit mods");
+    assert_eq!(item.explicits[0].header.name.as_deref(), Some("Armoured"));
+    assert_eq!(
+        item.explicits[1].header.name.as_deref(),
+        Some("of Congealment")
+    );
+
+    assert_eq!(item.enchants.len(), 2, "should have 2 enchants");
+    assert!(
+        item.flavor_text.is_some(),
+        "contract should have flavor text"
+    );
+}
+
+#[test]
+fn blueprint_normal_properties_parsed() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("blueprint-normal-bunker.txt", &gd);
+
+    assert_eq!(item.header.item_class, "Blueprints");
+    assert_eq!(item.header.rarity, Rarity::Normal);
+
+    let prop_names: Vec<&str> = item.properties.iter().map(|p| p.name.as_str()).collect();
+    assert!(
+        prop_names.contains(&"Wings Revealed"),
+        "should have Wings Revealed, got: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Escape Routes Revealed"),
+        "should have Escape Routes Revealed, got: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Reward Rooms Revealed"),
+        "should have Reward Rooms Revealed, got: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Requires Demolition"),
+        "should have Requires Demolition, got: {prop_names:?}"
+    );
+
+    // Check heist requirement value format
+    let req = item
+        .properties
+        .iter()
+        .find(|p| p.name == "Requires Demolition")
+        .unwrap();
+    assert_eq!(req.value, "Level 5 (unmet)");
+
+    let trap = item
+        .properties
+        .iter()
+        .find(|p| p.name == "Requires Trap Disarmament")
+        .unwrap();
+    assert_eq!(trap.value, "Level 4");
+}
+
+#[test]
+fn blueprint_magic_all_fields() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("blueprint-magic-records-office.txt", &gd);
+
+    assert_eq!(item.header.item_class, "Blueprints");
+    assert_eq!(item.header.rarity, Rarity::Magic);
+
+    // Should have all heist properties including requirements and augmented stats
+    let prop_names: Vec<&str> = item.properties.iter().map(|p| p.name.as_str()).collect();
+    assert!(prop_names.contains(&"Area Level"), "missing Area Level");
+    assert!(
+        prop_names.contains(&"Wings Revealed"),
+        "missing Wings Revealed"
+    );
+    assert!(
+        prop_names.contains(&"Requires Lockpicking"),
+        "missing Requires Lockpicking"
+    );
+    assert!(
+        prop_names.contains(&"Requires Deception"),
+        "missing Requires Deception"
+    );
+    assert!(
+        prop_names.contains(&"Item Quantity"),
+        "missing Item Quantity"
+    );
+    assert!(
+        prop_names.contains(&"Maximum Alive Reinforcements"),
+        "missing Maximum Alive Reinforcements"
+    );
+
+    // Mod
+    assert_eq!(item.explicits.len(), 1);
+    assert_eq!(item.explicits[0].header.name.as_deref(), Some("Hexwarded"));
+}

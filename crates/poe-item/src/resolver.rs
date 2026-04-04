@@ -486,6 +486,8 @@ const USAGE_PREFIXES: &[&str] = &[
     "Can be used",
     "This is a Support Gem",
     "Shift click to unstack",
+    "Use Intelligence",
+    "Give this",
 ];
 
 /// Classify generic sections by content analysis.
@@ -572,7 +574,13 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
 
     // Check if this is a property section (majority of lines have ": ")
     let colon_count = non_empty.iter().filter(|l| l.contains(": ")).count();
-    if colon_count > 0 && colon_count == non_empty.len() {
+    // Heist skill requirements: "Requires Lockpicking (Level 3)" — no colon but still a property
+    let heist_req_count = non_empty
+        .iter()
+        .filter(|l| l.starts_with("Requires ") && l.contains("(Level "))
+        .count();
+    let prop_like_count = colon_count + heist_req_count;
+    if prop_like_count > 0 && prop_like_count == non_empty.len() {
         // All lines are property-like
         let props = parse_property_lines(lines);
         return SectionKind::Properties(props);
@@ -614,6 +622,11 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
         return SectionKind::FlavorText(text);
     }
 
+    // Quoted text is flavor text regardless of rarity (e.g., heist contracts)
+    if non_empty[0].starts_with('"') {
+        return SectionKind::FlavorText(text);
+    }
+
     // For Normal rarity items that are scarabs/fragments: first text section is description,
     // subsequent ones might be flavor text. Use a heuristic: if it looks like a game effect
     // (long, mechanical language), it's description. If it's short/poetic, it's flavor.
@@ -634,6 +647,12 @@ fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {
         if line.is_empty() {
             continue;
         }
+        // Heist skill requirements: "Requires Lockpicking (Level 3)" or
+        // "Requires Demolition (Level 5 (unmet))"
+        if let Some(prop) = parse_heist_requirement(line) {
+            props.push(prop);
+            continue;
+        }
         if let Some((name, rest)) = line.split_once(": ") {
             let augmented = rest.contains("(augmented)");
             let value = rest
@@ -650,6 +669,24 @@ fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {
         }
     }
     props
+}
+
+/// Parse a heist skill requirement line into an `ItemProperty`.
+///
+/// Format: `Requires <Skill> (Level <N>)` or `Requires <Skill> (Level <N> (unmet))`
+fn parse_heist_requirement(line: &str) -> Option<ItemProperty> {
+    let rest = line.strip_prefix("Requires ")?;
+    let paren_idx = rest.find(" (Level ")?;
+    let skill = &rest[..paren_idx];
+    // Extract everything inside the outer parentheses: "Level 3" or "Level 5 (unmet)"
+    let level_part = &rest[paren_idx + 2..]; // skip " ("
+    let value = level_part.strip_suffix(')')?.to_string();
+    Some(ItemProperty {
+        name: format!("Requires {skill}"),
+        value,
+        augmented: false,
+        synthetic: false,
+    })
 }
 
 // ── Gem data extraction ──────────────────────────────────────────────────────
