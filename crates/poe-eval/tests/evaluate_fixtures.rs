@@ -1897,3 +1897,48 @@ fn stat_tier_source_fractured_filters_correctly() {
         "armour mod is fractured, not regular"
     );
 }
+
+// ─── Boolean stat matching (enchants with no numeric values) ────────────────
+
+#[test]
+fn boolean_enchant_stat_matches_on_presence() {
+    let gd = full_game_data();
+    let item = resolve_full("blueprint-normal-bunker.txt");
+
+    // "Heist Targets are always Replica Unique Items" has stat_id but no numeric values.
+    // StatValue should treat it as a presence check.
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: None,
+            stat_ids: vec!["heist_blueprint_reward_always_unique".to_string()],
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 1,
+        }],
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "boolean enchant stat should match on presence"
+    );
+}
+
+#[test]
+fn boolean_enchant_stat_does_not_match_wrong_id() {
+    let gd = full_game_data();
+    let item = resolve_full("blueprint-normal-bunker.txt");
+
+    // Stat ID that is NOT on this item — should not match.
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: None,
+            stat_ids: vec!["heist_blueprint_reward_always_experimented".to_string()],
+            value_index: 0,
+            op: Cmp::Ge,
+            value: 1,
+        }],
+    });
+    assert!(
+        !evaluate(&item, &rule, gd),
+        "wrong stat_id should not match"
+    );
+}

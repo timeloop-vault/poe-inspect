@@ -205,17 +205,18 @@ pub fn score(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreResu
 ///
 /// - 1 condition: any stat line on any mod that matches.
 /// - 2+ conditions: ALL conditions must be satisfied on the SAME mod.
+///
+/// **Boolean stats**: Some stats have no numeric values (e.g., enchants like
+/// `"Heist Targets are always Experimented Items"`). When a stat line matches
+/// by `stat_ids` but has no values, it's treated as a presence check — the
+/// condition is satisfied by the stat existing on the item.
 fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
     if conditions.is_empty() {
         return false;
     }
     if conditions.len() == 1 {
         let c = &conditions[0];
-        return find_matching_stats(item, &c.stat_ids).any(|sl| {
-            sl.values
-                .get(c.value_index)
-                .is_some_and(|v| c.op.eval(&v.current, &c.value))
-        });
+        return find_matching_stats(item, &c.stat_ids).any(|sl| stat_line_matches_condition(sl, c));
     }
     // 2+ conditions: all must match on the SAME mod.
     item.all_mods().any(|m| {
@@ -228,13 +229,24 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
                     && sl.stat_ids.as_ref().is_some_and(|ids| {
                         ids.iter().any(|id| c.stat_ids.iter().any(|sid| sid == id))
                     })
-                    && sl
-                        .values
-                        .get(c.value_index)
-                        .is_some_and(|v| c.op.eval(&v.current, &c.value))
+                    && stat_line_matches_condition(sl, c)
             })
         })
     })
+}
+
+/// Check whether a stat line's value satisfies a condition.
+///
+/// Boolean stats (no values) are treated as presence checks — if the stat
+/// exists, the condition passes.
+fn stat_line_matches_condition(sl: &poe_item::types::ResolvedStatLine, c: &StatCondition) -> bool {
+    if sl.values.is_empty() {
+        // Boolean stat: presence is sufficient
+        return true;
+    }
+    sl.values
+        .get(c.value_index)
+        .is_some_and(|v| c.op.eval(&v.current, &c.value))
 }
 
 /// Count mods matching a slot filter (supports `Affix` = Prefix + Suffix).
