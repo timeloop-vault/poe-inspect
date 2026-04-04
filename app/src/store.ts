@@ -352,7 +352,13 @@ export function mergeModWeightsIntoScoring(profile: StoredProfile): StoredProfil
 			rule: {
 				rule_type: "Pred" as const,
 				type: "StatValue" as const,
-				conditions: [{ stat_ids: [statId], value_index: 0, op: "Ge" as const, value: 1 }],
+				conditions: [
+					{
+						stat_ids: [statId],
+						value_index: 0,
+						check: { type: "Numeric" as const, op: "Ge" as const, value: 1 },
+					},
+				],
 			},
 		})),
 	);

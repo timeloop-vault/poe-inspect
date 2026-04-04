@@ -51,10 +51,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { loadGeneral } from "../../store";
 import type {
+	Cmp,
 	FieldKind,
 	PredicateField,
 	PredicateSchema,
 	Rule,
+	StatCheck,
 	StatCondition,
 	StatSuggestion,
 } from "../../types";
@@ -109,9 +111,12 @@ function defaultFieldValue(kind: FieldKind): unknown {
 	}
 }
 
-/** Default StatCondition. */
-function defaultCondition(): StatCondition {
-	return { value_index: 0, op: "Ge", value: 0 };
+const DEFAULT_NUMERIC_CHECK: StatCheck = { type: "Numeric", op: "Ge", value: 0 };
+const DEFAULT_BOOLEAN_CHECK: StatCheck = { type: "Boolean", value: true };
+
+/** Default StatCondition with a numeric check. */
+function defaultCondition(isBoolean = false): StatCondition {
+	return { value_index: 0, check: isBoolean ? DEFAULT_BOOLEAN_CHECK : DEFAULT_NUMERIC_CHECK };
 }
 
 /** Human-readable label for a multi-value condition based on its stat_id. */
@@ -237,7 +242,24 @@ function StatValueEditor({
 	compact?: boolean;
 }) {
 	const r = rule as Record<string, unknown>;
-	const conditions: StatCondition[] = (r.conditions as StatCondition[]) ?? [defaultCondition()];
+	// Migrate old-format conditions (op/value at top level) to new format (check field)
+	const rawConditions: StatCondition[] = (r.conditions as StatCondition[]) ?? [defaultCondition()];
+	const conditions: StatCondition[] = rawConditions.map((c) => {
+		if (c.check) return c;
+		// Old format: { op, value } at top level → detect boolean from template
+		const old = c as unknown as Record<string, unknown>;
+		const isBoolean = typeof c.text === "string" && !c.text.includes("#");
+		return {
+			...c,
+			check: isBoolean
+				? { type: "Boolean" as const, value: true }
+				: {
+						type: "Numeric" as const,
+						op: (old.op as Cmp) ?? "Ge",
+						value: (old.value as number) ?? 0,
+					},
+		};
+	});
 	const isMulti = conditions.length > 1;
 
 	// Dropdown state — shared between autocomplete and hybrid-choice phases
@@ -350,6 +372,7 @@ function StatValueEditor({
 		invoke<StatSuggestion[]>("get_stat_suggestions", { query: template }).then((suggestions) => {
 			const single = suggestions.find((s) => s.kind.type === "Single" && s.template === template);
 			const statIds = single?.stat_ids ?? [];
+			const isBoolean = single?.is_boolean ?? false;
 
 			// Count # placeholders in template to detect multi-value stats
 			// (e.g., "Adds # to # Physical Damage" → 2 values)
@@ -365,7 +388,7 @@ function StatValueEditor({
 					value_index: i,
 				}));
 			} else {
-				newConditions = [{ ...defaultCondition(), text: template, stat_ids: statIds }];
+				newConditions = [{ ...defaultCondition(isBoolean), text: template, stat_ids: statIds }];
 			}
 			onChange({ ...rule, conditions: newConditions } as Rule);
 
@@ -396,19 +419,18 @@ function StatValueEditor({
 	const handleHybridPick = (suggestion: StatSuggestion) => {
 		if (suggestion.kind.type !== "Hybrid") return;
 		const h = suggestion.kind;
+		const existingCheck = conditions[0]?.check;
 		const primaryCond: StatCondition = {
 			text: suggestion.template,
 			stat_ids: suggestion.stat_ids,
 			value_index: 0,
-			op: conditions[0]?.op ?? "Ge",
-			value: conditions[0]?.value ?? 0,
+			check: existingCheck ?? DEFAULT_NUMERIC_CHECK,
 		};
 		const otherConds: StatCondition[] = h.other_templates.map((template, i) => ({
 			text: template,
 			stat_ids: h.other_stat_ids[i] ? [h.other_stat_ids[i]] : [],
 			value_index: 0,
-			op: "Ge" as const,
-			value: 0,
+			check: { type: "Numeric" as const, op: "Ge" as const, value: 0 },
 		}));
 		onChange({ ...rule, type: "StatValue", conditions: [primaryCond, ...otherConds] } as Rule);
 		setPickedTemplate(null);
@@ -525,25 +547,55 @@ function StatValueEditor({
 			/>
 		) : null;
 
-	// Single mode: template | stat_id | op | value
-	if (!isMulti) {
+	/** Render check controls for a single condition based on its type. */
+	const checkControls = (cond: StatCondition, index: number) => {
+		if (cond.check.type === "Boolean") {
+			return (
+				<select
+					class="pred-select"
+					value={cond.check.value ? "true" : "false"}
+					onChange={(e) => {
+						const v = (e.target as HTMLSelectElement).value === "true";
+						updateCondition(index, { check: { type: "Boolean", value: v } });
+					}}
+				>
+					<option value="true">Present</option>
+					<option value="false">Absent</option>
+				</select>
+			);
+		}
 		return (
-			<div class={`predicate-fields stat-value-editor${compact ? " compact" : ""}`}>
-				{statInput}
-				{conditions[0] && statIdBox(conditions[0])}
+			<>
 				<ComparisonField
 					label=""
 					allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
-					value={conditions[0]?.op ?? "Ge"}
-					onChange={(v) => updateCondition(0, { op: v as StatCondition["op"] })}
+					value={cond.check.op}
+					onChange={(v) => {
+						const cur = cond.check as { type: "Numeric"; op: Cmp; value: number };
+						updateCondition(index, { check: { type: "Numeric", op: v as Cmp, value: cur.value } });
+					}}
 				/>
 				<NumberField
 					label=""
 					min={null}
 					max={null}
-					value={conditions[0]?.value ?? 0}
-					onChange={(v) => updateCondition(0, { value: Number(v) })}
+					value={cond.check.value as number}
+					onChange={(v) => {
+						const cur = cond.check as { type: "Numeric"; op: Cmp; value: number };
+						updateCondition(index, { check: { type: "Numeric", op: cur.op, value: Number(v) } });
+					}}
 				/>
+			</>
+		);
+	};
+
+	// Single mode: template | stat_id | check controls
+	if (!isMulti) {
+		return (
+			<div class={`predicate-fields stat-value-editor${compact ? " compact" : ""}`}>
+				{statInput}
+				{conditions[0] && statIdBox(conditions[0])}
+				{conditions[0] && checkControls(conditions[0], 0)}
 			</div>
 		);
 	}
@@ -569,19 +621,7 @@ function StatValueEditor({
 								: cond.text || cond.stat_ids?.[0] || `Condition ${i + 1}`}
 						</span>
 						{statIdBox(cond)}
-						<ComparisonField
-							label=""
-							allowedOps={["Eq", "Ge", "Gt", "Le", "Lt"]}
-							value={cond.op}
-							onChange={(v) => updateCondition(i, { op: v as StatCondition["op"] })}
-						/>
-						<NumberField
-							label=""
-							min={null}
-							max={null}
-							value={cond.value}
-							onChange={(v) => updateCondition(i, { value: Number(v) })}
-						/>
+						{checkControls(cond, i)}
 					</div>
 				))}
 			</div>

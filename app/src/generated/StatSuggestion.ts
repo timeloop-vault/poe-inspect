@@ -16,4 +16,9 @@ stat_ids: Array<string>,
 /**
  * Whether this is a single stat or a hybrid mod combo.
  */
-kind: StatSuggestionKind, };
+kind: StatSuggestionKind, 
+/**
+ * Whether this stat has no numeric values (presence-only boolean).
+ * True when the template has no `#` placeholders.
+ */
+is_boolean: boolean, };

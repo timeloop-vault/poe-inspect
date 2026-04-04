@@ -9,7 +9,8 @@ use poe_item::types::{ModSlot, ModTierKind, ResolvedItem};
 use poe_item::types::ModSource;
 
 use crate::predicate::{
-    Cmp, ModSlotKind, ModSourceKind, Predicate, RarityValue, StatCondition, TierKindFilter,
+    Cmp, ModSlotKind, ModSourceKind, Predicate, RarityValue, StatCheck, StatCondition,
+    TierKindFilter,
 };
 use crate::profile::{MatchedRule, Profile, ScoreResult, UnmatchedRule};
 use crate::rule::Rule;
@@ -206,16 +207,18 @@ pub fn score(item: &ResolvedItem, profile: &Profile, gd: &GameData) -> ScoreResu
 /// - 1 condition: any stat line on any mod that matches.
 /// - 2+ conditions: ALL conditions must be satisfied on the SAME mod.
 ///
-/// **Boolean stats**: Some stats have no numeric values (e.g., enchants like
-/// `"Heist Targets are always Experimented Items"`). When a stat line matches
-/// by `stat_ids` but has no values, it's treated as a presence check — the
-/// condition is satisfied by the stat existing on the item.
+/// Boolean conditions with `value: false` (absence check) are handled specially:
+/// the predicate passes when the stat is NOT found on any mod.
 fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
     if conditions.is_empty() {
         return false;
     }
     if conditions.len() == 1 {
         let c = &conditions[0];
+        // Boolean absence check: pass when stat is NOT found
+        if matches!(c.check, StatCheck::Boolean { value: false }) {
+            return !find_matching_stats(item, &c.stat_ids).any(|_| true);
+        }
         return find_matching_stats(item, &c.stat_ids).any(|sl| stat_line_matches_condition(sl, c));
     }
     // 2+ conditions: all must match on the SAME mod.
@@ -223,6 +226,15 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
         conditions.iter().all(|c| {
             if c.stat_ids.is_empty() {
                 return false;
+            }
+            // Boolean absence in multi-condition: stat must not appear on this mod
+            if matches!(c.check, StatCheck::Boolean { value: false }) {
+                return !m.stat_lines.iter().any(|sl| {
+                    !sl.is_reminder
+                        && sl.stat_ids.as_ref().is_some_and(|ids| {
+                            ids.iter().any(|id| c.stat_ids.iter().any(|sid| sid == id))
+                        })
+                });
             }
             m.stat_lines.iter().any(|sl| {
                 !sl.is_reminder
@@ -236,17 +248,15 @@ fn eval_stat_value(item: &ResolvedItem, conditions: &[StatCondition]) -> bool {
 }
 
 /// Check whether a stat line's value satisfies a condition.
-///
-/// Boolean stats (no values) are treated as presence checks — if the stat
-/// exists, the condition passes.
 fn stat_line_matches_condition(sl: &poe_item::types::ResolvedStatLine, c: &StatCondition) -> bool {
-    if sl.values.is_empty() {
-        // Boolean stat: presence is sufficient
-        return true;
+    match &c.check {
+        StatCheck::Boolean { value: true } => true, // stat exists → pass
+        StatCheck::Boolean { value: false } => false, // handled at eval_stat_value level
+        StatCheck::Numeric { op, value } => sl
+            .values
+            .get(c.value_index)
+            .is_some_and(|v| op.eval(&v.current, value)),
     }
-    sl.values
-        .get(c.value_index)
-        .is_some_and(|v| c.op.eval(&v.current, &c.value))
 }
 
 /// Count mods matching a slot filter (supports `Affix` = Prefix + Suffix).

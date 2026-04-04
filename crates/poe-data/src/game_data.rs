@@ -756,6 +756,7 @@ impl GameData {
                     template: pseudo.label.to_string(),
                     stat_ids: vec![pseudo.id.to_string()],
                     kind: StatSuggestionKind::Single,
+                    is_boolean: false,
                 });
             }
         }
@@ -767,6 +768,7 @@ impl GameData {
                     template: dps.label.to_string(),
                     stat_ids: vec![dps.id.to_string()],
                     kind: StatSuggestionKind::Single,
+                    is_boolean: false,
                 });
             }
         }
@@ -784,11 +786,14 @@ impl GameData {
                 .cloned()
                 .unwrap_or_else(|| ri.stat_ids_for_template(&template).unwrap_or_default());
 
+            let is_boolean = !template.contains('#');
+
             // Single-stat suggestion (always included).
             results.push(StatSuggestion {
                 template: template.clone(),
                 stat_ids: stat_ids.clone(),
                 kind: StatSuggestionKind::Single,
+                is_boolean,
             });
 
             // Find hybrid mods containing any of this template's stats.
@@ -857,6 +862,7 @@ impl GameData {
                             other_templates,
                             other_stat_ids,
                         },
+                        is_boolean,
                     });
                 }
             }
@@ -1005,6 +1011,9 @@ pub struct StatSuggestion {
     pub stat_ids: Vec<String>,
     /// Whether this is a single stat or a hybrid mod combo.
     pub kind: StatSuggestionKind,
+    /// Whether this stat has no numeric values (presence-only boolean).
+    /// True when the template has no `#` placeholders.
+    pub is_boolean: bool,
 }
 
 /// Distinguishes single-stat suggestions from hybrid mod combos.

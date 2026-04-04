@@ -149,13 +149,28 @@ pub enum Predicate {
     Quality { op: Cmp, value: u32 },
 }
 
-/// A single stat condition: identifies a stat and checks its rolled value.
+/// How a stat condition checks its value: numeric comparison or boolean presence.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
+pub enum StatCheck {
+    /// Numeric comparison (e.g., `>= 50`).
+    Numeric {
+        op: Cmp,
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        value: i64,
+    },
+    /// Boolean presence check: `true` = stat must exist, `false` = stat must be absent.
+    Boolean { value: bool },
+}
+
+/// A single stat condition: identifies a stat and checks its value.
 ///
 /// Used as the building block for `StatValue` predicates. The `text` field
 /// is a display label (the stat template text); `stat_ids` contains one or
 /// more equivalent stat IDs (e.g., both the local and non-local variants)
 /// so the condition matches items regardless of item slot context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct StatCondition {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -163,9 +178,61 @@ pub struct StatCondition {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub stat_ids: Vec<String>,
     pub value_index: usize,
-    pub op: Cmp,
-    #[cfg_attr(feature = "ts", ts(type = "number"))]
-    pub value: i64,
+    pub check: StatCheck,
+}
+
+/// Custom deserializer for backwards compatibility with saved profiles.
+///
+/// Old format had `op` + `value` at the top level. New format has `check` field
+/// with a tagged `StatCheck` enum. Detects old format and wraps in `Numeric`.
+impl<'de> Deserialize<'de> for StatCondition {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let raw = serde_json::Value::deserialize(deserializer)?;
+        let obj = raw
+            .as_object()
+            .ok_or_else(|| serde::de::Error::custom("StatCondition must be an object"))?;
+
+        let text = obj.get("text").and_then(|v| v.as_str()).map(String::from);
+        let stat_ids = obj
+            .get("stat_ids")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let value_index = obj
+            .get("value_index")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0) as usize;
+
+        let check = if let Some(check_val) = obj.get("check") {
+            // New format
+            serde_json::from_value(check_val.clone()).map_err(serde::de::Error::custom)?
+        } else if let Some(op_val) = obj.get("op") {
+            // Old format: top-level op + value → Numeric
+            let op: Cmp =
+                serde_json::from_value(op_val.clone()).map_err(serde::de::Error::custom)?;
+            let value = obj
+                .get("value")
+                .and_then(serde_json::Value::as_i64)
+                .unwrap_or(0);
+            StatCheck::Numeric { op, value }
+        } else {
+            StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 0,
+            }
+        };
+
+        Ok(Self {
+            text,
+            stat_ids,
+            value_index,
+            check,
+        })
+    }
 }
 
 /// Mod slot kind for counting and open-mod queries.

@@ -7,7 +7,7 @@ use poe_dat::tables::{BaseItemTypeRow, RarityRow};
 use poe_data::GameData;
 use poe_eval::affix;
 use poe_eval::predicate::{
-    Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatCondition, StatusValue,
+    Cmp, InfluenceValue, ModSlotKind, Predicate, RarityValue, StatCheck, StatCondition, StatusValue,
 };
 use poe_eval::profile::{Profile, ScoringRule};
 use poe_eval::rule::Rule;
@@ -282,8 +282,10 @@ fn has_stat_presence_via_stat_value() {
             text: Some("maximum Life".to_string()),
             stat_ids: vec!["base_maximum_life".to_string()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 0,
+            check: StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 0,
+            },
         }],
     });
     assert!(evaluate(&item, &rule, gd));
@@ -303,8 +305,10 @@ fn stat_value_check() {
             text: None,
             stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 30,
+            check: StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 30,
+            },
         }],
     });
     assert!(evaluate(&item, &rule, gd));
@@ -315,8 +319,10 @@ fn stat_value_check() {
             text: None,
             stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 40,
+            check: StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 40,
+            },
         }],
     });
     assert!(evaluate(&item, &rule, gd));
@@ -327,8 +333,10 @@ fn stat_value_check() {
             text: None,
             stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 55,
+            check: StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 55,
+            },
         }],
     });
     assert!(!evaluate(&item, &rule, gd));
@@ -348,8 +356,10 @@ fn stat_value_checks_all_matching_mods() {
             text: None,
             stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
-            op: Cmp::Gt,
-            value: 100,
+            check: StatCheck::Numeric {
+                op: Cmp::Gt,
+                value: 100,
+            },
         }],
     });
     assert!(evaluate(&item, &rule, gd));
@@ -360,8 +370,10 @@ fn stat_value_checks_all_matching_mods() {
             text: None,
             stat_ids: vec!["base_maximum_life".into()],
             value_index: 0,
-            op: Cmp::Gt,
-            value: 150,
+            check: StatCheck::Numeric {
+                op: Cmp::Gt,
+                value: 150,
+            },
         }],
     });
     assert!(!evaluate(&item, &rule_high, gd));
@@ -496,8 +508,10 @@ fn complex_rule() {
                 text: Some("maximum Life".to_string()),
                 stat_ids: vec!["base_maximum_life".to_string()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             }],
         }),
         Rule::negate(Rule::pred(Predicate::HasStatus {
@@ -547,8 +561,10 @@ fn belt_profile() -> Profile {
                         text: Some("maximum Life".to_string()),
                         stat_ids: vec!["base_maximum_life".to_string()],
                         value_index: 0,
-                        op: Cmp::Ge,
-                        value: 0,
+                        check: StatCheck::Numeric {
+                            op: Cmp::Ge,
+                            value: 0,
+                        },
                     }],
                 }),
             },
@@ -561,8 +577,10 @@ fn belt_profile() -> Profile {
                             text: Some("Fire Resistance".to_string()),
                             stat_ids: vec!["base_fire_damage_resistance_%".to_string()],
                             value_index: 0,
-                            op: Cmp::Ge,
-                            value: 0,
+                            check: StatCheck::Numeric {
+                                op: Cmp::Ge,
+                                value: 0,
+                            },
                         }],
                     }),
                     Rule::pred(Predicate::StatValue {
@@ -570,8 +588,10 @@ fn belt_profile() -> Profile {
                             text: Some("Cold Resistance".to_string()),
                             stat_ids: vec!["base_cold_damage_resistance_%".to_string()],
                             value_index: 0,
-                            op: Cmp::Ge,
-                            value: 0,
+                            check: StatCheck::Numeric {
+                                op: Cmp::Ge,
+                                value: 0,
+                            },
                         }],
                     }),
                     Rule::pred(Predicate::StatValue {
@@ -579,8 +599,10 @@ fn belt_profile() -> Profile {
                             text: Some("Lightning Resistance".to_string()),
                             stat_ids: vec!["base_lightning_damage_resistance_%".to_string()],
                             value_index: 0,
-                            op: Cmp::Ge,
-                            value: 0,
+                            check: StatCheck::Numeric {
+                                op: Cmp::Ge,
+                                value: 0,
+                            },
                         }],
                     }),
                 ]),
@@ -593,8 +615,10 @@ fn belt_profile() -> Profile {
                         text: Some("Armour".to_string()),
                         stat_ids: vec!["base_physical_damage_reduction_rating".to_string()],
                         value_index: 0,
-                        op: Cmp::Ge,
-                        value: 0,
+                        check: StatCheck::Numeric {
+                            op: Cmp::Ge,
+                            value: 0,
+                        },
                     }],
                 }),
             },
@@ -671,8 +695,10 @@ fn profile_no_filter() {
                     text: Some("maximum Life".to_string()),
                     stat_ids: vec!["base_maximum_life".to_string()],
                     value_index: 0,
-                    op: Cmp::Ge,
-                    value: 0,
+                    check: StatCheck::Numeric {
+                        op: Cmp::Ge,
+                        value: 0,
+                    },
                 }],
             }),
         }],
@@ -908,15 +934,19 @@ fn stat_value_multi_matches_same_mod() {
                 text: Some("+# to Armour".into()),
                 stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
             StatCondition {
                 text: Some("+# to maximum Life".into()),
                 stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
         ],
     });
@@ -939,15 +969,19 @@ fn stat_value_multi_does_not_match_across_mods() {
                 text: None,
                 stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
         ],
     });
@@ -971,15 +1005,19 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
                 text: None,
                 stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
         ],
     });
@@ -995,8 +1033,10 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
                 text: None,
                 stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             }],
         }),
         Rule::pred(Predicate::StatValue {
@@ -1004,8 +1044,10 @@ fn stat_value_multi_rejects_cross_mod_on_shield() {
                 text: None,
                 stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             }],
         }),
     ]);
@@ -1028,15 +1070,19 @@ fn stat_value_multi_fails_when_stat_missing() {
                 text: None,
                 stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec!["base_lightning_damage_resistance_%".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
         ],
     });
@@ -1076,15 +1122,19 @@ fn stat_value_multi_with_value_thresholds() {
                 text: None,
                 stat_ids: vec![armour_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 1,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 1,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec![life_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 1,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 1,
+                },
             },
         ],
     });
@@ -1097,15 +1147,19 @@ fn stat_value_multi_with_value_thresholds() {
                 text: None,
                 stat_ids: vec![armour_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 1,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 1,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec![life_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 200,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 200,
+                },
             },
         ],
     });
@@ -1129,15 +1183,19 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
                 text: None,
                 stat_ids: vec![armour_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec![life_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
         ],
     });
@@ -1150,15 +1208,19 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
                 text: None,
                 stat_ids: vec![life_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
             StatCondition {
                 text: None,
                 stat_ids: vec![cold_res_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             },
         ],
     });
@@ -1171,8 +1233,10 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
                 text: None,
                 stat_ids: vec![life_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             }],
         }),
         Rule::pred(Predicate::StatValue {
@@ -1180,8 +1244,10 @@ fn stat_value_multi_vs_rule_all_on_body_armour() {
                 text: None,
                 stat_ids: vec![cold_res_id.into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 0,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 0,
+                },
             }],
         }),
     ]);
@@ -1208,15 +1274,19 @@ fn stat_value_multi_in_scoring_profile() {
                         text: Some("+# to Armour".into()),
                         stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                         value_index: 0,
-                        op: Cmp::Ge,
-                        value: 0,
+                        check: StatCheck::Numeric {
+                            op: Cmp::Ge,
+                            value: 0,
+                        },
                     },
                     StatCondition {
                         text: Some("+# to maximum Life".into()),
                         stat_ids: vec!["base_maximum_life".into()],
                         value_index: 0,
-                        op: Cmp::Ge,
-                        value: 0,
+                        check: StatCheck::Numeric {
+                            op: Cmp::Ge,
+                            value: 0,
+                        },
                     },
                 ],
             }),
@@ -1251,15 +1321,19 @@ fn stat_value_conditions_serialize_roundtrip() {
                 text: Some("+# to Armour".into()),
                 stat_ids: vec!["local_base_physical_damage_reduction_rating".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 50,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 50,
+                },
             },
             StatCondition {
                 text: Some("+# to maximum Life".into()),
                 stat_ids: vec!["base_maximum_life".into()],
                 value_index: 0,
-                op: Cmp::Ge,
-                value: 20,
+                check: StatCheck::Numeric {
+                    op: Cmp::Ge,
+                    value: 20,
+                },
             },
         ],
     };
@@ -1279,7 +1353,10 @@ fn stat_value_conditions_serialize_roundtrip() {
                 conditions[0].stat_ids,
                 vec!["local_base_physical_damage_reduction_rating"]
             );
-            assert_eq!(conditions[1].value, 20);
+            match &conditions[1].check {
+                StatCheck::Numeric { value, .. } => assert_eq!(*value, 20),
+                StatCheck::Boolean { .. } => panic!("expected Numeric"),
+            }
         }
         _ => panic!("expected StatValue variant"),
     }
@@ -1514,7 +1591,7 @@ fn pseudo_physical_damage_computed() {
 
 #[test]
 fn pseudo_stat_value_predicate_works() {
-    use poe_eval::predicate::{Cmp, Predicate, StatCondition};
+    use poe_eval::predicate::{Cmp, Predicate, StatCheck, StatCondition};
     use poe_eval::rule::Rule;
 
     let item = resolve_full("rare-warstaff-sol-pile.txt");
@@ -1525,8 +1602,10 @@ fn pseudo_stat_value_predicate_works() {
             text: Some("(Pseudo) #% total increased Physical Damage".to_string()),
             stat_ids: vec!["pseudo_increased_physical_damage".to_string()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 60,
+            check: StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 60,
+            },
         }],
     });
 
@@ -1539,8 +1618,10 @@ fn pseudo_stat_value_predicate_works() {
             text: Some("(Pseudo) #% total increased Physical Damage".to_string()),
             stat_ids: vec!["pseudo_increased_physical_damage".to_string()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 100,
+            check: StatCheck::Numeric {
+                op: Cmp::Ge,
+                value: 100,
+            },
         }],
     });
 
@@ -1912,8 +1993,7 @@ fn boolean_enchant_stat_matches_on_presence() {
             text: None,
             stat_ids: vec!["heist_blueprint_reward_always_unique".to_string()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 1,
+            check: StatCheck::Boolean { value: true },
         }],
     });
     assert!(
@@ -1933,12 +2013,53 @@ fn boolean_enchant_stat_does_not_match_wrong_id() {
             text: None,
             stat_ids: vec!["heist_blueprint_reward_always_experimented".to_string()],
             value_index: 0,
-            op: Cmp::Ge,
-            value: 1,
+            check: StatCheck::Boolean { value: true },
         }],
     });
     assert!(
         !evaluate(&item, &rule, gd),
         "wrong stat_id should not match"
+    );
+}
+
+#[test]
+fn boolean_false_matches_when_stat_absent() {
+    let gd = full_game_data();
+    let item = resolve_full("blueprint-normal-bunker.txt");
+
+    // Item has "heist_blueprint_reward_always_unique" but NOT "experimented".
+    // Boolean false on the absent stat should pass.
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: None,
+            stat_ids: vec!["heist_blueprint_reward_always_experimented".to_string()],
+            value_index: 0,
+            check: StatCheck::Boolean { value: false },
+        }],
+    });
+    assert!(
+        evaluate(&item, &rule, gd),
+        "boolean false should match when stat is absent"
+    );
+}
+
+#[test]
+fn boolean_false_rejects_when_stat_present() {
+    let gd = full_game_data();
+    let item = resolve_full("blueprint-normal-bunker.txt");
+
+    // Item HAS "heist_blueprint_reward_always_unique".
+    // Boolean false should NOT match.
+    let rule = Rule::pred(Predicate::StatValue {
+        conditions: vec![StatCondition {
+            text: None,
+            stat_ids: vec!["heist_blueprint_reward_always_unique".to_string()],
+            value_index: 0,
+            check: StatCheck::Boolean { value: false },
+        }],
+    });
+    assert!(
+        !evaluate(&item, &rule, gd),
+        "boolean false should not match when stat is present"
     );
 }

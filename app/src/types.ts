@@ -39,6 +39,7 @@ export type { FieldKind } from "./generated/FieldKind";
 export type { EnumOption } from "./generated/EnumOption";
 export type { Cmp } from "./generated/Cmp";
 export type { StatCondition } from "./generated/StatCondition";
+export type { StatCheck } from "./generated/StatCheck";
 
 // Stat suggestion types (from poe-data, hybrid mod picker)
 export type { StatSuggestion } from "./generated/StatSuggestion";

@@ -126,7 +126,9 @@ function conditionToRule(c: RqeCondition): { label: string; rule: Rule } | null 
 				rule: {
 					rule_type: "Pred",
 					type: "StatValue",
-					conditions: [{ stat_ids: [statId], value_index: 0, op, value }],
+					conditions: [
+						{ stat_ids: [statId], value_index: 0, check: { type: "Numeric" as const, op, value } },
+					],
 				} as Rule,
 			};
 		}

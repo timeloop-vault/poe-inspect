@@ -742,6 +742,7 @@ dependencies = [
  "poe-data",
  "poe-item",
  "serde",
+ "serde_json",
  "thiserror",
  "tracing",
  "ts-rs",
