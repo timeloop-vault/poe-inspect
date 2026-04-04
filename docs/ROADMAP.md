@@ -142,6 +142,7 @@ Known gaps and future features, not currently prioritized.
 
 | Item | Layer | Notes |
 |------|-------|-------|
+| Reference image overlays | app | User-loaded cheat sheet images (syndicate, atlas, shipping, etc.) as pinnable always-on-top overlays. Hotkey to show/hide, temporary or pinned mode, settings UI to add/remove images, edit mode for positioning/resizing on screen. |
 | Pseudo stats | poe-eval | Sum matching stat lines (e.g., "pseudo total life >= 140"). New `PseudoStatValue` predicate. |
 | Anointment trade stats | poe-trade | Option-based stats (`Allocates #` with dropdown). Needs `StatFilter.option` field. |
 | Memory Strands | poe-data/item/eval | New Mirage 3.28 mechanic. Surface as first-class field, factor into evaluation. |
