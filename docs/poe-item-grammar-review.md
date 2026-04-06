@@ -148,3 +148,17 @@ Equipment items (Normal, Magic, Rare, Unique) share the same section structure a
 - Usage instruction detection via `poe_data::domain` — domain knowledge
 - Mixed heist sections — grammar can't handle mixed property/non-property lines
 - Stat ID resolution, base type extraction, pseudo computation — genuinely needs GameData
+
+### Next: rarity-specific grammar paths for all item types
+
+The gem work proved that the grammar can use the Rarity header to route into item-type-specific section ordering. This should be extended:
+
+| Rarity | Grammar path | Status | Notes |
+|--------|-------------|--------|-------|
+| Gem | `gem_item` | **Done** | 12 fixtures, all gem extraction removed from resolver |
+| Currency | `currency_item` | Planned | Stack Size props, description, usage — very predictable |
+| Divination Card | `divination_card_item` | Planned | Stack Size, reward text, flavor — simplest |
+| Unique | `unique_item` | Planned | Like equipment but flavor text becomes grammar-identified |
+| Normal/Magic/Rare | `standard_item` | Current | Shared structure (game upgrade path), use generic `section*` |
+
+**Key insight:** Normal → Magic → Rare is an upgrade path in game logic and they share section structure. Unique is as structurally different from Normal as Gem is. Currency and Divination Card have completely distinct layouts. The grammar should reflect this — one path per distinct layout, not one path for everything.
