@@ -77,6 +77,26 @@ A crate makes decisions that its CLAUDE.md explicitly assigns to another crate o
 
 **Test:** Read the crate's "Does NOT own" section. Is the code doing something listed there?
 
+### Category 5: Hardcoded Structural Parsing in poe-item Resolver
+
+The poe-item resolver (Pass 2) must only use `GameData` and parsed item data (rarity, item class). Structural pattern recognition belongs in the PEST grammar (Pass 1).
+
+**Red flags:**
+- Hardcoded string constants for pattern matching (prefix lists, suffix lists)
+- Regex patterns for structural text recognition (not data extraction for `ReverseIndex`)
+- `contains(": ")`, `ends_with(...)`, `starts_with(...)` checks used to classify section types
+- `is_weapon_class()` or similar calls used for structural parsing (vs. data-driven classification)
+- Domain knowledge constants defined in poe-item instead of poe-data
+
+**Allowed in resolver:**
+- Using rarity/item class from parsed header to classify ambiguous text sections (data-driven)
+- Calling `poe_data::domain::*` functions for domain knowledge
+- `ReverseIndex.lookup()` for stat ID resolution
+- `GameData.*` table lookups for base type, mod confirmation, etc.
+- Value range parsing and display text construction (data extraction helpers for `ReverseIndex`)
+
+**Test:** Does the resolver contain any string literal used for pattern matching that isn't from `poe_data::domain`? If yes, it should be either a grammar rule or a poe-data constant.
+
 ### Category 4: Missing Override Mechanisms
 
 A config struct that should allow the caller to control a behavior but doesn't have the field for it.

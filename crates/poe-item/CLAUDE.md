@@ -46,7 +46,8 @@ What PEST handles:
 - Section structure (separator-delimited blocks)
 - Header section (Item Class, Rarity, name/base lines)
 - Divination Card rarity (`Rarity::DivinationCard`)
-- Property lines (Key: Value with optional augmented marker)
+- **Property sections** (`Key: Value` lines, with optional sub-header for weapon types / gem tags)
+- **Enchant sections** (all lines ending with `(enchant)` suffix)
 - Requirements section
 - Sockets section
 - Item Level section
@@ -54,27 +55,31 @@ What PEST handles:
 - Modifier headers (`{ Prefix Modifier "Name" (Tier: N) — Tags }`)
 - Stat lines with value ranges (`+68(65-68) to maximum Mana`)
 - Reminder text (`(parenthesized text)`)
-- Enchant lines (ending with `(enchant)`)
 - Influence markers (`Shaper Item`, etc.)
 - Status keywords (`Corrupted`, `Mirrored`, `Unidentified`, `Split`, `Transfigured`)
-- Unknown sections (preserved, not dropped)
+- Unclassified text sections (flavor text, descriptions — classified by resolver using rarity)
 
 ### Pass 2: Rust Resolver (data-dependent disambiguation)
 
-Uses `GameData` for things the grammar can't know:
-- **Magic item base type extraction**: Magic items embed base in name ("Seething Divine Life Flask of Staunching"). Need base item lookup to split.
-- **Stat line → stat ID**: Feed display text into `ReverseIndex.lookup()` to get stat IDs + values.
-- **Generic section classification**: Content-based analysis to classify unstructured sections:
-  - Enchants (lines ending with `(enchant)` suffix → synthetic `ResolvedMod` with `ModSlot::Enchant`)
-  - Properties (lines with `": "` pattern)
-  - Descriptions (currency effects, item instructions)
-  - Flavor text (unique/div card lore)
-  - Usage instructions (dropped — "Right click to use", etc.)
-- **Gem data extraction**: Dedicated path for gems — tags, description, stats, quality effects, Vaal variant
-- **Socket color parsing**: `SocketInfo` includes `red`, `green`, `blue`, `white` counts parsed from the socket string
-- **Pseudo stat computation**: For each `PseudoDefinition` from poe-data, scans resolved stat lines, sums values with multipliers, creates synthetic `ResolvedMod` with `display_type: Pseudo` and `source: Computed`
-- **Flask property vs modifier**: Flask base properties look like mods. Need game data to tell apart.
-- **Tier verification**: Verify extracted tier against mod database ranges.
+Uses `GameData` and item data (rarity, item class) for things the grammar can't know.
+
+**RULE: The resolver must NOT contain hardcoded string patterns for structural parsing.**
+If a pattern can be recognized by text structure alone, it belongs in the grammar.
+If it needs game data (GGPK tables, base type lookups, stat resolution), it belongs here.
+If it needs item context (rarity) to classify ambiguous sections, that's data-driven and belongs here.
+Domain knowledge constants (usage instruction prefixes, etc.) belong in `poe-data::domain`.
+
+What the resolver does:
+- **Magic item base type extraction**: Substring lookup against `GameData.base_item_types` table
+- **Stat line → stat ID**: Feed display text into `ReverseIndex.lookup()` to get stat IDs + values
+- **Text section classification**: Uses rarity to classify remaining generic sections:
+  - Currency/Gem → Description
+  - Unique/DivinationCard → Flavor text
+  - Usage instructions → dropped (prefixes from `poe_data::domain::is_usage_instruction()`)
+- **Gem data extraction**: Uses rarity context + generic section ordering for description, stats, quality effects, Vaal variant
+- **Socket color parsing**: `SocketInfo` with `red`, `green`, `blue`, `white` counts
+- **Pseudo stat computation**: Scans resolved stat lines against `PseudoDefinition` from poe-data
+- **Tier verification**: Cross-reference mod table for confirmed stat IDs
 
 ### Architecture diagram
 
