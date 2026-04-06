@@ -482,18 +482,6 @@ struct ClassifiedSections {
     unclassified: Vec<Vec<String>>,
 }
 
-/// Known prefixes for GGG usage instructions (not flavor text, not descriptions).
-const USAGE_PREFIXES: &[&str] = &[
-    "Right click",
-    "Place into",
-    "Travel to",
-    "Can be used",
-    "This is a Support Gem",
-    "Shift click to unstack",
-    "Use Intelligence",
-    "Give this",
-];
-
 /// Classify generic sections by content analysis.
 ///
 /// Each section is independently classified as one of:
@@ -571,8 +559,8 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
         return SectionKind::Enchants(non_empty.iter().map(|l| (*l).to_string()).collect());
     }
 
-    // Starts with known usage instruction prefix → drop
-    if USAGE_PREFIXES.iter().any(|p| non_empty[0].starts_with(p)) {
+    // Usage instructions — identified by domain knowledge from poe-data
+    if poe_data::domain::is_usage_instruction(non_empty[0]) {
         return SectionKind::UsageInstructions;
     }
 
