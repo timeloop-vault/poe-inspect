@@ -546,19 +546,19 @@ struct ClassifiedSections {
     unclassified: Vec<Vec<String>>,
 }
 
-/// Classify generic sections by content analysis.
+/// Classify remaining generic sections using item data (rarity, item class).
 ///
-/// Each section is independently classified as one of:
-/// - **Properties**: all lines contain `": "` (e.g., "Armour: 890 (augmented)")
-/// - **Enchants**: all lines end with `(enchant)`
-/// - **Usage instructions**: starts with known GGG instruction prefix
-/// - **Flavor text**: poetic/lore text (no colons, not instructions, not enchants)
-/// - **Description**: item effect text (currency effects, scarab effects, etc.)
-/// - **Unclassified**: anything else
+/// By this point, the grammar has already caught property sections (Key: Value)
+/// and enchant sections (lines ending with "(enchant)"). What remains are:
+/// - Mixed sections (heist blueprints: properties + non-property lines)
+/// - Plain text (flavor text, descriptions, usage instructions)
+///
+/// Classification is data-driven — it uses the item's rarity to determine
+/// whether text sections are flavor text or descriptions.
 fn classify_generic_sections(
     sections: &[Vec<String>],
     rarity: Rarity,
-    item_class: &str,
+    _item_class: &str,
 ) -> ClassifiedSections {
     let mut properties = Vec::new();
     let mut enchant_lines = Vec::new();
@@ -571,7 +571,7 @@ fn classify_generic_sections(
             continue;
         }
 
-        let classification = classify_single_section(section, rarity, item_class);
+        let classification = classify_single_section(section, rarity);
         match classification {
             SectionKind::Properties(props) => properties.extend(props),
             SectionKind::Enchants(lines) => enchant_lines.extend(lines),
@@ -608,7 +608,12 @@ enum SectionKind {
     Unclassified,
 }
 
-fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -> SectionKind {
+/// Classify a single generic section using item data.
+///
+/// The grammar already caught pure property and pure enchant sections.
+/// What reaches here are mixed or plain-text sections that need rarity
+/// context to classify.
+fn classify_single_section(lines: &[String], rarity: Rarity) -> SectionKind {
     let non_empty: Vec<&str> = lines
         .iter()
         .map(String::as_str)
@@ -618,7 +623,8 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
         return SectionKind::Unclassified;
     }
 
-    // All lines end with (enchant) → enchant section
+    // Mixed enchant sections (some lines with suffix, some without) that
+    // the grammar couldn't catch as pure enchant sections.
     if non_empty.iter().all(|l| l.ends_with("(enchant)")) {
         return SectionKind::Enchants(non_empty.iter().map(|l| (*l).to_string()).collect());
     }
@@ -628,66 +634,43 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
         return SectionKind::UsageInstructions;
     }
 
-    // Check if this is a property section (majority of lines have ": ")
+    // Mixed sections with property lines (e.g., heist blueprints with
+    // "Requires Lockpicking (Level 3)" interleaved with "Area Level: 83").
+    // The grammar couldn't match these as pure property sections.
     let colon_count = non_empty.iter().filter(|l| l.contains(": ")).count();
-    // Heist skill requirements: "Requires Lockpicking (Level 3)" — no colon but still a property
     let heist_req_count = non_empty
         .iter()
         .filter(|l| l.starts_with("Requires ") && l.contains("(Level "))
         .count();
     let prop_like_count = colon_count + heist_req_count;
     if prop_like_count > 0 && prop_like_count == non_empty.len() {
-        // All lines are property-like
         let props = parse_property_lines(lines);
         return SectionKind::Properties(props);
     }
 
-    // Weapon sections: first line is a weapon type sub-header (e.g., "Warstaff",
-    // "Two Handed Axe", "Bow") without ": ", followed by property lines that all have ": ".
-    // Only weapons have this pattern — armour/accessories start directly with properties.
-    if colon_count > 0
-        && colon_count == non_empty.len() - 1
-        && !non_empty[0].contains(": ")
-        && poe_data::domain::is_weapon_class(item_class)
-    {
-        let property_lines: Vec<String> = lines.iter().skip(1).cloned().collect();
-        let props = parse_property_lines(&property_lines);
-        return SectionKind::Properties(props);
-    }
-
-    // Mixed section: some lines have colons, some don't.
-    // For currency/essence: the description header + slot table are mixed.
-    // Treat the whole section as description text.
+    // Mixed section with some colons: currency description tables
     if colon_count > 0 && rarity == Rarity::Currency {
         return SectionKind::Description(lines.join("\n"));
     }
 
-    // Pure text section (no colons) — could be flavor text or description
-    // Flavor text: appears on Unique, DivinationCard, and scarab-like items (Normal Map Fragments)
-    // Description: effect text on currency, scarabs, tinctures, etc.
+    // ── Data-driven text classification using rarity ──────────────────────
     let text = lines.join("\n");
 
-    // Currency/gem descriptions come before flavor text
     if matches!(rarity, Rarity::Currency | Rarity::Gem) {
-        // Currency items: first text section is description, rest are unclassified
         return SectionKind::Description(text);
     }
 
-    // For uniques and div cards: text sections are typically flavor text
     if matches!(rarity, Rarity::Unique | Rarity::DivinationCard) {
         return SectionKind::FlavorText(text);
     }
 
-    // Quoted text is flavor text regardless of rarity (e.g., heist contracts)
+    // Quoted text is flavor text regardless of rarity
     if non_empty[0].starts_with('"') {
         return SectionKind::FlavorText(text);
     }
 
-    // For Normal rarity items that are scarabs/fragments: first text section is description,
-    // subsequent ones might be flavor text. Use a heuristic: if it looks like a game effect
-    // (long, mechanical language), it's description. If it's short/poetic, it's flavor.
+    // Normal rarity: short/poetic → flavor, longer → description
     if rarity == Rarity::Normal {
-        // Short poetic text → flavor; longer mechanical text → description
         if non_empty.len() <= 2 && text.len() < 80 {
             return SectionKind::FlavorText(text);
         }
