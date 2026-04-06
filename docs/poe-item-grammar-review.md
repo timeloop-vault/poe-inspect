@@ -114,3 +114,37 @@ These are data-dependent and genuinely belong in Pass 2:
 There are **~25 hardcoded string patterns** in the resolver doing structural parsing. The grammar recognizes 11 section types but leaves everything else to a catch-all. The resolver compensates with string matching, regex, section ordering assumptions, and heuristics.
 
 The rarity-dependent classification (lines 609-643) is a gray area — it needs rarity context that the grammar doesn't have, but the pattern matching it uses (colon detection, quote detection) is structural. The gem section handling is the most fragile: it assumes a fixed section order with no validation.
+
+## Findings (2026-04-06 cleanup)
+
+### Item-type-specific grammar paths work
+
+The grammar CAN match `"Rarity: Gem"` literally in the header and use a gem-specific section ordering rule (`gem_item`). This was implemented and proven across 12 gem fixtures covering all variants (skill, support, vaal, transfigured, imbued, exceptional/awakened, corrupted).
+
+**Result:** The resolver's gem extraction code (`extract_gem_data`, `split_gem_tags_and_props`, `split_stats_and_quality`, `extract_vaal_data`) was deleted entirely. The grammar identifies every gem section by type, the tree walker builds `GemData` directly, and the resolver handles it in one line.
+
+### Recommendation: rarity-specific grammar paths for non-equipment items
+
+The same approach should work for **Currency** (`"Rarity: Currency"`) and **Divination Card** (`"Rarity: Divination Card"`). These have predictable section structures that the grammar can match, eliminating rarity-dependent heuristics from the resolver.
+
+Equipment items (Normal, Magic, Rare, Unique) share the same section structure and should continue using the generic `standard_item` path with `section*` matching.
+
+### What was moved to grammar
+
+| Pattern | Was | Now |
+|---------|-----|-----|
+| Property sections (`Key: Value`) | Resolver `contains(": ")` | Grammar `property_section` |
+| Enchant sections (`(enchant)` suffix) | Resolver `ends_with("(enchant)")` | Grammar `enchant_section` |
+| Gem tags | Resolver `split(", ")` on first generic line | Grammar `gem_tags_line` |
+| Gem description | Resolver positional (2nd generic section) | Grammar `gem_description_section` |
+| Gem stats + quality | Resolver `starts_with("Additional Effects From Quality")` | Grammar `gem_stats_section` with `gem_quality_block` |
+| Gem usage instructions | Resolver `USAGE_PREFIXES` check | Grammar `gem_usage_section` (dropped) |
+| Vaal variant | Resolver `starts_with("Vaal ")` | Grammar `vaal_section` with `"Vaal "` prefix |
+| Weapon sub-header | Resolver `is_weapon_class()` + no-colon check | Grammar `property_subheader` |
+
+### What remains in the resolver (correctly)
+
+- Rarity-based text classification for equipment (flavor vs description) — data-driven
+- Usage instruction detection via `poe_data::domain` — domain knowledge
+- Mixed heist sections — grammar can't handle mixed property/non-property lines
+- Stat ID resolution, base type extraction, pseudo computation — genuinely needs GameData
