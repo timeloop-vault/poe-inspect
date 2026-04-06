@@ -1,0 +1,27 @@
+Item Class: Support Gems
+Rarity: Gem
+Spell Totem Support
+--------
+Support, Spell, Totem
+Level: 21 (Max)
+Cost & Reservation Multiplier: 200%
+Quality: +20% (augmented)
+--------
+Requirements:
+Level: 72
+Str: 72
+Int: 50
+--------
+Supports spell skills that are not triggered. Instead of casting that spell, you will summon a totem that casts the spell for you.
+--------
+Supported Skills deal 39% less Damage
+Supported Skills will summon a Totem which uses that Skill
+Totem lasts 8 seconds
+Supported Skills have 40% less Cast Speed
+
+Additional Effects From Quality:
+Supported Skills have 10(0-10)% increased Totem Placement speed
+--------
+This is a Support Gem. It does not grant a bonus to your character, but to skills in sockets connected to it. Place into an item socket connected to a socket containing the Skill Gem you wish to augment. Right click to remove from a socket.
+--------
+Corrupted

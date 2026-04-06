@@ -1746,6 +1746,10 @@ body,
 	color: var(--fractured-color);
 }
 
+.status-gem {
+	color: #1ba29b;
+}
+
 /* --- Socket filter rows (R/G/B/W + min/max) --- */
 
 .socket-filters-section {

@@ -568,6 +568,20 @@ fn filter_default(
             let is = item.gem_data.as_ref().is_some_and(|g| g.vaal.is_some());
             return option_default_bool(is);
         }
+        "gem_transfigured" => {
+            // Filter text is "Transfigured Gem", status text is just "Transfigured".
+            // Trade API convention, not in GGPK (verified 2026-04-06).
+            let is = item
+                .statuses
+                .contains(&poe_item::types::StatusKind::Transfigured);
+            return option_default_bool(is);
+        }
+        "gem_level_progress" => {
+            // Experience is stored as a raw string (e.g., "1/15 249"), not a property.
+            // Parse into percentage for the trade filter.
+            let pct = crate::query::extract_gem_experience_pct(item);
+            return range_default(pct, false);
+        }
         _ => {}
     }
 
@@ -666,7 +680,10 @@ fn option_default_selected(id: Option<&str>, enabled: bool) -> (Option<EditFilte
 
 /// Parse a numeric value from a property value string, handling `+`, `%`, commas.
 fn parse_numeric_property_value(value: &str) -> Option<f64> {
-    value
+    // Strip known suffixes: "(Max)", "(augmented)", "(unmet)", etc.
+    // Then strip +, %, comma (thousands separator) and parse.
+    let cleaned = value.split('(').next().unwrap_or(value);
+    cleaned
         .replace(['+', '%', ','], "")
         .trim()
         .parse::<f64>()

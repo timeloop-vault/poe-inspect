@@ -306,6 +306,29 @@ pub struct TradeFilterConfig {
     /// `Some(false)` = omit. `Some(true)` = force on.
     #[serde(default)]
     pub fractured_override: Option<bool>,
+    /// Whether to include a gem level filter.
+    #[serde(default)]
+    pub gem_level_enabled: bool,
+    /// Minimum gem level (only used when `gem_level_enabled` is true).
+    /// `None` = use the item's actual gem level.
+    #[serde(default)]
+    pub gem_level_min: Option<u32>,
+    /// Whether to include a gem experience % filter.
+    #[serde(default)]
+    pub gem_experience_enabled: bool,
+    /// Minimum gem experience % (only used when `gem_experience_enabled` is true).
+    #[serde(default)]
+    pub gem_experience_min: Option<f64>,
+    /// Override for the Vaal Gem misc filter.
+    /// `None` = default (include if item is a Vaal gem).
+    /// `Some(false)` = omit. `Some(true)` = force on.
+    #[serde(default)]
+    pub gem_vaal_override: Option<bool>,
+    /// Override for the Transfigured Gem misc filter.
+    /// `None` = default (include if item is transfigured).
+    /// `Some(false)` = omit. `Some(true)` = force on.
+    #[serde(default)]
+    pub gem_transfigured_override: Option<bool>,
     /// Selected unique name for unidentified unique disambiguation.
     /// When non-empty, overrides the `query.name` field in the trade query.
     #[serde(default)]

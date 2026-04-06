@@ -683,6 +683,64 @@ fn gem_no_unclassified() {
 }
 
 #[test]
+fn gem_properties_populated() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-skill-portal-corrupted.txt", &gd);
+    // Gem properties should include Level, Cast Time, Quality
+    let prop_names: Vec<&str> = item
+        .properties
+        .iter()
+        .filter(|p| !p.synthetic)
+        .map(|p| p.name.as_str())
+        .collect();
+    assert!(
+        prop_names.contains(&"Level"),
+        "missing Level: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Cast Time"),
+        "missing Cast Time: {prop_names:?}"
+    );
+    assert!(
+        prop_names.contains(&"Quality"),
+        "missing Quality: {prop_names:?}"
+    );
+    // Quality should be extracted
+    assert_eq!(item.quality, Some(2));
+    // Portal is NOT a Vaal gem (usage instructions must not trigger Vaal detection)
+    let gem = item.gem_data.as_ref().expect("should have gem_data");
+    assert!(gem.vaal.is_none(), "Portal should not be detected as Vaal");
+}
+
+#[test]
+fn gem_experience_populated() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-vaal-ice-nova.txt", &gd);
+    assert!(item.experience.is_some(), "should have experience");
+    assert_eq!(item.experience.as_deref(), Some("1/15 249"));
+}
+
+#[test]
+fn support_gem_not_vaal() {
+    let gd = test_game_data(&[]);
+    let item = resolve_fixture("gem-support-spell-totem-corrupted.txt", &gd);
+    let gem = item.gem_data.as_ref().expect("should have gem_data");
+    assert!(
+        gem.vaal.is_none(),
+        "corrupted support gem should NOT be detected as Vaal"
+    );
+    assert!(item.is_corrupted, "should be corrupted");
+    assert_eq!(item.quality, Some(20));
+    assert_eq!(item.header.item_class, "Support Gems");
+    // Should have gem properties
+    let has_level = item
+        .properties
+        .iter()
+        .any(|p| p.name == "Level" && !p.synthetic);
+    assert!(has_level, "should have Level property");
+}
+
+#[test]
 fn divination_card_resolved() {
     let gd = test_game_data(&[]);
     let item = resolve_fixture("divination-card-hunters-resolve.txt", &gd);

@@ -412,6 +412,52 @@ function buildFilterConfig(
 		fracturedOverride = true;
 	}
 
+	// Gem Level
+	const gemLevelOv = schemaOverrides.get("gem_level");
+	const gemLevelFilter = filterMap.get("gem_level");
+	const gemLevelEnabled = gemLevelOv ? gemLevelOv.enabled : (gemLevelFilter?.enabled ?? false);
+	const gemLevelDefault =
+		gemLevelFilter?.defaultValue?.type === "range" ? gemLevelFilter.defaultValue.min : null;
+	const gemLevelMin = gemLevelOv?.rangeMin ?? gemLevelDefault;
+
+	// Gem Experience %
+	const gemExpOv = schemaOverrides.get("gem_level_progress");
+	const gemExpFilter = filterMap.get("gem_level_progress");
+	const gemExpEnabled = gemExpOv ? gemExpOv.enabled : (gemExpFilter?.enabled ?? false);
+	const gemExpDefault =
+		gemExpFilter?.defaultValue?.type === "range" ? gemExpFilter.defaultValue.min : null;
+	const gemExpMin = gemExpOv?.rangeMin ?? gemExpDefault;
+
+	// Vaal Gem
+	const gemVaalOv = schemaOverrides.get("gem_vaal");
+	const gemVaalFilter = filterMap.get("gem_vaal");
+	let gemVaalOverride: boolean | null = null;
+	if (gemVaalOv) {
+		gemVaalOverride =
+			gemVaalOv.enabled && gemVaalOv.selectedId === "true"
+				? true
+				: gemVaalOv.enabled
+					? null
+					: false;
+	} else if (gemVaalFilter?.enabled) {
+		gemVaalOverride = true;
+	}
+
+	// Transfigured Gem
+	const gemTransOv = schemaOverrides.get("gem_transfigured");
+	const gemTransFilter = filterMap.get("gem_transfigured");
+	let gemTransfiguredOverride: boolean | null = null;
+	if (gemTransOv) {
+		gemTransfiguredOverride =
+			gemTransOv.enabled && gemTransOv.selectedId === "true"
+				? true
+				: gemTransOv.enabled
+					? null
+					: false;
+	} else if (gemTransFilter?.enabled) {
+		gemTransfiguredOverride = true;
+	}
+
 	return {
 		typeScope,
 		statOverrides: Array.from(statOverrides.values()),
@@ -424,6 +470,12 @@ function buildFilterConfig(
 		ilvlMin: ilvlMin != null ? Math.round(ilvlMin) : null,
 		corruptedOverride,
 		fracturedOverride,
+		gemLevelEnabled,
+		gemLevelMin: gemLevelMin != null ? Math.round(gemLevelMin) : null,
+		gemExperienceEnabled: gemExpEnabled,
+		gemExperienceMin: gemExpMin,
+		gemVaalOverride,
+		gemTransfiguredOverride,
 		uniqueNameOverride: selectedUniqueName,
 	};
 }

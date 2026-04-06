@@ -7,6 +7,7 @@ export const PROPERTY_ALIASES: Record<string, string> = {
 	"Chance to Block": "block",
 	"Energy Shield": "es",
 	Armour: "ar",
+	Level: "gem_level",
 };
 
 /** Look up a schema filter by property name. */

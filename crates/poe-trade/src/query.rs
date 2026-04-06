@@ -222,6 +222,14 @@ pub struct MiscFilterValues {
     pub quality: Option<FilterValue>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mutated: Option<OptionFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gem_level: Option<FilterValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gem_level_progress: Option<FilterValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gem_vaal: Option<OptionFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gem_transfigured: Option<OptionFilter>,
 }
 
 // ── Builder ─────────────────────────────────────────────────────────────────
@@ -753,6 +761,29 @@ fn build_type_filters(
     })
 }
 
+/// Build an optional boolean trade filter from a user override and a detected default.
+///
+/// - `Some(true)` override → force on.
+/// - `Some(false)` override → omit (None).
+/// - `None` override → include if `detected` is true.
+fn build_option_filter(override_val: Option<bool>, detected: bool) -> Option<OptionFilter> {
+    match override_val {
+        Some(true) => Some(OptionFilter {
+            option: "true".to_string(),
+        }),
+        Some(false) => None,
+        None => {
+            if detected {
+                Some(OptionFilter {
+                    option: "true".to_string(),
+                })
+            } else {
+                None
+            }
+        }
+    }
+}
+
 fn build_misc_filters(
     item: &ResolvedItem,
     _config: &TradeQueryConfig,
@@ -835,12 +866,57 @@ fn build_misc_filters(
             option: "true".to_string(),
         });
 
+    // ── Gem-specific filters ────────────────────────────────────────────
+    let gem_level = match filter_config {
+        Some(fc) if fc.gem_level_enabled => {
+            let min = fc
+                .gem_level_min
+                .or_else(|| extract_gem_level(item))
+                .map(f64::from);
+            min.map(|m| FilterValue {
+                min: Some(m),
+                max: None,
+            })
+        }
+        _ => None,
+    };
+
+    let gem_level_progress = match filter_config {
+        Some(fc) if fc.gem_experience_enabled => {
+            let min = fc
+                .gem_experience_min
+                .or_else(|| extract_gem_experience_pct(item));
+            min.map(|m| FilterValue {
+                min: Some(m),
+                max: None,
+            })
+        }
+        _ => None,
+    };
+
+    let gem_vaal = build_option_filter(
+        filter_config.and_then(|fc| fc.gem_vaal_override),
+        item.gem_data.as_ref().is_some_and(|g| g.vaal.is_some()),
+    );
+
+    let is_transfigured = item
+        .statuses
+        .contains(&poe_item::types::StatusKind::Transfigured);
+    let gem_transfigured = build_option_filter(
+        filter_config.and_then(|fc| fc.gem_transfigured_override),
+        is_transfigured,
+    );
+
     if ilvl.is_none()
         && corrupted.is_none()
         && identified.is_none()
         && fractured_item.is_none()
         && quality_filter.is_none()
         && mutated.is_none()
+        && gem_level.is_none()
+        && gem_level_progress.is_none()
+        && gem_vaal.is_none()
+        && gem_transfigured.is_none()
     {
         return None;
     }
@@ -853,6 +929,10 @@ fn build_misc_filters(
             fractured_item,
             quality: quality_filter,
             mutated,
+            gem_level,
+            gem_level_progress,
+            gem_vaal,
+            gem_transfigured,
         },
     })
 }
@@ -873,6 +953,40 @@ pub fn extract_quality(item: &ResolvedItem) -> Option<u32> {
             None
         }
     })
+}
+
+/// Extract the gem level from an item's properties.
+///
+/// Looks for a property named `"Level"` and parses its value
+/// (e.g., `"1 (Max)"` → `1`, `"20"` → `20`).
+pub fn extract_gem_level(item: &ResolvedItem) -> Option<u32> {
+    if item.header.rarity != Rarity::Gem {
+        return None;
+    }
+    item.properties.iter().find_map(|p| {
+        if p.name == "Level" {
+            // Strip any trailing " (Max)" or whitespace.
+            let num_str = p.value.split_whitespace().next()?;
+            num_str.parse().ok()
+        } else {
+            None
+        }
+    })
+}
+
+/// Parse gem experience into a percentage (0.0–100.0).
+///
+/// The experience string has format `"current/max"` where numbers may use
+/// space as a thousands separator (e.g., `"1/15 249"`, `"252 595/252 595"`).
+pub fn extract_gem_experience_pct(item: &ResolvedItem) -> Option<f64> {
+    let exp_str = item.experience.as_deref()?;
+    let (current_str, max_str) = exp_str.split_once('/')?;
+    let current: f64 = current_str.replace(' ', "").parse().ok()?;
+    let max: f64 = max_str.replace(' ', "").parse().ok()?;
+    if max <= 0.0 {
+        return None;
+    }
+    Some((current / max * 100.0).min(100.0))
 }
 
 /// Build socket filters (links).
@@ -1910,5 +2024,28 @@ mod tests {
 
         // T5 cold res excluded, only T1 life included
         assert_eq!(result.stats_mapped, 1);
+    }
+
+    #[test]
+    fn gem_experience_pct_simple() {
+        let mut item = test_item();
+        item.experience = Some("1/15 249".to_string());
+        let pct = extract_gem_experience_pct(&item).unwrap();
+        // 1 / 15249 ≈ 0.00656%
+        assert!(pct > 0.006 && pct < 0.007);
+    }
+
+    #[test]
+    fn gem_experience_pct_full() {
+        let mut item = test_item();
+        item.experience = Some("252 595/252 595".to_string());
+        let pct = extract_gem_experience_pct(&item).unwrap();
+        assert!((pct - 100.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn gem_experience_pct_none_when_missing() {
+        let item = test_item();
+        assert!(extract_gem_experience_pct(&item).is_none());
     }
 }

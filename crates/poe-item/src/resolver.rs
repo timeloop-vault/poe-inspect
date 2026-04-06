@@ -98,10 +98,11 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     }
 
     // For gems, extract structured data from generic sections before classification
-    let gem_data = if header.rarity == Rarity::Gem {
-        Some(extract_gem_data(&generic_sections))
+    let (gem_data, gem_properties) = if header.rarity == Rarity::Gem {
+        let (data, props) = extract_gem_data(&generic_sections);
+        (Some(data), props)
     } else {
-        None
+        (None, vec![])
     };
 
     // For gems, generic sections are consumed by extract_gem_data — pass empty
@@ -134,10 +135,11 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     // Pre-compute socket metadata
     let socket_info = sockets.as_deref().map(parse_socket_info);
 
-    // Extract quality from properties
+    // Extract quality from properties (check both classified and gem properties)
     let quality = classified
         .properties
         .iter()
+        .chain(gem_properties.iter())
         .find(|p| p.name == "Quality")
         .and_then(|p| {
             p.value
@@ -151,6 +153,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     // but should also be matchable by property name (for trade filter text matching).
     // Marked synthetic=true so the overlay doesn't render them as property lines.
     let mut properties = classified.properties;
+    // Gem properties are extracted separately (not through classify_generic_sections).
+    properties.extend(gem_properties);
     if let Some(ilvl) = item_level {
         properties.push(ItemProperty {
             name: "Item Level".to_string(),
@@ -698,11 +702,11 @@ fn parse_heist_requirement(line: &str) -> Option<ItemProperty> {
 /// 2. Description (single paragraph, no colons)
 /// 3. Stats + quality effects (stat lines, blank, "Additional Effects From Quality:", quality lines)
 /// 4. [Vaal only] Vaal name separator → repeats 1,3 for Vaal variant
-fn extract_gem_data(sections: &[Vec<String>]) -> GemData {
+fn extract_gem_data(sections: &[Vec<String>]) -> (GemData, Vec<ItemProperty>) {
     let mut iter = sections.iter();
 
     // Section 1: Tags + gem properties
-    let (tags, _gem_props) = iter
+    let (tags, gem_props) = iter
         .next()
         .map(|s| split_gem_tags_and_props(s))
         .unwrap_or_default();
@@ -719,13 +723,16 @@ fn extract_gem_data(sections: &[Vec<String>]) -> GemData {
     // Check if there's a Vaal variant (next section is a single-line name)
     let vaal = extract_vaal_data(&mut iter);
 
-    GemData {
-        tags,
-        description,
-        stats,
-        quality_stats,
-        vaal,
-    }
+    (
+        GemData {
+            tags,
+            description,
+            stats,
+            quality_stats,
+            vaal,
+        },
+        gem_props,
+    )
 }
 
 /// Split the first gem section into tags (first line) and properties (remaining lines).
@@ -773,9 +780,12 @@ fn split_stats_and_quality(lines: &[String]) -> (Vec<String>, Vec<String>) {
 fn extract_vaal_data<'a>(
     iter: &mut impl Iterator<Item = &'a Vec<String>>,
 ) -> Option<Box<VaalGemData>> {
-    // Peek at the next section — if it's a single line (Vaal skill name), consume it
+    // Peek at the next section — if it's a single line starting with "Vaal ", consume it
     let name_section = iter.next()?;
-    if name_section.len() != 1 || name_section[0].is_empty() {
+    if name_section.len() != 1
+        || name_section[0].is_empty()
+        || !name_section[0].starts_with("Vaal ")
+    {
         return None; // Not a Vaal separator
     }
 

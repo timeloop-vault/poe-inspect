@@ -2,4 +2,4 @@
 import type { FilterValue } from "./FilterValue";
 import type { OptionFilter } from "./OptionFilter";
 
-export type MiscFilterValues = { ilvl: FilterValue | null, corrupted: OptionFilter | null, identified: OptionFilter | null, fractured_item: OptionFilter | null, quality: FilterValue | null, mutated: OptionFilter | null, };
+export type MiscFilterValues = { ilvl: FilterValue | null, corrupted: OptionFilter | null, identified: OptionFilter | null, fractured_item: OptionFilter | null, quality: FilterValue | null, mutated: OptionFilter | null, gem_level: FilterValue | null, gem_level_progress: FilterValue | null, gem_vaal: OptionFilter | null, gem_transfigured: OptionFilter | null, };

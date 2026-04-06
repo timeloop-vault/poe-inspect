@@ -101,7 +101,11 @@ pub fn item_class_trade_category(item_class: &str) -> Option<&'static str> {
         // Sanctum / misc
         "Sanctum Relics" => Some("sanctum.relic"),
 
-        // No category filter for: currency, gems, fragments, quest items, etc.
+        // Gems
+        "Skill Gems" => Some("gem.activegem"),
+        "Support Gems" => Some("gem.supportgem"),
+
+        // No category filter for: currency, fragments, quest items, etc.
         _ => None,
     }
 }
@@ -343,10 +347,17 @@ mod tests {
         assert!(!is_map_class("Body Armours"));
         assert!(!is_map_class("Map Fragments"));
 
-        // No category for currency/gems
+        // Gems
+        assert_eq!(
+            item_class_trade_category("Skill Gems"),
+            Some("gem.activegem")
+        );
+        assert_eq!(
+            item_class_trade_category("Support Gems"),
+            Some("gem.supportgem")
+        );
+        // No category for currency/fragments
         assert_eq!(item_class_trade_category("Stackable Currency"), None);
-        assert_eq!(item_class_trade_category("Skill Gems"), None);
-        assert_eq!(item_class_trade_category("Support Gems"), None);
         assert_eq!(item_class_trade_category("Map Fragments"), None);
     }
 }

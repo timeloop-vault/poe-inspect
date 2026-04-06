@@ -64,6 +64,35 @@ corruptedOverride: boolean | null,
  */
 fracturedOverride: boolean | null, 
 /**
+ * Whether to include a gem level filter.
+ */
+gemLevelEnabled: boolean, 
+/**
+ * Minimum gem level (only used when `gem_level_enabled` is true).
+ * `None` = use the item's actual gem level.
+ */
+gemLevelMin: number | null, 
+/**
+ * Whether to include a gem experience % filter.
+ */
+gemExperienceEnabled: boolean, 
+/**
+ * Minimum gem experience % (only used when `gem_experience_enabled` is true).
+ */
+gemExperienceMin: number | null, 
+/**
+ * Override for the Vaal Gem misc filter.
+ * `None` = default (include if item is a Vaal gem).
+ * `Some(false)` = omit. `Some(true)` = force on.
+ */
+gemVaalOverride: boolean | null, 
+/**
+ * Override for the Transfigured Gem misc filter.
+ * `None` = default (include if item is transfigured).
+ * `Some(false)` = omit. `Some(true)` = force on.
+ */
+gemTransfiguredOverride: boolean | null, 
+/**
  * Selected unique name for unidentified unique disambiguation.
  * When non-empty, overrides the `query.name` field in the trade query.
  */

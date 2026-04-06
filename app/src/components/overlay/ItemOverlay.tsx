@@ -312,6 +312,29 @@ export function ItemOverlay({
 									</div>
 								);
 							})()}
+						{item.experience != null &&
+							(() => {
+								const expFilter = tradeEdit?.filterMap.get("gem_level_progress");
+								return (
+									<div class="item-experience meta-line-editable">
+										{expFilter && tradeEdit ? (
+											<InlineFilterCheckbox
+												filter={expFilter}
+												override={tradeEdit.filterOverrides.get("gem_level_progress")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+										<span class="meta-text">Experience: {item.experience}</span>
+										{expFilter && tradeEdit ? (
+											<InlineFilterInput
+												filter={expFilter}
+												override={tradeEdit.filterOverrides.get("gem_level_progress")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null}
+									</div>
+								);
+							})()}
 					</div>
 					<Separator rarity={rarity} />
 				</>
@@ -428,43 +451,78 @@ export function ItemOverlay({
 				</>
 			)}
 
-			{/* Status lines (Corrupted, Fractured) with inline edit controls */}
-			{tradeEdit && (item.isCorrupted || item.isFractured) && (
+			{/* Status lines (Corrupted, Fractured, Vaal Gem, Transfigured Gem) */}
+			{(item.isCorrupted ||
+				item.isFractured ||
+				item.gemData?.vaal != null ||
+				item.statuses.includes("Transfigured")) && (
 				<>
 					<Separator rarity={rarity} />
 					<div class="status-lines">
-						{item.isCorrupted &&
-							(() => {
-								const filter = tradeEdit.filterMap.get("corrupted");
-								return (
-									<div class="status-line">
-										{filter ? (
+						{item.isCorrupted && (
+							<div class="status-line">
+								{tradeEdit &&
+									(() => {
+										const filter = tradeEdit.filterMap.get("corrupted");
+										return filter ? (
 											<InlineToggleControl
 												filter={filter}
 												override={tradeEdit.filterOverrides.get("corrupted")}
 												onOverride={tradeEdit.onFilterOverride}
 											/>
-										) : null}
-										<span class="status-corrupted">Corrupted</span>
-									</div>
-								);
-							})()}
-						{item.isFractured &&
-							(() => {
-								const filter = tradeEdit.filterMap.get("fractured_item");
-								return (
-									<div class="status-line">
-										{filter ? (
+										) : null;
+									})()}
+								<span class="status-corrupted">Corrupted</span>
+							</div>
+						)}
+						{item.isFractured && (
+							<div class="status-line">
+								{tradeEdit &&
+									(() => {
+										const filter = tradeEdit.filterMap.get("fractured_item");
+										return filter ? (
 											<InlineToggleControl
 												filter={filter}
 												override={tradeEdit.filterOverrides.get("fractured_item")}
 												onOverride={tradeEdit.onFilterOverride}
 											/>
-										) : null}
-										<span class="status-fractured">Fractured Item</span>
-									</div>
-								);
-							})()}
+										) : null;
+									})()}
+								<span class="status-fractured">Fractured Item</span>
+							</div>
+						)}
+						{item.gemData?.vaal != null && (
+							<div class="status-line">
+								{tradeEdit &&
+									(() => {
+										const filter = tradeEdit.filterMap.get("gem_vaal");
+										return filter ? (
+											<InlineToggleControl
+												filter={filter}
+												override={tradeEdit.filterOverrides.get("gem_vaal")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null;
+									})()}
+								<span class="status-gem">Vaal Gem</span>
+							</div>
+						)}
+						{item.statuses.includes("Transfigured") && (
+							<div class="status-line">
+								{tradeEdit &&
+									(() => {
+										const filter = tradeEdit.filterMap.get("gem_transfigured");
+										return filter ? (
+											<InlineToggleControl
+												filter={filter}
+												override={tradeEdit.filterOverrides.get("gem_transfigured")}
+												onOverride={tradeEdit.onFilterOverride}
+											/>
+										) : null;
+									})()}
+								<span class="status-gem">Transfigured Gem</span>
+							</div>
+						)}
 					</div>
 				</>
 			)}
