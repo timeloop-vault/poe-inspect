@@ -197,18 +197,29 @@ export function useTradeFilters(
 		setEditMode((prev) => !prev);
 	}, [editMode, itemText, config, initFromPreview]);
 
-	const toggleStat = useCallback((statIndex: number) => {
-		setStatOverrides((prev) => {
-			const next = new Map(prev);
-			const existing = next.get(statIndex);
-			if (existing) {
-				next.set(statIndex, { ...existing, enabled: !existing.enabled });
-			} else {
-				next.set(statIndex, { statIndex, enabled: false, minOverride: null, maxOverride: null });
-			}
-			return next;
-		});
-	}, []);
+	const toggleStat = useCallback(
+		(statIndex: number) => {
+			setStatOverrides((prev) => {
+				const next = new Map(prev);
+				const existing = next.get(statIndex);
+				if (existing) {
+					next.set(statIndex, { ...existing, enabled: !existing.enabled });
+				} else {
+					// No override yet — toggle from the effective default (mappedStats.included)
+					const currentlyEnabled =
+						mappedStats.find((s) => s.statIndex === statIndex)?.included ?? false;
+					next.set(statIndex, {
+						statIndex,
+						enabled: !currentlyEnabled,
+						minOverride: null,
+						maxOverride: null,
+					});
+				}
+				return next;
+			});
+		},
+		[mappedStats],
+	);
 
 	const setStatMin = useCallback((statIndex: number, min: number | null) => {
 		setStatOverrides((prev) => {

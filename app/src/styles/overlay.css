@@ -1170,10 +1170,6 @@ body,
 	cursor: not-allowed;
 }
 
-.mod-line-disabled {
-	opacity: 0.4;
-}
-
 /* Min/max range inputs (side by side) */
 
 .stat-range-inputs {

@@ -222,10 +222,7 @@ export function ModLine({
 		: null;
 
 	return (
-		<div
-			class={`mod-line ${qualityCls} ${isEditable && !isChecked ? "mod-line-disabled" : ""}`}
-			title={statIdTitle}
-		>
+		<div class={`mod-line ${qualityCls}`} title={statIdTitle}>
 			{isEditable && (
 				<label class={`mod-checkbox ${!isMappable ? "mod-unmappable" : ""}`}>
 					<input
