@@ -14,8 +14,9 @@ use regex::Regex;
 
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
-    ModSource, ModTierKind, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
-    ResolvedStatLine, Section, SocketInfo, StatusKind, UniqueCandidate, VaalGemData, ValueRange,
+    ModSource, ModTierKind, Rarity, RawItem, RawPropertyLine, ResolvedHeader, ResolvedItem,
+    ResolvedMod, ResolvedStatLine, Section, SocketInfo, StatusKind, UniqueCandidate, VaalGemData,
+    ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -49,6 +50,8 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let mut statuses = Vec::new();
     let mut note = None;
     let mut grammar_enchant_lines = Vec::new();
+    let mut grammar_properties = Vec::new();
+    let mut grammar_subheaders = Vec::new();
     let mut generic_sections = Vec::new();
 
     for section in &raw.sections {
@@ -100,14 +103,69 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                     grammar_enchant_lines.push(line.clone());
                 }
             }
+            Section::Properties { subheader, lines } => {
+                // Properties identified by grammar (Key: Value format).
+                // For gems, the sub-header contains comma-separated tags.
+                if let Some(sh) = subheader {
+                    grammar_subheaders.push(sh.clone());
+                }
+                for raw in lines {
+                    grammar_properties.push(resolve_raw_property(raw));
+                }
+            }
             Section::Generic(lines) => generic_sections.push(lines.clone()),
         }
     }
 
-    // For gems, extract structured data from generic sections before classification
+    // For gems, extract structured data.
+    // If grammar detected a property section with a sub-header (tags), use that.
+    // Otherwise fall back to extracting from generic sections.
     let (gem_data, gem_properties) = if header.rarity == Rarity::Gem {
-        let (data, props) = extract_gem_data(&generic_sections);
-        (Some(data), props)
+        if let Some(tag_header) = grammar_subheaders.first() {
+            // Grammar gave us tags (sub-header) and properties directly.
+            // Remaining generic sections are: description, stats+quality.
+            let tags: Vec<String> = tag_header
+                .split(", ")
+                .map(|s| s.trim().to_string())
+                .collect();
+            let (stats, quality_stats) = generic_sections
+                .iter()
+                .find(|s| {
+                    s.iter()
+                        .any(|l| l.starts_with("Additional Effects From Quality"))
+                })
+                .map_or_else(
+                    || {
+                        // Last non-empty generic section is stats (no quality marker)
+                        generic_sections
+                            .last()
+                            .map(|s| {
+                                (
+                                    s.iter().filter(|l| !l.is_empty()).cloned().collect(),
+                                    vec![],
+                                )
+                            })
+                            .unwrap_or_default()
+                    },
+                    |s| split_stats_and_quality(s),
+                );
+            let description = generic_sections
+                .first()
+                .map(|s| s.join("\n"))
+                .filter(|s| !s.is_empty());
+            let vaal = extract_vaal_data(&mut generic_sections.iter().skip(2));
+            let data = GemData {
+                tags,
+                description,
+                stats,
+                quality_stats,
+                vaal,
+            };
+            (Some(data), grammar_properties.clone())
+        } else {
+            let (data, props) = extract_gem_data(&generic_sections);
+            (Some(data), props)
+        }
     } else {
         (None, vec![])
     };
@@ -142,10 +200,10 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     // Pre-compute socket metadata
     let socket_info = sockets.as_deref().map(parse_socket_info);
 
-    // Extract quality from properties (check both classified and gem properties)
-    let quality = classified
-        .properties
+    // Extract quality from properties (check grammar, classified, and gem properties)
+    let quality = grammar_properties
         .iter()
+        .chain(classified.properties.iter())
         .chain(gem_properties.iter())
         .find(|p| p.name == "Quality")
         .and_then(|p| {
@@ -156,10 +214,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                 .ok()
         });
 
-    // Add synthetic properties for fields that exist as dedicated fields
-    // but should also be matchable by property name (for trade filter text matching).
-    // Marked synthetic=true so the overlay doesn't render them as property lines.
-    let mut properties = classified.properties;
+    // Merge all property sources: grammar-detected, classifier-detected, gem-specific.
+    let mut properties = grammar_properties;
+    properties.extend(classified.properties);
     // Gem properties are extracted separately (not through classify_generic_sections).
     properties.extend(gem_properties);
     if let Some(ilvl) = item_level {
@@ -638,6 +695,26 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
     }
 
     SectionKind::Unclassified
+}
+
+/// Convert a grammar-parsed `RawPropertyLine` into an `ItemProperty`.
+///
+/// Handles the `(augmented)` marker which the grammar captures as part of
+/// the value text.
+fn resolve_raw_property(raw: &RawPropertyLine) -> ItemProperty {
+    let augmented = raw.value.contains("(augmented)");
+    let value = raw
+        .value
+        .replace(" (augmented)", "")
+        .replace("(augmented)", "")
+        .trim()
+        .to_string();
+    ItemProperty {
+        name: raw.key.clone(),
+        value,
+        augmented,
+        synthetic: false,
+    }
 }
 
 fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {

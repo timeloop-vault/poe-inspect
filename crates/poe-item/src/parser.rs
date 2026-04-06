@@ -3,7 +3,7 @@ use pest_derive::Parser;
 
 use crate::types::{
     Header, InfluenceKind, ModGroup, ModHeader, ModSection, ModSlot, ModSource, ModTierKind,
-    Rarity, RawItem, Requirement, Section, StatusKind,
+    Rarity, RawItem, RawPropertyLine, Requirement, Section, StatusKind,
 };
 
 #[derive(Parser)]
@@ -72,6 +72,7 @@ fn walk_section(pair: pest::iterators::Pair<'_, Rule>) -> Result<Section, ParseE
         Rule::status_section => walk_status_section(pair),
         Rule::note_section => Ok(walk_note_section(pair)),
         Rule::enchant_section => Ok(walk_enchant_section(pair)),
+        Rule::property_section => Ok(walk_property_section(pair)),
         _ => Ok(walk_generic_section(pair)),
     }
 }
@@ -367,6 +368,39 @@ fn walk_enchant_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
         }
     }
     Section::Enchants(lines)
+}
+
+fn walk_property_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
+    let mut subheader = None;
+    let mut lines = Vec::new();
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::property_subheader => {
+                let text = inner
+                    .into_inner()
+                    .find(|p| p.as_rule() == Rule::rest_of_line)
+                    .map(|p| p.as_str().to_string())
+                    .unwrap_or_default();
+                subheader = Some(text);
+            }
+            Rule::property_line => {
+                let mut key = String::new();
+                let mut value = String::new();
+                for field in inner.into_inner() {
+                    match field.as_rule() {
+                        Rule::property_key => key = field.as_str().to_string(),
+                        Rule::property_value => value = field.as_str().to_string(),
+                        _ => {}
+                    }
+                }
+                lines.push(RawPropertyLine { key, value });
+            }
+            _ => {}
+        }
+    }
+
+    Section::Properties { subheader, lines }
 }
 
 fn extract_integer(pair: pest::iterators::Pair<'_, Rule>) -> Result<u32, ParseError> {

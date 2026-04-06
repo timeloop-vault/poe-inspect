@@ -75,6 +75,7 @@ fn rare_weapon_sections() {
             Section::Sockets(_) => "sockets",
             Section::ItemLevel(_) => "item_level",
             Section::Modifiers(_) => "modifiers",
+            Section::Properties { .. } => "properties",
             Section::Generic(_) => "generic",
             _ => "other",
         })
@@ -83,7 +84,7 @@ fn rare_weapon_sections() {
     assert_eq!(
         section_kinds,
         vec![
-            "generic",
+            "properties",
             "requirements",
             "sockets",
             "item_level",
@@ -474,16 +475,17 @@ fn gem_sections() {
         .map(|s| match s {
             Section::Requirements(_) => "requirements",
             Section::Experience(_) => "experience",
+            Section::Properties { .. } => "properties",
             Section::Generic(_) => "generic",
             _ => "other",
         })
         .collect();
 
-    // Gem tags+props, requirements, description, stats, experience, usage
+    // Gem tags+props (sub-header + properties), requirements, description, stats, experience, usage
     assert_eq!(
         section_kinds,
         vec![
-            "generic",
+            "properties",
             "requirements",
             "generic",
             "generic",
@@ -514,11 +516,11 @@ fn divination_card_header() {
     assert_eq!(item.header.rarity, Rarity::DivinationCard);
     assert_eq!(item.header.name1, "Hunter's Resolve");
     assert!(item.header.name2.is_none());
-    // Stack size, reward hint, and flavor text are all generic sections
+    // Stack size is a property section, reward hint and flavor text are generic
     assert!(
         item.sections
             .iter()
-            .all(|s| matches!(s, Section::Generic(_)))
+            .all(|s| matches!(s, Section::Generic(_) | Section::Properties { .. }))
     );
 }
 
@@ -673,15 +675,16 @@ fn support_gem_parsed() {
         .map(|s| match s {
             Section::Requirements(_) => "requirements",
             Section::Experience(_) => "experience",
+            Section::Properties { .. } => "properties",
             Section::Generic(_) => "generic",
             _ => "other",
         })
         .collect();
-    // tags+props, requirements, description, stats, experience, usage
+    // tags+props (sub-header + properties), requirements, description, stats, experience, usage
     assert_eq!(
         section_kinds,
         vec![
-            "generic",
+            "properties",
             "requirements",
             "generic",
             "generic",
@@ -759,9 +762,9 @@ fn rare_shield_parsed() {
     let item = parse_fixture("rare-shield-crafted.txt");
     assert_eq!(item.header.item_class, "Shields");
     assert_eq!(item.header.name2.as_deref(), Some("Mahogany Tower Shield"));
-    // Shield has Chance to Block in properties (generic section)
+    // Shield has Chance to Block in properties section
     let has_block = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.starts_with("Chance to Block")),
+        Section::Properties { lines, .. } => lines.iter().any(|l| l.key == "Chance to Block"),
         _ => false,
     });
     assert!(has_block);
@@ -920,7 +923,7 @@ fn magic_sceptre_parsed() {
 
     // Properties section includes Memory Strands
     let has_memory_strands = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.starts_with("Memory Strands")),
+        Section::Properties { lines, .. } => lines.iter().any(|l| l.key == "Memory Strands"),
         _ => false,
     });
     assert!(has_memory_strands, "should have Memory Strands property");

@@ -59,6 +59,7 @@ section = {
   | status_section
   | note_section
   | enchant_section
+  | property_section
   | generic_section
 }
 
@@ -211,15 +212,34 @@ enchant_section = { enchant_line+ }
 enchant_line    = { enchant_text ~ " (enchant)" ~ NEWLINE }
 enchant_text    = @{ (!(" (enchant)" ~ NEWLINE) ~ !NEWLINE ~ ANY)+ }
 
+// ─── Property section ──────────────────────────────────────────────────────
+// Sections where lines follow "Key: Value" format. Handles two layouts:
+//   1. Pure properties: all lines are "Key: Value" (armour, map, currency)
+//   2. Sub-header + properties: first line has no ": " (weapon type, gem tags)
+//
+// Earlier rules (requirements, sockets, item_level, etc.) match before this
+// in the ordered alternation, so known single-line formats won't collide.
+
+// The lookahead ensures property_section only matches if it consumes the
+// ENTIRE section (next thing is a separator or EOI). Without this, a mixed
+// section like heist blueprints (property lines + non-property lines) would
+// partially match and fail.
+property_section = {
+    ((property_subheader ~ property_line+) | property_line+)
+    ~ &("--------" | NEWLINE* ~ EOI)
+}
+
+property_subheader = { !property_line ~ rest_of_line ~ NEWLINE }
+property_line      = { property_key ~ ": " ~ property_value ~ NEWLINE }
+property_key       = @{ (!(": " | NEWLINE) ~ ANY)+ }
+property_value     = @{ (!NEWLINE ~ ANY)+ }
+
 // ─── Generic section (catch-all) ────────────────────────────────────────────
 // Matches any section not caught by a specific rule above:
-//   - Weapon sub-header + properties ("One Handed Sword\nQuality: +20%...")
-//   - Defence properties ("Evasion Rating: 250 (augmented)")
-//   - Map properties ("Map Tier: 16\nItem Quantity: +115%...")
-//   - Flavor text, usage instructions, special property text
-//   - Gem tags + gem properties
+//   - Flavor text, descriptions, usage instructions
+//   - Mixed content sections
 //
-// The tree walker classifies these further using content analysis.
+// The resolver classifies these using item data (rarity, item class).
 
 generic_section = { (generic_line | blank_line) ~ (generic_line | blank_line)* }
 

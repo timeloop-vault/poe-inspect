@@ -66,7 +66,13 @@ pub enum Section {
     /// Enchant lines — every line ends with `(enchant)` suffix.
     /// The suffix text is included (not stripped) for downstream stat resolution.
     Enchants(Vec<String>),
-    /// Catch-all for unclassified sections (properties, flavor text, etc.)
+    /// Property lines in "Key: Value" format, optionally preceded by a sub-header.
+    /// Sub-header is the first line without ": " (weapon type name, gem tags, etc.)
+    Properties {
+        subheader: Option<String>,
+        lines: Vec<RawPropertyLine>,
+    },
+    /// Catch-all for unclassified sections (flavor text, descriptions, etc.)
     Generic(Vec<String>),
 }
 
@@ -193,6 +199,13 @@ pub enum ModDisplayType {
 pub enum TierDisplayKind {
     Tier,
     Rank,
+}
+
+/// A raw property line from Pass 1 — not yet processed for augmented markers.
+#[derive(Debug, Clone)]
+pub struct RawPropertyLine {
+    pub key: String,
+    pub value: String,
 }
 
 /// A parsed item property line (e.g., "Armour: 890 (augmented)").
