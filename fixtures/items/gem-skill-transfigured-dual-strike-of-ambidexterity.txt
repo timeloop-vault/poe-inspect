@@ -1,0 +1,28 @@
+Item Class: Skill Gems
+Rarity: Gem
+Dual Strike of Ambidexterity
+--------
+Attack, Melee, Strike
+Level: 1
+Cost: 8 Mana
+Attack Speed: 70% of base
+Attack Damage: 126.5% of base
+Effectiveness of Added Damage: 126%
+Quality: +18% (augmented)
+--------
+Requirements:
+Level: 1
+--------
+Attacks with both weapons, dealing the damage of both in one strike. Requires dual-wielding two different melee weapon types to use.
+--------
+50% more Damage with Main Hand Weapon
+Uses Off Hand Weapon Attack Time
+
+Additional Effects From Quality:
+18(0-20)% more Damage with Main Hand Weapon
+--------
+Experience: 1/70
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.
+--------
+Transfigured

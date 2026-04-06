@@ -1,0 +1,31 @@
+Item Class: Skill Gems
+Rarity: Gem
+War Banner
+--------
+AoE, Spell, Duration, Aura, Physical
+Level: 11
+Cost: 16 Mana
+Cooldown Time: 1.00 sec
+Cast Time: Instant
+--------
+Requirements:
+Level: 40
+Str: 92
+--------
+You must gain Valour from melee combat to use this skill, which will consume all Valour to place a banner with an aura. The aura will be larger and more powerful the more Valour was consumed. The banner lasts for a duration, but will end early if you leave the aura, or use the skill again while it's active.
+--------
+Base duration is 10.00 seconds
+Base radius is 2.4 metres
+While you have no placed Banner, you can gain Valour
+(By default you gain 1 Valour on Melee Kill, or on Melee Hit against Rare or Unique enemies, no more than once every 0.5 seconds, up to a maximum of 50)
+7% more Area of Effect per Valour consumed
+8% more Aura effect per Valour consumed
+Banner grants 8% increased Accuracy Rating to You and Allies
+Banner grants 4% more Physical Damage with Melee Skills to You and Allies
+
+Additional Effects From Quality:
++0.00(0.00-2.00) seconds to Base duration
+--------
+Experience: 1 055 569/1 061 223
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.

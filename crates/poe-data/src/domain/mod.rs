@@ -13,6 +13,7 @@
 
 mod inheritance;
 mod item_limits;
+mod item_text;
 mod pseudos;
 mod tiers;
 mod trade_mappings;
@@ -21,6 +22,7 @@ mod trade_mappings;
 
 pub use inheritance::{LOCAL_STAT_NONLOCAL_FALLBACKS, inherited_tags_for_parent};
 pub use item_limits::item_class_affix_limit;
+pub use item_text::is_usage_instruction;
 pub use pseudos::{
     DPS_PSEUDO_DEFINITIONS, DpsPseudoDefinition, DpsPseudoKind, PSEUDO_DEFINITIONS,
     PseudoComponent, PseudoDefinition, dps_pseudo_definitions, dps_weapon_filter, is_dps_pseudo,

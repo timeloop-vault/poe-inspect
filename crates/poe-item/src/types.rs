@@ -63,7 +63,18 @@ pub enum Section {
     Status(StatusKind),
     /// GGG trade pricing annotation: "Note: ~b/o 35 chaos"
     Note(String),
-    /// Catch-all for unclassified sections (properties, flavor text, enchants, etc.)
+    /// Enchant lines — every line ends with `(enchant)` suffix.
+    /// The suffix text is included (not stripped) for downstream stat resolution.
+    Enchants(Vec<String>),
+    /// Property lines in "Key: Value" format, optionally preceded by a sub-header.
+    /// Sub-header is the first line without ": " (weapon type name, gem tags, etc.)
+    Properties {
+        subheader: Option<String>,
+        lines: Vec<RawPropertyLine>,
+    },
+    /// Complete gem data assembled by the tree walker from gem-specific grammar rules.
+    GemData(GemData),
+    /// Catch-all for unclassified sections (flavor text, descriptions, etc.)
     Generic(Vec<String>),
 }
 
@@ -192,6 +203,13 @@ pub enum TierDisplayKind {
     Rank,
 }
 
+/// A raw property line from Pass 1 — not yet processed for augmented markers.
+#[derive(Debug, Clone)]
+pub struct RawPropertyLine {
+    pub key: String,
+    pub value: String,
+}
+
 /// A parsed item property line (e.g., "Armour: 890 (augmented)").
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -290,6 +308,7 @@ pub enum StatusKind {
     Split,
     Transfigured,
     Unidentified,
+    Imbued,
 }
 
 impl StatusKind {
@@ -302,6 +321,7 @@ impl StatusKind {
             "Split" => Some(Self::Split),
             "Transfigured" => Some(Self::Transfigured),
             "Unidentified" => Some(Self::Unidentified),
+            "Imbued" => Some(Self::Imbued),
             _ => None,
         }
     }
@@ -316,6 +336,7 @@ impl StatusKind {
             Self::Split => "Split",
             Self::Transfigured => "Transfigured",
             Self::Unidentified => "Unidentified",
+            Self::Imbued => "Imbued",
         }
     }
 }
@@ -405,8 +426,8 @@ pub struct UniqueCandidate {
     pub art: String,
 }
 
-/// Gem-specific structured data extracted from generic sections.
-#[derive(Debug, Clone)]
+/// Gem-specific structured data.
+#[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]

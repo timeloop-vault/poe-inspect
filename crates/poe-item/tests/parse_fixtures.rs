@@ -75,6 +75,7 @@ fn rare_weapon_sections() {
             Section::Sockets(_) => "sockets",
             Section::ItemLevel(_) => "item_level",
             Section::Modifiers(_) => "modifiers",
+            Section::Properties { .. } => "properties",
             Section::Generic(_) => "generic",
             _ => "other",
         })
@@ -83,7 +84,7 @@ fn rare_weapon_sections() {
     assert_eq!(
         section_kinds,
         vec![
-            "generic",
+            "properties",
             "requirements",
             "sockets",
             "item_level",
@@ -438,25 +439,29 @@ fn talisman_tier() {
 }
 
 #[test]
-fn enchant_as_generic_section() {
+fn enchant_section_detected() {
     let item = parse_fixture("rare-amulet-talisman-corrupted.txt");
-    // "Allocates Entropy (enchant)" should be in a generic section
+    // "Allocates Entropy (enchant)" should be in an Enchants section
+    let has_enchant = item.sections.iter().any(|s| match s {
+        Section::Enchants(lines) => lines.iter().any(|l| l.contains("(enchant)")),
+        _ => false,
+    });
+    assert!(has_enchant, "enchant should be in Enchants section");
+}
+
+#[test]
+fn body_armour_mixed_enchant_section() {
+    let item = parse_fixture("rare-body-armour-enchanted.txt");
+    // Mixed section (some lines without "(enchant)") falls through to Generic.
+    // Only pure enchant sections are caught by the grammar.
     let has_enchant_generic = item.sections.iter().any(|s| match s {
         Section::Generic(lines) => lines.iter().any(|l| l.contains("(enchant)")),
         _ => false,
     });
-    assert!(has_enchant_generic, "enchant should be in generic section");
-}
-
-#[test]
-fn body_armour_enchant_section() {
-    let item = parse_fixture("rare-body-armour-enchanted.txt");
-    // Multi-line enchant section should be generic
-    let enchant_generic = item.sections.iter().find(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.contains("(enchant)")),
-        _ => false,
-    });
-    assert!(enchant_generic.is_some());
+    assert!(
+        has_enchant_generic,
+        "mixed enchant section should stay generic"
+    );
 }
 
 // ─── Gem test ───────────────────────────────────────────────────────────────
@@ -470,22 +475,18 @@ fn gem_sections() {
         .map(|s| match s {
             Section::Requirements(_) => "requirements",
             Section::Experience(_) => "experience",
+            Section::Properties { .. } => "properties",
+            Section::GemData(_) => "gem_data",
             Section::Generic(_) => "generic",
             _ => "other",
         })
         .collect();
 
-    // Gem tags+props, requirements, description, stats, experience, usage
+    // Gem grammar path: properties, requirements, gem_data (tags+desc+stats), experience
+    // (usage instructions are dropped by the tree walker)
     assert_eq!(
         section_kinds,
-        vec![
-            "generic",
-            "requirements",
-            "generic",
-            "generic",
-            "experience",
-            "generic"
-        ]
+        vec!["properties", "requirements", "experience", "gem_data"]
     );
 }
 
@@ -510,11 +511,11 @@ fn divination_card_header() {
     assert_eq!(item.header.rarity, Rarity::DivinationCard);
     assert_eq!(item.header.name1, "Hunter's Resolve");
     assert!(item.header.name2.is_none());
-    // Stack size, reward hint, and flavor text are all generic sections
+    // Stack size is a property section, reward hint and flavor text are generic
     assert!(
         item.sections
             .iter()
-            .all(|s| matches!(s, Section::Generic(_)))
+            .all(|s| matches!(s, Section::Generic(_) | Section::Properties { .. }))
     );
 }
 
@@ -614,14 +615,14 @@ fn cluster_jewel_enchants_and_mods() {
     let item = parse_fixture("magic-cluster-jewel-large.txt");
     assert_eq!(item.header.item_class, "Jewels");
 
-    // Enchant section (multi-line with (enchant) markers) is generic
+    // Enchant section detected by grammar
     let enchant_section = item.sections.iter().find(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.contains("(enchant)")),
+        Section::Enchants(lines) => lines.iter().any(|l| l.contains("(enchant)")),
         _ => false,
     });
     assert!(
         enchant_section.is_some(),
-        "cluster jewel enchants should be generic"
+        "cluster jewel enchants should be in Enchants section"
     );
 
     // Mods are properly parsed
@@ -647,10 +648,10 @@ fn normal_cluster_jewel_enchants_only() {
         .iter()
         .any(|s| matches!(s, Section::Modifiers(_)));
     assert!(!has_mods);
-    let has_enchants = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.contains("(enchant)")),
-        _ => false,
-    });
+    let has_enchants = item
+        .sections
+        .iter()
+        .any(|s| matches!(s, Section::Enchants(_)));
     assert!(has_enchants);
 }
 
@@ -669,21 +670,16 @@ fn support_gem_parsed() {
         .map(|s| match s {
             Section::Requirements(_) => "requirements",
             Section::Experience(_) => "experience",
+            Section::Properties { .. } => "properties",
+            Section::GemData(_) => "gem_data",
             Section::Generic(_) => "generic",
             _ => "other",
         })
         .collect();
-    // tags+props, requirements, description, stats, experience, usage
+    // Gem grammar path: properties, requirements, gem_data, experience
     assert_eq!(
         section_kinds,
-        vec![
-            "generic",
-            "requirements",
-            "generic",
-            "generic",
-            "experience",
-            "generic"
-        ]
+        vec!["properties", "requirements", "experience", "gem_data"]
     );
 }
 
@@ -755,9 +751,9 @@ fn rare_shield_parsed() {
     let item = parse_fixture("rare-shield-crafted.txt");
     assert_eq!(item.header.item_class, "Shields");
     assert_eq!(item.header.name2.as_deref(), Some("Mahogany Tower Shield"));
-    // Shield has Chance to Block in properties (generic section)
+    // Shield has Chance to Block in properties section
     let has_block = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.starts_with("Chance to Block")),
+        Section::Properties { lines, .. } => lines.iter().any(|l| l.key == "Chance to Block"),
         _ => false,
     });
     assert!(has_block);
@@ -916,7 +912,7 @@ fn magic_sceptre_parsed() {
 
     // Properties section includes Memory Strands
     let has_memory_strands = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => lines.iter().any(|l| l.starts_with("Memory Strands")),
+        Section::Properties { lines, .. } => lines.iter().any(|l| l.key == "Memory Strands"),
         _ => false,
     });
     assert!(has_memory_strands, "should have Memory Strands property");
@@ -1005,9 +1001,9 @@ fn anointed_talisman_parsed() {
         .expect("should have talisman tier");
     assert_eq!(tier, 1);
 
-    // Anointment enchant in generic section
+    // Anointment enchant in Enchants section (detected by grammar)
     let has_anoint = item.sections.iter().any(|s| match s {
-        Section::Generic(lines) => lines
+        Section::Enchants(lines) => lines
             .iter()
             .any(|l| l.contains("Allocates Devotion (enchant)")),
         _ => false,

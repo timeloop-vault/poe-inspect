@@ -60,6 +60,7 @@ Each crate has its own `CLAUDE.md` with detailed scope, decisions, and plan.
 - **poe-dat owns DatFile**: The datc64 binary reader (`DatFile`) lives in poe-dat. One source of truth for the core reader.
 - **poe-dat = "our queries"**: Not a new generic dat layer. Typed table extractions for the ~15 specific tables we need, with compile-time field offsets. Can be used as a library or CLI.
 - **Section-first parser**: Split item text on `--------` separators → classify sections → parse with typed handlers.
+- **poe-item two-pass boundary**: Pass 1 (PEST grammar) handles ALL structural pattern recognition — if a section can be identified by its text format (e.g., `Key: Value` lines, `(enchant)` suffix), the grammar catches it. Pass 2 (resolver) uses ONLY `GameData` and parsed item data (rarity, item class) — no hardcoded string matching, no regex for structural patterns. Domain knowledge constants (usage instruction prefixes, etc.) live in `poe-data::domain`, not in the resolver.
 - **Iterative build order**: poe-dat → poe-data → poe-item → poe-eval → app. Prove each layer before building the next.
 - **`Arc<GameData>` pattern**: Single shared game data instance, loaded once, passed by reference.
 - **Template-keyed lookups**: Stat translations indexed by template string (what appears in item text), not by stat ID.

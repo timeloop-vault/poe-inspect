@@ -14,8 +14,8 @@ use regex::Regex;
 
 use crate::types::{
     GemData, Header, InfluenceKind, ItemProperty, ModDisplayType, ModGroup, ModHeader, ModSlot,
-    ModSource, ModTierKind, Rarity, RawItem, ResolvedHeader, ResolvedItem, ResolvedMod,
-    ResolvedStatLine, Section, SocketInfo, StatusKind, UniqueCandidate, VaalGemData, ValueRange,
+    ModSource, ModTierKind, Rarity, RawItem, RawPropertyLine, ResolvedHeader, ResolvedItem,
+    ResolvedMod, ResolvedStatLine, Section, SocketInfo, StatusKind, UniqueCandidate, ValueRange,
 };
 
 /// Regex matching value range annotations: `32(25-40)`, `-9(-25-50)`, `1(10--10)`.
@@ -48,6 +48,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let mut influences = Vec::new();
     let mut statuses = Vec::new();
     let mut note = None;
+    let mut grammar_enchant_lines = Vec::new();
+    let mut grammar_properties = Vec::new();
+    let mut grammar_gem_data: Option<GemData> = None;
     let mut generic_sections = Vec::new();
 
     for section in &raw.sections {
@@ -93,33 +96,43 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
             }
             Section::Status(s) => statuses.push(*s),
             Section::Note(n) => note = Some(n.clone()),
+            Section::Enchants(lines) => {
+                // Enchants identified by grammar (lines ending with " (enchant)")
+                for line in lines {
+                    grammar_enchant_lines.push(line.clone());
+                }
+            }
+            Section::Properties { lines, .. } => {
+                for raw in lines {
+                    grammar_properties.push(resolve_raw_property(raw));
+                }
+            }
+            Section::GemData(data) => {
+                grammar_gem_data = Some(data.clone());
+            }
             Section::Generic(lines) => generic_sections.push(lines.clone()),
         }
     }
 
-    // For gems, extract structured data from generic sections before classification
-    let (gem_data, gem_properties) = if header.rarity == Rarity::Gem {
-        let (data, props) = extract_gem_data(&generic_sections);
-        (Some(data), props)
+    // For gems, GemData comes directly from the grammar — no extraction needed.
+    let gem_data = grammar_gem_data;
+    let gem_properties = if gem_data.is_some() {
+        grammar_properties.clone()
     } else {
-        (None, vec![])
+        vec![]
     };
 
-    // For gems, generic sections are consumed by extract_gem_data — pass empty
-    let sections_to_classify = if gem_data.is_some() {
-        &[][..]
-    } else {
-        &generic_sections[..]
-    };
+    // Classify remaining generic sections (non-gem items only).
+    let sections_to_classify = &generic_sections[..];
 
     // Classify generic sections into properties, enchants, description, flavor text, etc.
     let classified =
         classify_generic_sections(sections_to_classify, header.rarity, &header.item_class);
 
-    // Build enchant mods from detected enchant lines
-    let enchants: Vec<ResolvedMod> = classified
-        .enchant_lines
+    // Build enchant mods from both grammar-detected and classifier-detected enchant lines
+    let enchants: Vec<ResolvedMod> = grammar_enchant_lines
         .iter()
+        .chain(classified.enchant_lines.iter())
         .map(|line| build_enchant_mod(line, game_data))
         .collect();
 
@@ -135,10 +148,10 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     // Pre-compute socket metadata
     let socket_info = sockets.as_deref().map(parse_socket_info);
 
-    // Extract quality from properties (check both classified and gem properties)
-    let quality = classified
-        .properties
+    // Extract quality from properties (check grammar, classified, and gem properties)
+    let quality = grammar_properties
         .iter()
+        .chain(classified.properties.iter())
         .chain(gem_properties.iter())
         .find(|p| p.name == "Quality")
         .and_then(|p| {
@@ -149,10 +162,9 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
                 .ok()
         });
 
-    // Add synthetic properties for fields that exist as dedicated fields
-    // but should also be matchable by property name (for trade filter text matching).
-    // Marked synthetic=true so the overlay doesn't render them as property lines.
-    let mut properties = classified.properties;
+    // Merge all property sources: grammar-detected, classifier-detected, gem-specific.
+    let mut properties = grammar_properties;
+    properties.extend(classified.properties);
     // Gem properties are extracted separately (not through classify_generic_sections).
     properties.extend(gem_properties);
     if let Some(ilvl) = item_level {
@@ -482,31 +494,19 @@ struct ClassifiedSections {
     unclassified: Vec<Vec<String>>,
 }
 
-/// Known prefixes for GGG usage instructions (not flavor text, not descriptions).
-const USAGE_PREFIXES: &[&str] = &[
-    "Right click",
-    "Place into",
-    "Travel to",
-    "Can be used",
-    "This is a Support Gem",
-    "Shift click to unstack",
-    "Use Intelligence",
-    "Give this",
-];
-
-/// Classify generic sections by content analysis.
+/// Classify remaining generic sections using item data (rarity, item class).
 ///
-/// Each section is independently classified as one of:
-/// - **Properties**: all lines contain `": "` (e.g., "Armour: 890 (augmented)")
-/// - **Enchants**: all lines end with `(enchant)`
-/// - **Usage instructions**: starts with known GGG instruction prefix
-/// - **Flavor text**: poetic/lore text (no colons, not instructions, not enchants)
-/// - **Description**: item effect text (currency effects, scarab effects, etc.)
-/// - **Unclassified**: anything else
+/// By this point, the grammar has already caught property sections (Key: Value)
+/// and enchant sections (lines ending with "(enchant)"). What remains are:
+/// - Mixed sections (heist blueprints: properties + non-property lines)
+/// - Plain text (flavor text, descriptions, usage instructions)
+///
+/// Classification is data-driven — it uses the item's rarity to determine
+/// whether text sections are flavor text or descriptions.
 fn classify_generic_sections(
     sections: &[Vec<String>],
     rarity: Rarity,
-    item_class: &str,
+    _item_class: &str,
 ) -> ClassifiedSections {
     let mut properties = Vec::new();
     let mut enchant_lines = Vec::new();
@@ -519,7 +519,7 @@ fn classify_generic_sections(
             continue;
         }
 
-        let classification = classify_single_section(section, rarity, item_class);
+        let classification = classify_single_section(section, rarity);
         match classification {
             SectionKind::Properties(props) => properties.extend(props),
             SectionKind::Enchants(lines) => enchant_lines.extend(lines),
@@ -556,7 +556,12 @@ enum SectionKind {
     Unclassified,
 }
 
-fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -> SectionKind {
+/// Classify a single generic section using item data.
+///
+/// The grammar already caught pure property and pure enchant sections.
+/// What reaches here are mixed or plain-text sections that need rarity
+/// context to classify.
+fn classify_single_section(lines: &[String], rarity: Rarity) -> SectionKind {
     let non_empty: Vec<&str> = lines
         .iter()
         .map(String::as_str)
@@ -566,76 +571,54 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
         return SectionKind::Unclassified;
     }
 
-    // All lines end with (enchant) → enchant section
+    // Mixed enchant sections (some lines with suffix, some without) that
+    // the grammar couldn't catch as pure enchant sections.
     if non_empty.iter().all(|l| l.ends_with("(enchant)")) {
         return SectionKind::Enchants(non_empty.iter().map(|l| (*l).to_string()).collect());
     }
 
-    // Starts with known usage instruction prefix → drop
-    if USAGE_PREFIXES.iter().any(|p| non_empty[0].starts_with(p)) {
+    // Usage instructions — identified by domain knowledge from poe-data
+    if poe_data::domain::is_usage_instruction(non_empty[0]) {
         return SectionKind::UsageInstructions;
     }
 
-    // Check if this is a property section (majority of lines have ": ")
+    // Mixed sections with property lines (e.g., heist blueprints with
+    // "Requires Lockpicking (Level 3)" interleaved with "Area Level: 83").
+    // The grammar couldn't match these as pure property sections.
     let colon_count = non_empty.iter().filter(|l| l.contains(": ")).count();
-    // Heist skill requirements: "Requires Lockpicking (Level 3)" — no colon but still a property
     let heist_req_count = non_empty
         .iter()
         .filter(|l| l.starts_with("Requires ") && l.contains("(Level "))
         .count();
     let prop_like_count = colon_count + heist_req_count;
     if prop_like_count > 0 && prop_like_count == non_empty.len() {
-        // All lines are property-like
         let props = parse_property_lines(lines);
         return SectionKind::Properties(props);
     }
 
-    // Weapon sections: first line is a weapon type sub-header (e.g., "Warstaff",
-    // "Two Handed Axe", "Bow") without ": ", followed by property lines that all have ": ".
-    // Only weapons have this pattern — armour/accessories start directly with properties.
-    if colon_count > 0
-        && colon_count == non_empty.len() - 1
-        && !non_empty[0].contains(": ")
-        && poe_data::domain::is_weapon_class(item_class)
-    {
-        let property_lines: Vec<String> = lines.iter().skip(1).cloned().collect();
-        let props = parse_property_lines(&property_lines);
-        return SectionKind::Properties(props);
-    }
-
-    // Mixed section: some lines have colons, some don't.
-    // For currency/essence: the description header + slot table are mixed.
-    // Treat the whole section as description text.
+    // Mixed section with some colons: currency description tables
     if colon_count > 0 && rarity == Rarity::Currency {
         return SectionKind::Description(lines.join("\n"));
     }
 
-    // Pure text section (no colons) — could be flavor text or description
-    // Flavor text: appears on Unique, DivinationCard, and scarab-like items (Normal Map Fragments)
-    // Description: effect text on currency, scarabs, tinctures, etc.
+    // ── Data-driven text classification using rarity ──────────────────────
     let text = lines.join("\n");
 
-    // Currency/gem descriptions come before flavor text
     if matches!(rarity, Rarity::Currency | Rarity::Gem) {
-        // Currency items: first text section is description, rest are unclassified
         return SectionKind::Description(text);
     }
 
-    // For uniques and div cards: text sections are typically flavor text
     if matches!(rarity, Rarity::Unique | Rarity::DivinationCard) {
         return SectionKind::FlavorText(text);
     }
 
-    // Quoted text is flavor text regardless of rarity (e.g., heist contracts)
+    // Quoted text is flavor text regardless of rarity
     if non_empty[0].starts_with('"') {
         return SectionKind::FlavorText(text);
     }
 
-    // For Normal rarity items that are scarabs/fragments: first text section is description,
-    // subsequent ones might be flavor text. Use a heuristic: if it looks like a game effect
-    // (long, mechanical language), it's description. If it's short/poetic, it's flavor.
+    // Normal rarity: short/poetic → flavor, longer → description
     if rarity == Rarity::Normal {
-        // Short poetic text → flavor; longer mechanical text → description
         if non_empty.len() <= 2 && text.len() < 80 {
             return SectionKind::FlavorText(text);
         }
@@ -643,6 +626,26 @@ fn classify_single_section(lines: &[String], rarity: Rarity, item_class: &str) -
     }
 
     SectionKind::Unclassified
+}
+
+/// Convert a grammar-parsed `RawPropertyLine` into an `ItemProperty`.
+///
+/// Handles the `(augmented)` marker which the grammar captures as part of
+/// the value text.
+fn resolve_raw_property(raw: &RawPropertyLine) -> ItemProperty {
+    let augmented = raw.value.contains("(augmented)");
+    let value = raw
+        .value
+        .replace(" (augmented)", "")
+        .replace("(augmented)", "")
+        .trim()
+        .to_string();
+    ItemProperty {
+        name: raw.key.clone(),
+        value,
+        augmented,
+        synthetic: false,
+    }
 }
 
 fn parse_property_lines(lines: &[String]) -> Vec<ItemProperty> {
@@ -691,128 +694,6 @@ fn parse_heist_requirement(line: &str) -> Option<ItemProperty> {
         augmented: false,
         synthetic: false,
     })
-}
-
-// ── Gem data extraction ──────────────────────────────────────────────────────
-
-/// Extract structured gem data from generic sections.
-///
-/// Gem section order:
-/// 1. Tags + properties (first line = comma tags, rest = Key: Value)
-/// 2. Description (single paragraph, no colons)
-/// 3. Stats + quality effects (stat lines, blank, "Additional Effects From Quality:", quality lines)
-/// 4. [Vaal only] Vaal name separator → repeats 1,3 for Vaal variant
-fn extract_gem_data(sections: &[Vec<String>]) -> (GemData, Vec<ItemProperty>) {
-    let mut iter = sections.iter();
-
-    // Section 1: Tags + gem properties
-    let (tags, gem_props) = iter
-        .next()
-        .map(|s| split_gem_tags_and_props(s))
-        .unwrap_or_default();
-
-    // Section 2: Description
-    let description = iter.next().map(|s| s.join("\n")).filter(|s| !s.is_empty());
-
-    // Section 3: Stats + quality effects
-    let (stats, quality_stats) = iter
-        .next()
-        .map(|s| split_stats_and_quality(s))
-        .unwrap_or_default();
-
-    // Check if there's a Vaal variant (next section is a single-line name)
-    let vaal = extract_vaal_data(&mut iter);
-
-    (
-        GemData {
-            tags,
-            description,
-            stats,
-            quality_stats,
-            vaal,
-        },
-        gem_props,
-    )
-}
-
-/// Split the first gem section into tags (first line) and properties (remaining lines).
-fn split_gem_tags_and_props(lines: &[String]) -> (Vec<String>, Vec<ItemProperty>) {
-    if lines.is_empty() {
-        return (vec![], vec![]);
-    }
-
-    // First line is comma-separated tags (no colon)
-    let tags: Vec<String> = lines[0].split(", ").map(|s| s.trim().to_string()).collect();
-
-    // Remaining lines are gem properties (Key: Value)
-    let props = parse_property_lines(&lines[1..]);
-
-    (tags, props)
-}
-
-/// Split a stats section at "Additional Effects From Quality:" marker.
-fn split_stats_and_quality(lines: &[String]) -> (Vec<String>, Vec<String>) {
-    let quality_marker = lines
-        .iter()
-        .position(|l| l.starts_with("Additional Effects From Quality"));
-
-    if let Some(pos) = quality_marker {
-        // Stats are before the marker (skip trailing blank lines)
-        let stats: Vec<String> = lines[..pos]
-            .iter()
-            .filter(|l| !l.is_empty())
-            .cloned()
-            .collect();
-        // Quality effects are after the marker
-        let quality: Vec<String> = lines[pos + 1..]
-            .iter()
-            .filter(|l| !l.is_empty())
-            .cloned()
-            .collect();
-        (stats, quality)
-    } else {
-        let stats: Vec<String> = lines.iter().filter(|l| !l.is_empty()).cloned().collect();
-        (stats, vec![])
-    }
-}
-
-/// Try to extract Vaal variant data from remaining sections.
-fn extract_vaal_data<'a>(
-    iter: &mut impl Iterator<Item = &'a Vec<String>>,
-) -> Option<Box<VaalGemData>> {
-    // Peek at the next section — if it's a single line starting with "Vaal ", consume it
-    let name_section = iter.next()?;
-    if name_section.len() != 1
-        || name_section[0].is_empty()
-        || !name_section[0].starts_with("Vaal ")
-    {
-        return None; // Not a Vaal separator
-    }
-
-    let name = name_section[0].clone();
-
-    // Vaal properties (Souls Per Use, etc.)
-    let vaal_props = iter
-        .next()
-        .map(|s| parse_property_lines(s))
-        .unwrap_or_default();
-
-    // Vaal description
-    let vaal_desc = iter.next().map(|s| s.join("\n")).filter(|s| !s.is_empty());
-
-    // Vaal stats + quality effects
-    let (vaal_stats, vaal_quality) = iter
-        .next()
-        .map(|s| split_stats_and_quality(s))
-        .unwrap_or_default();
-
-    Some(Box::new(VaalGemData {
-        name,
-        properties: vaal_props,
-        description: vaal_desc,
-        stats: vaal_stats,
-        quality_stats: vaal_quality,
-    }))
 }
 
 /// Build a synthetic `ResolvedMod` from an enchant line.

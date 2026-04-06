@@ -2,8 +2,9 @@ use pest::Parser;
 use pest_derive::Parser;
 
 use crate::types::{
-    Header, InfluenceKind, ModGroup, ModHeader, ModSection, ModSlot, ModSource, ModTierKind,
-    Rarity, RawItem, Requirement, Section, StatusKind,
+    GemData, Header, InfluenceKind, ItemProperty, ModGroup, ModHeader, ModSection, ModSlot,
+    ModSource, ModTierKind, Rarity, RawItem, RawPropertyLine, Requirement, Section, StatusKind,
+    VaalGemData,
 };
 
 #[derive(Parser)]
@@ -39,18 +40,69 @@ pub fn parse(input: &str) -> Result<RawItem, ParseError> {
 }
 
 fn walk_item(pair: pest::iterators::Pair<'_, Rule>) -> Result<RawItem, ParseError> {
+    // item = { SOI ~ (gem_item | standard_item) ~ NEWLINE* ~ EOI }
+    // Unwrap the gem_item or standard_item wrapper, then walk its children.
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::gem_item | Rule::standard_item => return walk_item_inner(inner),
+            _ => {}
+        }
+    }
+    Err(ParseError::Internal("no item variant matched".into()))
+}
+
+fn walk_item_inner(pair: pest::iterators::Pair<'_, Rule>) -> Result<RawItem, ParseError> {
     let mut header = None;
     let mut sections = Vec::new();
+    let mut gem_data: Option<GemData> = None;
 
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::header_section => header = Some(walk_header(inner)),
+            // Both gem_header_section and header_section have the same child structure
+            Rule::header_section | Rule::gem_header_section => {
+                header = Some(walk_header(inner));
+            }
             Rule::section => {
                 let section_inner = inner.into_inner().next().unwrap();
                 sections.push(walk_section(section_inner)?);
             }
+            // ── Gem-specific rules (build GemData incrementally) ──
+            Rule::gem_tags_and_properties => {
+                let (tags, props) = walk_gem_tags_and_properties(inner);
+                gem_data.get_or_insert_with(GemData::default).tags = tags;
+                sections.push(Section::Properties {
+                    subheader: None,
+                    lines: props,
+                });
+            }
+            Rule::gem_description_section => {
+                let lines = collect_section_text(inner);
+                gem_data.get_or_insert_with(GemData::default).description = Some(lines.join("\n"));
+            }
+            Rule::gem_stats_section => {
+                let (stats, quality_stats) = walk_gem_stats(inner);
+                let gd = gem_data.get_or_insert_with(GemData::default);
+                gd.stats = stats;
+                gd.quality_stats = quality_stats;
+            }
+            Rule::vaal_section => {
+                let vaal = walk_vaal_section(inner);
+                gem_data.get_or_insert_with(GemData::default).vaal = Some(Box::new(vaal));
+            }
+            // ── Shared rules (used by both gem and standard paths) ──
+            // Note: gem_usage_section, gem_supported_by_section, and gem_flavor_section
+            // are intentionally not matched — they're dropped or not used downstream yet.
+            Rule::property_section => sections.push(walk_property_section(inner)),
+            Rule::requirements_section => sections.push(walk_requirements(inner)),
+            Rule::experience_section => sections.push(walk_experience(inner)),
+            Rule::status_section => sections.push(walk_status_section(inner)?),
             _ => {}
         }
+    }
+
+    // If the gem grammar path built GemData, push it as a single section
+    if let Some(gd) = gem_data {
+        sections.push(Section::GemData(gd));
     }
 
     Ok(RawItem {
@@ -71,6 +123,8 @@ fn walk_section(pair: pest::iterators::Pair<'_, Rule>) -> Result<Section, ParseE
         Rule::influence_section => Ok(walk_influence_section(pair)),
         Rule::status_section => walk_status_section(pair),
         Rule::note_section => Ok(walk_note_section(pair)),
+        Rule::enchant_section => Ok(walk_enchant_section(pair)),
+        Rule::property_section => Ok(walk_property_section(pair)),
         _ => Ok(walk_generic_section(pair)),
     }
 }
@@ -88,6 +142,9 @@ fn walk_header(pair: pest::iterators::Pair<'_, Rule>) -> Header {
                         item_class = field.as_str().to_string();
                     }
                 }
+            }
+            Rule::gem_rarity_line => {
+                rarity = Rarity::Gem;
             }
             Rule::rarity_line => {
                 for field in inner.into_inner() {
@@ -355,6 +412,221 @@ fn walk_generic_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
     Section::Generic(lines)
 }
 
+fn walk_enchant_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
+    let mut lines = Vec::new();
+    for inner in pair.into_inner() {
+        if inner.as_rule() == Rule::enchant_line {
+            // Reconstruct the full line including the " (enchant)" suffix,
+            // since downstream stat resolution needs it for suffix stripping.
+            let text = inner.as_str().trim_end_matches('\n').to_string();
+            lines.push(text);
+        }
+    }
+    Section::Enchants(lines)
+}
+
+fn walk_property_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
+    let mut subheader = None;
+    let mut lines = Vec::new();
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::property_subheader => {
+                let text = inner
+                    .into_inner()
+                    .find(|p| p.as_rule() == Rule::rest_of_line)
+                    .map(|p| p.as_str().to_string())
+                    .unwrap_or_default();
+                subheader = Some(text);
+            }
+            Rule::property_line => {
+                let mut key = String::new();
+                let mut value = String::new();
+                for field in inner.into_inner() {
+                    match field.as_rule() {
+                        Rule::property_key => key = field.as_str().to_string(),
+                        Rule::property_value => value = field.as_str().to_string(),
+                        _ => {}
+                    }
+                }
+                lines.push(RawPropertyLine { key, value });
+            }
+            _ => {}
+        }
+    }
+
+    Section::Properties { subheader, lines }
+}
+
+/// Walk `vaal_section`: name + properties + description + stats.
+fn walk_vaal_section(pair: pest::iterators::Pair<'_, Rule>) -> VaalGemData {
+    let mut name = String::new();
+    let mut properties = Vec::new();
+    let mut description = None;
+    let mut stats = Vec::new();
+    let mut quality_stats = Vec::new();
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::vaal_name_line => {
+                // Grammar matched "Vaal " prefix, rest_of_line has the remainder
+                let rest = inner
+                    .into_inner()
+                    .find(|p| p.as_rule() == Rule::rest_of_line)
+                    .map(|p| p.as_str())
+                    .unwrap_or_default();
+                name = format!("Vaal {rest}");
+            }
+            Rule::vaal_properties_section => {
+                // Mixed format: some lines have ": ", some don't
+                for line in inner.into_inner() {
+                    if line.as_rule() == Rule::generic_line {
+                        let text = line
+                            .into_inner()
+                            .find(|p| p.as_rule() == Rule::rest_of_line)
+                            .map(|p| p.as_str())
+                            .unwrap_or_default();
+                        if let Some((key, value)) = text.split_once(": ") {
+                            let augmented = value.contains("(augmented)");
+                            let clean_value = value
+                                .replace(" (augmented)", "")
+                                .replace("(augmented)", "")
+                                .trim()
+                                .to_string();
+                            properties.push(ItemProperty {
+                                name: key.to_string(),
+                                value: clean_value,
+                                augmented,
+                                synthetic: false,
+                            });
+                        } else {
+                            // Non-property line like "Can Store 2 Uses"
+                            properties.push(ItemProperty {
+                                name: text.to_string(),
+                                value: String::new(),
+                                augmented: false,
+                                synthetic: false,
+                            });
+                        }
+                    }
+                }
+            }
+            Rule::gem_description_section => {
+                let lines = collect_section_text(inner);
+                description = Some(lines.join("\n"));
+            }
+            Rule::gem_stats_section => {
+                let (s, q) = walk_gem_stats(inner);
+                stats = s;
+                quality_stats = q;
+            }
+            _ => {}
+        }
+    }
+
+    VaalGemData {
+        name,
+        properties,
+        description,
+        stats,
+        quality_stats,
+    }
+}
+
+/// Walk `gem_tags_and_properties`: first line is tags, rest are `Key: Value` properties.
+fn walk_gem_tags_and_properties(
+    pair: pest::iterators::Pair<'_, Rule>,
+) -> (Vec<String>, Vec<RawPropertyLine>) {
+    let mut tags = Vec::new();
+    let mut props = Vec::new();
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::gem_tags_line => {
+                let text = inner
+                    .into_inner()
+                    .find(|p| p.as_rule() == Rule::rest_of_line)
+                    .map(|p| p.as_str())
+                    .unwrap_or_default();
+                tags = text.split(", ").map(|s| s.trim().to_string()).collect();
+            }
+            Rule::property_line => {
+                let mut key = String::new();
+                let mut value = String::new();
+                for field in inner.into_inner() {
+                    match field.as_rule() {
+                        Rule::property_key => key = field.as_str().to_string(),
+                        Rule::property_value => value = field.as_str().to_string(),
+                        _ => {}
+                    }
+                }
+                props.push(RawPropertyLine { key, value });
+            }
+            _ => {}
+        }
+    }
+
+    (tags, props)
+}
+
+/// Walk `gem_stats_section`, returning (stats, quality stats) split at the quality marker.
+fn walk_gem_stats(pair: pest::iterators::Pair<'_, Rule>) -> (Vec<String>, Vec<String>) {
+    let mut stats = Vec::new();
+    let mut quality_stats = Vec::new();
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::gem_stat_lines => {
+                for line in inner.into_inner() {
+                    if line.as_rule() == Rule::gem_stat_line {
+                        if let Some(text) = line
+                            .into_inner()
+                            .find(|p| p.as_rule() == Rule::rest_of_line)
+                        {
+                            stats.push(text.as_str().to_string());
+                        }
+                    }
+                }
+            }
+            Rule::gem_quality_block => {
+                for line in inner.into_inner() {
+                    if line.as_rule() == Rule::generic_line {
+                        if let Some(text) = line
+                            .into_inner()
+                            .find(|p| p.as_rule() == Rule::rest_of_line)
+                        {
+                            quality_stats.push(text.as_str().to_string());
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    (stats, quality_stats)
+}
+
+/// Collect all text lines from a section into a Vec<String>.
+fn collect_section_text(pair: pest::iterators::Pair<'_, Rule>) -> Vec<String> {
+    let mut lines = Vec::new();
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::generic_line | Rule::gem_stat_line | Rule::gem_usage_line => {
+                if let Some(text) = inner
+                    .into_inner()
+                    .find(|p| p.as_rule() == Rule::rest_of_line)
+                {
+                    lines.push(text.as_str().to_string());
+                }
+            }
+            Rule::blank_line => lines.push(String::new()),
+            _ => {}
+        }
+    }
+    lines
+}
+
 fn extract_integer(pair: pest::iterators::Pair<'_, Rule>) -> Result<u32, ParseError> {
     pair.into_inner()
         .find(|p| p.as_rule() == Rule::integer)
@@ -370,4 +642,67 @@ pub enum ParseError {
     Grammar { message: String },
     #[error("internal error: {0}")]
     Internal(String),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse_gem_fixture(name: &str) -> bool {
+        let path = format!("{}/../../fixtures/items/{name}", env!("CARGO_MANIFEST_DIR"));
+        let text = std::fs::read_to_string(&path).unwrap();
+        let input = if text.ends_with('\n') {
+            text
+        } else {
+            format!("{text}\n")
+        };
+        let pairs = ItemParser::parse(Rule::item, &input).unwrap();
+        let item = pairs.into_iter().next().unwrap();
+        // Check if it matched gem_item (not standard_item)
+        for inner in item.into_inner() {
+            if inner.as_rule() == Rule::gem_item {
+                return true;
+            }
+            if inner.as_rule() == Rule::standard_item {
+                return false;
+            }
+        }
+        false
+    }
+
+    #[test]
+    fn gem_grammar_matches_shockwave_totem() {
+        assert!(
+            parse_gem_fixture("gem-skill-shockwave-totem.txt"),
+            "should match gem_item path"
+        );
+    }
+
+    #[test]
+    fn gem_grammar_matches_all_gem_fixtures() {
+        let fixtures = [
+            "gem-skill-shockwave-totem.txt",
+            "gem-skill-portal-corrupted.txt",
+            "gem-skill-transfigured-consecrated-path-of-endurance.txt",
+            "gem-skill-transfigured-shock-nova-of-procession.txt",
+            "gem-skill-transfigured-dual-strike-of-ambidexterity.txt",
+            "gem-skill-war-banner.txt",
+            "gem-skill-imbued-flicker-strike.txt",
+            "gem-support-faster-casting.txt",
+            "gem-support-spell-totem-corrupted.txt",
+            "gem-support-exceptional-transfusion.txt",
+            "gem-support-awakened-enhance.txt",
+            "gem-vaal-ice-nova.txt",
+        ];
+        let mut failed = Vec::new();
+        for name in &fixtures {
+            if !parse_gem_fixture(name) {
+                failed.push(*name);
+            }
+        }
+        assert!(
+            failed.is_empty(),
+            "these gem fixtures did NOT match gem_item path: {failed:?}"
+        );
+    }
 }
