@@ -1,0 +1,31 @@
+Item Class: Support Gems
+Rarity: Gem
+Transfusion Support
+--------
+Exceptional, Spell, Minion, Support
+Level: 1
+Cost & Reservation Multiplier: 150%
+--------
+Requirements:
+Level: 72
+Str: 72
+Int: 50
+--------
+Supports non-blessing spells.
+--------
+Supported Skills Cost Life instead of Mana
+A nearby Minion gains a Soul for every 200 Life you spend on Upfront
+Costs with Supported Spells
+(Each soul grants 5% increased Attack and Cast speed. You lose 1 soul every 0.5 seconds if you have not eaten any souls Recently. Maximum of 45 souls consumed)
+(Upfront Costs are all Costs that are not paid per-second)
+(Transfusion prioritises your closest Minion that isn't already at maximum Souls)
+
+Additional Effects From Quality:
+Supported Skills have 0(0-10)% increased Life Cost
+--------
+Experience: 1/226 854 909
+--------
+Let the eternal scream within
+flow from your weeping blood.
+--------
+This is a Support Gem. It does not grant a bonus to your character, but to skills in sockets connected to it. Place into an item socket connected to a socket containing the Skill Gem you wish to augment. Right click to remove from a socket.

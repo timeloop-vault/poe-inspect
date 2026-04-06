@@ -72,6 +72,8 @@ pub enum Section {
         subheader: Option<String>,
         lines: Vec<RawPropertyLine>,
     },
+    /// Complete gem data assembled by the tree walker from gem-specific grammar rules.
+    GemData(GemData),
     /// Catch-all for unclassified sections (flavor text, descriptions, etc.)
     Generic(Vec<String>),
 }
@@ -306,6 +308,7 @@ pub enum StatusKind {
     Split,
     Transfigured,
     Unidentified,
+    Imbued,
 }
 
 impl StatusKind {
@@ -318,6 +321,7 @@ impl StatusKind {
             "Split" => Some(Self::Split),
             "Transfigured" => Some(Self::Transfigured),
             "Unidentified" => Some(Self::Unidentified),
+            "Imbued" => Some(Self::Imbued),
             _ => None,
         }
     }
@@ -332,6 +336,7 @@ impl StatusKind {
             Self::Split => "Split",
             Self::Transfigured => "Transfigured",
             Self::Unidentified => "Unidentified",
+            Self::Imbued => "Imbued",
         }
     }
 }
@@ -421,8 +426,8 @@ pub struct UniqueCandidate {
     pub art: String,
 }
 
-/// Gem-specific structured data extracted from generic sections.
-#[derive(Debug, Clone)]
+/// Gem-specific structured data.
+#[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]

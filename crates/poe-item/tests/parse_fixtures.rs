@@ -476,22 +476,17 @@ fn gem_sections() {
             Section::Requirements(_) => "requirements",
             Section::Experience(_) => "experience",
             Section::Properties { .. } => "properties",
+            Section::GemData(_) => "gem_data",
             Section::Generic(_) => "generic",
             _ => "other",
         })
         .collect();
 
-    // Gem tags+props (sub-header + properties), requirements, description, stats, experience, usage
+    // Gem grammar path: properties, requirements, gem_data (tags+desc+stats), experience
+    // (usage instructions are dropped by the tree walker)
     assert_eq!(
         section_kinds,
-        vec![
-            "properties",
-            "requirements",
-            "generic",
-            "generic",
-            "experience",
-            "generic"
-        ]
+        vec!["properties", "requirements", "experience", "gem_data"]
     );
 }
 
@@ -676,21 +671,15 @@ fn support_gem_parsed() {
             Section::Requirements(_) => "requirements",
             Section::Experience(_) => "experience",
             Section::Properties { .. } => "properties",
+            Section::GemData(_) => "gem_data",
             Section::Generic(_) => "generic",
             _ => "other",
         })
         .collect();
-    // tags+props (sub-header + properties), requirements, description, stats, experience, usage
+    // Gem grammar path: properties, requirements, gem_data, experience
     assert_eq!(
         section_kinds,
-        vec![
-            "properties",
-            "requirements",
-            "generic",
-            "generic",
-            "experience",
-            "generic"
-        ]
+        vec!["properties", "requirements", "experience", "gem_data"]
     );
 }
 
