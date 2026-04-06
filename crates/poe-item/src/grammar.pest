@@ -58,6 +58,7 @@ section = {
   | influence_section
   | status_section
   | note_section
+  | enchant_section
   | generic_section
 }
 
@@ -201,12 +202,20 @@ status_keyword = { "Corrupted" | "Mirrored" | "Unmodifiable" | "Split" | "Transf
 
 note_section = { "Note: " ~ rest_of_line ~ NEWLINE }
 
+// ─── Enchant section ────────────────────────────────────────────────────────
+// Sections where EVERY line ends with the `(enchant)` suffix.
+// Cluster jewel enchants, labyrinth enchants, delirium enchants, anointments.
+// Mixed sections (some lines without suffix) fall through to generic.
+
+enchant_section = { enchant_line+ }
+enchant_line    = { enchant_text ~ " (enchant)" ~ NEWLINE }
+enchant_text    = @{ (!(" (enchant)" ~ NEWLINE) ~ !NEWLINE ~ ANY)+ }
+
 // ─── Generic section (catch-all) ────────────────────────────────────────────
 // Matches any section not caught by a specific rule above:
 //   - Weapon sub-header + properties ("One Handed Sword\nQuality: +20%...")
 //   - Defence properties ("Evasion Rating: 250 (augmented)")
 //   - Map properties ("Map Tier: 16\nItem Quantity: +115%...")
-//   - Enchant lines ("Allocates Entropy (enchant)")
 //   - Flavor text, usage instructions, special property text
 //   - Gem tags + gem properties
 //

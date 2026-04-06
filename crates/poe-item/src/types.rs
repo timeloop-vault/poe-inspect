@@ -63,7 +63,10 @@ pub enum Section {
     Status(StatusKind),
     /// GGG trade pricing annotation: "Note: ~b/o 35 chaos"
     Note(String),
-    /// Catch-all for unclassified sections (properties, flavor text, enchants, etc.)
+    /// Enchant lines — every line ends with `(enchant)` suffix.
+    /// The suffix text is included (not stripped) for downstream stat resolution.
+    Enchants(Vec<String>),
+    /// Catch-all for unclassified sections (properties, flavor text, etc.)
     Generic(Vec<String>),
 }
 

@@ -48,6 +48,7 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let mut influences = Vec::new();
     let mut statuses = Vec::new();
     let mut note = None;
+    let mut grammar_enchant_lines = Vec::new();
     let mut generic_sections = Vec::new();
 
     for section in &raw.sections {
@@ -93,6 +94,12 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
             }
             Section::Status(s) => statuses.push(*s),
             Section::Note(n) => note = Some(n.clone()),
+            Section::Enchants(lines) => {
+                // Enchants identified by grammar (lines ending with " (enchant)")
+                for line in lines {
+                    grammar_enchant_lines.push(line.clone());
+                }
+            }
             Section::Generic(lines) => generic_sections.push(lines.clone()),
         }
     }
@@ -116,10 +123,10 @@ pub fn resolve(raw: &RawItem, game_data: &GameData) -> ResolvedItem {
     let classified =
         classify_generic_sections(sections_to_classify, header.rarity, &header.item_class);
 
-    // Build enchant mods from detected enchant lines
-    let enchants: Vec<ResolvedMod> = classified
-        .enchant_lines
+    // Build enchant mods from both grammar-detected and classifier-detected enchant lines
+    let enchants: Vec<ResolvedMod> = grammar_enchant_lines
         .iter()
+        .chain(classified.enchant_lines.iter())
         .map(|line| build_enchant_mod(line, game_data))
         .collect();
 

@@ -71,6 +71,7 @@ fn walk_section(pair: pest::iterators::Pair<'_, Rule>) -> Result<Section, ParseE
         Rule::influence_section => Ok(walk_influence_section(pair)),
         Rule::status_section => walk_status_section(pair),
         Rule::note_section => Ok(walk_note_section(pair)),
+        Rule::enchant_section => Ok(walk_enchant_section(pair)),
         _ => Ok(walk_generic_section(pair)),
     }
 }
@@ -353,6 +354,19 @@ fn walk_generic_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
         }
     }
     Section::Generic(lines)
+}
+
+fn walk_enchant_section(pair: pest::iterators::Pair<'_, Rule>) -> Section {
+    let mut lines = Vec::new();
+    for inner in pair.into_inner() {
+        if inner.as_rule() == Rule::enchant_line {
+            // Reconstruct the full line including the " (enchant)" suffix,
+            // since downstream stat resolution needs it for suffix stripping.
+            let text = inner.as_str().trim_end_matches('\n').to_string();
+            lines.push(text);
+        }
+    }
+    Section::Enchants(lines)
 }
 
 fn extract_integer(pair: pest::iterators::Pair<'_, Rule>) -> Result<u32, ParseError> {
